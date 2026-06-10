@@ -230,6 +230,7 @@
   </header>
 
   <main>
+<p><a href="../index.html">Back to benchmark index</a></p>
     <section class="panel visual-summary">
       <div class="panel-heading">
         <h2>Visual Summary: SQLite rc3 vs MariaDB</h2>
@@ -294,9 +295,9 @@
     <section class="panel">
       <div class="panel-heading">
         <h2>Methodology Fixes In This Run</h2>
-        <p>These are the fixes that make this run comparable to the suspicious earlier result.</p>
+        <p>These methodology controls make the local request-load results comparable across variants and avoid counting setup work as measured latency.</p>
       </div>
-      <ul><li>database snapshot restored before every measured case</li><li>login/setup excluded from measured elapsed time</li><li>concurrent warm-up before measured window</li><li>three repetitions by default</li><li>variant alternation disabled because low-disk mode runs one variant at a time</li><li>verified WooCommerce checkout/order write flows</li><li>per-case request logs</li><li>SQLite WAL sampled without pre-recording checkpoint</li><li>database snapshots compressed to reduce benchmark artifact disk usage</li><li>low-disk mode: variants executed sequentially and cleaned up after completion</li></ul>
+      <ul><li>database snapshot restored before every measured case</li><li>login/setup excluded from measured elapsed time</li><li>concurrent warm-up before measured window</li><li>three repetitions by default</li><li>variants executed sequentially because the local VM did not have enough free disk for all active 5GB sites at once</li><li>verified WooCommerce checkout/order write flows</li><li>per-case request logs</li><li>SQLite WAL sampled without pre-recording checkpoint</li><li>database snapshots compressed to reduce benchmark artifact disk usage</li><li>after each variant finished, its active 5GB site/database was deleted to preserve local disk space</li></ul>
     </section>
 
     <section class="panel">

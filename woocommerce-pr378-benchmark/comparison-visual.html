@@ -40,6 +40,7 @@
 </head>
 <body>
 <main>
+<p><a href="../index.html">Back to benchmark index</a></p>
   <h1>WooCommerce 5GB SQLite Benchmark: Visual Report</h1>
   <p class="lead">This is a merged PR assessment: it adds SQLite PR #378 to the existing MariaDB, SQLite rc3, and stable-control WooCommerce matrix at concurrent-request points 4, 16, 32, 64. The clearest view is not a box plot: each matrix cell has only three repetitions, so this report uses heatmaps, scatter plots, and repetition dot plots with median marks.</p>
   <div class="grid">
@@ -49,6 +50,23 @@
     <div class="stat"><strong>0</strong><span>SQLite PR #378 failed flows / lock errors</span></div>
   </div>
   <p class="note">Read the heatmap first. Green means SQLite rc3 improved that metric compared with MariaDB; red means it regressed. For latency metrics, green means lower latency. For throughput metrics, green means more completed work.</p>
+  <section>
+    <h2>PR #378 vs rc3 Summary</h2>
+    <p>This PR branch did not show a broad 2x-3x improvement on the measured WooCommerce 5GB request-load flows. It helped a few mid-concurrency cells, but regressed several high-concurrency p95 and throughput cells. Neither rc3 nor PR #378 logged SQLite lock/busy errors in this diagnostic.</p>
+    <table>
+      <thead><tr><th class="left">Workload</th><th>Concurrent requests</th><th>PR p95 vs rc3</th><th>PR avg completion vs rc3</th><th>PR throughput vs rc3</th></tr></thead>
+      <tbody>
+        <tr><td class="left">read-heavy</td><td>4</td><td class="bad">+8.8%</td><td class="bad">+6.3%</td><td class="bad">-6.0%</td></tr>
+        <tr><td class="left">read-heavy</td><td>16</td><td class="good">-4.3%</td><td class="neutral">-0.4%</td><td class="neutral">+0.5%</td></tr>
+        <tr><td class="left">read-heavy</td><td>32</td><td class="neutral">-0.8%</td><td class="bad">+6.3%</td><td class="bad">-6.3%</td></tr>
+        <tr><td class="left">read-heavy</td><td>64</td><td class="bad">+39.4%</td><td class="bad">+36.2%</td><td class="bad">-27.1%</td></tr>
+        <tr><td class="left">balanced</td><td>16</td><td class="good">-11.8%</td><td class="neutral">-3.1%</td><td class="neutral">+3.0%</td></tr>
+        <tr><td class="left">balanced</td><td>64</td><td class="bad">+29.8%</td><td class="bad">+30.7%</td><td class="bad">-24.1%</td></tr>
+        <tr><td class="left">write-heavy</td><td>32</td><td class="bad">+9.1%</td><td class="bad">+11.7%</td><td class="bad">-10.1%</td></tr>
+        <tr><td class="left">write-heavy</td><td>64</td><td class="bad">+16.1%</td><td class="bad">+23.9%</td><td class="bad">-20.6%</td></tr>
+      </tbody>
+    </table>
+  </section>
   <section>
     <h2>How The Test Was Conducted</h2>
     <p>The measured window starts after fixture restore, server startup, login setup, and warm-up. These are browser-equivalent WooCommerce flows driven over HTTP, not literal Chrome automation.</p>

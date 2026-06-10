@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SQLite Benchmark Assessment Status</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --text: #1d2327;
+      --muted: #5f6b7a;
+      --line: #d9e1ea;
+      --ok: #d1fae5;
+      --ok-text: #065f46;
+      --warn: #fef3c7;
+      --warn-text: #92400e;
+      --bad: #fee2e2;
+      --bad-text: #991b1b;
+      --blue: #dbeafe;
+      --blue-text: #1e40af;
+      --accent: #1f6feb;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    main {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 34px 22px 56px;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 32px;
+      letter-spacing: 0;
+    }
+    h2 {
+      margin: 30px 0 12px;
+      font-size: 22px;
+      letter-spacing: 0;
+    }
+    p {
+      margin: 0 0 14px;
+      max-width: 980px;
+      color: var(--muted);
+    }
+    a {
+      color: var(--accent);
+      font-weight: 700;
+      text-decoration: none;
+    }
+    a:hover { text-decoration: underline; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px;
+      margin: 22px 0;
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .label {
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .value {
+      margin-top: 4px;
+      font-size: 25px;
+      font-weight: 800;
+    }
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 12px 0 24px;
+    }
+    th, td {
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--line);
+      text-align: right;
+      vertical-align: top;
+    }
+    th {
+      background: #eef2f7;
+      color: #3c434a;
+      font-size: 12px;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+    td:first-child, th:first-child,
+    td:nth-child(2), th:nth-child(2) {
+      text-align: left;
+    }
+    tr:last-child td { border-bottom: 0; }
+    tr:nth-child(even) td { background: #fbfcfd; }
+    .ok { background: var(--ok) !important; color: var(--ok-text); font-weight: 700; }
+    .warn { background: var(--warn) !important; color: var(--warn-text); font-weight: 700; }
+    .bad { background: var(--bad) !important; color: var(--bad-text); font-weight: 700; }
+    .info { background: var(--blue) !important; color: var(--blue-text); font-weight: 700; }
+    .note {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+      margin: 16px 0 22px;
+    }
+  </style>
+</head>
+<body>
+<main>
+  <h1>SQLite Benchmark Assessment Status</h1>
+  <p>Current state after the local WooCommerce 5GB request-load diagnostics and the 20-repetition Real Chrome diagnostic. These runs are useful methodology and risk evidence, but they are not the final dedicated-Linux Core merge assessment.</p>
+
+  <section class="grid" aria-label="Status summary">
+    <div class="card"><div class="label">Full goal.md Core matrix</div><div class="value bad">Incomplete</div><p>Still requires dedicated Linux SUT plus separate Linux load generator.</p></div>
+    <div class="card"><div class="label">Local WooCommerce request-load</div><div class="value ok">Completed</div><p>5GB fixture, 4/16/32/64 concurrent requests, 3 repetitions per cell.</p></div>
+    <div class="card"><div class="label">Real Chrome diagnostic</div><div class="value ok">Completed</div><p>5GB fixture, 7 browser flows, 20 repetitions per flow per database.</p></div>
+    <div class="card"><div class="label">SQLite rc3 lock/busy events</div><div class="value ok">0</div><p>Observed in the local WooCommerce rc3 request-load and Chrome diagnostics.</p></div>
+  </section>
+
+  <h2>Published Evidence</h2>
+  <table>
+    <thead><tr><th>Report</th><th>Scope</th><th>Link</th></tr></thead>
+    <tbody>
+      <tr><td>WooCommerce 5GB rc3 vs MariaDB vs stable</td><td>Concurrent requests 4, 16, 32, and 64</td><td><a href="woocommerce-c4-16-32-64-benchmark/comparison-visual.html">Visual report</a></td></tr>
+      <tr><td>WooCommerce 5GB PR #378 assessment</td><td>PR branch vs rc3, MariaDB, and stable control</td><td><a href="woocommerce-pr378-benchmark/comparison-visual.html">Visual report</a></td></tr>
+      <tr><td>WooCommerce 5GB Real Chrome browser</td><td>Chrome rendering, wp-admin, Site Editor, checkout, and frontend XHR</td><td><a href="woocommerce-chrome-browser-benchmark/comparison-chrome-20-repetitions.html">20-repetition report</a></td></tr>
+    </tbody>
+  </table>
+
+  <h2>rc3 vs MariaDB: Local Request Load</h2>
+  <p>Negative latency deltas mean SQLite was faster. Positive throughput deltas mean SQLite completed more flows per second.</p>
+  <table>
+    <thead><tr><th>Workload</th><th>Concurrent requests</th><th>p95 latency</th><th>Avg completion</th><th>Throughput</th><th>Write p95</th><th>SQLite lock/busy</th></tr></thead>
+    <tbody>
+      <tr><td>Read-heavy</td><td>4</td><td class="bad">+18.6%</td><td class="bad">+14.7%</td><td class="bad">-12.8%</td><td>n/a</td><td class="ok">0</td></tr>
+      <tr><td>Read-heavy</td><td>16</td><td class="ok">-5.5%</td><td class="bad">+25.2%</td><td class="bad">-20.3%</td><td>n/a</td><td class="ok">0</td></tr>
+      <tr><td>Read-heavy</td><td>32</td><td class="ok">-20.6%</td><td class="bad">+22.5%</td><td class="bad">-18.4%</td><td>n/a</td><td class="ok">0</td></tr>
+      <tr><td>Read-heavy</td><td>64</td><td class="ok">-20.7%</td><td class="bad">+36.6%</td><td class="bad">-27.1%</td><td>n/a</td><td class="ok">0</td></tr>
+      <tr><td>Balanced</td><td>4</td><td class="ok">-1.7%</td><td class="ok">-5.9%</td><td class="ok">+6.2%</td><td class="ok">-7.3%</td><td class="ok">0</td></tr>
+      <tr><td>Balanced</td><td>16</td><td class="warn">+1.0%</td><td class="bad">+30.7%</td><td class="bad">-23.7%</td><td class="warn">+0.7%</td><td class="ok">0</td></tr>
+      <tr><td>Balanced</td><td>32</td><td class="ok">-13.5%</td><td class="bad">+31.6%</td><td class="bad">-24.5%</td><td class="ok">-11.8%</td><td class="ok">0</td></tr>
+      <tr><td>Balanced</td><td>64</td><td class="ok">-13.6%</td><td class="bad">+49.1%</td><td class="bad">-32.6%</td><td class="ok">-11.8%</td><td class="ok">0</td></tr>
+      <tr><td>Write-heavy</td><td>4</td><td class="ok">-7.6%</td><td class="ok">-12.0%</td><td class="ok">+13.0%</td><td class="ok">-11.4%</td><td class="ok">0</td></tr>
+      <tr><td>Write-heavy</td><td>16</td><td class="bad">+10.4%</td><td class="bad">+17.8%</td><td class="bad">-15.5%</td><td class="warn">+1.5%</td><td class="ok">0</td></tr>
+      <tr><td>Write-heavy</td><td>32</td><td class="bad">+33.9%</td><td class="bad">+32.0%</td><td class="bad">-24.7%</td><td class="bad">+36.4%</td><td class="ok">0</td></tr>
+      <tr><td>Write-heavy</td><td>64</td><td class="bad">+40.0%</td><td class="bad">+48.7%</td><td class="bad">-32.3%</td><td class="bad">+41.5%</td><td class="ok">0</td></tr>
+    </tbody>
+  </table>
+
+  <div class="note">
+    <p>Interesting local conclusion: SQLite rc3 avoided visible lock/busy failures, but write-heavy 32/64 concurrent-request cells still regressed materially in p95 latency, average completion time, throughput, and write latency. Read-heavy p95 can improve while average completion and throughput regress, so p95 alone is not enough to claim a win.</p>
+  </div>
+
+  <h2>Real Chrome: rc3 vs MariaDB</h2>
+  <table>
+    <thead><tr><th>Flow</th><th>Chrome-ready</th><th>p95 ready</th><th>TTFB</th><th>XHR p95</th></tr></thead>
+    <tbody>
+      <tr><td>Woo checkout order submit</td><td class="warn">-0.2%</td><td class="ok">-1.7%</td><td class="bad">+12.7%</td><td class="ok">-23.7%</td></tr>
+      <tr><td>Woo frontend XHR burst</td><td class="warn">+2.5%</td><td class="warn">+0.9%</td><td class="bad">+12.9%</td><td class="warn">-1.3%</td></tr>
+      <tr><td>Woo product detail render</td><td class="warn">+0.4%</td><td class="warn">+0.8%</td><td class="bad">+19.8%</td><td>n/a</td></tr>
+      <tr><td>Woo shop catalog render</td><td class="warn">+0.8%</td><td class="warn">+0.6%</td><td class="bad">+11.3%</td><td>n/a</td></tr>
+      <tr><td>Woo admin orders screen</td><td class="bad">+13.9%</td><td class="bad">+17.8%</td><td class="bad">+291.4%</td><td class="bad">+15.1%</td></tr>
+      <tr><td>wp-admin post editor open</td><td class="warn">+0.0%</td><td class="warn">-0.5%</td><td class="warn">+3.8%</td><td class="warn">-1.0%</td></tr>
+      <tr><td>wp-admin site editor open</td><td class="warn">+0.1%</td><td class="warn">-0.0%</td><td class="bad">+20.9%</td><td class="bad">+22.3%</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Stable Plugin Control</h2>
+  <p>The stable `v2.2.23` control is useful as a reference line but not a viable WooCommerce write-heavy result in this diagnostic: it produced lock/busy events in all workload types and flow/write-verification failures in balanced and write-heavy flows.</p>
+  <table>
+    <thead><tr><th>Workload</th><th>Failed flows across 4/16/32/64</th><th>SQLite lock/busy events across 4/16/32/64</th></tr></thead>
+    <tbody>
+      <tr><td>Read-heavy</td><td class="ok">0</td><td class="warn">58, 36, 50, 90</td></tr>
+      <tr><td>Balanced</td><td class="bad">15, 28, 31, 37</td><td class="bad">206, 313, 312, 442</td></tr>
+      <tr><td>Write-heavy</td><td class="bad">26, 52, 61, 111</td><td class="bad">294, 396, 470, 771</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Remaining Work For Full Scope</h2>
+  <table>
+    <thead><tr><th>Requirement</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>Dedicated Linux SUT and separate Linux load generator</td><td class="bad">Missing</td></tr>
+      <tr><td>Small, medium, and large Core fixture snapshots for all database variants</td><td class="bad">Missing</td></tr>
+      <tr><td>Cache-off and object-cache-on 54-cell matrix with 3 publishable repetitions</td><td class="bad">Missing</td></tr>
+      <tr><td>Linux host, PHP-FPM, disk I/O, MySQL/MariaDB, SQLite WAL/checkpoint, and load-generator headroom evidence</td><td class="bad">Missing</td></tr>
+      <tr><td>Final report answering every `goal.md` acceptance question from hosted evidence</td><td class="bad">Missing</td></tr>
+    </tbody>
+  </table>
+</main>
+</body>
+</html>

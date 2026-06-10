@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Readable WooCommerce SQLite Benchmark Report</title>
+  <title>Readable WooCommerce SQLite PR #378 Benchmark Report</title>
   <style>
       :root {
         --ink: #172033;
@@ -221,7 +221,7 @@
 </head>
 <body>
   <header>
-    <h1>WooCommerce SQLite Benchmark: Readable Report</h1>
+    <h1>WooCommerce SQLite PR #378 Benchmark: Readable Report</h1>
     <p class="subtitle">
       Local production-methodology diagnostic on macOS. Fixture <strong>woocommerce-5gb</strong>,
       warm-up 10.0s, measured 30.0s,
@@ -230,6 +230,7 @@
   </header>
 
   <main>
+<p><a href="../index.html">Back to benchmark index</a></p>
     <section class="panel visual-summary">
       <div class="panel-heading">
         <h2>Visual Summary: SQLite rc3 vs MariaDB</h2>
@@ -278,7 +279,7 @@
     <section class="panel">
       <h2>How To Read The Numbers</h2>
       <div class="note">
-        Comparison rows are written from SQLite rc3's point of view. For throughput columns, positive is good for SQLite and negative is bad. For latency columns, negative is good for SQLite because lower latency is faster.
+        Comparison sections state their baseline in the section heading. For throughput columns, positive is good for the left-hand SQLite variant and negative is bad. For latency columns, negative is good because lower latency is faster.
       </div>
       <ul>
         <li><strong>Flows/s</strong>: completed user-flow loops per second. Higher is better.</li>
@@ -294,9 +295,9 @@
     <section class="panel">
       <div class="panel-heading">
         <h2>Methodology Fixes In This Run</h2>
-        <p>These are the fixes that make this run comparable to the suspicious earlier result.</p>
+        <p>These methodology controls make the local request-load results comparable across variants and avoid counting setup work as measured latency.</p>
       </div>
-      <ul><li>database snapshot restored before every measured case</li><li>login/setup excluded from measured elapsed time</li><li>concurrent warm-up before measured window</li><li>three repetitions by default</li><li>variant alternation disabled because low-disk mode runs one variant at a time</li><li>verified WooCommerce checkout/order write flows</li><li>per-case request logs</li><li>SQLite WAL sampled without pre-recording checkpoint</li><li>database snapshots compressed to reduce benchmark artifact disk usage</li><li>low-disk mode: variants executed sequentially and cleaned up after completion</li></ul>
+      <ul><li>database snapshot restored before every measured case</li><li>login/setup excluded from measured elapsed time</li><li>concurrent warm-up before measured window</li><li>three repetitions by default</li><li>variants executed sequentially because the local VM did not have enough free disk for all active 5GB sites at once</li><li>verified WooCommerce checkout/order write flows</li><li>per-case request logs</li><li>SQLite WAL sampled without pre-recording checkpoint</li><li>database snapshots compressed to reduce benchmark artifact disk usage</li><li>after each variant finished, its active 5GB site/database was deleted to preserve local disk space</li></ul>
     </section>
 
     <section class="panel">
@@ -387,7 +388,7 @@
     <section class="panel">
       <div class="panel-heading">
         <h2>Fixture And Host</h2>
-        <p>7.0; PHP 8.5.7 (cli) (built: Jun  2 2026 20:59:56) (NTS); nginx version: nginx/1.31.1</p>
+        <p>WordPress 7.0; PHP 8.5.7 (cli) (built: Jun  2 2026 20:59:56) (NTS); nginx version: nginx/1.31.1</p>
       </div>
       <div class="grid">
         <div>

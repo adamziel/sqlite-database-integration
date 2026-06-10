@@ -2,12 +2,15 @@
 
 Merged PR assessment adding SQLite PR #378 to the existing MariaDB, rc3, and stable-control matrix.
 
+This is a local macOS diagnostic benchmark artifact, not final hosted Linux publication evidence for the full Core merge assessment.
+
 ## Files
 
 - `comparison-readable.html`: explanatory report with tables.
 - `comparison-visual.html`: visual report; SVG chart files are included in this gist.
 - `aggregate.csv`: median aggregate metrics by variant/workload/concurrency.
 - `results.csv`: per-repetition measured results.
+- `results.json`: raw per-repetition result payloads used by the reports.
 - `manifest.json`: benchmark manifest and source metadata.
 
 ## Matrix

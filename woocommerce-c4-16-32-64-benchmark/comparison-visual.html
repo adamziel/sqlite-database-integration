@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WooCommerce SQLite Benchmark Visual Report</title>
+  <style>
+    :root { color-scheme: light; --ink:#0f172a; --muted:#475569; --line:#dbe3ef; --bg:#f8fafc; --panel:#ffffff; --good:#dcfce7; --good-ink:#14532d; --bad:#fee2e2; --bad-ink:#7f1d1d; --neutral:#fef3c7; --neutral-ink:#78350f; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 15px/1.45 -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: var(--ink); background: var(--bg); }
+    main { max-width: 1220px; margin: 0 auto; padding: 28px 24px 44px; }
+    h1 { margin: 0 0 6px; font-size: 30px; letter-spacing: 0; }
+    h2 { margin: 0 0 12px; font-size: 20px; letter-spacing: 0; }
+    p { margin: 6px 0; color: var(--muted); }
+    .lead { max-width: 920px; font-size: 16px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 18px 0; }
+    .stat { border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 14px; }
+    .stat strong { display: block; font-size: 24px; }
+    .stat span { color: var(--muted); }
+    section { margin-top: 20px; padding: 18px; border: 1px solid var(--line); background: var(--panel); border-radius: 8px; }
+    figure { margin: 0; }
+    img { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
+    figcaption { margin-top: 8px; color: var(--muted); font-size: 14px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+    th, td { border: 1px solid var(--line); padding: 8px 10px; text-align: right; vertical-align: top; }
+    th { background: #e2e8f0; color: #0f172a; font-weight: 700; }
+    td.left, th.left { text-align: left; }
+    td.num { font-variant-numeric: tabular-nums; }
+    td.delta { font-weight: 700; }
+    td.good { background: var(--good); color: var(--good-ink); }
+    td.bad { background: var(--bad); color: var(--bad-ink); }
+    td.neutral { background: var(--neutral); color: var(--neutral-ink); }
+    td.empty { background: #f1f5f9; color: #64748b; }
+    .note { padding: 12px 14px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; color: #1e3a8a; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.94em; }
+    @media (max-width: 820px) { main { padding: 18px 12px 32px; } .grid { grid-template-columns: 1fr; } section { padding: 12px; } table { font-size: 12px; } th, td { padding: 6px; } }
+  </style>
+</head>
+<body>
+<main>
+  <h1>WooCommerce 5GB SQLite Benchmark: Visual Report</h1>
+  <p class="lead">This is a merged report: it combines the supplemental concurrent-request point 4 with the earlier points 16, 32, 64. The clearest view is not a box plot: each matrix cell has only three repetitions, so this report uses heatmaps, scatter plots, and repetition dot plots with median marks.</p>
+  <div class="grid">
+    <div class="stat"><strong>0</strong><span>SQLite rc3 failed flows / lock errors</span></div>
+    <div class="stat"><strong>361</strong><span>stable-control failed checkout flows</span></div>
+    <div class="stat"><strong>3,438</strong><span>stable-control SQLite lock/busy errors</span></div>
+  </div>
+  <p class="note">Read the heatmap first. Green means SQLite rc3 improved that metric compared with MariaDB; red means it regressed. For latency metrics, green means lower latency. For throughput metrics, green means more completed work.</p>
+  <section>
+    <h2>1. SQLite rc3 vs MariaDB: 3x4 Delta Heatmaps</h2>
+    <figure><img src="rc3_delta_heatmaps.svg" alt="SQLite rc3 versus MariaDB heatmaps"><figcaption>The p95 row can be green while average request time and throughput are red. That means SQLite had fewer completed flows and slower average requests, but a lower tail among the flows that completed.</figcaption></figure>
+  </section>
+  <section>
+    <h2>2. Throughput vs Tail Latency</h2>
+    <figure><img src="throughput_vs_p95.svg" alt="Throughput versus p95 latency scatter plot"><figcaption>Each point is one variant/workload/concurrent-request median. Numeric point labels are concurrent requests. Better points move right and down.</figcaption></figure>
+  </section>
+  <section>
+    <h2>3. Repetition Spread Instead Of Boxplots</h2>
+    <figure><img src="p95_repetition_dots.svg" alt="p95 repetition dot plots"><figcaption>Every dot is one repetition. The thick small bar is the median. This is more honest than a box-and-whisker plot for only three repetitions per cell.</figcaption></figure>
+  </section>
+  <section>
+    <h2>4. Writes And Lock Contention</h2>
+    <figure><img src="writes_and_locks.svg" alt="Write throughput and stable-control lock errors"><figcaption>MariaDB keeps the highest verified write rate. SQLite rc3 completes cleanly but with lower write throughput. The stable control shows real lock-related checkout failures.</figcaption></figure>
+  </section>
+  <section>
+    <h2>5. What The SQLite Lock/Busy Errors Mean</h2>
+    <p class="note"><strong>Important distinction:</strong> HTTP status errors and benchmark flow failures are different. A request can return HTTP 200 and still fail the benchmark if the expected user outcome did not happen.</p>
+    <p>The high-lock cell is <strong>SQLite stable control, write-heavy, 64 concurrent requests</strong>: 771 SQLite lock/busy log events while serving 2,371 measured HTTP requests across 883 benchmark flows. Every measured HTTP request returned status 200; there were 0 HTTP 500 responses.</p>
+    <p>The consequence was still user-visible: 111 checkout flows failed semantic verification. The failing checkout paths returned ordinary WooCommerce pages with status 200, but the checkout nonce/session state was missing and no order was verified. The benchmark did not retry those failed flows at the application level.</p>
+    <p>The read-heavy stable-control cases also logged lock errors because they were not database-write-free. They had 234 lock/busy events across 12,018 measured HTTP requests and 0 failed flows. Product and admin read pages triggered writes for Action Scheduler claims and WooCommerce/WordPress transients such as shipping-method counts, related-product caches, and customer/report caches. Those writes were non-critical for the rendered page, so the responses stayed 200.</p>
+    <table>
+      <tr><th>Scope</th><th>HTTP requests</th><th>Status mix</th><th>HTTP 5xx</th><th>HTTP non-2xx</th><th>Benchmark failed flows</th><th>Write verification failures</th><th>SQLite lock/busy events</th></tr>
+<tr><td class="left">MariaDB baseline</td><td class="num neutral">48,738</td><td class="left">200: 48,738</td><td class="num good">0 (0.00%)</td><td class="num good">0 (0.00%)</td><td class="num good">0 (0.00%)</td><td class="num good">0</td><td class="num good">0</td></tr>
+<tr><td class="left">SQLite rc3</td><td class="num neutral">38,792</td><td class="left">200: 38,792</td><td class="num good">0 (0.00%)</td><td class="num good">0 (0.00%)</td><td class="num good">0 (0.00%)</td><td class="num good">0</td><td class="num good">0</td></tr>
+<tr><td class="left">SQLite stable control</td><td class="num neutral">33,471</td><td class="left">200: 33,471</td><td class="num good">0 (0.00%)</td><td class="num good">0 (0.00%)</td><td class="num bad">361 (1.67%)</td><td class="num bad">361</td><td class="num bad">3,438</td></tr>
+<tr><td class="left">All SQLite variants combined</td><td class="num neutral">72,263</td><td class="left">200: 72,263</td><td class="num good">0 (0.00%)</td><td class="num good">0 (0.00%)</td><td class="num bad">361 (0.79%)</td><td class="num bad">361</td><td class="num bad">3,438</td></tr>
+    </table>
+    <table>
+      <tr><th>Stable 64 concurrent requests detail</th><th>Flows</th><th>HTTP requests</th><th>Status mix</th><th>HTTP 5xx</th><th>Benchmark failed flows</th><th>Write verification failures</th><th>SQLite lock/busy events</th></tr>
+<tr><td class="left">stable write-heavy, 64 concurrent requests, all reps</td><td class="num neutral">883</td><td class="num neutral">2,371</td><td class="left">200: 2,371</td><td class="num good">0 (0.00%)</td><td class="num bad">111 (12.57%)</td><td class="num bad">111</td><td class="num bad">771</td></tr>
+<tr><td class="left">rep1</td><td class="num neutral">384</td><td class="num neutral">1,047</td><td class="left">200: 1,047</td><td class="num good">0 (0.00%)</td><td class="num bad">34 (8.85%)</td><td class="num bad">34</td><td class="num bad">292</td></tr>
+<tr><td class="left">rep2</td><td class="num neutral">276</td><td class="num neutral">735</td><td class="left">200: 735</td><td class="num good">0 (0.00%)</td><td class="num bad">41 (14.86%)</td><td class="num bad">41</td><td class="num bad">274</td></tr>
+<tr><td class="left">rep3</td><td class="num neutral">223</td><td class="num neutral">589</td><td class="left">200: 589</td><td class="num good">0 (0.00%)</td><td class="num bad">36 (16.14%)</td><td class="num bad">36</td><td class="num bad">205</td></tr>
+    </table>
+  </section>
+  <section>
+    <h2>Variant Totals</h2>
+    <table>
+      <tr><th>Variant</th><th>Median flows/sec across cells</th><th>Failed flows</th><th>Write verification failures</th><th>SQLite lock/busy errors</th></tr>
+<tr><td class="left">MariaDB</td><td class="num neutral">23.82</td><td class="num good">0</td><td class="num good">0</td><td class="num good">0</td></tr>
+<tr><td class="left">SQLite rc3</td><td class="num neutral">17.84</td><td class="num good">0</td><td class="num good">0</td><td class="num good">0</td></tr>
+<tr><td class="left">SQLite stable</td><td class="num neutral">15.56</td><td class="num bad">361</td><td class="num bad">361</td><td class="num bad">3,438</td></tr>
+    </table>
+  </section>
+  <section>
+    <h2>SQLite rc3 Delta Table</h2>
+    <table>
+      <tr><th>Workload</th><th>Concurrent requests</th><th>Throughput</th><th>Avg request time</th><th>p95 latency</th><th>Verified writes/sec</th></tr>
+<tr><td class="left">read-heavy</td><td class="num">4</td><td class="delta bad">12.8% lower</td><td class="delta bad">14.7% slower</td><td class="delta bad">18.6% slower</td><td class="delta empty">n/a</td></tr>
+<tr><td class="left">read-heavy</td><td class="num">16</td><td class="delta bad">20.3% lower</td><td class="delta bad">25.2% slower</td><td class="delta good">5.5% faster</td><td class="delta empty">n/a</td></tr>
+<tr><td class="left">read-heavy</td><td class="num">32</td><td class="delta bad">18.4% lower</td><td class="delta bad">22.5% slower</td><td class="delta good">20.6% faster</td><td class="delta empty">n/a</td></tr>
+<tr><td class="left">read-heavy</td><td class="num">64</td><td class="delta bad">27.1% lower</td><td class="delta bad">36.6% slower</td><td class="delta good">20.7% faster</td><td class="delta empty">n/a</td></tr>
+<tr><td class="left">balanced</td><td class="num">4</td><td class="delta good">6.2% higher</td><td class="delta good">3.3% faster</td><td class="delta neutral">1.7% faster</td><td class="delta neutral">2.3% lower</td></tr>
+<tr><td class="left">balanced</td><td class="num">16</td><td class="delta bad">23.7% lower</td><td class="delta bad">31.8% slower</td><td class="delta neutral">1.0% slower</td><td class="delta bad">30.0% lower</td></tr>
+<tr><td class="left">balanced</td><td class="num">32</td><td class="delta bad">24.5% lower</td><td class="delta bad">34.7% slower</td><td class="delta good">13.5% faster</td><td class="delta bad">27.8% lower</td></tr>
+<tr><td class="left">balanced</td><td class="num">64</td><td class="delta bad">32.6% lower</td><td class="delta bad">49.1% slower</td><td class="delta good">13.6% faster</td><td class="delta bad">32.3% lower</td></tr>
+<tr><td class="left">write-heavy</td><td class="num">4</td><td class="delta good">13.0% higher</td><td class="delta good">12.3% faster</td><td class="delta good">7.6% faster</td><td class="delta good">9.0% higher</td></tr>
+<tr><td class="left">write-heavy</td><td class="num">16</td><td class="delta bad">15.5% lower</td><td class="delta bad">17.7% slower</td><td class="delta bad">10.4% slower</td><td class="delta bad">16.0% lower</td></tr>
+<tr><td class="left">write-heavy</td><td class="num">32</td><td class="delta bad">24.7% lower</td><td class="delta bad">33.8% slower</td><td class="delta bad">33.9% slower</td><td class="delta bad">26.9% lower</td></tr>
+<tr><td class="left">write-heavy</td><td class="num">64</td><td class="delta bad">32.3% lower</td><td class="delta bad">48.5% slower</td><td class="delta bad">40.0% slower</td><td class="delta bad">32.5% lower</td></tr>
+    </table>
+  </section>
+  <section>
+    <h2>Method Note</h2>
+    <p>This visual report is generated from <code>aggregate.csv</code>, <code>results.csv</code>, and <code>results.json</code>. It does not rerun the benchmark. The benchmark restored a database snapshot before every measured case, excluded setup/login from the measured window, used a 10s warm-up, measured 30s, and repeated every workload/concurrent-request cell three times.</p>
+  </section>
+</main>
+</body>
+</html>

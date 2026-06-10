@@ -1,5 +1,5 @@
 {
-  "created_at_utc": "20260610T134038Z",
+  "created_at_utc": "20260610T150647Z",
   "scope": "real Google Chrome browser benchmark on macOS; low-load user-visible rendering/XHR diagnostic",
   "fixture_name": "woocommerce-5gb",
   "fixture": {
@@ -18,7 +18,7 @@
       "width": 1440,
       "height": 1000
     },
-    "repetitions_per_flow": 5
+    "repetitions_per_flow": 20
   },
   "variants": [
     {
@@ -54,7 +54,7 @@
   },
   "site_info": {
     "mariadb-innodb-baseline": {
-      "site": "/Users/admin/wordpress-sqlite-benchmark-runner/artifacts/local-production-woocommerce-browser/runs/20260610T134038Z/sites/mariadb-innodb-baseline",
+      "site": "/Users/admin/wordpress-sqlite-benchmark-runner/artifacts/local-production-woocommerce-browser/runs/20260610T150647Z/sites/mariadb-innodb-baseline",
       "url": "http://127.0.0.1:9181",
       "counts": {
         "products": "2500",
@@ -16083,18 +16083,18 @@
         "products": 2500,
         "orders": 10000,
         "customers": 1000,
-        "database_bytes": 991854592,
+        "database_bytes": 1008664576,
         "target_database_bytes": 5368709120,
-        "filler_rows": 20186,
-        "filler_payload_bytes": 5291638784,
-        "estimated_database_bytes": 5368719360
+        "filler_rows": 20190,
+        "filler_payload_bytes": 5292687360,
+        "estimated_database_bytes": 5368723456
       },
       "editor_post_id": 12514,
       "active_theme": "twentytwentyfive",
       "is_block_theme": true
     },
     "sqlite-driver-3.0.0-rc.3": {
-      "site": "/Users/admin/wordpress-sqlite-benchmark-runner/artifacts/local-production-woocommerce-browser/runs/20260610T134038Z/sites/sqlite-driver-3.0.0-rc.3",
+      "site": "/Users/admin/wordpress-sqlite-benchmark-runner/artifacts/local-production-woocommerce-browser/runs/20260610T150647Z/sites/sqlite-driver-3.0.0-rc.3",
       "url": "http://127.0.0.1:9182",
       "counts": {
         "products": "2500",

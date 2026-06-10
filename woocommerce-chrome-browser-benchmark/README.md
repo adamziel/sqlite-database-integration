@@ -1,6 +1,6 @@
 # WooCommerce 5GB Real Chrome Browser Benchmark
 
-Real Google Chrome rendering and XHR benchmark for a 5GB WooCommerce fixture.
+Real Google Chrome rendering and XHR benchmark for a 5GB WooCommerce fixture. This version repeats each measured flow 20 times for both MySQL/MariaDB and SQLite.
 
 - `comparison-chrome.html`: visual report with medians, deltas, distribution plots, box/dot plots, and scatter plots.
 - `aggregate.json`: summarized metrics used by the report.

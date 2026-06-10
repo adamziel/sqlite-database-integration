@@ -255,7 +255,7 @@
         <h2>How The Test Was Conducted</h2>
         <p>The measured window starts after restore, server startup, login setup, and warm-up.</p>
       </div>
-      <ol><li>Build three fresh WordPress sites from the same downloaded WordPress package: MariaDB baseline, SQLite rc3, and SQLite stable control.</li><li>Generate the same seeded content fixture for each site: posts, pages, comments, users, postmeta, terms, and options.</li><li>Create a database snapshot for each variant after fixture generation.</li><li>For every measured case, restore that variant&#x27;s clean snapshot before starting the server.</li><li>Start local nginx and PHP-FPM for that one case, then prepare logged-in worker sessions outside the measured window.</li><li>Run a concurrent warm-up period so first-request and cache effects do not dominate the measured result.</li><li>Capture baseline counts after warm-up, then run the measured workload for the configured duration and configured number of concurrent requests.</li><li>Execute user-flow loops: public reads, admin reads, comment writes, admin post updates, and profile updates depending on workload mix.</li><li>Verify writes in-flow and again by post-run count deltas; only verified writes count toward write throughput.</li><li>Record per-case request logs, Server-Timing data, failures, write effects, SQLite WAL size, SQLite lock messages, and MariaDB status counters.</li><li>Repeat each workload/concurrent-request/variant cell three times and report medians.</li></ol>
+      <ol><li>Build one fresh WordPress site per selected database variant from the same downloaded WordPress package.</li><li>Install the SQLite driver or configure MariaDB, install WooCommerce, and generate the same seeded 5GB WooCommerce fixture for each variant.</li><li>Create a clean database snapshot for each variant after fixture generation.</li><li>For every measured cell, restore that variant&#x27;s clean snapshot before starting the measured case.</li><li>Start local nginx and PHP-FPM for that one case, then prepare logged-in admin/customer sessions outside the measured timing window.</li><li>Run a 10-second warm-up so first-request and cache effects do not dominate the measured result.</li><li>Run the measured workload for 30 seconds at the configured number of concurrent workers: 4, 16, 32, or 64.</li><li>The load generator did not literally open Chrome. It issued browser-equivalent HTTP requests for the same user journeys.</li><li>Public browse flow: visit the shop/home page, open product pages, and perform catalog searches.</li><li>Cart flow: open a product page, submit add-to-cart, and load the cart page.</li><li>Checkout flow: add a product, open checkout, submit the WooCommerce order form with benchmark billing details, and verify that an order was created.</li><li>Admin read flow: log in as an administrator and open WooCommerce order-admin screens.</li><li>Record per-case request logs, full-flow timings, average HTTP request timings, write verification, failures, SQLite WAL size, SQLite lock messages, and MariaDB status counters.</li><li>Repeat each workload/concurrent-request/variant cell three times and report medians.</li></ol>
     </section>
 
     <section class="panel">
@@ -333,7 +333,7 @@
     <section class="panel">
       <div class="panel-heading">
         <h2>SQLite rc3 vs Stable SQLite 2.2.23</h2>
-        <p>The release candidate and stable control are mostly close; c64 write-heavy is the notable rc3 weak spot in this local run.</p>
+        <p>This isolates the release-candidate driver from the stable plugin line under the same workload and concurrency levels.</p>
       </div>
       
       <div class="table-wrap">
@@ -355,6 +355,8 @@
       </div>
     
     </section>
+
+    
 
     <section class="panel">
       <div class="panel-heading">

@@ -118,12 +118,12 @@ def axis_ticks(min_value, max_value, steps=5):
 
 def open_timeline_svg(rows):
     width, height = 1120, 360
-    left, right, top, bottom = 74, 34, 42, 58
+    left, right, top, bottom = 74, 34, 74, 58
     plot_w = width - left - right
     plot_h = height - top - bottom
     values = [i(r, "open_at_end") for r in rows]
-    min_v = min(values) - 250
-    max_v = max(values) + 250
+    min_v = max(0, (min(values) // 500) * 500)
+    max_v = ((max(values) + 499) // 500) * 500
 
     def x_for(idx):
         return left + idx * plot_w / (len(rows) - 1)
@@ -147,7 +147,7 @@ def open_timeline_svg(rows):
             x1 = max(left, x1)
             x2 = min(left + plot_w, x2)
             parts.append(f'<rect x="{x1:.1f}" y="{top}" width="{x2 - x1:.1f}" height="{plot_h}" fill="{PERIOD_COLORS[period]}" opacity="0.55"/>')
-            parts.append(f'<text x="{(x1 + x2) / 2:.1f}" y="{top + 18}" text-anchor="middle" class="phase-label">{PERIOD_LABELS[period]}</text>')
+            parts.append(f'<text x="{(x1 + x2) / 2:.1f}" y="{top + plot_h - 16}" text-anchor="middle" class="phase-label">{PERIOD_LABELS[period]}</text>')
             start_idx = idx
 
     for tick in axis_ticks(min_v, max_v, 4):
@@ -177,7 +177,7 @@ def open_timeline_svg(rows):
 
 def flow_svg(rows):
     width, height = 1120, 360
-    left, right, top, bottom = 70, 34, 46, 56
+    left, right, top, bottom = 70, 34, 76, 56
     plot_w = width - left - right
     plot_h = height - top - bottom
     max_v = max(max(i(r, "created"), i(r, "closed")) for r in rows) + 120
@@ -226,7 +226,7 @@ def flow_svg(rows):
 def net_monthly_svg(months):
     recent = [r for r in months if r["month"] >= "2024-10-01"]
     width, height = 1120, 260
-    left, right, top, bottom = 68, 32, 42, 52
+    left, right, top, bottom = 68, 32, 72, 52
     plot_w = width - left - right
     plot_h = height - top - bottom
     values = [i(r, "net") for r in recent]
@@ -367,7 +367,7 @@ def first_time_reporters_svg(rows):
 
 def reporter_trend_svg(rows):
     width, height = 1120, 360
-    left, right, top, bottom = 74, 34, 50, 58
+    left, right, top, bottom = 74, 34, 78, 58
     plot_w = width - left - right
     plot_h = height - top - bottom
     unique_values = [i(r, "unique_creators") for r in rows]

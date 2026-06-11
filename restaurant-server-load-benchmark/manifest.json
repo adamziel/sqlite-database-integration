@@ -1,0 +1,1330 @@
+{
+  "created_at_utc": "20260611T151033Z",
+  "scope": "local production-methodology small restaurant WordPress HTTP benchmark on macOS; diagnostic only",
+  "fixture_name": "restaurant-small",
+  "fixture": {
+    "pages": 10,
+    "posts": 6,
+    "comments": 36,
+    "users": 4,
+    "reservation_seed_rows": 8
+  },
+  "workload_descriptions": {
+    "read-heavy": "90% public page/search/REST reads and 10% logged-in wp-admin reads; no intentional writes.",
+    "balanced": "60% public reads, 20% wp-admin reads, 20% verified writes: comments, reservation requests, and editor-save simulations.",
+    "write-heavy": "40% public reads, 30% wp-admin reads, 30% verified writes: comments, reservation requests, and editor-save simulations."
+  },
+  "duration_seconds_per_case": 20.0,
+  "warmup_seconds_per_case": 5.0,
+  "repetitions": 3,
+  "concurrency": [
+    4,
+    16,
+    32,
+    64
+  ],
+  "workloads": {
+    "read-heavy": [
+      [
+        "page_browse",
+        55
+      ],
+      [
+        "site_search",
+        20
+      ],
+      [
+        "rest_xhr_bundle",
+        15
+      ],
+      [
+        "admin_read",
+        10
+      ]
+    ],
+    "balanced": [
+      [
+        "page_browse",
+        35
+      ],
+      [
+        "site_search",
+        10
+      ],
+      [
+        "rest_xhr_bundle",
+        15
+      ],
+      [
+        "admin_read",
+        20
+      ],
+      [
+        "comment_write",
+        8
+      ],
+      [
+        "reservation_write",
+        7
+      ],
+      [
+        "editor_save_write",
+        5
+      ]
+    ],
+    "write-heavy": [
+      [
+        "page_browse",
+        20
+      ],
+      [
+        "site_search",
+        10
+      ],
+      [
+        "rest_xhr_bundle",
+        10
+      ],
+      [
+        "admin_read",
+        30
+      ],
+      [
+        "comment_write",
+        12
+      ],
+      [
+        "reservation_write",
+        10
+      ],
+      [
+        "editor_save_write",
+        8
+      ]
+    ]
+  },
+  "variants": [
+    {
+      "id": "mariadb-innodb-baseline",
+      "family": "innodb",
+      "port": 9181,
+      "fpm_port": 9281,
+      "tag": "",
+      "db_name": "wp_sqlite_bench_local_mysql"
+    },
+    {
+      "id": "sqlite-driver-3.0.0-rc.3",
+      "family": "sqlite",
+      "port": 9182,
+      "fpm_port": 9282,
+      "tag": "v3.0.0-rc.3",
+      "db_name": ""
+    }
+  ],
+  "versions": {
+    "php": "PHP 8.5.7 (cli) (built: Jun  2 2026 20:59:56) (NTS)",
+    "php_fpm": "PHP 8.5.7 (fpm-fcgi) (built: Jun  2 2026 20:59:56) (NTS)",
+    "nginx": "nginx version: nginx/1.31.1",
+    "wp_cli": "WP-CLI 2.12.0",
+    "mysql": "mysql from 12.3.2-MariaDB, client 15.2 for osx10.21 (arm64) using  EditLine wrapper",
+    "wordpress": "7.0"
+  },
+  "plugin_shas": {
+    "v3.0.0-rc.3": "2622441269889bdc635c891127a19486cd1da062"
+  },
+  "site_info": {
+    "mariadb-innodb-baseline": {
+      "site": "/Users/admin/wordpress-sqlite-benchmark-runner/artifacts/local-production-restaurant/runs/20260611T151033Z/sites/mariadb-innodb-baseline",
+      "url": "http://127.0.0.1:9181",
+      "counts": {
+        "pages": "10",
+        "posts": "6",
+        "comments": 36,
+        "reservations": "8",
+        "users": 4
+      },
+      "page_ids": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13
+      ],
+      "page_urls": [
+        "http://127.0.0.1:9181/",
+        "http://127.0.0.1:9181/?page_id=5",
+        "http://127.0.0.1:9181/?page_id=6",
+        "http://127.0.0.1:9181/?page_id=7",
+        "http://127.0.0.1:9181/?page_id=8",
+        "http://127.0.0.1:9181/?page_id=9",
+        "http://127.0.0.1:9181/?page_id=10",
+        "http://127.0.0.1:9181/?page_id=11",
+        "http://127.0.0.1:9181/?page_id=12",
+        "http://127.0.0.1:9181/?page_id=13"
+      ],
+      "post_ids": [
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "post_urls": [
+        "http://127.0.0.1:9181/?p=14",
+        "http://127.0.0.1:9181/?p=15",
+        "http://127.0.0.1:9181/?p=16",
+        "http://127.0.0.1:9181/?p=17",
+        "http://127.0.0.1:9181/?p=18",
+        "http://127.0.0.1:9181/?p=19"
+      ],
+      "menu_url": "http://127.0.0.1:9181/?page_id=5",
+      "reservation_url": "http://127.0.0.1:9181/?page_id=6",
+      "contact_url": "http://127.0.0.1:9181/?page_id=7",
+      "editor_post_id": 14,
+      "reservation_ids": [
+        27,
+        26,
+        25,
+        24,
+        23,
+        22,
+        21,
+        20
+      ],
+      "active_theme": "twentytwentyfive",
+      "is_block_theme": true,
+      "fixture_summary": {
+        "pages": 10,
+        "posts": 6,
+        "comments": 36,
+        "reservations": "8",
+        "users": 4,
+        "active_theme": "twentytwentyfive",
+        "is_block_theme": true,
+        "database_bytes": 671744,
+        "target_site_shape": "10 pages, 6 posts, 36 comments, 8 seed reservation requests"
+      }
+    },
+    "sqlite-driver-3.0.0-rc.3": {
+      "site": "/Users/admin/wordpress-sqlite-benchmark-runner/artifacts/local-production-restaurant/runs/20260611T151033Z/sites/sqlite-driver-3.0.0-rc.3",
+      "url": "http://127.0.0.1:9182",
+      "counts": {
+        "pages": "10",
+        "posts": "6",
+        "comments": 36,
+        "reservations": "8",
+        "users": 4
+      },
+      "page_ids": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13
+      ],
+      "page_urls": [
+        "http://127.0.0.1:9182/",
+        "http://127.0.0.1:9182/?page_id=5",
+        "http://127.0.0.1:9182/?page_id=6",
+        "http://127.0.0.1:9182/?page_id=7",
+        "http://127.0.0.1:9182/?page_id=8",
+        "http://127.0.0.1:9182/?page_id=9",
+        "http://127.0.0.1:9182/?page_id=10",
+        "http://127.0.0.1:9182/?page_id=11",
+        "http://127.0.0.1:9182/?page_id=12",
+        "http://127.0.0.1:9182/?page_id=13"
+      ],
+      "post_ids": [
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "post_urls": [
+        "http://127.0.0.1:9182/?p=14",
+        "http://127.0.0.1:9182/?p=15",
+        "http://127.0.0.1:9182/?p=16",
+        "http://127.0.0.1:9182/?p=17",
+        "http://127.0.0.1:9182/?p=18",
+        "http://127.0.0.1:9182/?p=19"
+      ],
+      "menu_url": "http://127.0.0.1:9182/?page_id=5",
+      "reservation_url": "http://127.0.0.1:9182/?page_id=6",
+      "contact_url": "http://127.0.0.1:9182/?page_id=7",
+      "editor_post_id": 14,
+      "reservation_ids": [
+        27,
+        26,
+        25,
+        24,
+        23,
+        22,
+        21,
+        20
+      ],
+      "active_theme": "twentytwentyfive",
+      "is_block_theme": true,
+      "fixture_summary": {
+        "pages": 10,
+        "posts": 6,
+        "comments": 36,
+        "reservations": "8",
+        "users": 4,
+        "active_theme": "twentytwentyfive",
+        "is_block_theme": true,
+        "database_bytes": 434176,
+        "target_site_shape": "10 pages, 6 posts, 36 comments, 8 seed reservation requests"
+      }
+    }
+  },
+  "snapshots": {
+    "mariadb-innodb-baseline": {
+      "type": "mariadb-dump-gzip",
+      "path": "/Users/admin/wordpress-sqlite-benchmark-runner/artifacts/local-production-restaurant/runs/20260611T151033Z/snapshots/mariadb-innodb-baseline/database.sql.gz",
+      "bytes": 22338
+    },
+    "sqlite-driver-3.0.0-rc.3": {
+      "type": "sqlite-file-gzip",
+      "path": "/Users/admin/wordpress-sqlite-benchmark-runner/artifacts/local-production-restaurant/runs/20260611T151033Z/snapshots/sqlite-driver-3.0.0-rc.3/wordpress.sqlite.gz",
+      "bytes": 50119
+    }
+  },
+  "case_plan": [
+    {
+      "repetition": 1,
+      "variant": {
+        "id": "mariadb-innodb-baseline",
+        "family": "innodb",
+        "port": 9181,
+        "fpm_port": 9281,
+        "tag": "",
+        "db_name": "wp_sqlite_bench_local_mysql"
+      },
+      "workload": "read-heavy",
+      "concurrency": 4,
+      "case_id": "rep1_mariadb-innodb-baseline_read-heavy_c4"
+    },
+    {
+      "repetition": 1,
+      "variant": {
+        "id": "sqlite-driver-3.0.0-rc.3",
+        "family": "sqlite",
+        "port": 9182,
+        "fpm_port": 9282,
+        "tag": "v3.0.0-rc.3",
+        "db_name": ""
+      },
+      "workload": "read-heavy",
+      "concurrency": 4,
+      "case_id": "rep1_sqlite-driver-3.0.0-rc.3_read-heavy_c4"
+    },
+    {
+      "repetition": 1,
+      "variant": {
+        "id": "mariadb-innodb-baseline",
+        "family": "innodb",
+        "port": 9181,
+        "fpm_port": 9281,
+        "tag": "",
+        "db_name": "wp_sqlite_bench_local_mysql"
+      },
+      "workload": "read-heavy",
+      "concurrency": 16,
+      "case_id": "rep1_mariadb-innodb-baseline_read-heavy_c16"
+    },
+    {
+      "repetition": 1,
+      "variant": {
+        "id": "sqlite-driver-3.0.0-rc.3",
+        "family": "sqlite",
+        "port": 9182,
+        "fpm_port": 9282,
+        "tag": "v3.0.0-rc.3",
+        "db_name": ""
+      },
+      "workload": "read-heavy",
+      "concurrency": 16,
+      "case_id": "rep1_sqlite-driver-3.0.0-rc.3_read-heavy_c16"
+    },
+    {
+      "repetition": 1,
+      "variant": {
+        "id": "sqlite-driver-3.0.0-rc.3",
+        "family": "sqlite",
+        "port": 9182,
+        "fpm_port": 9282,
+        "tag": "v3.0.0-rc.3",
+        "db_name": ""
+      },
+      "workload": "read-heavy",
+      "concurrency": 32,
+      "case_id": "rep1_sqlite-driver-3.0.0-rc.3_read-heavy_c32"
+    },
+    {
+      "repetition": 1,
+      "variant": {
+        "id": "mariadb-innodb-baseline",
+        "family": "innodb",
+        "port": 9181,
+        "fpm_port": 9281,
+        "tag": "",
+        "db_name": "wp_sqlite_bench_local_mysql"
+      },
+      "workload": "read-heavy",
+      "concurrency": 32,
+      "case_id": "rep1_mariadb-innodb-baseline_read-heavy_c32"
+    },
+    {
+      "repetition": 1,
+      "variant": {
+        "id": "sqlite-driver-3.0.0-rc.3",
+        "family": "sqlite",
+        "port": 9182,
+        "fpm_port": 9282,
+        "tag": "v3.0.0-rc.3",
+        "db_name": ""
+      },
+      "workload": "read-heavy",
+      "concurrency": 64,
+      "case_id": "rep1_sqlite-driver-3.0.0-rc.3_read-heavy_c64"
+    },
+    {
+      "repetition": 1,
+      "variant": {
+        "id": "mariadb-innodb-baseline",
+        "family": "innodb",
+        "port": 9181,
+        "fpm_port": 9281,
+        "tag": "",
+        "db_name": "wp_sqlite_bench_local_mysql"
+      },
+      "workload": "read-heavy",
+      "concurrency": 64,
+      "case_id": "rep1_mariadb-innodb-baseline_read-heavy_c64"
+    },
+    {
+      "repetition": 1,
+      "variant": {
+        "id": "sqlite-driver-3.0.0-rc.3",
+        "family": "sqlite",
+        "port": 9182,
+        "fpm_port": 9282,
+        "tag": "v3.0.0-rc.3",
+        "db_name": ""
+      },
+      "workload": "balanced",
+      "concurrency": 4,
+      "case_id": "rep1_sqlite-driver-3.0.0-rc.3_balanced_c4"
+    },
+    {
+      "repetition": 1,
+      "variant": {
+        "id": "mariadb-innodb-baseline",
+        "family": "innodb",
+        "port": 9181,
+        "fpm_port": 9281,
+        "tag": "",
+        "db_name": "wp_sqlite_bench_local_mysql"
+      },
+      "workload": "balanced",
+      "concurrency": 4,
+      "case_id": "rep1_mariadb-innodb-baseline_balanced_c4"
+    },
+    {
+      "repetition": 1,
+      "variant": {
+        "id": "sqlite-driver-3.0.0-rc.3",
+        "family": "sqlite",
+        "port": 9182,
+        "fpm_port": 9282,
+        "tag": "v3.0.0-rc.3",
+        "db_name": ""
+      },
+      "workload": "balanced",
+      "concurrency": 16,
+      "case_id": "rep1_sqlite-driver-3.0.0-rc.3_balanced_c16"
+    },
+    {
+      "repetition": 1,
+      "variant": {
+        "id": "mariadb-innodb-baseline",
+        "family": "innodb",
+        "port": 9181,
+        "fpm_port": 9281,
+        "tag": "",
+        "db_name": "wp_sqlite_bench_local_mysql"
+      },
+      "workload": "balanced",
+      "concurrency": 16,
+      "case_id": "rep1_mariadb-innodb-baseline_balanced_c16"
+    },
+    {
+      "repetition": 1,
+      "variant": {
+        "id": "sqlite-driver-3.0.0-rc.3",
+        "family": "sqlite",
+        "port": 9182,
+        "fpm_port": 9282,
+        "tag": "v3.0.0-rc.3",
+        "db_name": ""
+      },
+      "workload": "balanced",
+      "concurrency": 32,
+      "case_id": "rep1_sqlite-driver-3.0.0-rc.3_balanced_c32"
+    },
+    {
+      "repetition": 1,
+      "variant": {
+        "id": "mariadb-innodb-baseline",
+        "family": "innodb",
+        "port": 9181,
+        "fpm_port": 9281,
+        "tag": "",
+        "db_name": "wp_sqlite_bench_local_mysql"
+      },
+      "workload": "balanced",
+      "concurrency": 32,
+      "case_id": "rep1_mariadb-innodb-baseline_balanced_c32"
+    },
+    {
+      "repetition": 1,
+      "variant": {
+        "id": "sqlite-driver-3.0.0-rc.3",
+        "family": "sqlite",
+        "port": 9182,
+        "fpm_port": 9282,
+        "tag": "v3.0.0-rc.3",
+        "db_name": ""
+      },
+      "workload": "balanced",
+      "concurrency": 64,
+      "case_id": "rep1_sqlite-driver-3.0.0-rc.3_balanced_c64"
+    },
+    {
+      "repetition": 1,
+      "variant": {
+        "id": "mariadb-innodb-baseline",
+        "family": "innodb",
+        "port": 9181,
+        "fpm_port": 9281,
+        "tag": "",
+        "db_name": "wp_sqlite_bench_local_mysql"
+      },
+      "workload": "balanced",
+      "concurrency": 64,
+      "case_id": "rep1_mariadb-innodb-baseline_balanced_c64"
+    },
+    {
+      "repetition": 1,
+      "variant": {
+        "id": "mariadb-innodb-baseline",
+        "family": "innodb",
+        "port": 9181,
+        "fpm_port": 9281,
+        "tag": "",
+        "db_name": "wp_sqlite_bench_local_mysql"
+      },
+      "workload": "write-heavy",
+      "concurrency": 4,
+      "case_id": "rep1_mariadb-innodb-baseline_write-heavy_c4"
+    },
+    {
+      "repetition": 1,
+      "variant": {
+        "id": "sqlite-driver-3.0.0-rc.3",
+        "family": "sqlite",
+        "port": 9182,
+        "fpm_port": 9282,
+        "tag": "v3.0.0-rc.3",
+        "db_name": ""
+      },
+      "workload": "write-heavy",
+      "concurrency": 4,
+      "case_id": "rep1_sqlite-driver-3.0.0-rc.3_write-heavy_c4"
+    },
+    {
+      "repetition": 1,
+      "variant": {
+        "id": "sqlite-driver-3.0.0-rc.3",
+        "family": "sqlite",
+        "port": 9182,
+        "fpm_port": 9282,
+        "tag": "v3.0.0-rc.3",
+        "db_name": ""
+      },
+      "workload": "write-heavy",
+      "concurrency": 16,
+      "case_id": "rep1_sqlite-driver-3.0.0-rc.3_write-heavy_c16"
+    },
+    {
+      "repetition": 1,
+      "variant": {
+        "id": "mariadb-innodb-baseline",
+        "family": "innodb",
+        "port": 9181,
+        "fpm_port": 9281,
+        "tag": "",
+        "db_name": "wp_sqlite_bench_local_mysql"
+      },
+      "workload": "write-heavy",
+      "concurrency": 16,
+      "case_id": "rep1_mariadb-innodb-baseline_write-heavy_c16"
+    },
+    {
+      "repetition": 1,
+      "variant": {
+        "id": "sqlite-driver-3.0.0-rc.3",
+        "family": "sqlite",
+        "port": 9182,
+        "fpm_port": 9282,
+        "tag": "v3.0.0-rc.3",
+        "db_name": ""
+      },
+      "workload": "write-heavy",
+      "concurrency": 32,
+      "case_id": "rep1_sqlite-driver-3.0.0-rc.3_write-heavy_c32"
+    },
+    {
+      "repetition": 1,
+      "variant": {
+        "id": "mariadb-innodb-baseline",
+        "family": "innodb",
+        "port": 9181,
+        "fpm_port": 9281,
+        "tag": "",
+        "db_name": "wp_sqlite_bench_local_mysql"
+      },
+      "workload": "write-heavy",
+      "concurrency": 32,
+      "case_id": "rep1_mariadb-innodb-baseline_write-heavy_c32"
+    },
+    {
+      "repetition": 1,
+      "variant": {
+        "id": "mariadb-innodb-baseline",
+        "family": "innodb",
+        "port": 9181,
+        "fpm_port": 9281,
+        "tag": "",
+        "db_name": "wp_sqlite_bench_local_mysql"
+      },
+      "workload": "write-heavy",
+      "concurrency": 64,
+      "case_id": "rep1_mariadb-innodb-baseline_write-heavy_c64"
+    },
+    {
+      "repetition": 1,
+      "variant": {
+        "id": "sqlite-driver-3.0.0-rc.3",
+        "family": "sqlite",
+        "port": 9182,
+        "fpm_port": 9282,
+        "tag": "v3.0.0-rc.3",
+        "db_name": ""
+      },
+      "workload": "write-heavy",
+      "concurrency": 64,
+      "case_id": "rep1_sqlite-driver-3.0.0-rc.3_write-heavy_c64"
+    },
+    {
+      "repetition": 2,
+      "variant": {
+        "id": "mariadb-innodb-baseline",
+        "family": "innodb",
+        "port": 9181,
+        "fpm_port": 9281,
+        "tag": "",
+        "db_name": "wp_sqlite_bench_local_mysql"
+      },
+      "workload": "read-heavy",
+      "concurrency": 4,
+      "case_id": "rep2_mariadb-innodb-baseline_read-heavy_c4"
+    },
+    {
+      "repetition": 2,
+      "variant": {
+        "id": "sqlite-driver-3.0.0-rc.3",
+        "family": "sqlite",
+        "port": 9182,
+        "fpm_port": 9282,
+        "tag": "v3.0.0-rc.3",
+        "db_name": ""
+      },
+      "workload": "read-heavy",
+      "concurrency": 4,
+      "case_id": "rep2_sqlite-driver-3.0.0-rc.3_read-heavy_c4"
+    },
+    {
+      "repetition": 2,
+      "variant": {
+        "id": "mariadb-innodb-baseline",
+        "family": "innodb",
+        "port": 9181,
+        "fpm_port": 9281,
+        "tag": "",
+        "db_name": "wp_sqlite_bench_local_mysql"
+      },
+      "workload": "read-heavy",
+      "concurrency": 16,
+      "case_id": "rep2_mariadb-innodb-baseline_read-heavy_c16"
+    },
+    {
+      "repetition": 2,
+      "variant": {
+        "id": "sqlite-driver-3.0.0-rc.3",
+        "family": "sqlite",
+        "port": 9182,
+        "fpm_port": 9282,
+        "tag": "v3.0.0-rc.3",
+        "db_name": ""
+      },
+      "workload": "read-heavy",
+      "concurrency": 16,
+      "case_id": "rep2_sqlite-driver-3.0.0-rc.3_read-heavy_c16"
+    },
+    {
+      "repetition": 2,
+      "variant": {
+        "id": "mariadb-innodb-baseline",
+        "family": "innodb",
+        "port": 9181,
+        "fpm_port": 9281,
+        "tag": "",
+        "db_name": "wp_sqlite_bench_local_mysql"
+      },
+      "workload": "read-heavy",
+      "concurrency": 32,
+      "case_id": "rep2_mariadb-innodb-baseline_read-heavy_c32"
+    },
+    {
+      "repetition": 2,
+      "variant": {
+        "id": "sqlite-driver-3.0.0-rc.3",
+        "family": "sqlite",
+        "port": 9182,
+        "fpm_port": 9282,
+        "tag": "v3.0.0-rc.3",
+        "db_name": ""
+      },
+      "workload": "read-heavy",
+      "concurrency": 32,
+      "case_id": "rep2_sqlite-driver-3.0.0-rc.3_read-heavy_c32"
+    },
+    {
+      "repetition": 2,
+      "variant": {
+        "id": "mariadb-innodb-baseline",
+        "family": "innodb",
+        "port": 9181,
+        "fpm_port": 9281,
+        "tag": "",
+        "db_name": "wp_sqlite_bench_local_mysql"
+      },
+      "workload": "read-heavy",
+      "concurrency": 64,
+      "case_id": "rep2_mariadb-innodb-baseline_read-heavy_c64"
+    },
+    {
+      "repetition": 2,
+      "variant": {
+        "id": "sqlite-driver-3.0.0-rc.3",
+        "family": "sqlite",
+        "port": 9182,
+        "fpm_port": 9282,
+        "tag": "v3.0.0-rc.3",
+        "db_name": ""
+      },
+      "workload": "read-heavy",
+      "concurrency": 64,
+      "case_id": "rep2_sqlite-driver-3.0.0-rc.3_read-heavy_c64"
+    },
+    {
+      "repetition": 2,
+      "variant": {
+        "id": "mariadb-innodb-baseline",
+        "family": "innodb",
+        "port": 9181,
+        "fpm_port": 9281,
+        "tag": "",
+        "db_name": "wp_sqlite_bench_local_mysql"
+      },
+      "workload": "balanced",
+      "concurrency": 4,
+      "case_id": "rep2_mariadb-innodb-baseline_balanced_c4"
+    },
+    {
+      "repetition": 2,
+      "variant": {
+        "id": "sqlite-driver-3.0.0-rc.3",
+        "family": "sqlite",
+        "port": 9182,
+        "fpm_port": 9282,
+        "tag": "v3.0.0-rc.3",
+        "db_name": ""
+      },
+      "workload": "balanced",
+      "concurrency": 4,
+      "case_id": "rep2_sqlite-driver-3.0.0-rc.3_balanced_c4"
+    },
+    {
+      "repetition": 2,
+      "variant": {
+        "id": "sqlite-driver-3.0.0-rc.3",
+        "family": "sqlite",
+        "port": 9182,
+        "fpm_port": 9282,
+        "tag": "v3.0.0-rc.3",
+        "db_name": ""
+      },
+      "workload": "balanced",
+      "concurrency": 16,
+      "case_id": "rep2_sqlite-driver-3.0.0-rc.3_balanced_c16"
+    },
+    {
+      "repetition": 2,
+      "variant": {
+        "id": "mariadb-innodb-baseline",
+        "family": "innodb",
+        "port": 9181,
+        "fpm_port": 9281,
+        "tag": "",
+        "db_name": "wp_sqlite_bench_local_mysql"
+      },
+      "workload": "balanced",
+      "concurrency": 16,
+      "case_id": "rep2_mariadb-innodb-baseline_balanced_c16"
+    },
+    {
+      "repetition": 2,
+      "variant": {
+        "id": "sqlite-driver-3.0.0-rc.3",
+        "family": "sqlite",
+        "port": 9182,
+        "fpm_port": 9282,
+        "tag": "v3.0.0-rc.3",
+        "db_name": ""
+      },
+      "workload": "balanced",
+      "concurrency": 32,
+      "case_id": "rep2_sqlite-driver-3.0.0-rc.3_balanced_c32"
+    },
+    {
+      "repetition": 2,
+      "variant": {
+        "id": "mariadb-innodb-baseline",
+        "family": "innodb",
+        "port": 9181,
+        "fpm_port": 9281,
+        "tag": "",
+        "db_name": "wp_sqlite_bench_local_mysql"
+      },
+      "workload": "balanced",
+      "concurrency": 32,
+      "case_id": "rep2_mariadb-innodb-baseline_balanced_c32"
+    },
+    {
+      "repetition": 2,
+      "variant": {
+        "id": "sqlite-driver-3.0.0-rc.3",
+        "family": "sqlite",
+        "port": 9182,
+        "fpm_port": 9282,
+        "tag": "v3.0.0-rc.3",
+        "db_name": ""
+      },
+      "workload": "balanced",
+      "concurrency": 64,
+      "case_id": "rep2_sqlite-driver-3.0.0-rc.3_balanced_c64"
+    },
+    {
+      "repetition": 2,
+      "variant": {
+        "id": "mariadb-innodb-baseline",
+        "family": "innodb",
+        "port": 9181,
+        "fpm_port": 9281,
+        "tag": "",
+        "db_name": "wp_sqlite_bench_local_mysql"
+      },
+      "workload": "balanced",
+      "concurrency": 64,
+      "case_id": "rep2_mariadb-innodb-baseline_balanced_c64"
+    },
+    {
+      "repetition": 2,
+      "variant": {
+        "id": "mariadb-innodb-baseline",
+        "family": "innodb",
+        "port": 9181,
+        "fpm_port": 9281,
+        "tag": "",
+        "db_name": "wp_sqlite_bench_local_mysql"
+      },
+      "workload": "write-heavy",
+      "concurrency": 4,
+      "case_id": "rep2_mariadb-innodb-baseline_write-heavy_c4"
+    },
+    {
+      "repetition": 2,
+      "variant": {
+        "id": "sqlite-driver-3.0.0-rc.3",
+        "family": "sqlite",
+        "port": 9182,
+        "fpm_port": 9282,
+        "tag": "v3.0.0-rc.3",
+        "db_name": ""
+      },
+      "workload": "write-heavy",
+      "concurrency": 4,
+      "case_id": "rep2_sqlite-driver-3.0.0-rc.3_write-heavy_c4"
+    },
+    {
+      "repetition": 2,
+      "variant": {
+        "id": "sqlite-driver-3.0.0-rc.3",
+        "family": "sqlite",
+        "port": 9182,
+        "fpm_port": 9282,
+        "tag": "v3.0.0-rc.3",
+        "db_name": ""
+      },
+      "workload": "write-heavy",
+      "concurrency": 16,
+      "case_id": "rep2_sqlite-driver-3.0.0-rc.3_write-heavy_c16"
+    },
+    {
+      "repetition": 2,
+      "variant": {
+        "id": "mariadb-innodb-baseline",
+        "family": "innodb",
+        "port": 9181,
+        "fpm_port": 9281,
+        "tag": "",
+        "db_name": "wp_sqlite_bench_local_mysql"
+      },
+      "workload": "write-heavy",
+      "concurrency": 16,
+      "case_id": "rep2_mariadb-innodb-baseline_write-heavy_c16"
+    },
+    {
+      "repetition": 2,
+      "variant": {
+        "id": "mariadb-innodb-baseline",
+        "family": "innodb",
+        "port": 9181,
+        "fpm_port": 9281,
+        "tag": "",
+        "db_name": "wp_sqlite_bench_local_mysql"
+      },
+      "workload": "write-heavy",
+      "concurrency": 32,
+      "case_id": "rep2_mariadb-innodb-baseline_write-heavy_c32"
+    },
+    {
+      "repetition": 2,
+      "variant": {
+        "id": "sqlite-driver-3.0.0-rc.3",
+        "family": "sqlite",
+        "port": 9182,
+        "fpm_port": 9282,
+        "tag": "v3.0.0-rc.3",
+        "db_name": ""
+      },
+      "workload": "write-heavy",
+      "concurrency": 32,
+      "case_id": "rep2_sqlite-driver-3.0.0-rc.3_write-heavy_c32"
+    },
+    {
+      "repetition": 2,
+      "variant": {
+        "id": "mariadb-innodb-baseline",
+        "family": "innodb",
+        "port": 9181,
+        "fpm_port": 9281,
+        "tag": "",
+        "db_name": "wp_sqlite_bench_local_mysql"
+      },
+      "workload": "write-heavy",
+      "concurrency": 64,
+      "case_id": "rep2_mariadb-innodb-baseline_write-heavy_c64"
+    },
+    {
+      "repetition": 2,
+      "variant": {
+        "id": "sqlite-driver-3.0.0-rc.3",
+        "family": "sqlite",
+        "port": 9182,
+        "fpm_port": 9282,
+        "tag": "v3.0.0-rc.3",
+        "db_name": ""
+      },
+      "workload": "write-heavy",
+      "concurrency": 64,
+      "case_id": "rep2_sqlite-driver-3.0.0-rc.3_write-heavy_c64"
+    },
+    {
+      "repetition": 3,
+      "variant": {
+        "id": "sqlite-driver-3.0.0-rc.3",
+        "family": "sqlite",
+        "port": 9182,
+        "fpm_port": 9282,
+        "tag": "v3.0.0-rc.3",
+        "db_name": ""
+      },
+      "workload": "read-heavy",
+      "concurrency": 4,
+      "case_id": "rep3_sqlite-driver-3.0.0-rc.3_read-heavy_c4"
+    },
+    {
+      "repetition": 3,
+      "variant": {
+        "id": "mariadb-innodb-baseline",
+        "family": "innodb",
+        "port": 9181,
+        "fpm_port": 9281,
+        "tag": "",
+        "db_name": "wp_sqlite_bench_local_mysql"
+      },
+      "workload": "read-heavy",
+      "concurrency": 4,
+      "case_id": "rep3_mariadb-innodb-baseline_read-heavy_c4"
+    },
+    {
+      "repetition": 3,
+      "variant": {
+        "id": "sqlite-driver-3.0.0-rc.3",
+        "family": "sqlite",
+        "port": 9182,
+        "fpm_port": 9282,
+        "tag": "v3.0.0-rc.3",
+        "db_name": ""
+      },
+      "workload": "read-heavy",
+      "concurrency": 16,
+      "case_id": "rep3_sqlite-driver-3.0.0-rc.3_read-heavy_c16"
+    },
+    {
+      "repetition": 3,
+      "variant": {
+        "id": "mariadb-innodb-baseline",
+        "family": "innodb",
+        "port": 9181,
+        "fpm_port": 9281,
+        "tag": "",
+        "db_name": "wp_sqlite_bench_local_mysql"
+      },
+      "workload": "read-heavy",
+      "concurrency": 16,
+      "case_id": "rep3_mariadb-innodb-baseline_read-heavy_c16"
+    },
+    {
+      "repetition": 3,
+      "variant": {
+        "id": "sqlite-driver-3.0.0-rc.3",
+        "family": "sqlite",
+        "port": 9182,
+        "fpm_port": 9282,
+        "tag": "v3.0.0-rc.3",
+        "db_name": ""
+      },
+      "workload": "read-heavy",
+      "concurrency": 32,
+      "case_id": "rep3_sqlite-driver-3.0.0-rc.3_read-heavy_c32"
+    },
+    {
+      "repetition": 3,
+      "variant": {
+        "id": "mariadb-innodb-baseline",
+        "family": "innodb",
+        "port": 9181,
+        "fpm_port": 9281,
+        "tag": "",
+        "db_name": "wp_sqlite_bench_local_mysql"
+      },
+      "workload": "read-heavy",
+      "concurrency": 32,
+      "case_id": "rep3_mariadb-innodb-baseline_read-heavy_c32"
+    },
+    {
+      "repetition": 3,
+      "variant": {
+        "id": "mariadb-innodb-baseline",
+        "family": "innodb",
+        "port": 9181,
+        "fpm_port": 9281,
+        "tag": "",
+        "db_name": "wp_sqlite_bench_local_mysql"
+      },
+      "workload": "read-heavy",
+      "concurrency": 64,
+      "case_id": "rep3_mariadb-innodb-baseline_read-heavy_c64"
+    },
+    {
+      "repetition": 3,
+      "variant": {
+        "id": "sqlite-driver-3.0.0-rc.3",
+        "family": "sqlite",
+        "port": 9182,
+        "fpm_port": 9282,
+        "tag": "v3.0.0-rc.3",
+        "db_name": ""
+      },
+      "workload": "read-heavy",
+      "concurrency": 64,
+      "case_id": "rep3_sqlite-driver-3.0.0-rc.3_read-heavy_c64"
+    },
+    {
+      "repetition": 3,
+      "variant": {
+        "id": "sqlite-driver-3.0.0-rc.3",
+        "family": "sqlite",
+        "port": 9182,
+        "fpm_port": 9282,
+        "tag": "v3.0.0-rc.3",
+        "db_name": ""
+      },
+      "workload": "balanced",
+      "concurrency": 4,
+      "case_id": "rep3_sqlite-driver-3.0.0-rc.3_balanced_c4"
+    },
+    {
+      "repetition": 3,
+      "variant": {
+        "id": "mariadb-innodb-baseline",
+        "family": "innodb",
+        "port": 9181,
+        "fpm_port": 9281,
+        "tag": "",
+        "db_name": "wp_sqlite_bench_local_mysql"
+      },
+      "workload": "balanced",
+      "concurrency": 4,
+      "case_id": "rep3_mariadb-innodb-baseline_balanced_c4"
+    },
+    {
+      "repetition": 3,
+      "variant": {
+        "id": "mariadb-innodb-baseline",
+        "family": "innodb",
+        "port": 9181,
+        "fpm_port": 9281,
+        "tag": "",
+        "db_name": "wp_sqlite_bench_local_mysql"
+      },
+      "workload": "balanced",
+      "concurrency": 16,
+      "case_id": "rep3_mariadb-innodb-baseline_balanced_c16"
+    },
+    {
+      "repetition": 3,
+      "variant": {
+        "id": "sqlite-driver-3.0.0-rc.3",
+        "family": "sqlite",
+        "port": 9182,
+        "fpm_port": 9282,
+        "tag": "v3.0.0-rc.3",
+        "db_name": ""
+      },
+      "workload": "balanced",
+      "concurrency": 16,
+      "case_id": "rep3_sqlite-driver-3.0.0-rc.3_balanced_c16"
+    },
+    {
+      "repetition": 3,
+      "variant": {
+        "id": "sqlite-driver-3.0.0-rc.3",
+        "family": "sqlite",
+        "port": 9182,
+        "fpm_port": 9282,
+        "tag": "v3.0.0-rc.3",
+        "db_name": ""
+      },
+      "workload": "balanced",
+      "concurrency": 32,
+      "case_id": "rep3_sqlite-driver-3.0.0-rc.3_balanced_c32"
+    },
+    {
+      "repetition": 3,
+      "variant": {
+        "id": "mariadb-innodb-baseline",
+        "family": "innodb",
+        "port": 9181,
+        "fpm_port": 9281,
+        "tag": "",
+        "db_name": "wp_sqlite_bench_local_mysql"
+      },
+      "workload": "balanced",
+      "concurrency": 32,
+      "case_id": "rep3_mariadb-innodb-baseline_balanced_c32"
+    },
+    {
+      "repetition": 3,
+      "variant": {
+        "id": "sqlite-driver-3.0.0-rc.3",
+        "family": "sqlite",
+        "port": 9182,
+        "fpm_port": 9282,
+        "tag": "v3.0.0-rc.3",
+        "db_name": ""
+      },
+      "workload": "balanced",
+      "concurrency": 64,
+      "case_id": "rep3_sqlite-driver-3.0.0-rc.3_balanced_c64"
+    },
+    {
+      "repetition": 3,
+      "variant": {
+        "id": "mariadb-innodb-baseline",
+        "family": "innodb",
+        "port": 9181,
+        "fpm_port": 9281,
+        "tag": "",
+        "db_name": "wp_sqlite_bench_local_mysql"
+      },
+      "workload": "balanced",
+      "concurrency": 64,
+      "case_id": "rep3_mariadb-innodb-baseline_balanced_c64"
+    },
+    {
+      "repetition": 3,
+      "variant": {
+        "id": "mariadb-innodb-baseline",
+        "family": "innodb",
+        "port": 9181,
+        "fpm_port": 9281,
+        "tag": "",
+        "db_name": "wp_sqlite_bench_local_mysql"
+      },
+      "workload": "write-heavy",
+      "concurrency": 4,
+      "case_id": "rep3_mariadb-innodb-baseline_write-heavy_c4"
+    },
+    {
+      "repetition": 3,
+      "variant": {
+        "id": "sqlite-driver-3.0.0-rc.3",
+        "family": "sqlite",
+        "port": 9182,
+        "fpm_port": 9282,
+        "tag": "v3.0.0-rc.3",
+        "db_name": ""
+      },
+      "workload": "write-heavy",
+      "concurrency": 4,
+      "case_id": "rep3_sqlite-driver-3.0.0-rc.3_write-heavy_c4"
+    },
+    {
+      "repetition": 3,
+      "variant": {
+        "id": "sqlite-driver-3.0.0-rc.3",
+        "family": "sqlite",
+        "port": 9182,
+        "fpm_port": 9282,
+        "tag": "v3.0.0-rc.3",
+        "db_name": ""
+      },
+      "workload": "write-heavy",
+      "concurrency": 16,
+      "case_id": "rep3_sqlite-driver-3.0.0-rc.3_write-heavy_c16"
+    },
+    {
+      "repetition": 3,
+      "variant": {
+        "id": "mariadb-innodb-baseline",
+        "family": "innodb",
+        "port": 9181,
+        "fpm_port": 9281,
+        "tag": "",
+        "db_name": "wp_sqlite_bench_local_mysql"
+      },
+      "workload": "write-heavy",
+      "concurrency": 16,
+      "case_id": "rep3_mariadb-innodb-baseline_write-heavy_c16"
+    },
+    {
+      "repetition": 3,
+      "variant": {
+        "id": "sqlite-driver-3.0.0-rc.3",
+        "family": "sqlite",
+        "port": 9182,
+        "fpm_port": 9282,
+        "tag": "v3.0.0-rc.3",
+        "db_name": ""
+      },
+      "workload": "write-heavy",
+      "concurrency": 32,
+      "case_id": "rep3_sqlite-driver-3.0.0-rc.3_write-heavy_c32"
+    },
+    {
+      "repetition": 3,
+      "variant": {
+        "id": "mariadb-innodb-baseline",
+        "family": "innodb",
+        "port": 9181,
+        "fpm_port": 9281,
+        "tag": "",
+        "db_name": "wp_sqlite_bench_local_mysql"
+      },
+      "workload": "write-heavy",
+      "concurrency": 32,
+      "case_id": "rep3_mariadb-innodb-baseline_write-heavy_c32"
+    },
+    {
+      "repetition": 3,
+      "variant": {
+        "id": "sqlite-driver-3.0.0-rc.3",
+        "family": "sqlite",
+        "port": 9182,
+        "fpm_port": 9282,
+        "tag": "v3.0.0-rc.3",
+        "db_name": ""
+      },
+      "workload": "write-heavy",
+      "concurrency": 64,
+      "case_id": "rep3_sqlite-driver-3.0.0-rc.3_write-heavy_c64"
+    },
+    {
+      "repetition": 3,
+      "variant": {
+        "id": "mariadb-innodb-baseline",
+        "family": "innodb",
+        "port": 9181,
+        "fpm_port": 9281,
+        "tag": "",
+        "db_name": "wp_sqlite_bench_local_mysql"
+      },
+      "workload": "write-heavy",
+      "concurrency": 64,
+      "case_id": "rep3_mariadb-innodb-baseline_write-heavy_c64"
+    }
+  ],
+  "host": {
+    "platform": "macOS-26.5-arm64-arm-64bit",
+    "machine": "arm64",
+    "processor": "arm",
+    "python": "3.9.6",
+    "cpu_count": 4,
+    "sysctl": {
+      "hw.memsize": "8589934592",
+      "hw.ncpu": "4",
+      "machdep.cpu.brand_string": "Apple M4 Max (Virtual)",
+      "kern.osproductversion": "26.5"
+    }
+  },
+  "sequential_variants": false,
+  "compressed_snapshots": true
+}

@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Restaurant WordPress Server Load: MariaDB vs SQLite rc3</title>
+<style>
+:root {
+  --bg: #f6f7f9;
+  --panel: #ffffff;
+  --ink: #172033;
+  --muted: #5b6777;
+  --line: #d9e1ea;
+  --accent: #1f6feb;
+  --good-bg: #d1fae5;
+  --good-text: #065f46;
+  --bad-bg: #fee2e2;
+  --bad-text: #991b1b;
+  --neutral-bg: #fef3c7;
+  --neutral-text: #92400e;
+  --na-bg: #eef2f7;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+main { max-width: 1320px; margin: 0 auto; padding: 34px 22px 58px; }
+h1 { margin: 0 0 8px; font-size: 32px; letter-spacing: 0; }
+h2 { margin: 30px 0 10px; font-size: 22px; letter-spacing: 0; }
+p { margin: 0 0 13px; color: var(--muted); max-width: 1020px; }
+a { color: var(--accent); font-weight: 700; text-decoration: none; }
+a:hover { text-decoration: underline; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; margin: 20px 0; }
+.card, section { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 16px; }
+.card strong { display: block; font-size: 25px; line-height: 1.2; }
+.card span { color: var(--muted); }
+.note { padding: 13px 15px; border: 1px solid #bfdbfe; background: #eff6ff; color: #1e3a8a; border-radius: 8px; }
+.warn { padding: 13px 15px; border: 1px solid #fcd34d; background: #fffbeb; color: #78350f; border-radius: 8px; }
+table { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; margin-top: 12px; }
+th, td { border-bottom: 1px solid var(--line); padding: 8px 10px; text-align: right; vertical-align: top; white-space: nowrap; }
+th { background: #eef2f7; color: #334155; text-transform: uppercase; font-size: 12px; letter-spacing: .03em; }
+td:first-child, th:first-child, td:nth-child(2), th:nth-child(2) { text-align: left; }
+tr:last-child td { border-bottom: 0; }
+tr:nth-child(even) td { background: #fbfcfd; }
+.good { background: var(--good-bg) !important; color: var(--good-text); font-weight: 700; }
+.bad { background: var(--bad-bg) !important; color: var(--bad-text); font-weight: 700; }
+.neutral { background: var(--neutral-bg) !important; color: var(--neutral-text); font-weight: 700; }
+.na { background: var(--na-bg) !important; color: var(--muted); font-weight: 700; }
+.table-wrap, .heatmap { overflow-x: auto; }
+ul { margin: 10px 0 0; padding-left: 20px; color: var(--muted); }
+li { margin: 6px 0; }
+code { background: #eef2f7; padding: 2px 5px; border-radius: 4px; }
+footer { margin-top: 24px; color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Restaurant WordPress Server Load: MariaDB vs SQLite rc3</h1>
+  <p>Local macOS production-methodology request-load run for the same small restaurant WordPress site, comparing MariaDB/InnoDB with SQLite Database Integration <code>v3.0.0-rc.3</code>. This page focuses on CPU, memory, disk, network, WAL, and operational failure signals.</p>
+
+  <div class="grid" aria-label="Run summary">
+    <div class="card"><strong>72</strong><span>measured cases: 2 variants x 3 workloads x 4 concurrency levels x 3 repetitions</span></div>
+    <div class="card"><strong>+22.7% to +48.7%</strong><span>SQLite CPU core-seconds per 1k flows vs MariaDB</span></div>
+    <div class="card"><strong>+85 to +886 MiB</strong><span>additional SQLite PHP-FPM RSS vs MariaDB</span></div>
+    <div class="card"><strong>0</strong><span>failed flows, write verification failures, SQLite busy/locked events, PHP fatals, or PHP warnings</span></div>
+  </div>
+
+  <p class="note">Run date: 2026-06-11 15:10:33 UTC. Workloads were read-heavy, balanced, and write-heavy at 4, 16, 32, and 64 concurrent requests. Each measured window ran for 20 seconds after a 5 second warm-up. Resource samples were collected roughly once per second during the measured window.</p>
+
+  <section>
+    <h2>Bottom Line</h2>
+    <ul>
+      <li>SQLite used more process CPU per unit of completed work in every workload and concurrency cell: +22.7% to +48.7% CPU core-seconds per 1k successful flows.</li>
+      <li>SQLite PHP-FPM memory was also consistently higher: +85 MiB to +886 MiB above MariaDB depending on workload and concurrency.</li>
+      <li>Read-heavy throughput was consistently lower for SQLite: -19.6% to -17.5%.</li>
+      <li>Balanced and write-heavy p95 latency often improved with SQLite despite the higher CPU load: balanced p95 deltas were -31.8% to -13.3%, and write-heavy p95 deltas were -27.0% to -3.0%.</li>
+      <li>SQLite WAL growth remained small for read-heavy cases and peaked at 26.9 MiB in the write-heavy c64 cell. Post-case passive checkpoints reported no remaining checkpoint backlog in the benchmark logs.</li>
+    </ul>
+  </section>
+
+  <p class="warn">Interpret total RSS carefully: the MariaDB daemon was present on the host even during SQLite cases, so total RSS includes idle MariaDB memory in SQLite measurements. PHP-FPM RSS and CPU core-seconds per 1k flows are the cleaner cross-variant signals in this local run.</p>
+
+  <section>
+    <h2>SQLite vs MariaDB Delta Summary</h2>
+    <p>Positive throughput and writes/sec are better for SQLite. Negative p95 latency, CPU per 1k flows, and memory deltas are better for SQLite.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Workload</th><th>Concurrent requests</th><th>Throughput</th><th>p95 latency</th><th>CPU core-s / 1k flows</th><th>PHP-FPM RSS</th><th>Writes/sec</th></tr></thead>
+        <tbody><tr><td>read-heavy</td><td>4</td><td class="bad">-19.6%</td><td class="bad">+25.7%</td><td class="bad">+30.3%</td><td class="bad">+85 MiB</td><td class="na">n/a</td></tr><tr><td>read-heavy</td><td>16</td><td class="bad">-17.8%</td><td class="bad">+16.0%</td><td class="bad">+22.7%</td><td class="bad">+330 MiB</td><td class="na">n/a</td></tr><tr><td>read-heavy</td><td>32</td><td class="bad">-18.6%</td><td class="bad">+11.7%</td><td class="bad">+28.2%</td><td class="bad">+378 MiB</td><td class="na">n/a</td></tr><tr><td>read-heavy</td><td>64</td><td class="bad">-17.5%</td><td class="bad">+15.5%</td><td class="bad">+36.3%</td><td class="bad">+525 MiB</td><td class="na">n/a</td></tr><tr><td>balanced</td><td>4</td><td class="good">+38.9%</td><td class="good">-31.8%</td><td class="bad">+23.4%</td><td class="bad">+119 MiB</td><td class="good">+42.0%</td></tr><tr><td>balanced</td><td>16</td><td class="bad">-7.1%</td><td class="good">-23.2%</td><td class="bad">+24.0%</td><td class="bad">+336 MiB</td><td class="bad">-6.8%</td></tr><tr><td>balanced</td><td>32</td><td class="bad">-15.6%</td><td class="good">-26.2%</td><td class="bad">+40.9%</td><td class="bad">+377 MiB</td><td class="bad">-16.5%</td></tr><tr><td>balanced</td><td>64</td><td class="bad">-14.9%</td><td class="good">-13.3%</td><td class="bad">+36.4%</td><td class="bad">+726 MiB</td><td class="bad">-15.3%</td></tr><tr><td>write-heavy</td><td>4</td><td class="good">+47.9%</td><td class="good">-27.0%</td><td class="bad">+36.7%</td><td class="bad">+126 MiB</td><td class="good">+51.2%</td></tr><tr><td>write-heavy</td><td>16</td><td class="neutral">+1.8%</td><td class="good">-12.7%</td><td class="bad">+42.1%</td><td class="bad">+336 MiB</td><td class="neutral">+1.1%</td></tr><tr><td>write-heavy</td><td>32</td><td class="bad">-4.2%</td><td class="good">-16.1%</td><td class="bad">+39.1%</td><td class="bad">+468 MiB</td><td class="bad">-4.9%</td></tr><tr><td>write-heavy</td><td>64</td><td class="bad">-15.8%</td><td class="neutral">-3.0%</td><td class="bad">+48.7%</td><td class="bad">+886 MiB</td><td class="bad">-15.3%</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section><h2>CPU Cost Delta</h2><p>SQLite CPU core-seconds per 1k successful flows compared with MariaDB. Lower is better.</p><div class="heatmap">
+<table><thead><tr><th>Workload</th><th>c4</th><th>c16</th><th>c32</th><th>c64</th></tr></thead><tbody>
+<tr><td>read-heavy</td>
+<td class="bad"><strong>+30.3%</strong></td>
+<td class="bad"><strong>+22.7%</strong></td>
+<td class="bad"><strong>+28.2%</strong></td>
+<td class="bad"><strong>+36.3%</strong></td>
+</tr>
+<tr><td>balanced</td>
+<td class="bad"><strong>+23.4%</strong></td>
+<td class="bad"><strong>+24.0%</strong></td>
+<td class="bad"><strong>+40.9%</strong></td>
+<td class="bad"><strong>+36.4%</strong></td>
+</tr>
+<tr><td>write-heavy</td>
+<td class="bad"><strong>+36.7%</strong></td>
+<td class="bad"><strong>+42.1%</strong></td>
+<td class="bad"><strong>+39.1%</strong></td>
+<td class="bad"><strong>+48.7%</strong></td>
+</tr>
+</tbody></table></div></section>
+  <section><h2>PHP-FPM Memory Delta</h2><p>SQLite max PHP-FPM RSS minus MariaDB max PHP-FPM RSS. Lower is better.</p><div class="heatmap">
+<table><thead><tr><th>Workload</th><th>c4</th><th>c16</th><th>c32</th><th>c64</th></tr></thead><tbody>
+<tr><td>read-heavy</td>
+<td class="bad"><strong>+85 MiB</strong></td>
+<td class="bad"><strong>+330 MiB</strong></td>
+<td class="bad"><strong>+378 MiB</strong></td>
+<td class="bad"><strong>+525 MiB</strong></td>
+</tr>
+<tr><td>balanced</td>
+<td class="bad"><strong>+119 MiB</strong></td>
+<td class="bad"><strong>+336 MiB</strong></td>
+<td class="bad"><strong>+377 MiB</strong></td>
+<td class="bad"><strong>+726 MiB</strong></td>
+</tr>
+<tr><td>write-heavy</td>
+<td class="bad"><strong>+126 MiB</strong></td>
+<td class="bad"><strong>+336 MiB</strong></td>
+<td class="bad"><strong>+468 MiB</strong></td>
+<td class="bad"><strong>+886 MiB</strong></td>
+</tr>
+</tbody></table></div></section>
+  <section><h2>Throughput Delta</h2><p>SQLite completed flows per second compared with MariaDB. Higher is better.</p><div class="heatmap">
+<table><thead><tr><th>Workload</th><th>c4</th><th>c16</th><th>c32</th><th>c64</th></tr></thead><tbody>
+<tr><td>read-heavy</td>
+<td class="bad"><strong>-19.6%</strong></td>
+<td class="bad"><strong>-17.8%</strong></td>
+<td class="bad"><strong>-18.6%</strong></td>
+<td class="bad"><strong>-17.5%</strong></td>
+</tr>
+<tr><td>balanced</td>
+<td class="good"><strong>+38.9%</strong></td>
+<td class="bad"><strong>-7.1%</strong></td>
+<td class="bad"><strong>-15.6%</strong></td>
+<td class="bad"><strong>-14.9%</strong></td>
+</tr>
+<tr><td>write-heavy</td>
+<td class="good"><strong>+47.9%</strong></td>
+<td class="neutral"><strong>+1.8%</strong></td>
+<td class="bad"><strong>-4.2%</strong></td>
+<td class="bad"><strong>-15.8%</strong></td>
+</tr>
+</tbody></table></div></section>
+  <section><h2>p95 Latency Delta</h2><p>SQLite full-flow p95 latency compared with MariaDB. Lower is better.</p><div class="heatmap">
+<table><thead><tr><th>Workload</th><th>c4</th><th>c16</th><th>c32</th><th>c64</th></tr></thead><tbody>
+<tr><td>read-heavy</td>
+<td class="bad"><strong>+25.7%</strong></td>
+<td class="bad"><strong>+16.0%</strong></td>
+<td class="bad"><strong>+11.7%</strong></td>
+<td class="bad"><strong>+15.5%</strong></td>
+</tr>
+<tr><td>balanced</td>
+<td class="good"><strong>-31.8%</strong></td>
+<td class="good"><strong>-23.2%</strong></td>
+<td class="good"><strong>-26.2%</strong></td>
+<td class="good"><strong>-13.3%</strong></td>
+</tr>
+<tr><td>write-heavy</td>
+<td class="good"><strong>-27.0%</strong></td>
+<td class="good"><strong>-12.7%</strong></td>
+<td class="good"><strong>-16.1%</strong></td>
+<td class="neutral"><strong>-3.0%</strong></td>
+</tr>
+</tbody></table></div></section>
+
+  <section>
+    <h2>Resource Metrics By Cell</h2>
+    <p>CPU is approximate process core-seconds per 1k successful flows, derived by integrating sampled process CPU percentages across the measured window. Max process CPU can exceed 100% because the VM had multiple CPUs.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Variant</th><th>Workload</th><th>Concurrent requests</th><th>Flows/sec</th><th>p95</th><th>CPU core-s / 1k</th><th>Max process CPU</th><th>Max PHP RSS</th><th>Max DB RSS</th><th>Max total RSS</th><th>Max disk MB/sample</th><th>Loopback MB/s</th></tr></thead>
+        <tbody><tr><td>MariaDB</td><td>balanced</td><td>4</td><td>69.38</td><td>147ms</td><td>31.00</td><td>319%</td><td>646 MiB</td><td>149 MiB</td><td>818 MiB</td><td>11.79</td><td>28.66</td></tr><tr><td>MariaDB</td><td>balanced</td><td>16</td><td>102.17</td><td>575ms</td><td>31.10</td><td>355%</td><td>957 MiB</td><td>149 MiB</td><td>1,123 MiB</td><td>13.66</td><td>41.25</td></tr><tr><td>MariaDB</td><td>balanced</td><td>32</td><td>106.17</td><td>1.22s</td><td>29.02</td><td>359%</td><td>1,603 MiB</td><td>149 MiB</td><td>1,754 MiB</td><td>13.66</td><td>43.83</td></tr><tr><td>MariaDB</td><td>balanced</td><td>64</td><td>108.04</td><td>2.14s</td><td>29.06</td><td>357%</td><td>2,727 MiB</td><td>150 MiB</td><td>2,896 MiB</td><td>23.35</td><td>42.51</td></tr><tr><td>MariaDB</td><td>read-heavy</td><td>4</td><td>116.18</td><td>76ms</td><td>29.96</td><td>366%</td><td>643 MiB</td><td>149 MiB</td><td>813 MiB</td><td>13.23</td><td>42.34</td></tr><tr><td>MariaDB</td><td>read-heavy</td><td>16</td><td>108.78</td><td>346ms</td><td>32.72</td><td>372%</td><td>942 MiB</td><td>149 MiB</td><td>1,114 MiB</td><td>29.55</td><td>40.56</td></tr><tr><td>MariaDB</td><td>read-heavy</td><td>32</td><td>113.48</td><td>696ms</td><td>30.69</td><td>368%</td><td>1,522 MiB</td><td>149 MiB</td><td>1,690 MiB</td><td>18.53</td><td>40.84</td></tr><tr><td>MariaDB</td><td>read-heavy</td><td>64</td><td>110.72</td><td>1.40s</td><td>31.14</td><td>363%</td><td>2,707 MiB</td><td>149 MiB</td><td>2,879 MiB</td><td>12.71</td><td>42.00</td></tr><tr><td>MariaDB</td><td>write-heavy</td><td>4</td><td>65.18</td><td>146ms</td><td>28.02</td><td>295%</td><td>657 MiB</td><td>150 MiB</td><td>827 MiB</td><td>27.46</td><td>28.60</td></tr><tr><td>MariaDB</td><td>write-heavy</td><td>16</td><td>94.01</td><td>561ms</td><td>26.63</td><td>332%</td><td>971 MiB</td><td>150 MiB</td><td>1,140 MiB</td><td>14.54</td><td>43.28</td></tr><tr><td>MariaDB</td><td>write-heavy</td><td>32</td><td>103.53</td><td>1.09s</td><td>26.52</td><td>334%</td><td>1,583 MiB</td><td>150 MiB</td><td>1,746 MiB</td><td>15.86</td><td>47.45</td></tr><tr><td>MariaDB</td><td>write-heavy</td><td>64</td><td>111.82</td><td>2.01s</td><td>26.38</td><td>349%</td><td>2,758 MiB</td><td>151 MiB</td><td>2,934 MiB</td><td>13.91</td><td>51.87</td></tr><tr><td>SQLite rc3</td><td>balanced</td><td>4</td><td>96.39</td><td>100ms</td><td>38.26</td><td>384%</td><td>765 MiB</td><td>149 MiB</td><td>936 MiB</td><td>12.72</td><td>40.44</td></tr><tr><td>SQLite rc3</td><td>balanced</td><td>16</td><td>94.87</td><td>442ms</td><td>38.55</td><td>380%</td><td>1,293 MiB</td><td>149 MiB</td><td>1,466 MiB</td><td>16.58</td><td>37.47</td></tr><tr><td>SQLite rc3</td><td>balanced</td><td>32</td><td>89.65</td><td>903ms</td><td>40.90</td><td>378%</td><td>1,981 MiB</td><td>149 MiB</td><td>2,156 MiB</td><td>15.75</td><td>37.12</td></tr><tr><td>SQLite rc3</td><td>balanced</td><td>64</td><td>91.97</td><td>1.85s</td><td>39.63</td><td>380%</td><td>3,453 MiB</td><td>149 MiB</td><td>3,623 MiB</td><td>15.04</td><td>37.06</td></tr><tr><td>SQLite rc3</td><td>read-heavy</td><td>4</td><td>93.45</td><td>95ms</td><td>39.05</td><td>383%</td><td>728 MiB</td><td>149 MiB</td><td>893 MiB</td><td>10.54</td><td>33.98</td></tr><tr><td>SQLite rc3</td><td>read-heavy</td><td>16</td><td>89.43</td><td>402ms</td><td>40.15</td><td>380%</td><td>1,273 MiB</td><td>149 MiB</td><td>1,410 MiB</td><td>8.44</td><td>33.76</td></tr><tr><td>SQLite rc3</td><td>read-heavy</td><td>32</td><td>92.39</td><td>778ms</td><td>39.33</td><td>379%</td><td>1,900 MiB</td><td>149 MiB</td><td>2,038 MiB</td><td>11.64</td><td>33.54</td></tr><tr><td>SQLite rc3</td><td>read-heavy</td><td>64</td><td>91.29</td><td>1.62s</td><td>42.45</td><td>378%</td><td>3,232 MiB</td><td>149 MiB</td><td>3,408 MiB</td><td>12.38</td><td>33.31</td></tr><tr><td>SQLite rc3</td><td>write-heavy</td><td>4</td><td>96.43</td><td>106ms</td><td>38.29</td><td>380%</td><td>783 MiB</td><td>150 MiB</td><td>956 MiB</td><td>20.75</td><td>44.02</td></tr><tr><td>SQLite rc3</td><td>write-heavy</td><td>16</td><td>95.71</td><td>490ms</td><td>37.85</td><td>377%</td><td>1,307 MiB</td><td>150 MiB</td><td>1,465 MiB</td><td>17.50</td><td>45.09</td></tr><tr><td>SQLite rc3</td><td>write-heavy</td><td>32</td><td>99.18</td><td>915ms</td><td>36.88</td><td>382%</td><td>2,051 MiB</td><td>150 MiB</td><td>2,214 MiB</td><td>16.22</td><td>45.47</td></tr><tr><td>SQLite rc3</td><td>write-heavy</td><td>64</td><td>94.18</td><td>1.95s</td><td>39.23</td><td>377%</td><td>3,643 MiB</td><td>151 MiB</td><td>3,818 MiB</td><td>19.65</td><td>43.15</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Correctness And Error Signals</h2>
+    <div class="grid">
+      <div class="card"><strong>0</strong><span>failed flows</span></div>
+      <div class="card"><strong>0</strong><span>write verification failures</span></div>
+      <div class="card"><strong>0</strong><span>SQLite busy/locked log events</span></div>
+      <div class="card"><strong>0</strong><span>PHP fatal or warning log events</span></div>
+      <div class="card"><strong>8-10</strong><span>resource samples per case</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Artifacts</h2>
+    <ul>
+      <li><a href="aggregate.csv">Aggregate CSV</a> with median performance and resource metrics per variant/workload/concurrency cell.</li>
+      <li><a href="results.csv">Per-case CSV</a> with all 72 measured cases.</li>
+      <li><a href="results.json">Per-case JSON</a> with detailed counters and resource summaries.</li>
+      <li><a href="resource-samples-index.json">Resource samples index</a> linking each case to raw JSONL samples under <code>resource-samples/</code>.</li>
+      <li><a href="summary.md">Generated Markdown summary</a> from the benchmark runner.</li>
+      <li><a href="comparison-visual.html">Performance visual report</a> from the same run.</li>
+    </ul>
+  </section>
+
+  <footer>This is diagnostic local macOS evidence, not the final dedicated-Linux assessment. It is useful for relative MariaDB vs SQLite server-load signals on the same site and fixture.</footer>
+</main>
+</body>
+</html>

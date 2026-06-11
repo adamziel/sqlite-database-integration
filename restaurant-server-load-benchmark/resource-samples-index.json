@@ -1,0 +1,578 @@
+[
+  {
+    "case_id": "rep1_mariadb-innodb-baseline_read-heavy_c4",
+    "variant": "mariadb-innodb-baseline",
+    "workload": "read-heavy",
+    "concurrency": 4,
+    "repetition": 1,
+    "file": "resource-samples/rep1_mariadb-innodb-baseline_read-heavy_c4-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep1_sqlite-driver-3.0.0-rc.3_read-heavy_c4",
+    "variant": "sqlite-driver-3.0.0-rc.3",
+    "workload": "read-heavy",
+    "concurrency": 4,
+    "repetition": 1,
+    "file": "resource-samples/rep1_sqlite-driver-3.0.0-rc.3_read-heavy_c4-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep1_mariadb-innodb-baseline_read-heavy_c16",
+    "variant": "mariadb-innodb-baseline",
+    "workload": "read-heavy",
+    "concurrency": 16,
+    "repetition": 1,
+    "file": "resource-samples/rep1_mariadb-innodb-baseline_read-heavy_c16-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep1_sqlite-driver-3.0.0-rc.3_read-heavy_c16",
+    "variant": "sqlite-driver-3.0.0-rc.3",
+    "workload": "read-heavy",
+    "concurrency": 16,
+    "repetition": 1,
+    "file": "resource-samples/rep1_sqlite-driver-3.0.0-rc.3_read-heavy_c16-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep1_sqlite-driver-3.0.0-rc.3_read-heavy_c32",
+    "variant": "sqlite-driver-3.0.0-rc.3",
+    "workload": "read-heavy",
+    "concurrency": 32,
+    "repetition": 1,
+    "file": "resource-samples/rep1_sqlite-driver-3.0.0-rc.3_read-heavy_c32-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep1_mariadb-innodb-baseline_read-heavy_c32",
+    "variant": "mariadb-innodb-baseline",
+    "workload": "read-heavy",
+    "concurrency": 32,
+    "repetition": 1,
+    "file": "resource-samples/rep1_mariadb-innodb-baseline_read-heavy_c32-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep1_sqlite-driver-3.0.0-rc.3_read-heavy_c64",
+    "variant": "sqlite-driver-3.0.0-rc.3",
+    "workload": "read-heavy",
+    "concurrency": 64,
+    "repetition": 1,
+    "file": "resource-samples/rep1_sqlite-driver-3.0.0-rc.3_read-heavy_c64-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep1_mariadb-innodb-baseline_read-heavy_c64",
+    "variant": "mariadb-innodb-baseline",
+    "workload": "read-heavy",
+    "concurrency": 64,
+    "repetition": 1,
+    "file": "resource-samples/rep1_mariadb-innodb-baseline_read-heavy_c64-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep1_sqlite-driver-3.0.0-rc.3_balanced_c4",
+    "variant": "sqlite-driver-3.0.0-rc.3",
+    "workload": "balanced",
+    "concurrency": 4,
+    "repetition": 1,
+    "file": "resource-samples/rep1_sqlite-driver-3.0.0-rc.3_balanced_c4-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep1_mariadb-innodb-baseline_balanced_c4",
+    "variant": "mariadb-innodb-baseline",
+    "workload": "balanced",
+    "concurrency": 4,
+    "repetition": 1,
+    "file": "resource-samples/rep1_mariadb-innodb-baseline_balanced_c4-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep1_sqlite-driver-3.0.0-rc.3_balanced_c16",
+    "variant": "sqlite-driver-3.0.0-rc.3",
+    "workload": "balanced",
+    "concurrency": 16,
+    "repetition": 1,
+    "file": "resource-samples/rep1_sqlite-driver-3.0.0-rc.3_balanced_c16-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep1_mariadb-innodb-baseline_balanced_c16",
+    "variant": "mariadb-innodb-baseline",
+    "workload": "balanced",
+    "concurrency": 16,
+    "repetition": 1,
+    "file": "resource-samples/rep1_mariadb-innodb-baseline_balanced_c16-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep1_sqlite-driver-3.0.0-rc.3_balanced_c32",
+    "variant": "sqlite-driver-3.0.0-rc.3",
+    "workload": "balanced",
+    "concurrency": 32,
+    "repetition": 1,
+    "file": "resource-samples/rep1_sqlite-driver-3.0.0-rc.3_balanced_c32-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep1_mariadb-innodb-baseline_balanced_c32",
+    "variant": "mariadb-innodb-baseline",
+    "workload": "balanced",
+    "concurrency": 32,
+    "repetition": 1,
+    "file": "resource-samples/rep1_mariadb-innodb-baseline_balanced_c32-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep1_sqlite-driver-3.0.0-rc.3_balanced_c64",
+    "variant": "sqlite-driver-3.0.0-rc.3",
+    "workload": "balanced",
+    "concurrency": 64,
+    "repetition": 1,
+    "file": "resource-samples/rep1_sqlite-driver-3.0.0-rc.3_balanced_c64-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep1_mariadb-innodb-baseline_balanced_c64",
+    "variant": "mariadb-innodb-baseline",
+    "workload": "balanced",
+    "concurrency": 64,
+    "repetition": 1,
+    "file": "resource-samples/rep1_mariadb-innodb-baseline_balanced_c64-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep1_mariadb-innodb-baseline_write-heavy_c4",
+    "variant": "mariadb-innodb-baseline",
+    "workload": "write-heavy",
+    "concurrency": 4,
+    "repetition": 1,
+    "file": "resource-samples/rep1_mariadb-innodb-baseline_write-heavy_c4-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep1_sqlite-driver-3.0.0-rc.3_write-heavy_c4",
+    "variant": "sqlite-driver-3.0.0-rc.3",
+    "workload": "write-heavy",
+    "concurrency": 4,
+    "repetition": 1,
+    "file": "resource-samples/rep1_sqlite-driver-3.0.0-rc.3_write-heavy_c4-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep1_sqlite-driver-3.0.0-rc.3_write-heavy_c16",
+    "variant": "sqlite-driver-3.0.0-rc.3",
+    "workload": "write-heavy",
+    "concurrency": 16,
+    "repetition": 1,
+    "file": "resource-samples/rep1_sqlite-driver-3.0.0-rc.3_write-heavy_c16-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep1_mariadb-innodb-baseline_write-heavy_c16",
+    "variant": "mariadb-innodb-baseline",
+    "workload": "write-heavy",
+    "concurrency": 16,
+    "repetition": 1,
+    "file": "resource-samples/rep1_mariadb-innodb-baseline_write-heavy_c16-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep1_sqlite-driver-3.0.0-rc.3_write-heavy_c32",
+    "variant": "sqlite-driver-3.0.0-rc.3",
+    "workload": "write-heavy",
+    "concurrency": 32,
+    "repetition": 1,
+    "file": "resource-samples/rep1_sqlite-driver-3.0.0-rc.3_write-heavy_c32-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep1_mariadb-innodb-baseline_write-heavy_c32",
+    "variant": "mariadb-innodb-baseline",
+    "workload": "write-heavy",
+    "concurrency": 32,
+    "repetition": 1,
+    "file": "resource-samples/rep1_mariadb-innodb-baseline_write-heavy_c32-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep1_mariadb-innodb-baseline_write-heavy_c64",
+    "variant": "mariadb-innodb-baseline",
+    "workload": "write-heavy",
+    "concurrency": 64,
+    "repetition": 1,
+    "file": "resource-samples/rep1_mariadb-innodb-baseline_write-heavy_c64-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep1_sqlite-driver-3.0.0-rc.3_write-heavy_c64",
+    "variant": "sqlite-driver-3.0.0-rc.3",
+    "workload": "write-heavy",
+    "concurrency": 64,
+    "repetition": 1,
+    "file": "resource-samples/rep1_sqlite-driver-3.0.0-rc.3_write-heavy_c64-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep2_mariadb-innodb-baseline_read-heavy_c4",
+    "variant": "mariadb-innodb-baseline",
+    "workload": "read-heavy",
+    "concurrency": 4,
+    "repetition": 2,
+    "file": "resource-samples/rep2_mariadb-innodb-baseline_read-heavy_c4-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep2_sqlite-driver-3.0.0-rc.3_read-heavy_c4",
+    "variant": "sqlite-driver-3.0.0-rc.3",
+    "workload": "read-heavy",
+    "concurrency": 4,
+    "repetition": 2,
+    "file": "resource-samples/rep2_sqlite-driver-3.0.0-rc.3_read-heavy_c4-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep2_mariadb-innodb-baseline_read-heavy_c16",
+    "variant": "mariadb-innodb-baseline",
+    "workload": "read-heavy",
+    "concurrency": 16,
+    "repetition": 2,
+    "file": "resource-samples/rep2_mariadb-innodb-baseline_read-heavy_c16-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep2_sqlite-driver-3.0.0-rc.3_read-heavy_c16",
+    "variant": "sqlite-driver-3.0.0-rc.3",
+    "workload": "read-heavy",
+    "concurrency": 16,
+    "repetition": 2,
+    "file": "resource-samples/rep2_sqlite-driver-3.0.0-rc.3_read-heavy_c16-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep2_mariadb-innodb-baseline_read-heavy_c32",
+    "variant": "mariadb-innodb-baseline",
+    "workload": "read-heavy",
+    "concurrency": 32,
+    "repetition": 2,
+    "file": "resource-samples/rep2_mariadb-innodb-baseline_read-heavy_c32-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep2_sqlite-driver-3.0.0-rc.3_read-heavy_c32",
+    "variant": "sqlite-driver-3.0.0-rc.3",
+    "workload": "read-heavy",
+    "concurrency": 32,
+    "repetition": 2,
+    "file": "resource-samples/rep2_sqlite-driver-3.0.0-rc.3_read-heavy_c32-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep2_mariadb-innodb-baseline_read-heavy_c64",
+    "variant": "mariadb-innodb-baseline",
+    "workload": "read-heavy",
+    "concurrency": 64,
+    "repetition": 2,
+    "file": "resource-samples/rep2_mariadb-innodb-baseline_read-heavy_c64-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep2_sqlite-driver-3.0.0-rc.3_read-heavy_c64",
+    "variant": "sqlite-driver-3.0.0-rc.3",
+    "workload": "read-heavy",
+    "concurrency": 64,
+    "repetition": 2,
+    "file": "resource-samples/rep2_sqlite-driver-3.0.0-rc.3_read-heavy_c64-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep2_mariadb-innodb-baseline_balanced_c4",
+    "variant": "mariadb-innodb-baseline",
+    "workload": "balanced",
+    "concurrency": 4,
+    "repetition": 2,
+    "file": "resource-samples/rep2_mariadb-innodb-baseline_balanced_c4-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep2_sqlite-driver-3.0.0-rc.3_balanced_c4",
+    "variant": "sqlite-driver-3.0.0-rc.3",
+    "workload": "balanced",
+    "concurrency": 4,
+    "repetition": 2,
+    "file": "resource-samples/rep2_sqlite-driver-3.0.0-rc.3_balanced_c4-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep2_sqlite-driver-3.0.0-rc.3_balanced_c16",
+    "variant": "sqlite-driver-3.0.0-rc.3",
+    "workload": "balanced",
+    "concurrency": 16,
+    "repetition": 2,
+    "file": "resource-samples/rep2_sqlite-driver-3.0.0-rc.3_balanced_c16-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep2_mariadb-innodb-baseline_balanced_c16",
+    "variant": "mariadb-innodb-baseline",
+    "workload": "balanced",
+    "concurrency": 16,
+    "repetition": 2,
+    "file": "resource-samples/rep2_mariadb-innodb-baseline_balanced_c16-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep2_sqlite-driver-3.0.0-rc.3_balanced_c32",
+    "variant": "sqlite-driver-3.0.0-rc.3",
+    "workload": "balanced",
+    "concurrency": 32,
+    "repetition": 2,
+    "file": "resource-samples/rep2_sqlite-driver-3.0.0-rc.3_balanced_c32-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep2_mariadb-innodb-baseline_balanced_c32",
+    "variant": "mariadb-innodb-baseline",
+    "workload": "balanced",
+    "concurrency": 32,
+    "repetition": 2,
+    "file": "resource-samples/rep2_mariadb-innodb-baseline_balanced_c32-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep2_sqlite-driver-3.0.0-rc.3_balanced_c64",
+    "variant": "sqlite-driver-3.0.0-rc.3",
+    "workload": "balanced",
+    "concurrency": 64,
+    "repetition": 2,
+    "file": "resource-samples/rep2_sqlite-driver-3.0.0-rc.3_balanced_c64-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep2_mariadb-innodb-baseline_balanced_c64",
+    "variant": "mariadb-innodb-baseline",
+    "workload": "balanced",
+    "concurrency": 64,
+    "repetition": 2,
+    "file": "resource-samples/rep2_mariadb-innodb-baseline_balanced_c64-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep2_mariadb-innodb-baseline_write-heavy_c4",
+    "variant": "mariadb-innodb-baseline",
+    "workload": "write-heavy",
+    "concurrency": 4,
+    "repetition": 2,
+    "file": "resource-samples/rep2_mariadb-innodb-baseline_write-heavy_c4-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep2_sqlite-driver-3.0.0-rc.3_write-heavy_c4",
+    "variant": "sqlite-driver-3.0.0-rc.3",
+    "workload": "write-heavy",
+    "concurrency": 4,
+    "repetition": 2,
+    "file": "resource-samples/rep2_sqlite-driver-3.0.0-rc.3_write-heavy_c4-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep2_sqlite-driver-3.0.0-rc.3_write-heavy_c16",
+    "variant": "sqlite-driver-3.0.0-rc.3",
+    "workload": "write-heavy",
+    "concurrency": 16,
+    "repetition": 2,
+    "file": "resource-samples/rep2_sqlite-driver-3.0.0-rc.3_write-heavy_c16-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep2_mariadb-innodb-baseline_write-heavy_c16",
+    "variant": "mariadb-innodb-baseline",
+    "workload": "write-heavy",
+    "concurrency": 16,
+    "repetition": 2,
+    "file": "resource-samples/rep2_mariadb-innodb-baseline_write-heavy_c16-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep2_mariadb-innodb-baseline_write-heavy_c32",
+    "variant": "mariadb-innodb-baseline",
+    "workload": "write-heavy",
+    "concurrency": 32,
+    "repetition": 2,
+    "file": "resource-samples/rep2_mariadb-innodb-baseline_write-heavy_c32-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep2_sqlite-driver-3.0.0-rc.3_write-heavy_c32",
+    "variant": "sqlite-driver-3.0.0-rc.3",
+    "workload": "write-heavy",
+    "concurrency": 32,
+    "repetition": 2,
+    "file": "resource-samples/rep2_sqlite-driver-3.0.0-rc.3_write-heavy_c32-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep2_mariadb-innodb-baseline_write-heavy_c64",
+    "variant": "mariadb-innodb-baseline",
+    "workload": "write-heavy",
+    "concurrency": 64,
+    "repetition": 2,
+    "file": "resource-samples/rep2_mariadb-innodb-baseline_write-heavy_c64-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep2_sqlite-driver-3.0.0-rc.3_write-heavy_c64",
+    "variant": "sqlite-driver-3.0.0-rc.3",
+    "workload": "write-heavy",
+    "concurrency": 64,
+    "repetition": 2,
+    "file": "resource-samples/rep2_sqlite-driver-3.0.0-rc.3_write-heavy_c64-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep3_sqlite-driver-3.0.0-rc.3_read-heavy_c4",
+    "variant": "sqlite-driver-3.0.0-rc.3",
+    "workload": "read-heavy",
+    "concurrency": 4,
+    "repetition": 3,
+    "file": "resource-samples/rep3_sqlite-driver-3.0.0-rc.3_read-heavy_c4-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep3_mariadb-innodb-baseline_read-heavy_c4",
+    "variant": "mariadb-innodb-baseline",
+    "workload": "read-heavy",
+    "concurrency": 4,
+    "repetition": 3,
+    "file": "resource-samples/rep3_mariadb-innodb-baseline_read-heavy_c4-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep3_sqlite-driver-3.0.0-rc.3_read-heavy_c16",
+    "variant": "sqlite-driver-3.0.0-rc.3",
+    "workload": "read-heavy",
+    "concurrency": 16,
+    "repetition": 3,
+    "file": "resource-samples/rep3_sqlite-driver-3.0.0-rc.3_read-heavy_c16-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep3_mariadb-innodb-baseline_read-heavy_c16",
+    "variant": "mariadb-innodb-baseline",
+    "workload": "read-heavy",
+    "concurrency": 16,
+    "repetition": 3,
+    "file": "resource-samples/rep3_mariadb-innodb-baseline_read-heavy_c16-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep3_sqlite-driver-3.0.0-rc.3_read-heavy_c32",
+    "variant": "sqlite-driver-3.0.0-rc.3",
+    "workload": "read-heavy",
+    "concurrency": 32,
+    "repetition": 3,
+    "file": "resource-samples/rep3_sqlite-driver-3.0.0-rc.3_read-heavy_c32-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep3_mariadb-innodb-baseline_read-heavy_c32",
+    "variant": "mariadb-innodb-baseline",
+    "workload": "read-heavy",
+    "concurrency": 32,
+    "repetition": 3,
+    "file": "resource-samples/rep3_mariadb-innodb-baseline_read-heavy_c32-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep3_mariadb-innodb-baseline_read-heavy_c64",
+    "variant": "mariadb-innodb-baseline",
+    "workload": "read-heavy",
+    "concurrency": 64,
+    "repetition": 3,
+    "file": "resource-samples/rep3_mariadb-innodb-baseline_read-heavy_c64-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep3_sqlite-driver-3.0.0-rc.3_read-heavy_c64",
+    "variant": "sqlite-driver-3.0.0-rc.3",
+    "workload": "read-heavy",
+    "concurrency": 64,
+    "repetition": 3,
+    "file": "resource-samples/rep3_sqlite-driver-3.0.0-rc.3_read-heavy_c64-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep3_sqlite-driver-3.0.0-rc.3_balanced_c4",
+    "variant": "sqlite-driver-3.0.0-rc.3",
+    "workload": "balanced",
+    "concurrency": 4,
+    "repetition": 3,
+    "file": "resource-samples/rep3_sqlite-driver-3.0.0-rc.3_balanced_c4-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep3_mariadb-innodb-baseline_balanced_c4",
+    "variant": "mariadb-innodb-baseline",
+    "workload": "balanced",
+    "concurrency": 4,
+    "repetition": 3,
+    "file": "resource-samples/rep3_mariadb-innodb-baseline_balanced_c4-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep3_mariadb-innodb-baseline_balanced_c16",
+    "variant": "mariadb-innodb-baseline",
+    "workload": "balanced",
+    "concurrency": 16,
+    "repetition": 3,
+    "file": "resource-samples/rep3_mariadb-innodb-baseline_balanced_c16-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep3_sqlite-driver-3.0.0-rc.3_balanced_c16",
+    "variant": "sqlite-driver-3.0.0-rc.3",
+    "workload": "balanced",
+    "concurrency": 16,
+    "repetition": 3,
+    "file": "resource-samples/rep3_sqlite-driver-3.0.0-rc.3_balanced_c16-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep3_sqlite-driver-3.0.0-rc.3_balanced_c32",
+    "variant": "sqlite-driver-3.0.0-rc.3",
+    "workload": "balanced",
+    "concurrency": 32,
+    "repetition": 3,
+    "file": "resource-samples/rep3_sqlite-driver-3.0.0-rc.3_balanced_c32-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep3_mariadb-innodb-baseline_balanced_c32",
+    "variant": "mariadb-innodb-baseline",
+    "workload": "balanced",
+    "concurrency": 32,
+    "repetition": 3,
+    "file": "resource-samples/rep3_mariadb-innodb-baseline_balanced_c32-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep3_sqlite-driver-3.0.0-rc.3_balanced_c64",
+    "variant": "sqlite-driver-3.0.0-rc.3",
+    "workload": "balanced",
+    "concurrency": 64,
+    "repetition": 3,
+    "file": "resource-samples/rep3_sqlite-driver-3.0.0-rc.3_balanced_c64-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep3_mariadb-innodb-baseline_balanced_c64",
+    "variant": "mariadb-innodb-baseline",
+    "workload": "balanced",
+    "concurrency": 64,
+    "repetition": 3,
+    "file": "resource-samples/rep3_mariadb-innodb-baseline_balanced_c64-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep3_mariadb-innodb-baseline_write-heavy_c4",
+    "variant": "mariadb-innodb-baseline",
+    "workload": "write-heavy",
+    "concurrency": 4,
+    "repetition": 3,
+    "file": "resource-samples/rep3_mariadb-innodb-baseline_write-heavy_c4-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep3_sqlite-driver-3.0.0-rc.3_write-heavy_c4",
+    "variant": "sqlite-driver-3.0.0-rc.3",
+    "workload": "write-heavy",
+    "concurrency": 4,
+    "repetition": 3,
+    "file": "resource-samples/rep3_sqlite-driver-3.0.0-rc.3_write-heavy_c4-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep3_sqlite-driver-3.0.0-rc.3_write-heavy_c16",
+    "variant": "sqlite-driver-3.0.0-rc.3",
+    "workload": "write-heavy",
+    "concurrency": 16,
+    "repetition": 3,
+    "file": "resource-samples/rep3_sqlite-driver-3.0.0-rc.3_write-heavy_c16-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep3_mariadb-innodb-baseline_write-heavy_c16",
+    "variant": "mariadb-innodb-baseline",
+    "workload": "write-heavy",
+    "concurrency": 16,
+    "repetition": 3,
+    "file": "resource-samples/rep3_mariadb-innodb-baseline_write-heavy_c16-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep3_sqlite-driver-3.0.0-rc.3_write-heavy_c32",
+    "variant": "sqlite-driver-3.0.0-rc.3",
+    "workload": "write-heavy",
+    "concurrency": 32,
+    "repetition": 3,
+    "file": "resource-samples/rep3_sqlite-driver-3.0.0-rc.3_write-heavy_c32-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep3_mariadb-innodb-baseline_write-heavy_c32",
+    "variant": "mariadb-innodb-baseline",
+    "workload": "write-heavy",
+    "concurrency": 32,
+    "repetition": 3,
+    "file": "resource-samples/rep3_mariadb-innodb-baseline_write-heavy_c32-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep3_sqlite-driver-3.0.0-rc.3_write-heavy_c64",
+    "variant": "sqlite-driver-3.0.0-rc.3",
+    "workload": "write-heavy",
+    "concurrency": 64,
+    "repetition": 3,
+    "file": "resource-samples/rep3_sqlite-driver-3.0.0-rc.3_write-heavy_c64-resource-samples.jsonl"
+  },
+  {
+    "case_id": "rep3_mariadb-innodb-baseline_write-heavy_c64",
+    "variant": "mariadb-innodb-baseline",
+    "workload": "write-heavy",
+    "concurrency": 64,
+    "repetition": 3,
+    "file": "resource-samples/rep3_mariadb-innodb-baseline_write-heavy_c64-resource-samples.jsonl"
+  }
+]

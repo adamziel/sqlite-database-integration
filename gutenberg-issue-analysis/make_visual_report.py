@@ -460,20 +460,6 @@ def closure_codes_svg(old_counts, recent_counts):
     return "\n".join(parts)
 
 
-def hypothesis_cards():
-    cards = [
-        ("Fewer reports?", "Yes, on GitHub.", "Unique creators fell from 333 to 203 per quarter. First-time creators fell from 121 to 63."),
-        ("Less project management?", "Somewhat, not the main story.", "Maintainer issue volume fell, but maintainer share stayed around 60-62%."),
-        ("Fewer real problems?", "Not proven.", "Bug reports fell, but equal-sized samples still found similar confirmed-problem counts."),
-        ("More cleanup?", "Yes.", "Late 2025 had a clear old-backlog closure wave: 539 old closures in 2025-Q4."),
-        ("Moved elsewhere?", "Weak evidence here.", "Explicit channel redirects were rare in sampled GitHub threads."),
-    ]
-    return "\n".join(
-        f'<section class="answer-card"><div class="question">{esc(q)}</div><h3>{esc(a)}</h3><p>{esc(note)}</p></section>'
-        for q, a, note in cards
-    )
-
-
 def discussion(summary):
     return f"""
     <section class="discussion">
@@ -503,8 +489,6 @@ def build_html():
     quarters = read_csv(QUARTERLY)
     months = read_csv(MONTHLY)
     summary = summarize_periods(quarters)
-    peak = max(quarters, key=lambda r: i(r, "open_at_end"))
-    latest = quarters[-1]
 
     old_counts, _ = code_counts(SAMPLES / "coded_decline_closed_old.csv")
     recent_counts, _ = code_counts(SAMPLES / "coded_decline_closed_recent.csv")
@@ -537,12 +521,7 @@ h2 {{ margin: 38px 0 14px; font-size: 24px; }}
 h3 {{ margin: 0 0 8px; font-size: 18px; }}
 p {{ margin: 8px 0 0; color: var(--muted); }}
 .kicker {{ color: var(--green); font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 8px; }}
-.lede {{ font-size: 18px; max-width: 960px; color: #263241; margin-top: 14px; }}
-.topline {{ display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-top: 22px; }}
-.stat-card, .answer-card, .chart-card {{ background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 16px; }}
-.stat-card .label {{ color: var(--muted); font-size: 13px; font-weight: 700; }}
-.stat-card .value {{ font-size: 30px; font-weight: 850; margin-top: 4px; }}
-.stat-card .note {{ color: var(--muted); font-size: 13px; }}
+.answer-card, .chart-card {{ background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 16px; }}
 .grid-2 {{ display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }}
 .answers {{ display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }}
 .question {{ color: var(--muted); font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .02em; }}
@@ -570,14 +549,13 @@ details {{ margin-top: 18px; background: #ffffff; border: 1px solid var(--line);
 summary {{ cursor: pointer; font-weight: 800; }}
 ul {{ color: var(--muted); }}
 @media (max-width: 980px) {{
-  .topline {{ grid-template-columns: repeat(2, minmax(0, 1fr)); }}
   .grid-2 {{ grid-template-columns: 1fr; }}
   .answers {{ grid-template-columns: repeat(2, minmax(0, 1fr)); }}
 }}
 @media (max-width: 640px) {{
   main {{ padding: 18px 12px 44px; }}
   h1 {{ font-size: 30px; }}
-  .topline, .answers {{ grid-template-columns: 1fr; }}
+  .answers {{ grid-template-columns: 1fr; }}
 }}
 </style>
 </head>
@@ -586,19 +564,7 @@ ul {{ color: var(--muted); }}
   <section class="hero">
     <div class="kicker">WordPress/gutenberg issue analysis</div>
     <h1>Why open issues grew, stalled, then started declining</h1>
-    <p class="lede">The curve is mostly an inflow and cleanup story: new issue volume fell sharply in 2025, while several closure waves removed older backlog. The data does not support a simple "less project management" or "fewer product problems" explanation.</p>
-    <div class="topline">
-      <section class="stat-card"><div class="label">Open issues</div><div class="value">{i(quarters[0], "open_at_end"):,} -> {i(latest, "open_at_end"):,}</div><div class="note">from first partial quarter to 2026-06-11</div></section>
-      <section class="stat-card"><div class="label">Peak sampled backlog</div><div class="value">{i(peak, "open_at_end"):,}</div><div class="note">quarter row {esc(peak["quarter"])}</div></section>
-      <section class="stat-card"><div class="label">New issues per quarter</div><div class="value">{f1(summary["growth"]["created"])} -> {f1(summary["decline"]["created"])}</div><div class="note">growth average to decline average</div></section>
-      <section class="stat-card"><div class="label">GitHub reporters</div><div class="value">{f1(summary["growth"]["unique"])} -> {f1(summary["decline"]["unique"])}</div><div class="note">unique creators per quarter</div></section>
-    </div>
   </section>
-
-  <h2>Read This First</h2>
-  <div class="answers">
-    {hypothesis_cards()}
-  </div>
 
   <h2>Timeline</h2>
   <section class="chart-card">{open_timeline_svg(quarters)}</section>

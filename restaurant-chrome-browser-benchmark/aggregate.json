@@ -1,0 +1,1909 @@
+{
+  "variants": {
+    "mariadb-innodb-baseline": {
+      "status": "completed",
+      "flows": {
+        "frontend_xhr_burst": {
+          "label": "Restaurant frontend XHR burst",
+          "attempts": 20,
+          "successes": 20,
+          "failures": 0,
+          "ready_ms": {
+            "count": 20,
+            "avg": 1108.9068146999998,
+            "median": 1105.5053960000077,
+            "p75": 1112.7696355000153,
+            "p95": 1136.3425902000104,
+            "p99": 1138.219884439999
+          },
+          "navigation_duration_ms": {
+            "count": 20,
+            "avg": 59.26500000000233,
+            "median": 55.699999999953434,
+            "p75": 60.77499999990687,
+            "p95": 73.41999999996042,
+            "p99": 76.76400000006659
+          },
+          "ttfb_ms": {
+            "count": 20,
+            "avg": 26.09999999998836,
+            "median": 24.400000000023283,
+            "p75": 28.249999999941792,
+            "p95": 34.90999999990454,
+            "p99": 35.06199999986915
+          },
+          "fcp_ms": {
+            "count": 20,
+            "avg": 78.2,
+            "median": 76.0,
+            "p75": 84.0,
+            "p95": 96.60000000000001,
+            "p99": 105.71999999999998
+          },
+          "lcp_ms": {
+            "count": 20,
+            "avg": 100.2,
+            "median": 98.0,
+            "p75": 104.0,
+            "p95": 120.60000000000001,
+            "p99": 129.71999999999997
+          },
+          "cls": {
+            "count": 20,
+            "avg": 8.902835045331792e-05,
+            "median": 8.90283504533179e-05,
+            "p75": 8.90283504533179e-05,
+            "p95": 8.90283504533179e-05,
+            "p99": 8.90283504533179e-05
+          },
+          "inp_proxy_ms": {
+            "count": 0,
+            "avg": null,
+            "median": null,
+            "p75": null,
+            "p95": null,
+            "p99": null
+          },
+          "xhr_count": 120,
+          "xhr_failures": 0,
+          "xhr_p95_ms": {
+            "count": 20,
+            "avg": 62.088328699997874,
+            "median": 59.1102291250063,
+            "p75": 64.86308612498942,
+            "p95": 85.20469057499686,
+            "p99": 85.7012719150009
+          },
+          "xhr_avg_ms": {
+            "count": 20,
+            "avg": 44.246986799999775,
+            "median": 41.83607983333301,
+            "p75": 44.933918124999764,
+            "p95": 61.35204709166453,
+            "p99": 64.69633728500227
+          },
+          "http_request_count": 240,
+          "http_failure_count": 0,
+          "http_failure_rate": 0.0,
+          "http_status_counts": {
+            "200": 240
+          },
+          "console_errors": 40,
+          "page_errors": 0,
+          "server": {
+            "request_count": 180,
+            "avg_query_count": 12.0,
+            "avg_db_time_ms": 13.196933269500732,
+            "p95_db_time_ms": 33.508872985839915,
+            "avg_wall_ms": 33.401359452141655,
+            "p95_wall_ms": 64.63735103607178
+          }
+        },
+        "reservation_submit": {
+          "label": "Restaurant reservation submit",
+          "attempts": 20,
+          "successes": 20,
+          "failures": 0,
+          "ready_ms": {
+            "count": 20,
+            "avg": 1684.3623458499976,
+            "median": 1684.9181669999962,
+            "p75": 1691.6602814999933,
+            "p95": 1697.0717648999896,
+            "p99": 1699.1803529799895
+          },
+          "navigation_duration_ms": {
+            "count": 20,
+            "avg": 45.59000000001397,
+            "median": 44.949999999953434,
+            "p75": 46.84999999997672,
+            "p95": 50.0149999999092,
+            "p99": 51.76299999994458
+          },
+          "ttfb_ms": {
+            "count": 20,
+            "avg": 24.504999999993014,
+            "median": 24.100000000093132,
+            "p75": 25.82499999983702,
+            "p95": 28.075000000000003,
+            "p99": 29.214999999999996
+          },
+          "fcp_ms": {
+            "count": 20,
+            "avg": 73.8,
+            "median": 72.0,
+            "p75": 77.0,
+            "p95": 80.2,
+            "p99": 83.24
+          },
+          "lcp_ms": {
+            "count": 20,
+            "avg": 90.2,
+            "median": 88.0,
+            "p75": 93.0,
+            "p95": 96.2,
+            "p99": 99.24
+          },
+          "cls": {
+            "count": 20,
+            "avg": 8.902835045331792e-05,
+            "median": 8.90283504533179e-05,
+            "p75": 8.90283504533179e-05,
+            "p95": 8.90283504533179e-05,
+            "p99": 8.90283504533179e-05
+          },
+          "inp_proxy_ms": {
+            "count": 20,
+            "avg": 56.8,
+            "median": 56.0,
+            "p75": 56.0,
+            "p95": 57.60000000000002,
+            "p99": 81.91999999999996
+          },
+          "xhr_count": 20,
+          "xhr_failures": 0,
+          "xhr_p95_ms": {
+            "count": 20,
+            "avg": 24.13332295,
+            "median": 23.46181300000171,
+            "p75": 25.881489749983302,
+            "p95": 28.058724999998237,
+            "p99": 34.432844999989015
+          },
+          "xhr_avg_ms": {
+            "count": 20,
+            "avg": 24.13332295,
+            "median": 23.46181300000171,
+            "p75": 25.881489749983302,
+            "p95": 28.058724999998237,
+            "p99": 34.432844999989015
+          },
+          "http_request_count": 140,
+          "http_failure_count": 0,
+          "http_failure_rate": 0.0,
+          "http_status_counts": {
+            "200": 140
+          },
+          "console_errors": 40,
+          "page_errors": 0,
+          "server": {
+            "request_count": 80,
+            "avg_query_count": 16.5,
+            "avg_db_time_ms": 3.2633990049362183,
+            "p95_db_time_ms": 6.094920635223389,
+            "avg_wall_ms": 18.662264943122864,
+            "p95_wall_ms": 28.323757648468018
+          }
+        },
+        "restaurant_blog_post_render": {
+          "label": "Restaurant blog post render",
+          "attempts": 20,
+          "successes": 20,
+          "failures": 0,
+          "ready_ms": {
+            "count": 20,
+            "avg": 2779.0878895499977,
+            "median": 2723.085082999998,
+            "p75": 2844.991749750003,
+            "p95": 3102.5718288499984,
+            "p99": 3112.1914657699945
+          },
+          "navigation_duration_ms": {
+            "count": 20,
+            "avg": 554.9900000000023,
+            "median": 496.1500000000233,
+            "p75": 618.4999999999418,
+            "p95": 888.879999999958,
+            "p99": 891.6160000000289
+          },
+          "ttfb_ms": {
+            "count": 20,
+            "avg": 35.170000000006986,
+            "median": 33.65000000002328,
+            "p75": 36.00000000005821,
+            "p95": 42.76999999994878,
+            "p99": 43.833999999877996
+          },
+          "fcp_ms": {
+            "count": 20,
+            "avg": 108.4,
+            "median": 104.0,
+            "p75": 104.0,
+            "p95": 123.60000000000005,
+            "p99": 178.3199999999999
+          },
+          "lcp_ms": {
+            "count": 20,
+            "avg": 123.4,
+            "median": 120.0,
+            "p75": 121.0,
+            "p95": 138.80000000000004,
+            "p99": 181.35999999999993
+          },
+          "cls": {
+            "count": 20,
+            "avg": 0.43382710323757595,
+            "median": 0.4820301147084177,
+            "p75": 0.4820301147084177,
+            "p95": 0.4820301147084177,
+            "p99": 0.4820301147084177
+          },
+          "inp_proxy_ms": {
+            "count": 0,
+            "avg": null,
+            "median": null,
+            "p75": null,
+            "p95": null,
+            "p99": null
+          },
+          "xhr_count": 0,
+          "xhr_failures": 0,
+          "xhr_p95_ms": {
+            "count": 0,
+            "avg": null,
+            "median": null,
+            "p75": null,
+            "p95": null,
+            "p99": null
+          },
+          "xhr_avg_ms": {
+            "count": 0,
+            "avg": null,
+            "median": null,
+            "p75": null,
+            "p95": null,
+            "p99": null
+          },
+          "http_request_count": 280,
+          "http_failure_count": 0,
+          "http_failure_rate": 0.0,
+          "http_status_counts": {
+            "200": 280
+          },
+          "console_errors": 40,
+          "page_errors": 0,
+          "server": {
+            "request_count": 60,
+            "avg_query_count": 17.9,
+            "avg_db_time_ms": 2.239886919657389,
+            "p95_db_time_ms": 3.6632061004638667,
+            "avg_wall_ms": 23.141638437906902,
+            "p95_wall_ms": 41.09312295913696
+          }
+        },
+        "restaurant_home_render": {
+          "label": "Restaurant homepage render",
+          "attempts": 20,
+          "successes": 20,
+          "failures": 0,
+          "ready_ms": {
+            "count": 20,
+            "avg": 1969.3691417499995,
+            "median": 1967.5331874999983,
+            "p75": 1972.9806452499993,
+            "p95": 1988.3945291999994,
+            "p99": 1991.2924730400002
+          },
+          "navigation_duration_ms": {
+            "count": 20,
+            "avg": 45.34999999997672,
+            "median": 44.699999999953434,
+            "p75": 46.274999999965075,
+            "p95": 54.64499999999534,
+            "p99": 56.84899999992456
+          },
+          "ttfb_ms": {
+            "count": 20,
+            "avg": 26.39000000001397,
+            "median": 25.94999999983702,
+            "p75": 26.800000000104774,
+            "p95": 36.13999999987427,
+            "p99": 36.74800000008661
+          },
+          "fcp_ms": {
+            "count": 20,
+            "avg": 74.4,
+            "median": 72.0,
+            "p75": 73.0,
+            "p95": 92.60000000000001,
+            "p99": 101.71999999999998
+          },
+          "lcp_ms": {
+            "count": 20,
+            "avg": 91.0,
+            "median": 88.0,
+            "p75": 93.0,
+            "p95": 104.2,
+            "p99": 107.24
+          },
+          "cls": {
+            "count": 20,
+            "avg": 8.457693293065203e-05,
+            "median": 8.90283504533179e-05,
+            "p75": 8.90283504533179e-05,
+            "p95": 8.90283504533179e-05,
+            "p99": 8.90283504533179e-05
+          },
+          "inp_proxy_ms": {
+            "count": 0,
+            "avg": null,
+            "median": null,
+            "p75": null,
+            "p95": null,
+            "p99": null
+          },
+          "xhr_count": 0,
+          "xhr_failures": 0,
+          "xhr_p95_ms": {
+            "count": 0,
+            "avg": null,
+            "median": null,
+            "p75": null,
+            "p95": null,
+            "p99": null
+          },
+          "xhr_avg_ms": {
+            "count": 0,
+            "avg": null,
+            "median": null,
+            "p75": null,
+            "p95": null,
+            "p99": null
+          },
+          "http_request_count": 120,
+          "http_failure_count": 0,
+          "http_failure_rate": 0.0,
+          "http_status_counts": {
+            "200": 120
+          },
+          "console_errors": 40,
+          "page_errors": 0,
+          "server": {
+            "request_count": 60,
+            "avg_query_count": 14.0,
+            "avg_db_time_ms": 2.5252064069112143,
+            "p95_db_time_ms": 4.7540903091430655,
+            "avg_wall_ms": 21.316039562225342,
+            "p95_wall_ms": 33.868527412414544
+          }
+        },
+        "restaurant_menu_render": {
+          "label": "Restaurant menu page render",
+          "attempts": 20,
+          "successes": 20,
+          "failures": 0,
+          "ready_ms": {
+            "count": 20,
+            "avg": 1973.0749957999985,
+            "median": 1965.4942709999996,
+            "p75": 1968.072260750001,
+            "p95": 2009.519953849999,
+            "p99": 2080.8135907700016
+          },
+          "navigation_duration_ms": {
+            "count": 20,
+            "avg": 44.83999999999069,
+            "median": 42.70000000006985,
+            "p75": 44.5,
+            "p95": 58.024999999906875,
+            "p99": 67.52499999990685
+          },
+          "ttfb_ms": {
+            "count": 20,
+            "avg": 24.719999999995345,
+            "median": 23.849999999976717,
+            "p75": 25.400000000023283,
+            "p95": 30.73499999986962,
+            "p99": 32.787000000011176
+          },
+          "fcp_ms": {
+            "count": 20,
+            "avg": 72.4,
+            "median": 72.0,
+            "p75": 73.0,
+            "p95": 80.80000000000001,
+            "p99": 92.95999999999998
+          },
+          "lcp_ms": {
+            "count": 20,
+            "avg": 92.4,
+            "median": 88.0,
+            "p75": 89.0,
+            "p95": 114.60000000000004,
+            "p99": 154.11999999999995
+          },
+          "cls": {
+            "count": 20,
+            "avg": 8.902835045331792e-05,
+            "median": 8.90283504533179e-05,
+            "p75": 8.90283504533179e-05,
+            "p95": 8.90283504533179e-05,
+            "p99": 8.90283504533179e-05
+          },
+          "inp_proxy_ms": {
+            "count": 0,
+            "avg": null,
+            "median": null,
+            "p75": null,
+            "p95": null,
+            "p99": null
+          },
+          "xhr_count": 0,
+          "xhr_failures": 0,
+          "xhr_p95_ms": {
+            "count": 0,
+            "avg": null,
+            "median": null,
+            "p75": null,
+            "p95": null,
+            "p99": null
+          },
+          "xhr_avg_ms": {
+            "count": 0,
+            "avg": null,
+            "median": null,
+            "p75": null,
+            "p95": null,
+            "p99": null
+          },
+          "http_request_count": 120,
+          "http_failure_count": 0,
+          "http_failure_rate": 0.0,
+          "http_status_counts": {
+            "200": 120
+          },
+          "console_errors": 40,
+          "page_errors": 0,
+          "server": {
+            "request_count": 60,
+            "avg_query_count": 13.666666666666666,
+            "avg_db_time_ms": 2.624217669169108,
+            "p95_db_time_ms": 4.344427585601807,
+            "avg_wall_ms": 21.081840991973877,
+            "p95_wall_ms": 30.616736412048333
+          }
+        },
+        "wp_admin_pages_search": {
+          "label": "wp-admin pages search",
+          "attempts": 20,
+          "successes": 20,
+          "failures": 0,
+          "ready_ms": {
+            "count": 20,
+            "avg": 3278.4451313000054,
+            "median": 3284.4235624999274,
+            "p75": 3297.2217705000658,
+            "p95": 3359.461213150085,
+            "p99": 3377.4466762300626
+          },
+          "navigation_duration_ms": {
+            "count": 20,
+            "avg": 145.02000000001863,
+            "median": 143.35000000009313,
+            "p75": 147.35000000020955,
+            "p95": 160.50499999981844,
+            "p99": 194.0209999998891
+          },
+          "ttfb_ms": {
+            "count": 20,
+            "avg": 41.969999999995345,
+            "median": 41.199999999953434,
+            "p75": 44.3499999998603,
+            "p95": 50.289999999641445,
+            "p99": 53.177999999853775
+          },
+          "fcp_ms": {
+            "count": 20,
+            "avg": 128.6,
+            "median": 128.0,
+            "p75": 141.0,
+            "p95": 145.60000000000002,
+            "p99": 169.91999999999996
+          },
+          "lcp_ms": {
+            "count": 20,
+            "avg": 128.6,
+            "median": 128.0,
+            "p75": 141.0,
+            "p95": 145.60000000000002,
+            "p99": 169.91999999999996
+          },
+          "cls": {
+            "count": 20,
+            "avg": 0.0,
+            "median": 0.0,
+            "p75": 0.0,
+            "p95": 0.0,
+            "p99": 0.0
+          },
+          "inp_proxy_ms": {
+            "count": 0,
+            "avg": null,
+            "median": null,
+            "p75": null,
+            "p95": null,
+            "p99": null
+          },
+          "xhr_count": 40,
+          "xhr_failures": 0,
+          "xhr_p95_ms": {
+            "count": 20,
+            "avg": 9.123176159969297,
+            "median": 8.529001525003697,
+            "p75": 11.29955067500705,
+            "p95": 12.71314593993884,
+            "p99": 12.787590827891252
+          },
+          "xhr_avg_ms": {
+            "count": 20,
+            "avg": 6.420917699986603,
+            "median": 6.829250000009779,
+            "p75": 7.700844000006327,
+            "p95": 8.898726024955977,
+            "p99": 9.673561604938003
+          },
+          "http_request_count": 2500,
+          "http_failure_count": 20,
+          "http_failure_rate": 0.008,
+          "http_status_counts": {
+            "200": 2480,
+            "302": 20
+          },
+          "console_errors": 0,
+          "page_errors": 0,
+          "server": {
+            "request_count": 180,
+            "avg_query_count": 24.444444444444443,
+            "avg_db_time_ms": 6.128256850772434,
+            "p95_db_time_ms": 13.51288557052614,
+            "avg_wall_ms": 23.777062363094753,
+            "p95_wall_ms": 48.6978888511658
+          }
+        },
+        "wp_admin_post_editor": {
+          "label": "wp-admin post editor open",
+          "attempts": 20,
+          "successes": 20,
+          "failures": 0,
+          "ready_ms": {
+            "count": 20,
+            "avg": 31987.04368125,
+            "median": 31963.177375499974,
+            "p75": 31994.46012525,
+            "p95": 32101.26813604999,
+            "p99": 32103.818727210004
+          },
+          "navigation_duration_ms": {
+            "count": 20,
+            "avg": 366.33999999995575,
+            "median": 347.39999999990687,
+            "p75": 358.02499999979045,
+            "p95": 474.64999999987197,
+            "p99": 475.4100000000489
+          },
+          "ttfb_ms": {
+            "count": 20,
+            "avg": 69.88500000003259,
+            "median": 59.10000000009313,
+            "p75": 68.47500000020955,
+            "p95": 111.97000000017002,
+            "p99": 161.67399999992216
+          },
+          "fcp_ms": {
+            "count": 20,
+            "avg": 547.8,
+            "median": 526.0,
+            "p75": 557.0,
+            "p95": 652.8,
+            "p99": 664.96
+          },
+          "lcp_ms": {
+            "count": 20,
+            "avg": 683.6,
+            "median": 668.0,
+            "p75": 709.0,
+            "p95": 806.4000000000001,
+            "p99": 842.8799999999999
+          },
+          "cls": {
+            "count": 20,
+            "avg": 0.008701979166666669,
+            "median": 0.0006829861111111112,
+            "p75": 0.0062385416666666665,
+            "p95": 0.03556388888888889,
+            "p99": 0.03556388888888889
+          },
+          "inp_proxy_ms": {
+            "count": 0,
+            "avg": null,
+            "median": null,
+            "p75": null,
+            "p95": null,
+            "p99": null
+          },
+          "xhr_count": 182,
+          "xhr_failures": 0,
+          "xhr_p95_ms": {
+            "count": 20,
+            "avg": 87.09512556000132,
+            "median": 86.13758350003044,
+            "p75": 91.47584779997268,
+            "p95": 94.36484987994437,
+            "p99": 98.10392037600094
+          },
+          "xhr_avg_ms": {
+            "count": 20,
+            "avg": 46.155925714142356,
+            "median": 45.68362972223096,
+            "p75": 47.8113413888932,
+            "p95": 51.10277625555464,
+            "p99": 51.272136851108904
+          },
+          "http_request_count": 2402,
+          "http_failure_count": 0,
+          "http_failure_rate": 0.0,
+          "http_status_counts": {
+            "200": 2402
+          },
+          "console_errors": 20,
+          "page_errors": 0,
+          "server": {
+            "request_count": 282,
+            "avg_query_count": 14.23404255319149,
+            "avg_db_time_ms": 7.006722139128557,
+            "p95_db_time_ms": 21.726775169372548,
+            "avg_wall_ms": 25.9192353444742,
+            "p95_wall_ms": 68.33364963531491
+          }
+        },
+        "wp_admin_site_editor": {
+          "label": "wp-admin site editor open",
+          "attempts": 20,
+          "successes": 20,
+          "failures": 0,
+          "ready_ms": {
+            "count": 20,
+            "avg": 17598.450787550006,
+            "median": 17592.04970849998,
+            "p75": 17639.231572499964,
+            "p95": 17730.287445550068,
+            "p99": 17868.937856309996
+          },
+          "navigation_duration_ms": {
+            "count": 20,
+            "avg": 172.49999999993014,
+            "median": 165.19999999995343,
+            "p75": 180.15000000002328,
+            "p95": 194.71500000008385,
+            "p99": 234.46299999994218
+          },
+          "ttfb_ms": {
+            "count": 20,
+            "avg": 36.53000000002794,
+            "median": 36.25,
+            "p75": 39.42500000016298,
+            "p95": 42.87000000027474,
+            "p99": 43.93400000020396
+          },
+          "fcp_ms": {
+            "count": 20,
+            "avg": 142.2,
+            "median": 134.0,
+            "p75": 148.0,
+            "p95": 177.60000000000002,
+            "p99": 201.91999999999996
+          },
+          "lcp_ms": {
+            "count": 20,
+            "avg": 145.8,
+            "median": 138.0,
+            "p75": 155.0,
+            "p95": 177.60000000000002,
+            "p99": 201.91999999999996
+          },
+          "cls": {
+            "count": 20,
+            "avg": 0.0051518379102165335,
+            "median": 0.005146770599741995,
+            "p75": 0.005146770599741995,
+            "p95": 0.0051974437044873655,
+            "p99": 0.0051974437044873655
+          },
+          "inp_proxy_ms": {
+            "count": 0,
+            "avg": null,
+            "median": null,
+            "p75": null,
+            "p95": null,
+            "p99": null
+          },
+          "xhr_count": 120,
+          "xhr_failures": 0,
+          "xhr_p95_ms": {
+            "count": 20,
+            "avg": 39.73229646250256,
+            "median": 37.372166625005775,
+            "p75": 39.82736981254129,
+            "p95": 43.686432300049674,
+            "p99": 86.43967826001484
+          },
+          "xhr_avg_ms": {
+            "count": 20,
+            "avg": 18.385248616676353,
+            "median": 16.80106599999514,
+            "p75": 17.97006925000945,
+            "p95": 28.265346933352223,
+            "p99": 33.57563058669562
+          },
+          "http_request_count": 3998,
+          "http_failure_count": 18,
+          "http_failure_rate": 0.004502251125562781,
+          "http_status_counts": {
+            "0": 18,
+            "200": 3980
+          },
+          "console_errors": 20,
+          "page_errors": 0,
+          "server": {
+            "request_count": 278,
+            "avg_query_count": 17.92086330935252,
+            "avg_db_time_ms": 4.8667424016719245,
+            "p95_db_time_ms": 16.841471195220915,
+            "avg_wall_ms": 25.149848821351853,
+            "p95_wall_ms": 72.39680290222167
+          }
+        }
+      },
+      "server_errors": {
+        "sqlite_busy_or_locked": 0,
+        "php_fatal": 0,
+        "php_warning": 0
+      },
+      "site_info": {
+        "site": "/Users/admin/wordpress-sqlite-benchmark-runner/artifacts/local-production-restaurant-browser/runs/20260611T111223Z/sites/mariadb-innodb-baseline",
+        "url": "http://127.0.0.1:9301",
+        "counts": {
+          "pages": "10",
+          "posts": "6",
+          "comments": 36,
+          "reservations": "8",
+          "users": 4
+        },
+        "page_ids": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13
+        ],
+        "page_urls": [
+          "http://127.0.0.1:9301/",
+          "http://127.0.0.1:9301/?page_id=5",
+          "http://127.0.0.1:9301/?page_id=6",
+          "http://127.0.0.1:9301/?page_id=7",
+          "http://127.0.0.1:9301/?page_id=8",
+          "http://127.0.0.1:9301/?page_id=9",
+          "http://127.0.0.1:9301/?page_id=10",
+          "http://127.0.0.1:9301/?page_id=11",
+          "http://127.0.0.1:9301/?page_id=12",
+          "http://127.0.0.1:9301/?page_id=13"
+        ],
+        "post_ids": [
+          14,
+          15,
+          16,
+          17,
+          18,
+          19
+        ],
+        "post_urls": [
+          "http://127.0.0.1:9301/?p=14",
+          "http://127.0.0.1:9301/?p=15",
+          "http://127.0.0.1:9301/?p=16",
+          "http://127.0.0.1:9301/?p=17",
+          "http://127.0.0.1:9301/?p=18",
+          "http://127.0.0.1:9301/?p=19"
+        ],
+        "menu_url": "http://127.0.0.1:9301/?page_id=5",
+        "reservation_url": "http://127.0.0.1:9301/?page_id=6",
+        "contact_url": "http://127.0.0.1:9301/?page_id=7",
+        "editor_post_id": 14,
+        "reservation_ids": [
+          27,
+          26,
+          25,
+          24,
+          23,
+          22,
+          21,
+          20
+        ],
+        "active_theme": "twentytwentyfive",
+        "is_block_theme": true,
+        "fixture_summary": {
+          "pages": 10,
+          "posts": 6,
+          "comments": 36,
+          "reservations": "8",
+          "users": 4,
+          "active_theme": "twentytwentyfive",
+          "is_block_theme": true,
+          "database_bytes": 671744,
+          "target_site_shape": "10 pages, 6 posts, 36 comments, 8 seed reservation requests"
+        }
+      },
+      "error": ""
+    },
+    "sqlite-driver-3.0.0-rc.3": {
+      "status": "completed",
+      "flows": {
+        "frontend_xhr_burst": {
+          "label": "Restaurant frontend XHR burst",
+          "attempts": 20,
+          "successes": 20,
+          "failures": 0,
+          "ready_ms": {
+            "count": 20,
+            "avg": 1124.0833688499988,
+            "median": 1118.1501879999996,
+            "p75": 1127.3119477500004,
+            "p95": 1143.5659402500169,
+            "p99": 1211.270255249986
+          },
+          "navigation_duration_ms": {
+            "count": 20,
+            "avg": 69.0399999999674,
+            "median": 64.20000000018626,
+            "p75": 67.22499999974389,
+            "p95": 85.82999999984173,
+            "p99": 139.48600000026627
+          },
+          "ttfb_ms": {
+            "count": 20,
+            "avg": 29.029999999981374,
+            "median": 26.799999999813735,
+            "p75": 30.70000000006985,
+            "p95": 34.75500000000467,
+            "p99": 46.23100000007542
+          },
+          "fcp_ms": {
+            "count": 20,
+            "avg": 95.2,
+            "median": 88.0,
+            "p75": 101.0,
+            "p95": 119.20000000000005,
+            "p99": 167.83999999999992
+          },
+          "lcp_ms": {
+            "count": 20,
+            "avg": 106.0,
+            "median": 104.0,
+            "p75": 105.0,
+            "p95": 134.40000000000003,
+            "p99": 170.87999999999994
+          },
+          "cls": {
+            "count": 20,
+            "avg": 0.07678278905044371,
+            "median": 0.07678278905044368,
+            "p75": 0.07678278905044368,
+            "p95": 0.07678278905044368,
+            "p99": 0.07678278905044368
+          },
+          "inp_proxy_ms": {
+            "count": 0,
+            "avg": null,
+            "median": null,
+            "p75": null,
+            "p95": null,
+            "p99": null
+          },
+          "xhr_count": 120,
+          "xhr_failures": 0,
+          "xhr_p95_ms": {
+            "count": 20,
+            "avg": 47.74444326250377,
+            "median": 49.193505125007505,
+            "p75": 54.74954668751525,
+            "p95": 62.48756235000001,
+            "p99": 64.46340427001174
+          },
+          "xhr_avg_ms": {
+            "count": 20,
+            "avg": 29.24356424166666,
+            "median": 29.902347333336365,
+            "p75": 34.658324708330234,
+            "p95": 39.241340783333,
+            "p99": 39.56191815666495
+          },
+          "http_request_count": 240,
+          "http_failure_count": 0,
+          "http_failure_rate": 0.0,
+          "http_status_counts": {
+            "200": 240
+          },
+          "console_errors": 40,
+          "page_errors": 0,
+          "server": {
+            "request_count": 180,
+            "avg_query_count": 12.0,
+            "avg_db_time_ms": 5.662757820553249,
+            "p95_db_time_ms": 18.112432956695574,
+            "avg_wall_ms": 28.543623288472492,
+            "p95_wall_ms": 65.32231569290163
+          }
+        },
+        "reservation_submit": {
+          "label": "Restaurant reservation submit",
+          "attempts": 20,
+          "successes": 20,
+          "failures": 0,
+          "ready_ms": {
+            "count": 20,
+            "avg": 1702.254314700002,
+            "median": 1705.1636040000012,
+            "p75": 1711.1568235000086,
+            "p95": 1719.2749086500073,
+            "p99": 1719.4875817300133
+          },
+          "navigation_duration_ms": {
+            "count": 20,
+            "avg": 47.48000000000466,
+            "median": 47.24999999976717,
+            "p75": 49.65000000002328,
+            "p95": 54.41499999999069,
+            "p99": 60.722999999849115
+          },
+          "ttfb_ms": {
+            "count": 20,
+            "avg": 27.019999999995342,
+            "median": 25.850000000093132,
+            "p75": 27.725000000093132,
+            "p95": 33.65999999982306,
+            "p99": 39.1319999999646
+          },
+          "fcp_ms": {
+            "count": 20,
+            "avg": 74.8,
+            "median": 72.0,
+            "p75": 81.0,
+            "p95": 84.2,
+            "p99": 87.24
+          },
+          "lcp_ms": {
+            "count": 20,
+            "avg": 92.0,
+            "median": 90.0,
+            "p75": 100.0,
+            "p95": 104.0,
+            "p99": 104.0
+          },
+          "cls": {
+            "count": 20,
+            "avg": 0.07678278905044371,
+            "median": 0.07678278905044368,
+            "p75": 0.07678278905044368,
+            "p95": 0.07678278905044368,
+            "p99": 0.07678278905044368
+          },
+          "inp_proxy_ms": {
+            "count": 20,
+            "avg": 55.2,
+            "median": 56.0,
+            "p75": 56.0,
+            "p95": 64.0,
+            "p99": 64.0
+          },
+          "xhr_count": 20,
+          "xhr_failures": 0,
+          "xhr_p95_ms": {
+            "count": 20,
+            "avg": 25.388941500001238,
+            "median": 25.287666499993065,
+            "p75": 27.205968499998562,
+            "p95": 27.999670499977945,
+            "p99": 28.15680050000927
+          },
+          "xhr_avg_ms": {
+            "count": 20,
+            "avg": 25.388941500001238,
+            "median": 25.287666499993065,
+            "p75": 27.205968499998562,
+            "p95": 27.999670499977945,
+            "p99": 28.15680050000927
+          },
+          "http_request_count": 140,
+          "http_failure_count": 0,
+          "http_failure_rate": 0.0,
+          "http_status_counts": {
+            "200": 140
+          },
+          "console_errors": 40,
+          "page_errors": 0,
+          "server": {
+            "request_count": 80,
+            "avg_query_count": 16.0,
+            "avg_db_time_ms": 5.237221717834473,
+            "p95_db_time_ms": 9.726762771606445,
+            "avg_wall_ms": 21.97330892086029,
+            "p95_wall_ms": 30.345022678375244
+          }
+        },
+        "restaurant_blog_post_render": {
+          "label": "Restaurant blog post render",
+          "attempts": 20,
+          "successes": 20,
+          "failures": 0,
+          "ready_ms": {
+            "count": 20,
+            "avg": 2725.1631623500007,
+            "median": 2710.969541999999,
+            "p75": 2758.724239499992,
+            "p95": 2780.466159750009,
+            "p99": 2791.159264749999
+          },
+          "navigation_duration_ms": {
+            "count": 20,
+            "avg": 500.04000000003725,
+            "median": 491.85000000009313,
+            "p75": 537.7499999998836,
+            "p95": 554.8000000000932,
+            "p99": 573.0400000000931
+          },
+          "ttfb_ms": {
+            "count": 20,
+            "avg": 41.34999999997672,
+            "median": 38.75,
+            "p75": 41.02499999990687,
+            "p95": 52.244999999925504,
+            "p99": 65.0890000002086
+          },
+          "fcp_ms": {
+            "count": 20,
+            "avg": 109.6,
+            "median": 104.0,
+            "p75": 109.0,
+            "p95": 122.00000000000003,
+            "p99": 152.39999999999995
+          },
+          "lcp_ms": {
+            "count": 20,
+            "avg": 126.2,
+            "median": 120.0,
+            "p75": 125.0,
+            "p95": 141.8,
+            "p99": 169.15999999999997
+          },
+          "cls": {
+            "count": 20,
+            "avg": 0.0006595196759259258,
+            "median": 0.000659519675925926,
+            "p75": 0.000659519675925926,
+            "p95": 0.000659519675925926,
+            "p99": 0.000659519675925926
+          },
+          "inp_proxy_ms": {
+            "count": 0,
+            "avg": null,
+            "median": null,
+            "p75": null,
+            "p95": null,
+            "p99": null
+          },
+          "xhr_count": 0,
+          "xhr_failures": 0,
+          "xhr_p95_ms": {
+            "count": 0,
+            "avg": null,
+            "median": null,
+            "p75": null,
+            "p95": null,
+            "p99": null
+          },
+          "xhr_avg_ms": {
+            "count": 0,
+            "avg": null,
+            "median": null,
+            "p75": null,
+            "p95": null,
+            "p99": null
+          },
+          "http_request_count": 280,
+          "http_failure_count": 0,
+          "http_failure_rate": 0.0,
+          "http_status_counts": {
+            "200": 280
+          },
+          "console_errors": 40,
+          "page_errors": 0,
+          "server": {
+            "request_count": 60,
+            "avg_query_count": 17.9,
+            "avg_db_time_ms": 5.720090866088867,
+            "p95_db_time_ms": 9.328389167785641,
+            "avg_wall_ms": 28.793712457021076,
+            "p95_wall_ms": 45.42660713195801
+          }
+        },
+        "restaurant_home_render": {
+          "label": "Restaurant homepage render",
+          "attempts": 20,
+          "successes": 20,
+          "failures": 0,
+          "ready_ms": {
+            "count": 20,
+            "avg": 1983.9203207000003,
+            "median": 1971.5155000000013,
+            "p75": 1990.059708750001,
+            "p95": 2034.9946829999983,
+            "p99": 2037.679003
+          },
+          "navigation_duration_ms": {
+            "count": 20,
+            "avg": 49.98000000000466,
+            "median": 47.6500000001397,
+            "p75": 53.549999999813735,
+            "p95": 64.24000000017695,
+            "p99": 64.84800000003538
+          },
+          "ttfb_ms": {
+            "count": 20,
+            "avg": 30.76500000001397,
+            "median": 28.9000000001397,
+            "p75": 34.72499999997672,
+            "p95": 38.47499999990687,
+            "p99": 39.614999999906864
+          },
+          "fcp_ms": {
+            "count": 20,
+            "avg": 80.4,
+            "median": 76.0,
+            "p75": 84.0,
+            "p95": 105.20000000000002,
+            "p99": 123.43999999999997
+          },
+          "lcp_ms": {
+            "count": 20,
+            "avg": 96.0,
+            "median": 92.0,
+            "p75": 104.0,
+            "p95": 112.80000000000001,
+            "p99": 124.95999999999998
+          },
+          "cls": {
+            "count": 20,
+            "avg": 0.06910451014539934,
+            "median": 0.07678278905044368,
+            "p75": 0.07678278905044368,
+            "p95": 0.07678278905044368,
+            "p99": 0.07678278905044368
+          },
+          "inp_proxy_ms": {
+            "count": 0,
+            "avg": null,
+            "median": null,
+            "p75": null,
+            "p95": null,
+            "p99": null
+          },
+          "xhr_count": 0,
+          "xhr_failures": 0,
+          "xhr_p95_ms": {
+            "count": 0,
+            "avg": null,
+            "median": null,
+            "p75": null,
+            "p95": null,
+            "p99": null
+          },
+          "xhr_avg_ms": {
+            "count": 0,
+            "avg": null,
+            "median": null,
+            "p75": null,
+            "p95": null,
+            "p99": null
+          },
+          "http_request_count": 120,
+          "http_failure_count": 0,
+          "http_failure_rate": 0.0,
+          "http_status_counts": {
+            "200": 120
+          },
+          "console_errors": 40,
+          "page_errors": 0,
+          "server": {
+            "request_count": 60,
+            "avg_query_count": 14.0,
+            "avg_db_time_ms": 4.31745449701945,
+            "p95_db_time_ms": 6.630849838256836,
+            "avg_wall_ms": 23.995379606882732,
+            "p95_wall_ms": 38.25199604034424
+          }
+        },
+        "restaurant_menu_render": {
+          "label": "Restaurant menu page render",
+          "attempts": 20,
+          "successes": 20,
+          "failures": 0,
+          "ready_ms": {
+            "count": 20,
+            "avg": 1972.0350812000004,
+            "median": 1970.8263960000004,
+            "p75": 1977.4554580000004,
+            "p95": 1980.5237214500048,
+            "p99": 1983.0604106899925
+          },
+          "navigation_duration_ms": {
+            "count": 20,
+            "avg": 45.96000000003259,
+            "median": 45.9000000001397,
+            "p75": 47.950000000186265,
+            "p95": 52.2600000001723,
+            "p99": 53.17199999995995
+          },
+          "ttfb_ms": {
+            "count": 20,
+            "avg": 27.98000000002794,
+            "median": 27.100000000093132,
+            "p75": 30.024999999674037,
+            "p95": 33.73500000017229,
+            "p99": 34.26699999995995
+          },
+          "fcp_ms": {
+            "count": 20,
+            "avg": 76.0,
+            "median": 72.0,
+            "p75": 81.0,
+            "p95": 88.2,
+            "p99": 91.24
+          },
+          "lcp_ms": {
+            "count": 20,
+            "avg": 95.0,
+            "median": 92.0,
+            "p75": 100.0,
+            "p95": 108.60000000000001,
+            "p99": 117.71999999999998
+          },
+          "cls": {
+            "count": 20,
+            "avg": 0.07678278905044371,
+            "median": 0.07678278905044368,
+            "p75": 0.07678278905044368,
+            "p95": 0.07678278905044368,
+            "p99": 0.07678278905044368
+          },
+          "inp_proxy_ms": {
+            "count": 0,
+            "avg": null,
+            "median": null,
+            "p75": null,
+            "p95": null,
+            "p99": null
+          },
+          "xhr_count": 0,
+          "xhr_failures": 0,
+          "xhr_p95_ms": {
+            "count": 0,
+            "avg": null,
+            "median": null,
+            "p75": null,
+            "p95": null,
+            "p99": null
+          },
+          "xhr_avg_ms": {
+            "count": 0,
+            "avg": null,
+            "median": null,
+            "p75": null,
+            "p95": null,
+            "p99": null
+          },
+          "http_request_count": 120,
+          "http_failure_count": 0,
+          "http_failure_rate": 0.0,
+          "http_status_counts": {
+            "200": 120
+          },
+          "console_errors": 40,
+          "page_errors": 0,
+          "server": {
+            "request_count": 60,
+            "avg_query_count": 13.666666666666666,
+            "avg_db_time_ms": 4.167135556538899,
+            "p95_db_time_ms": 6.631672382354736,
+            "avg_wall_ms": 23.499306042989094,
+            "p95_wall_ms": 36.19600534439086
+          }
+        },
+        "wp_admin_pages_search": {
+          "label": "wp-admin pages search",
+          "attempts": 20,
+          "successes": 20,
+          "failures": 0,
+          "ready_ms": {
+            "count": 20,
+            "avg": 3281.945943699998,
+            "median": 3289.9700624999823,
+            "p75": 3316.7334894999512,
+            "p95": 3343.0154979001263,
+            "p99": 3346.218865980124
+          },
+          "navigation_duration_ms": {
+            "count": 20,
+            "avg": 145.43999999999068,
+            "median": 143.8000000002794,
+            "p75": 149.89999999990687,
+            "p95": 166.2350000007078,
+            "p99": 172.84700000014155
+          },
+          "ttfb_ms": {
+            "count": 20,
+            "avg": 46.01499999994412,
+            "median": 46.049999999813735,
+            "p75": 47.9499999997206,
+            "p95": 53.334999999683355,
+            "p99": 56.90700000053271
+          },
+          "fcp_ms": {
+            "count": 20,
+            "avg": 135.4,
+            "median": 136.0,
+            "p75": 144.0,
+            "p95": 168.4,
+            "p99": 174.48
+          },
+          "lcp_ms": {
+            "count": 20,
+            "avg": 135.4,
+            "median": 136.0,
+            "p75": 144.0,
+            "p95": 168.4,
+            "p99": 174.48
+          },
+          "cls": {
+            "count": 20,
+            "avg": 0.0,
+            "median": 0.0,
+            "p75": 0.0,
+            "p95": 0.0,
+            "p99": 0.0
+          },
+          "inp_proxy_ms": {
+            "count": 0,
+            "avg": null,
+            "median": null,
+            "p75": null,
+            "p95": null,
+            "p99": null
+          },
+          "xhr_count": 40,
+          "xhr_failures": 0,
+          "xhr_p95_ms": {
+            "count": 20,
+            "avg": 11.688174492483958,
+            "median": 11.890410575032,
+            "p75": 12.567154749963082,
+            "p95": 13.543717779906,
+            "p99": 13.889629955932032
+          },
+          "xhr_avg_ms": {
+            "count": 20,
+            "avg": 9.073932274978143,
+            "median": 9.310000249999575,
+            "p75": 10.066734249878209,
+            "p95": 10.75432275008061,
+            "p99": 10.916297749999211
+          },
+          "http_request_count": 2500,
+          "http_failure_count": 20,
+          "http_failure_rate": 0.008,
+          "http_status_counts": {
+            "200": 2480,
+            "302": 20
+          },
+          "console_errors": 0,
+          "page_errors": 0,
+          "server": {
+            "request_count": 180,
+            "avg_query_count": 24.444444444444443,
+            "avg_db_time_ms": 6.119120121002197,
+            "p95_db_time_ms": 10.759186744689941,
+            "avg_wall_ms": 23.68675735261705,
+            "p95_wall_ms": 46.55433893203735
+          }
+        },
+        "wp_admin_post_editor": {
+          "label": "wp-admin post editor open",
+          "attempts": 20,
+          "successes": 20,
+          "failures": 0,
+          "ready_ms": {
+            "count": 20,
+            "avg": 32013.013862500007,
+            "median": 31966.218499999988,
+            "p75": 32035.906948499993,
+            "p95": 32200.389580649964,
+            "p99": 32422.43558332998
+          },
+          "navigation_duration_ms": {
+            "count": 20,
+            "avg": 382.5049999999348,
+            "median": 354.3499999998603,
+            "p75": 372.2750000001397,
+            "p95": 463.10000000000025,
+            "p99": 700.2199999999996
+          },
+          "ttfb_ms": {
+            "count": 20,
+            "avg": 74.04500000001863,
+            "median": 62.8499999998603,
+            "p75": 76.6750000002794,
+            "p95": 102.60999999989296,
+            "p99": 174.20199999968042
+          },
+          "fcp_ms": {
+            "count": 20,
+            "avg": 561.2,
+            "median": 524.0,
+            "p75": 558.0,
+            "p95": 654.8000000000003,
+            "p99": 940.5599999999995
+          },
+          "lcp_ms": {
+            "count": 20,
+            "avg": 701.2,
+            "median": 684.0,
+            "p75": 708.0,
+            "p95": 819.4000000000002,
+            "p99": 1053.4799999999996
+          },
+          "cls": {
+            "count": 20,
+            "avg": 0.011113107638888894,
+            "median": 0.0006829861111111112,
+            "p75": 0.03556388888888889,
+            "p95": 0.03556388888888889,
+            "p99": 0.03556388888888889
+          },
+          "inp_proxy_ms": {
+            "count": 0,
+            "avg": null,
+            "median": null,
+            "p75": null,
+            "p95": null,
+            "p99": null
+          },
+          "xhr_count": 182,
+          "xhr_failures": 0,
+          "xhr_p95_ms": {
+            "count": 20,
+            "avg": 82.40262145499639,
+            "median": 76.88647080000374,
+            "p75": 81.40707284999952,
+            "p95": 114.43742595499734,
+            "p99": 140.93591207097907
+          },
+          "xhr_avg_ms": {
+            "count": 20,
+            "avg": 45.171322894950514,
+            "median": 42.939536999991915,
+            "p75": 44.61331455557148,
+            "p95": 57.704944092930425,
+            "p99": 69.88372579635947
+          },
+          "http_request_count": 2402,
+          "http_failure_count": 0,
+          "http_failure_rate": 0.0,
+          "http_status_counts": {
+            "200": 2402
+          },
+          "console_errors": 20,
+          "page_errors": 0,
+          "server": {
+            "request_count": 282,
+            "avg_query_count": 13.932624113475176,
+            "avg_db_time_ms": 5.471903381618202,
+            "p95_db_time_ms": 14.082813262939451,
+            "avg_wall_ms": 27.051214630722153,
+            "p95_wall_ms": 74.17114973068236
+          }
+        },
+        "wp_admin_site_editor": {
+          "label": "wp-admin site editor open",
+          "attempts": 20,
+          "successes": 20,
+          "failures": 0,
+          "ready_ms": {
+            "count": 20,
+            "avg": 17605.818731300016,
+            "median": 17577.079854500073,
+            "p75": 17650.175145749963,
+            "p95": 17784.620324999945,
+            "p99": 17808.930064999855
+          },
+          "navigation_duration_ms": {
+            "count": 20,
+            "avg": 172.28000000000466,
+            "median": 171.4499999997206,
+            "p75": 176.62500000011642,
+            "p95": 189.55000000034926,
+            "p99": 207.0299999999953
+          },
+          "ttfb_ms": {
+            "count": 20,
+            "avg": 42.914999999990684,
+            "median": 42.14999999990687,
+            "p75": 46.799999999813735,
+            "p95": 51.27999999974855,
+            "p99": 52.496000000173225
+          },
+          "fcp_ms": {
+            "count": 20,
+            "avg": 143.2,
+            "median": 144.0,
+            "p75": 148.0,
+            "p95": 164.8,
+            "p99": 176.95999999999998
+          },
+          "lcp_ms": {
+            "count": 20,
+            "avg": 145.6,
+            "median": 146.0,
+            "p75": 152.0,
+            "p95": 172.4,
+            "p99": 178.48
+          },
+          "cls": {
+            "count": 20,
+            "avg": 0.005146770599741997,
+            "median": 0.005146770599741995,
+            "p75": 0.005146770599741995,
+            "p95": 0.005146770599741995,
+            "p99": 0.005146770599741995
+          },
+          "inp_proxy_ms": {
+            "count": 0,
+            "avg": null,
+            "median": null,
+            "p75": null,
+            "p95": null,
+            "p99": null
+          },
+          "xhr_count": 120,
+          "xhr_failures": 0,
+          "xhr_p95_ms": {
+            "count": 20,
+            "avg": 37.14320993750298,
+            "median": 37.47936450004636,
+            "p75": 39.846793937453185,
+            "p95": 42.767327687499346,
+            "p99": 43.02199893752695
+          },
+          "xhr_avg_ms": {
+            "count": 20,
+            "avg": 19.322929225001523,
+            "median": 18.78715266666647,
+            "p75": 20.83386612502121,
+            "p95": 24.911295549916883,
+            "p99": 26.490781509994992
+          },
+          "http_request_count": 4000,
+          "http_failure_count": 20,
+          "http_failure_rate": 0.005,
+          "http_status_counts": {
+            "0": 16,
+            "200": 3980,
+            "302": 4
+          },
+          "console_errors": 20,
+          "page_errors": 0,
+          "server": {
+            "request_count": 279,
+            "avg_query_count": 18.301075268817204,
+            "avg_db_time_ms": 5.804601108728771,
+            "p95_db_time_ms": 18.535208702087402,
+            "avg_wall_ms": 27.08054016140627,
+            "p95_wall_ms": 81.162428855896
+          }
+        }
+      },
+      "server_errors": {
+        "sqlite_busy_or_locked": 0,
+        "php_fatal": 0,
+        "php_warning": 0
+      },
+      "site_info": {
+        "site": "/Users/admin/wordpress-sqlite-benchmark-runner/artifacts/local-production-restaurant-browser/runs/20260611T111223Z/sites/sqlite-driver-3.0.0-rc.3",
+        "url": "http://127.0.0.1:9302",
+        "counts": {
+          "pages": "10",
+          "posts": "6",
+          "comments": 36,
+          "reservations": "8",
+          "users": 4
+        },
+        "page_ids": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13
+        ],
+        "page_urls": [
+          "http://127.0.0.1:9302/",
+          "http://127.0.0.1:9302/?page_id=5",
+          "http://127.0.0.1:9302/?page_id=6",
+          "http://127.0.0.1:9302/?page_id=7",
+          "http://127.0.0.1:9302/?page_id=8",
+          "http://127.0.0.1:9302/?page_id=9",
+          "http://127.0.0.1:9302/?page_id=10",
+          "http://127.0.0.1:9302/?page_id=11",
+          "http://127.0.0.1:9302/?page_id=12",
+          "http://127.0.0.1:9302/?page_id=13"
+        ],
+        "post_ids": [
+          14,
+          15,
+          16,
+          17,
+          18,
+          19
+        ],
+        "post_urls": [
+          "http://127.0.0.1:9302/?p=14",
+          "http://127.0.0.1:9302/?p=15",
+          "http://127.0.0.1:9302/?p=16",
+          "http://127.0.0.1:9302/?p=17",
+          "http://127.0.0.1:9302/?p=18",
+          "http://127.0.0.1:9302/?p=19"
+        ],
+        "menu_url": "http://127.0.0.1:9302/?page_id=5",
+        "reservation_url": "http://127.0.0.1:9302/?page_id=6",
+        "contact_url": "http://127.0.0.1:9302/?page_id=7",
+        "editor_post_id": 14,
+        "reservation_ids": [
+          27,
+          26,
+          25,
+          24,
+          23,
+          22,
+          21,
+          20
+        ],
+        "active_theme": "twentytwentyfive",
+        "is_block_theme": true,
+        "fixture_summary": {
+          "pages": 10,
+          "posts": 6,
+          "comments": 36,
+          "reservations": "8",
+          "users": 4,
+          "active_theme": "twentytwentyfive",
+          "is_block_theme": true,
+          "database_bytes": 434176,
+          "target_site_shape": "10 pages, 6 posts, 36 comments, 8 seed reservation requests"
+        }
+      },
+      "error": ""
+    }
+  },
+  "comparisons": [
+    {
+      "flow": "frontend_xhr_burst",
+      "label": "Restaurant frontend XHR burst",
+      "ready_mysql_ms": 1105.5053960000077,
+      "ready_sqlite_ms": 1118.1501879999996,
+      "ready_delta_pct": 1.1438019249606428,
+      "p95_mysql_ms": 1136.3425902000104,
+      "p95_sqlite_ms": 1143.5659402500169,
+      "p95_delta_pct": 0.6356665773422348,
+      "ttfb_mysql_ms": 24.400000000023283,
+      "ttfb_sqlite_ms": 26.799999999813735,
+      "ttfb_delta_pct": 9.836065572902305,
+      "lcp_mysql_ms": 98.0,
+      "lcp_sqlite_ms": 104.0,
+      "lcp_delta_pct": 6.122448979591836,
+      "xhr_p95_mysql_ms": 59.1102291250063,
+      "xhr_p95_sqlite_ms": 49.193505125007505,
+      "xhr_p95_delta_pct": -16.776663103482324,
+      "mysql_failures": 0,
+      "sqlite_failures": 0,
+      "mysql_http_failure_rate": 0.0,
+      "sqlite_http_failure_rate": 0.0
+    },
+    {
+      "flow": "reservation_submit",
+      "label": "Restaurant reservation submit",
+      "ready_mysql_ms": 1684.9181669999962,
+      "ready_sqlite_ms": 1705.1636040000012,
+      "ready_delta_pct": 1.2015679690873133,
+      "p95_mysql_ms": 1697.0717648999896,
+      "p95_sqlite_ms": 1719.2749086500073,
+      "p95_delta_pct": 1.3083208506109447,
+      "ttfb_mysql_ms": 24.100000000093132,
+      "ttfb_sqlite_ms": 25.850000000093132,
+      "ttfb_delta_pct": 7.261410788353681,
+      "lcp_mysql_ms": 88.0,
+      "lcp_sqlite_ms": 90.0,
+      "lcp_delta_pct": 2.272727272727273,
+      "xhr_p95_mysql_ms": 23.46181300000171,
+      "xhr_p95_sqlite_ms": 25.287666499993065,
+      "xhr_p95_delta_pct": 7.782235328494096,
+      "mysql_failures": 0,
+      "sqlite_failures": 0,
+      "mysql_http_failure_rate": 0.0,
+      "sqlite_http_failure_rate": 0.0
+    },
+    {
+      "flow": "restaurant_blog_post_render",
+      "label": "Restaurant blog post render",
+      "ready_mysql_ms": 2723.085082999998,
+      "ready_sqlite_ms": 2710.969541999999,
+      "ready_delta_pct": -0.44491966393689136,
+      "p95_mysql_ms": 3102.5718288499984,
+      "p95_sqlite_ms": 2780.466159750009,
+      "p95_delta_pct": -10.38189240631961,
+      "ttfb_mysql_ms": 33.65000000002328,
+      "ttfb_sqlite_ms": 38.75,
+      "ttfb_delta_pct": 15.156017830529533,
+      "lcp_mysql_ms": 120.0,
+      "lcp_sqlite_ms": 120.0,
+      "lcp_delta_pct": 0.0,
+      "xhr_p95_mysql_ms": null,
+      "xhr_p95_sqlite_ms": null,
+      "xhr_p95_delta_pct": null,
+      "mysql_failures": 0,
+      "sqlite_failures": 0,
+      "mysql_http_failure_rate": 0.0,
+      "sqlite_http_failure_rate": 0.0
+    },
+    {
+      "flow": "restaurant_home_render",
+      "label": "Restaurant homepage render",
+      "ready_mysql_ms": 1967.5331874999983,
+      "ready_sqlite_ms": 1971.5155000000013,
+      "ready_delta_pct": 0.20240128732278342,
+      "p95_mysql_ms": 1988.3945291999994,
+      "p95_sqlite_ms": 2034.9946829999983,
+      "p95_delta_pct": 2.3436070214268683,
+      "ttfb_mysql_ms": 25.94999999983702,
+      "ttfb_sqlite_ms": 28.9000000001397,
+      "ttfb_delta_pct": 11.368015415495982,
+      "lcp_mysql_ms": 88.0,
+      "lcp_sqlite_ms": 92.0,
+      "lcp_delta_pct": 4.545454545454546,
+      "xhr_p95_mysql_ms": null,
+      "xhr_p95_sqlite_ms": null,
+      "xhr_p95_delta_pct": null,
+      "mysql_failures": 0,
+      "sqlite_failures": 0,
+      "mysql_http_failure_rate": 0.0,
+      "sqlite_http_failure_rate": 0.0
+    },
+    {
+      "flow": "restaurant_menu_render",
+      "label": "Restaurant menu page render",
+      "ready_mysql_ms": 1965.4942709999996,
+      "ready_sqlite_ms": 1970.8263960000004,
+      "ready_delta_pct": 0.2712867230738836,
+      "p95_mysql_ms": 2009.519953849999,
+      "p95_sqlite_ms": 1980.5237214500048,
+      "p95_delta_pct": -1.442943243456769,
+      "ttfb_mysql_ms": 23.849999999976717,
+      "ttfb_sqlite_ms": 27.100000000093132,
+      "ttfb_delta_pct": 13.62683438205278,
+      "lcp_mysql_ms": 88.0,
+      "lcp_sqlite_ms": 92.0,
+      "lcp_delta_pct": 4.545454545454546,
+      "xhr_p95_mysql_ms": null,
+      "xhr_p95_sqlite_ms": null,
+      "xhr_p95_delta_pct": null,
+      "mysql_failures": 0,
+      "sqlite_failures": 0,
+      "mysql_http_failure_rate": 0.0,
+      "sqlite_http_failure_rate": 0.0
+    },
+    {
+      "flow": "wp_admin_pages_search",
+      "label": "wp-admin pages search",
+      "ready_mysql_ms": 3284.4235624999274,
+      "ready_sqlite_ms": 3289.9700624999823,
+      "ready_delta_pct": 0.16887285986443384,
+      "p95_mysql_ms": 3359.461213150085,
+      "p95_sqlite_ms": 3343.0154979001263,
+      "p95_delta_pct": -0.48953430941796144,
+      "ttfb_mysql_ms": 41.199999999953434,
+      "ttfb_sqlite_ms": 46.049999999813735,
+      "ttfb_delta_pct": 11.771844659868407,
+      "lcp_mysql_ms": 128.0,
+      "lcp_sqlite_ms": 136.0,
+      "lcp_delta_pct": 6.25,
+      "xhr_p95_mysql_ms": 8.529001525003697,
+      "xhr_p95_sqlite_ms": 11.890410575032,
+      "xhr_p95_delta_pct": 39.411518923686046,
+      "mysql_failures": 0,
+      "sqlite_failures": 0,
+      "mysql_http_failure_rate": 0.008,
+      "sqlite_http_failure_rate": 0.008
+    },
+    {
+      "flow": "wp_admin_post_editor",
+      "label": "wp-admin post editor open",
+      "ready_mysql_ms": 31963.177375499974,
+      "ready_sqlite_ms": 31966.218499999988,
+      "ready_delta_pct": 0.009514462421202113,
+      "p95_mysql_ms": 32101.26813604999,
+      "p95_sqlite_ms": 32200.389580649964,
+      "p95_delta_pct": 0.3087773485454975,
+      "ttfb_mysql_ms": 59.10000000009313,
+      "ttfb_sqlite_ms": 62.8499999998603,
+      "ttfb_delta_pct": 6.34517766457066,
+      "lcp_mysql_ms": 668.0,
+      "lcp_sqlite_ms": 684.0,
+      "lcp_delta_pct": 2.3952095808383236,
+      "xhr_p95_mysql_ms": 86.13758350003044,
+      "xhr_p95_sqlite_ms": 76.88647080000374,
+      "xhr_p95_delta_pct": -10.739925969740536,
+      "mysql_failures": 0,
+      "sqlite_failures": 0,
+      "mysql_http_failure_rate": 0.0,
+      "sqlite_http_failure_rate": 0.0
+    },
+    {
+      "flow": "wp_admin_site_editor",
+      "label": "wp-admin site editor open",
+      "ready_mysql_ms": 17592.04970849998,
+      "ready_sqlite_ms": 17577.079854500073,
+      "ready_delta_pct": -0.0850944275849509,
+      "p95_mysql_ms": 17730.287445550068,
+      "p95_sqlite_ms": 17784.620324999945,
+      "p95_delta_pct": 0.3064410524461854,
+      "ttfb_mysql_ms": 36.25,
+      "ttfb_sqlite_ms": 42.14999999990687,
+      "ttfb_delta_pct": 16.2758620687086,
+      "lcp_mysql_ms": 138.0,
+      "lcp_sqlite_ms": 146.0,
+      "lcp_delta_pct": 5.797101449275362,
+      "xhr_p95_mysql_ms": 37.372166625005775,
+      "xhr_p95_sqlite_ms": 37.47936450004636,
+      "xhr_p95_delta_pct": 0.286838802032037,
+      "mysql_failures": 0,
+      "sqlite_failures": 0,
+      "mysql_http_failure_rate": 0.004502251125562781,
+      "sqlite_http_failure_rate": 0.005
+    }
+  ]
+}

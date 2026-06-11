@@ -1,0 +1,218 @@
+{
+  "created_at_utc": "20260611T111223Z",
+  "scope": "real Google Chrome browser benchmark on macOS; low-load user-visible rendering/XHR diagnostic",
+  "fixture_name": "restaurant-small",
+  "fixture": {
+    "pages": 10,
+    "posts": 6,
+    "comments": 36,
+    "users": 4,
+    "reservation_seed_rows": 8
+  },
+  "chrome": {
+    "executable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "headless": true,
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "repetitions_per_flow": 20,
+    "port_offset": 120
+  },
+  "variants": [
+    {
+      "id": "mariadb-innodb-baseline",
+      "family": "innodb",
+      "port": 9301,
+      "fpm_port": 9401,
+      "tag": "",
+      "db_name": "wp_sqlite_bench_local_mysql_chrome"
+    },
+    {
+      "id": "sqlite-driver-3.0.0-rc.3",
+      "family": "sqlite",
+      "port": 9302,
+      "fpm_port": 9402,
+      "tag": "v3.0.0-rc.3",
+      "db_name": ""
+    }
+  ],
+  "versions": {
+    "php": "PHP 8.5.7 (cli) (built: Jun  2 2026 20:59:56) (NTS)",
+    "php_fpm": "PHP 8.5.7 (fpm-fcgi) (built: Jun  2 2026 20:59:56) (NTS)",
+    "nginx": "nginx version: nginx/1.31.1",
+    "mysql": "mysql from 12.3.2-MariaDB, client 15.2 for osx10.21 (arm64) using  EditLine wrapper",
+    "node": "v24.16.0",
+    "wp_cli": "WP-CLI 2.12.0",
+    "chrome": "Google Chrome 149.0.7827.54",
+    "wordpress": "7.0"
+  },
+  "plugin_shas": {
+    "v3.0.0-rc.3": "2622441269889bdc635c891127a19486cd1da062"
+  },
+  "site_info": {
+    "mariadb-innodb-baseline": {
+      "site": "/Users/admin/wordpress-sqlite-benchmark-runner/artifacts/local-production-restaurant-browser/runs/20260611T111223Z/sites/mariadb-innodb-baseline",
+      "url": "http://127.0.0.1:9301",
+      "counts": {
+        "pages": "10",
+        "posts": "6",
+        "comments": 36,
+        "reservations": "8",
+        "users": 4
+      },
+      "page_ids": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13
+      ],
+      "page_urls": [
+        "http://127.0.0.1:9301/",
+        "http://127.0.0.1:9301/?page_id=5",
+        "http://127.0.0.1:9301/?page_id=6",
+        "http://127.0.0.1:9301/?page_id=7",
+        "http://127.0.0.1:9301/?page_id=8",
+        "http://127.0.0.1:9301/?page_id=9",
+        "http://127.0.0.1:9301/?page_id=10",
+        "http://127.0.0.1:9301/?page_id=11",
+        "http://127.0.0.1:9301/?page_id=12",
+        "http://127.0.0.1:9301/?page_id=13"
+      ],
+      "post_ids": [
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "post_urls": [
+        "http://127.0.0.1:9301/?p=14",
+        "http://127.0.0.1:9301/?p=15",
+        "http://127.0.0.1:9301/?p=16",
+        "http://127.0.0.1:9301/?p=17",
+        "http://127.0.0.1:9301/?p=18",
+        "http://127.0.0.1:9301/?p=19"
+      ],
+      "menu_url": "http://127.0.0.1:9301/?page_id=5",
+      "reservation_url": "http://127.0.0.1:9301/?page_id=6",
+      "contact_url": "http://127.0.0.1:9301/?page_id=7",
+      "editor_post_id": 14,
+      "reservation_ids": [
+        27,
+        26,
+        25,
+        24,
+        23,
+        22,
+        21,
+        20
+      ],
+      "active_theme": "twentytwentyfive",
+      "is_block_theme": true,
+      "fixture_summary": {
+        "pages": 10,
+        "posts": 6,
+        "comments": 36,
+        "reservations": "8",
+        "users": 4,
+        "active_theme": "twentytwentyfive",
+        "is_block_theme": true,
+        "database_bytes": 671744,
+        "target_site_shape": "10 pages, 6 posts, 36 comments, 8 seed reservation requests"
+      }
+    },
+    "sqlite-driver-3.0.0-rc.3": {
+      "site": "/Users/admin/wordpress-sqlite-benchmark-runner/artifacts/local-production-restaurant-browser/runs/20260611T111223Z/sites/sqlite-driver-3.0.0-rc.3",
+      "url": "http://127.0.0.1:9302",
+      "counts": {
+        "pages": "10",
+        "posts": "6",
+        "comments": 36,
+        "reservations": "8",
+        "users": 4
+      },
+      "page_ids": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13
+      ],
+      "page_urls": [
+        "http://127.0.0.1:9302/",
+        "http://127.0.0.1:9302/?page_id=5",
+        "http://127.0.0.1:9302/?page_id=6",
+        "http://127.0.0.1:9302/?page_id=7",
+        "http://127.0.0.1:9302/?page_id=8",
+        "http://127.0.0.1:9302/?page_id=9",
+        "http://127.0.0.1:9302/?page_id=10",
+        "http://127.0.0.1:9302/?page_id=11",
+        "http://127.0.0.1:9302/?page_id=12",
+        "http://127.0.0.1:9302/?page_id=13"
+      ],
+      "post_ids": [
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "post_urls": [
+        "http://127.0.0.1:9302/?p=14",
+        "http://127.0.0.1:9302/?p=15",
+        "http://127.0.0.1:9302/?p=16",
+        "http://127.0.0.1:9302/?p=17",
+        "http://127.0.0.1:9302/?p=18",
+        "http://127.0.0.1:9302/?p=19"
+      ],
+      "menu_url": "http://127.0.0.1:9302/?page_id=5",
+      "reservation_url": "http://127.0.0.1:9302/?page_id=6",
+      "contact_url": "http://127.0.0.1:9302/?page_id=7",
+      "editor_post_id": 14,
+      "reservation_ids": [
+        27,
+        26,
+        25,
+        24,
+        23,
+        22,
+        21,
+        20
+      ],
+      "active_theme": "twentytwentyfive",
+      "is_block_theme": true,
+      "fixture_summary": {
+        "pages": 10,
+        "posts": 6,
+        "comments": 36,
+        "reservations": "8",
+        "users": 4,
+        "active_theme": "twentytwentyfive",
+        "is_block_theme": true,
+        "database_bytes": 434176,
+        "target_site_shape": "10 pages, 6 posts, 36 comments, 8 seed reservation requests"
+      }
+    }
+  },
+  "notes": [
+    "Chrome and the WordPress server both ran on this Mac, so browser CPU and server CPU are not isolated.",
+    "The run measures low-load user-visible latency and XHR behavior, not throughput under high concurrency.",
+    "Admin login is prepared before measured admin flows; the measured admin flows start from an authenticated browser session.",
+    "No full-page cache, CDN, or object cache was enabled by this runner.",
+    "The fixture is intentionally small: 10 pages, 6 posts, comments, reservation-request writes, and wp-admin/editor paths."
+  ]
+}

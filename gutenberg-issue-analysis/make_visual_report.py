@@ -118,7 +118,7 @@ def axis_ticks(min_value, max_value, steps=5):
 
 def open_timeline_svg(rows):
     width, height = 1120, 360
-    left, right, top, bottom = 74, 34, 74, 58
+    left, right, top, bottom = 74, 34, 92, 58
     plot_w = width - left - right
     plot_h = height - top - bottom
     values = [i(r, "open_at_end") for r in rows]
@@ -161,7 +161,7 @@ def open_timeline_svg(rows):
         x = x_for(idx)
         y = y_for(i(row, "open_at_end"))
         parts.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="4.5" fill="{LINE_COLORS["open"]}"><title>{esc(row["quarter"])}: {i(row, "open_at_end"):,}</title></circle>')
-        if row["quarter"].endswith("-01-01") or idx in (0, len(rows) - 1):
+        if idx == 0 or row["quarter"][5:10] == "01-01":
             parts.append(f'<text x="{x:.1f}" y="{height - 26}" text-anchor="middle" class="axis">{esc(row["quarter"][:4])}</text>')
 
     peak_idx = max(range(len(rows)), key=lambda idx: values[idx])
@@ -177,7 +177,7 @@ def open_timeline_svg(rows):
 
 def flow_svg(rows):
     width, height = 1120, 360
-    left, right, top, bottom = 70, 34, 76, 56
+    left, right, top, bottom = 70, 34, 92, 56
     plot_w = width - left - right
     plot_h = height - top - bottom
     max_v = max(max(i(r, "created"), i(r, "closed")) for r in rows) + 120
@@ -215,7 +215,7 @@ def flow_svg(rows):
         closed = i(row, "closed")
         parts.append(f'<circle cx="{x:.1f}" cy="{y_for(created):.1f}" r="4" fill="{LINE_COLORS["created"]}"><title>{esc(row["quarter"])} new issues: {created:,}</title></circle>')
         parts.append(f'<circle cx="{x:.1f}" cy="{y_for(closed):.1f}" r="4" fill="{LINE_COLORS["closed"]}"><title>{esc(row["quarter"])} closed issues: {closed:,}</title></circle>')
-        if row["quarter"].endswith("-01-01") or idx in (0, len(rows) - 1):
+        if idx == 0 or row["quarter"][5:10] == "01-01":
             parts.append(f'<text x="{x:.1f}" y="{height - 24}" text-anchor="middle" class="axis">{esc(row["quarter"][:4])}</text>')
     parts.append(f'<rect x="{left + plot_w - 230}" y="12" width="12" height="12" fill="{LINE_COLORS["created"]}"/><text x="{left + plot_w - 212}" y="23" class="legend-text">Created</text>')
     parts.append(f'<rect x="{left + plot_w - 140}" y="12" width="12" height="12" fill="{LINE_COLORS["closed"]}"/><text x="{left + plot_w - 122}" y="23" class="legend-text">Closed</text>')
@@ -226,7 +226,7 @@ def flow_svg(rows):
 def net_monthly_svg(months):
     recent = [r for r in months if r["month"] >= "2024-10-01"]
     width, height = 1120, 260
-    left, right, top, bottom = 68, 32, 72, 52
+    left, right, top, bottom = 68, 32, 88, 52
     plot_w = width - left - right
     plot_h = height - top - bottom
     values = [i(r, "net") for r in recent]
@@ -251,7 +251,7 @@ def net_monthly_svg(months):
         h = abs(y_for(value) - zero)
         color = "#2563eb" if value >= 0 else "#dc2626"
         parts.append(f'<rect x="{x:.1f}" y="{min(y_for(value), zero):.1f}" width="{bar_w:.1f}" height="{h:.1f}" fill="{color}" rx="2"><title>{esc(row["month"])} net: {value:+,}</title></rect>')
-        if row["month"].endswith("-01"):
+        if idx == 0 or row["month"][5:7] == "01":
             parts.append(f'<text x="{x + bar_w / 2:.1f}" y="{height - 24}" text-anchor="middle" class="axis">{esc(row["month"][:4])}</text>')
     parts.append("</svg>")
     return "\n".join(parts)
@@ -359,7 +359,7 @@ def first_time_reporters_svg(rows):
         y = y_for(value)
         fill = "#ea580c" if row["period"] == "decline" else "#7c3aed"
         parts.append(f'<rect x="{x:.1f}" y="{y:.1f}" width="{bar_w:.1f}" height="{top + plot_h - y:.1f}" fill="{fill}" rx="3"><title>{esc(row["quarter"])} first-time reporters: {value:,}</title></rect>')
-        if row["quarter"].endswith("-01-01") or idx in (0, len(rows) - 1):
+        if idx == 0 or row["quarter"][5:10] == "01-01":
             parts.append(f'<text x="{x + bar_w / 2:.1f}" y="{height - 24}" text-anchor="middle" class="axis">{esc(row["quarter"][:4])}</text>')
     parts.append("</svg>")
     return "\n".join(parts)
@@ -367,7 +367,7 @@ def first_time_reporters_svg(rows):
 
 def reporter_trend_svg(rows):
     width, height = 1120, 360
-    left, right, top, bottom = 74, 34, 78, 58
+    left, right, top, bottom = 74, 34, 94, 58
     plot_w = width - left - right
     plot_h = height - top - bottom
     unique_values = [i(r, "unique_creators") for r in rows]
@@ -417,7 +417,7 @@ def reporter_trend_svg(rows):
         first = i(row, "first_time_creators")
         parts.append(f'<circle cx="{x:.1f}" cy="{y_for(unique):.1f}" r="4.2" fill="{LINE_COLORS["creator"]}"><title>{esc(row["quarter"])} unique creators: {unique:,}</title></circle>')
         parts.append(f'<circle cx="{x:.1f}" cy="{y_for(first):.1f}" r="4.2" fill="{LINE_COLORS["first"]}"><title>{esc(row["quarter"])} first-time creators: {first:,}</title></circle>')
-        if row["quarter"].endswith("-01-01") or idx in (0, len(rows) - 1):
+        if idx == 0 or row["quarter"][5:10] == "01-01":
             parts.append(f'<text x="{x:.1f}" y="{height - 24}" text-anchor="middle" class="axis">{esc(row["quarter"][:4])}</text>')
 
     parts.append(f'<rect x="{left + plot_w - 310}" y="12" width="12" height="12" fill="{LINE_COLORS["creator"]}"/><text x="{left + plot_w - 292}" y="23" class="legend-text">Unique creators</text>')
@@ -548,7 +548,7 @@ p {{ margin: 8px 0 0; color: var(--muted); }}
 .question {{ color: var(--muted); font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .02em; }}
 .answer-card h3 {{ color: var(--ink); }}
 .chart-card {{ overflow-x: auto; }}
-.chart-card svg {{ width: 100%; min-width: 760px; height: auto; display: block; }}
+.chart-card svg {{ width: 100%; height: auto; display: block; }}
 .discussion {{ background: #ffffff; border: 1px solid var(--line); border-radius: 8px; padding: 20px 22px; margin-top: 24px; }}
 .discussion h2 {{ margin-top: 0; }}
 .discussion p {{ color: #263241; font-size: 16px; margin: 12px 0; max-width: 940px; }}

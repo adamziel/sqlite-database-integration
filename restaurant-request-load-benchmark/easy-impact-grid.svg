@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="870" height="344" viewBox="0 0 870 344" role="img">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="20" y="28" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="21" font-weight="700" fill="#111827">Small restaurant request-load impact grid</text>
+<text x="20" y="50" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="13" fill="#4b5563">SQLite rc3 vs MariaDB. Green is better, red is worse, yellow is a tradeoff.</text>
+<text x="95.0" y="98" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="13" font-weight="700" fill="#374151">Workload</text>
+<text x="255.0" y="98" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="13" font-weight="700" fill="#374151">c4</text>
+<text x="425.0" y="98" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="13" font-weight="700" fill="#374151">c16</text>
+<text x="595.0" y="98" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="13" font-weight="700" fill="#374151">c32</text>
+<text x="765.0" y="98" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="13" font-weight="700" fill="#374151">c64</text>
+<text x="28" y="151" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="14" font-weight="700" fill="#111827">read-heavy</text>
+<rect x="174" y="114" width="162" height="64" rx="6" fill="#fecaca" stroke="#d1d5db"/>
+<text x="255.0" y="134" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="13" font-weight="700" fill="#111827">Slower</text>
+<text x="255.0" y="153" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="12" fill="#111827">p95 +28.3%</text>
+<text x="255.0" y="170" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="12" fill="#111827">thru -19.3%</text>
+<rect x="344" y="114" width="162" height="64" rx="6" fill="#fecaca" stroke="#d1d5db"/>
+<text x="425.0" y="134" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="13" font-weight="700" fill="#111827">Slower</text>
+<text x="425.0" y="153" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="12" fill="#111827">p95 +23.7%</text>
+<text x="425.0" y="170" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="12" fill="#111827">thru -22.9%</text>
+<rect x="514" y="114" width="162" height="64" rx="6" fill="#fecaca" stroke="#d1d5db"/>
+<text x="595.0" y="134" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="13" font-weight="700" fill="#111827">Slower</text>
+<text x="595.0" y="153" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="12" fill="#111827">p95 +13.4%</text>
+<text x="595.0" y="170" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="12" fill="#111827">thru -19.8%</text>
+<rect x="684" y="114" width="162" height="64" rx="6" fill="#fecaca" stroke="#d1d5db"/>
+<text x="765.0" y="134" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="13" font-weight="700" fill="#111827">Slower</text>
+<text x="765.0" y="153" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="12" fill="#111827">p95 +16.4%</text>
+<text x="765.0" y="170" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="12" fill="#111827">thru -18.1%</text>
+<text x="28" y="223" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="14" font-weight="700" fill="#111827">balanced</text>
+<rect x="174" y="186" width="162" height="64" rx="6" fill="#bbf7d0" stroke="#d1d5db"/>
+<text x="255.0" y="206" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="13" font-weight="700" fill="#111827">Good</text>
+<text x="255.0" y="225" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="12" fill="#111827">p95 -26.8%</text>
+<text x="255.0" y="242" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="12" fill="#111827">thru +29.9%</text>
+<rect x="344" y="186" width="162" height="64" rx="6" fill="#fef3c7" stroke="#d1d5db"/>
+<text x="425.0" y="206" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="13" font-weight="700" fill="#111827">Mixed</text>
+<text x="425.0" y="225" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="12" fill="#111827">p95 -24.0%</text>
+<text x="425.0" y="242" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="12" fill="#111827">thru -8.6%</text>
+<rect x="514" y="186" width="162" height="64" rx="6" fill="#fef3c7" stroke="#d1d5db"/>
+<text x="595.0" y="206" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="13" font-weight="700" fill="#111827">Mixed</text>
+<text x="595.0" y="225" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="12" fill="#111827">p95 -24.7%</text>
+<text x="595.0" y="242" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="12" fill="#111827">thru -16.9%</text>
+<rect x="684" y="186" width="162" height="64" rx="6" fill="#fef3c7" stroke="#d1d5db"/>
+<text x="765.0" y="206" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="13" font-weight="700" fill="#111827">Mixed</text>
+<text x="765.0" y="225" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="12" fill="#111827">p95 -18.4%</text>
+<text x="765.0" y="242" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="12" fill="#111827">thru -15.4%</text>
+<text x="28" y="295" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="14" font-weight="700" fill="#111827">write-heavy</text>
+<rect x="174" y="258" width="162" height="64" rx="6" fill="#bbf7d0" stroke="#d1d5db"/>
+<text x="255.0" y="278" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="13" font-weight="700" fill="#111827">Good</text>
+<text x="255.0" y="297" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="12" fill="#111827">p95 -27.8%</text>
+<text x="255.0" y="314" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="12" fill="#111827">thru +41.8%</text>
+<rect x="344" y="258" width="162" height="64" rx="6" fill="#fef3c7" stroke="#d1d5db"/>
+<text x="425.0" y="278" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="13" font-weight="700" fill="#111827">Mixed</text>
+<text x="425.0" y="297" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="12" fill="#111827">p95 -9.9%</text>
+<text x="425.0" y="314" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="12" fill="#111827">thru -1.9%</text>
+<rect x="514" y="258" width="162" height="64" rx="6" fill="#fef3c7" stroke="#d1d5db"/>
+<text x="595.0" y="278" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="13" font-weight="700" fill="#111827">Mixed</text>
+<text x="595.0" y="297" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="12" fill="#111827">p95 -13.1%</text>
+<text x="595.0" y="314" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="12" fill="#111827">thru -7.9%</text>
+<rect x="684" y="258" width="162" height="64" rx="6" fill="#fef3c7" stroke="#d1d5db"/>
+<text x="765.0" y="278" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="13" font-weight="700" fill="#111827">Mixed</text>
+<text x="765.0" y="297" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="12" fill="#111827">p95 -5.5%</text>
+<text x="765.0" y="314" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="12" fill="#111827">thru -14.5%</text>
+</svg>

@@ -1,0 +1,89 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SQLite rc3 vs MariaDB Decision Summary</title>
+
+<style>
+:root { --ink:#111827; --muted:#4b5563; --line:#d6dde8; --soft:#f8fafc; --good:#bbf7d0; --neutral:#e5e7eb; --mixed:#fef3c7; --slower:#fecaca; --blue:#0f6b8f; }
+* { box-sizing: border-box; }
+body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: var(--ink); background: #ffffff; line-height: 1.48; }
+main { max-width: 1160px; margin: 0 auto; padding: 36px 24px 60px; }
+h1 { margin: 0 0 8px; font-size: 34px; line-height: 1.15; }
+h2 { margin: 36px 0 14px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 24px; }
+h3 { margin: 0 0 10px; font-size: 17px; }
+p { color: var(--muted); margin: 8px 0 12px; }
+.lede { font-size: 18px; color: #263241; max-width: 920px; }
+.cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin: 22px 0; }
+.card { border: 1px solid var(--line); border-radius: 8px; padding: 14px; background: var(--soft); min-height: 180px; }
+.card.good { border-color: #86efac; background: #f0fdf4; }
+.card.neutral { border-color: #cbd5e1; background: #f8fafc; }
+.card.mixed { border-color: #fde68a; background: #fffbeb; }
+.card.slower { border-color: #fca5a5; background: #fff1f2; }
+.verdict { display: inline-block; font-weight: 700; font-size: 13px; padding: 3px 8px; border-radius: 999px; background: #fff; border: 1px solid var(--line); margin-bottom: 10px; }
+.big { font-size: 25px; font-weight: 800; margin: 2px 0 8px; }
+.callout { border-left: 5px solid var(--blue); background: #eef8fb; padding: 14px 16px; margin: 18px 0 24px; }
+.table-scroll { overflow-x: auto; margin: 14px 0 24px; }
+table { border-collapse: collapse; width: 100%; min-width: 760px; border: 1px solid var(--line); }
+th, td { border-bottom: 1px solid var(--line); padding: 10px 11px; text-align: left; vertical-align: top; }
+th { background: var(--soft); font-weight: 700; }
+td.good, .good-cell { background: var(--good); }
+td.neutral, .neutral-cell { background: var(--neutral); }
+td.mixed, .mixed-cell { background: var(--mixed); }
+td.slower, .slower-cell { background: var(--slower); }
+.grid td { min-width: 150px; }
+.badge { font-weight: 800; margin-bottom: 4px; }
+.legend { display: flex; gap: 12px; flex-wrap: wrap; margin: 8px 0 16px; color: var(--muted); font-size: 13px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.swatch { width: 18px; height: 14px; border: 1px solid #9ca3af; border-radius: 3px; }
+.dim-table td:first-child { font-weight: 700; width: 23%; }
+ul { padding-left: 22px; }
+li { margin: 6px 0; color: #263241; }
+.small { font-size: 13px; color: var(--muted); }
+@media (max-width: 900px) { .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 620px) { main { padding: 24px 14px 44px; } .cards { grid-template-columns: 1fr; } h1 { font-size: 28px; } }
+</style>
+
+</head><body><main>
+<h1>SQLite rc3 vs MariaDB: decision summary</h1>
+<p class="lede">SQLite Database Integration <code>v3.0.0-rc.3</code> is much more stable than the old SQLite control in these local diagnostics, but it is not a blanket MariaDB replacement yet. It is closest to parity in browser-visible flows and slowest under high-concurrency WooCommerce writes.</p>
+<div class="callout"><b>Decision read:</b> good candidate for small/low-write sites after validation; keep MariaDB for high-write or high-concurrency WooCommerce until more hosted production-like evidence closes the throughput gap.</div>
+<div class="cards">
+<section class="card neutral"><h3>Browser-visible UX</h3><div class="verdict">Mostly tied</div><div class="big">median ready +0.2% restaurant, +0.4% Woo</div><p>Most page/editor journeys were visually near parity. Woo admin orders was the notable regression at +13.9% median ready.</p></section>
+<section class="card slower"><h3>Request throughput</h3><div class="verdict">Slower under load</div><div class="big">4 / 24 cells higher</div><p>SQLite completed fewer flows/sec in most request-load cells, especially under WooCommerce c16-c64.</p></section>
+<section class="card mixed"><h3>Tail latency</h3><div class="verdict">Mixed</div><div class="big">15 / 24 p95 cells faster</div><p>Several p95 wins come with lower throughput. Woo write-heavy c32/c64 was clearly worse.</p></section>
+<section class="card good"><h3>Correctness / locks</h3><div class="verdict">Clean in rc3 runs</div><div class="big">0 failures, 0 busy locks</div><p>Across these rc3 request-load and Chrome runs: no flow failures, write verification failures, or SQLite busy/locked log events.</p></section>
+</div>
+<h2>Simple dimensions</h2>
+<div class="table-scroll"><table class="dim-table"><thead><tr><th>Dimension</th><th>Impact of SQLite rc3 vs MariaDB</th><th>Decision meaning</th></tr></thead><tbody>
+<tr><td>Browser-visible page readiness</td><td>Mostly tied: median ready delta was +0.2% on restaurant flows and +0.4% on WooCommerce flows.</td><td>Most ordinary users probably would not notice on page/editor flows.</td></tr>
+<tr><td>Server request capacity</td><td>Slower under load: SQLite throughput was higher in only 4 of 24 request-load cells.</td><td>Capacity headroom is the main reason not to make it the default everywhere.</td></tr>
+<tr><td>Tail latency</td><td>Mixed: p95 improved in 15 of 24 request-load cells, but WooCommerce write-heavy c32/c64 regressed +33.9%/+40.0%.</td><td>Do not use p95 alone; pair it with throughput.</td></tr>
+<tr><td>Writes and correctness</td><td>rc3 had 0 flow failures, 0 write verification failures, and 0 SQLite busy/locked errors in these local runs.</td><td>Much healthier than the old stable control, but write-heavy capacity still needs caution.</td></tr>
+<tr><td>Operational fit</td><td>SQLite removes the MariaDB service, but adds WAL behavior and different concurrency limits.</td><td>Simpler stack, not automatically faster at scale.</td></tr>
+</tbody></table></div>
+<h2>Why the old scatterplot was hard to read</h2>
+<p>The scatterplot put two different questions on one chart: throughput on the x-axis and p95 latency on the y-axis. Right is more capacity. Down is lower tail latency. The best possible movement is down and right.</p>
+<p>The confusing cases are where SQLite moves down and left: lower p95 latency, but less throughput. That is not a clean win. The compressed tables below call that a tradeoff.</p>
+<h2>Compressed readout</h2>
+<div class="table-scroll"><table class="compact"><thead><tr><th>Surface</th><th>Latency</th><th>Capacity / server</th><th>Readout</th></tr></thead><tbody>
+<tr><td><b>Small restaurant load</b></td><td>p95 faster in 8/12 cells</td><td>throughput higher in 2/12 cells</td><td class="mixed">Latency often improved, but throughput was usually lower.</td></tr>
+<tr><td><b>5GB WooCommerce load</b></td><td>p95 faster in 7/12 cells</td><td>throughput higher in 2/12 cells</td><td class="slower">High-concurrency write-heavy traffic was slower.</td></tr>
+<tr><td><b>Restaurant Chrome</b></td><td>median ready +0.2%</td><td>median TTFB +11.6%</td><td class="neutral">Browser-visible result was essentially tied.</td></tr>
+<tr><td><b>WooCommerce Chrome</b></td><td>median ready +0.4%</td><td>Woo admin orders +13.9% ready</td><td class="mixed">Most flows were near parity; admin orders was slower.</td></tr>
+</tbody></table></div>
+<h2>Workload summary</h2>
+<div class="table-scroll"><table class="compact"><thead><tr><th>Fixture</th><th>Workload</th><th>p95 latency</th><th>Throughput</th><th>Summary</th></tr></thead><tbody>
+<tr><td>Small restaurant</td><td><b>read-heavy</b></td><td>0/4 faster; worst +28.3%</td><td>0/4 higher; median -19.6%</td><td class="slower">slower overall</td></tr>
+<tr><td>Small restaurant</td><td><b>balanced</b></td><td>4/4 faster; worst -18.4%</td><td>1/4 higher; median -12.0%</td><td class="mixed">latency/capacity tradeoff</td></tr>
+<tr><td>Small restaurant</td><td><b>write-heavy</b></td><td>4/4 faster; worst -5.5%</td><td>1/4 higher; median -4.9%</td><td class="mixed">latency/capacity tradeoff</td></tr>
+<tr><td>5GB WooCommerce</td><td><b>read-heavy</b></td><td>3/4 faster; worst +18.6%</td><td>0/4 higher; median -19.4%</td><td class="mixed">latency/capacity tradeoff</td></tr>
+<tr><td>5GB WooCommerce</td><td><b>balanced</b></td><td>3/4 faster; worst +1.0%</td><td>1/4 higher; median -24.1%</td><td class="mixed">latency/capacity tradeoff</td></tr>
+<tr><td>5GB WooCommerce</td><td><b>write-heavy</b></td><td>1/4 faster; worst +40.0%</td><td>1/4 higher; median -20.1%</td><td class="mixed">latency/capacity tradeoff</td></tr>
+</tbody></table></div>
+<p class="small">Detailed per-concurrency grids are still available as separate SVGs: <code>restaurant-request-load-benchmark/easy-impact-grid.svg</code> and <code>woocommerce-c4-16-32-64-benchmark/easy-impact-grid.svg</code>.</p>
+<h2>Recommendation</h2>
+<ul>
+<li><b>Use rc3 as a serious candidate</b> for small sites, local-first deployments, demos, dev/test, and low-write sites.</li>
+<li><b>Do not make it the default MariaDB replacement</b> for high-write or high-concurrency WooCommerce production traffic based on these measurements.</li>
+<li><b>If adopting, gate by workload:</b> browser journeys, checkout/admin writes, request throughput at expected concurrency, write verification, WAL growth, and lock/busy logs.</li>
+</ul>
+<p class="small">Scope caveat: these are local macOS diagnostics, not final hosted Linux production measurements. They are useful for directional decision-making and deciding what to validate next.</p>
+</main></body></html>

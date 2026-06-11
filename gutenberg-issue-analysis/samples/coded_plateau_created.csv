@@ -1,0 +1,46 @@
+number,title,closed,state_reason,codes,memo
+67566,Allow switching to editing of Template Parts in Zoom Out,FALSE,,MAINTAINER_PM;CONFIRMED_PRODUCT_PROBLEM;IMPACT_SIGNAL;LOWER_PROBLEM_LOAD_SIGNAL,Maintainer enhancement; zoom-out blocks template-part editing.
+62987,Link and :hover styles in Navigation block being overridden by core block styles,TRUE,completed,USER_REPORT;CONFIRMED_PRODUCT_PROBLEM;DUPLICATE_OR_CONSOLIDATED;IMPACT_SIGNAL;LOWER_PROBLEM_LOAD_SIGNAL,Known Navigation style override; closed as duplicate of original report.
+61184,Navigation block - Allow collapsing on tablet (or custom) breakpoint,TRUE,completed,USER_REPORT;DUPLICATE_OR_CONSOLIDATED;LOWER_PROBLEM_LOAD_SIGNAL,Navigation breakpoint request redirected to existing issue.
+63844,Mobile Web: keyboard covers text when working with 1+ paragraphs in post/page editor ,FALSE,,USER_REPORT;CONFIRMED_PRODUCT_PROBLEM;IMPACT_SIGNAL,Mobile web keyboard hides text; maintainer called rough impact.
+63325,Post Date Block: Offer relative date option,TRUE,not_planned,USER_REPORT;DUPLICATE_OR_CONSOLIDATED;FIXED_BY_CHANGE;LOWER_PROBLEM_LOAD_SIGNAL,Relative-date option already implemented elsewhere.
+66415,The Contributor Guide mentions meetings that are no longer taking place,TRUE,completed,MAINTAINER_PM;FIXED_BY_CHANGE;LOWER_PROBLEM_LOAD_SIGNAL,Developer docs corrected for obsolete meetings.
+63064,WordPress 6.6: Unlinked contributors,TRUE,completed,MAINTAINER_PM;TRIAGE_AUTOMATION_OR_POLICY;LOWER_PROBLEM_LOAD_SIGNAL,Release props/account-linking housekeeping thread.
+60680,Increase the PHP minimum supported version to 7.2,TRUE,completed,MAINTAINER_PM;FIXED_BY_CHANGE;TRIAGE_AUTOMATION_OR_POLICY;IMPACT_SIGNAL;LOWER_PROBLEM_LOAD_SIGNAL,PHP minimum-version policy/build change completed.
+62515,"Make the Document Bar ""Back"" button more visually distinguishable",FALSE,,USER_REPORT;CONFIRMED_PRODUCT_PROBLEM;IMPACT_SIGNAL,Back button visibility risked missed navigation/content loss.
+63152,Data Views: selecting multiple authors to filter by in List layout causes padding issues,TRUE,completed,MAINTAINER_PM;FIXED_BY_CHANGE;LOWER_PROBLEM_LOAD_SIGNAL,DataViews author-filter spacing polish fixed.
+61875,Document Bar missing the initial animation changing from page/template,TRUE,completed,MAINTAINER_PM;CONFIRMED_PRODUCT_PROBLEM;FIXED_BY_CHANGE;IMPACT_SIGNAL,Document Bar animation regression fixed.
+69187,Social Icons: Make sizes relative to font size defined in theme.json,FALSE,,MAINTAINER_PM;LOWER_PROBLEM_LOAD_SIGNAL,Social Icons sizing enhancement/open design follow-up.
+61582,Plugin 18.3.0 disabled theme customizations,TRUE,completed,USER_REPORT;CONFIRMED_PRODUCT_PROBLEM;DUPLICATE_OR_CONSOLIDATED;FIXED_BY_CHANGE;IMPACT_SIGNAL;LOWER_PROBLEM_LOAD_SIGNAL,Plugin regression duplicated/fixed; reporter confirmed recovery.
+63241,Cannot paste Excel tables into WordPress,TRUE,completed,USER_REPORT;CONFIRMED_PRODUCT_PROBLEM;FIXED_BY_CHANGE,Excel paste bug later verified resolved.
+69285,"Categories List, Tag Cloud, Post Navigation Link: Add blank target options for their links",FALSE,reopened,USER_REPORT;CONFIRMED_PRODUCT_PROBLEM,Blank-target consistency issue reopened after policy objection.
+62456,Block generated with @wordpress/create-block does not show in editor,TRUE,completed,USER_REPORT;DUPLICATE_OR_CONSOLIDATED;LOWER_PROBLEM_LOAD_SIGNAL,create-block report matched existing scripts issue.
+61278,Template inspector: Double border on description card,TRUE,completed,MAINTAINER_PM;CONFIRMED_PRODUCT_PROBLEM;DUPLICATE_OR_CONSOLIDATED;LOWER_PROBLEM_LOAD_SIGNAL,Regression confirmed but closed in favor of earlier issue.
+65718,showInsertionPoint lag on chromium based browsers ,TRUE,completed,USER_REPORT;UNCONFIRMED_OR_SUPPORT;CLOSED_WITHOUT_RESOLUTION;TRIAGE_AUTOMATION_OR_POLICY;LOWER_PROBLEM_LOAD_SIGNAL,Perf lag attributed to third-party blocks after stale triage.
+67192,Add a feature to allow skinning,TRUE,completed,MAINTAINER_PM;DUPLICATE_OR_CONSOLIDATED;LOWER_PROBLEM_LOAD_SIGNAL,Skinning idea closed to prior style-variation thread.
+60781,"Docs: Interactivity API - Move docs from ""Reference Guides > Package Reference > @wordpress/interactivity"" to ""Reference Guides > Interactivity API Reference""",TRUE,completed,MAINTAINER_PM;FIXED_BY_CHANGE;LOWER_PROBLEM_LOAD_SIGNAL,Interactivity API docs restructuring completed.
+62239,Don't show group block's placeholder when there is only one variation available,TRUE,completed,USER_REPORT;FIXED_BY_CHANGE;LOWER_PROBLEM_LOAD_SIGNAL,Single-variation Group placeholder enhancement fixed.
+63026,Docs: Create a section about Block Bindings in the Block Editor Handbook,TRUE,completed,MAINTAINER_PM;FIXED_BY_CHANGE;LOWER_PROBLEM_LOAD_SIGNAL,Block Bindings handbook docs completed.
+63882,Post Edit Screen Restricted by Metaboxes,TRUE,completed,USER_REPORT;CONFIRMED_PRODUCT_PROBLEM;FIXED_BY_CHANGE;IMPACT_SIGNAL,Metabox regression affected editing; fix/backport discussed.
+65106,Quick inserter: hard to initiate quick inserter after a few times using it,TRUE,completed,MAINTAINER_PM;CONFIRMED_PRODUCT_PROBLEM;FIXED_BY_CHANGE,Quick inserter reproducible bug fixed on trunk.
+66826,Add Media” to “Add media” to follow sentence-case UI standards,TRUE,completed,MAINTAINER_PM;FIXED_BY_CHANGE;LOWER_PROBLEM_LOAD_SIGNAL,Sentence-case copy cleanup fixed.
+63909,React methods are executed infinited times when block is inserted through a custom pattern,TRUE,completed,USER_REPORT;CONFIRMED_PRODUCT_PROBLEM;FIXED_BY_CHANGE;IMPACT_SIGNAL,6.6 pattern insertion infinite-loop regression fixed.
+62981,Tabbing to Font size ToggleGroupControl applies a font size,TRUE,completed,MAINTAINER_PM;CONFIRMED_PRODUCT_PROBLEM;FIXED_BY_CHANGE;IMPACT_SIGNAL,High-priority a11y ToggleGroupControl bug fixed.
+63260,In-between Inserter: can't scroll over it,TRUE,completed,MAINTAINER_PM;CONFIRMED_PRODUCT_PROBLEM;DUPLICATE_OR_CONSOLIDATED;FIXED_BY_CHANGE;IMPACT_SIGNAL,Inserter scroll-blocking bug duplicate/linked fix.
+63094,Refactor the hooked blocks plugins UI to not use flex-direction row-reverse,TRUE,completed,MAINTAINER_PM;CONFIRMED_PRODUCT_PROBLEM;FIXED_BY_CHANGE;IMPACT_SIGNAL,A11y row-reverse UI issue fixed.
+65503,ContentOnly Write Mode: enable as a capability / role assignment,FALSE,,MAINTAINER_PM;LOWER_PROBLEM_LOAD_SIGNAL,Capability-based write mode feature planning.
+65575,"Revert additional ""Typesets"" panel in Site Editor > Typography",TRUE,completed,MAINTAINER_PM;CONFIRMED_PRODUCT_PROBLEM;FIXED_BY_CHANGE;IMPACT_SIGNAL,Regression reverted to simplify Typography UI.
+69300,PostSticky: Update Help Text for Clarity and Consistency,FALSE,,USER_REPORT;DUPLICATE_OR_CONSOLIDATED;LOWER_PROBLEM_LOAD_SIGNAL,PostSticky copy proposal tied to existing wording threads.
+65214,Navigation Block - Add setting to show submenus on arrow button click (not hover),FALSE,,USER_REPORT;CONFIRMED_PRODUCT_PROBLEM;IMPACT_SIGNAL,Navigation submenu click behavior validated as a11y-relevant request.
+60414,Search block width setting does not work the first time the px value is updated,FALSE,,MAINTAINER_PM;CONFIRMED_PRODUCT_PROBLEM,Search block width bug brought from Trac; PR in progress.
+68025,Make the Save keyboard shortcut work consistently in the Site editor,FALSE,,MAINTAINER_PM;CONFIRMED_PRODUCT_PROBLEM;IMPACT_SIGNAL,Site editor save shortcut inconsistency confirmed.
+61291,[Flaky Test] inserts synced patterns by dragging and dropping from the global inserter,TRUE,not_planned,CLOSED_WITHOUT_RESOLUTION;TRIAGE_AUTOMATION_OR_POLICY;LOWER_PROBLEM_LOAD_SIGNAL,Auto flaky-test issue closed stale by bot.
+64766,Should particular 'fluid' setting of a font size preset work if the global typography.fluid setting isn't set or it's false?,TRUE,completed,MAINTAINER_PM;CONFIRMED_PRODUCT_PROBLEM;FIXED_BY_CHANGE,Fluid typography behavior decision implemented.
+69266,"wp-each ""Cannot access 'state' before initialization""",FALSE,,USER_REPORT;UNCONFIRMED_OR_SUPPORT;LOWER_PROBLEM_LOAD_SIGNAL,Interactivity API report awaiting minimal reproduction.
+63948,Mobile width + Distraction Free: Toolbar shows non-functional style and sidebar buttons,TRUE,completed,USER_REPORT;CONFIRMED_PRODUCT_PROBLEM;FIXED_BY_CHANGE,Mobile distraction-free toolbar bug fixed.
+66111,Template part previews are missing viewport width settings,FALSE,,MAINTAINER_PM;LOWER_PROBLEM_LOAD_SIGNAL,Template-part preview viewport enhancement.
+65005,Allow extending editor preview in more ways,FALSE,,MAINTAINER_PM;IMPACT_SIGNAL;LOWER_PROBLEM_LOAD_SIGNAL,Extensibility enhancement with multiple use cases.
+66571,Create Pattern Modal: Tab focus is lost,TRUE,completed,MAINTAINER_PM;CONFIRMED_PRODUCT_PROBLEM;FIXED_BY_CHANGE;IMPACT_SIGNAL,Pattern modal focus loss reproduced and fixed.
+62173,Feature: Allowing password-protected posts to also have 'sticky' attribute,TRUE,not_planned,USER_REPORT;CLOSED_WITHOUT_RESOLUTION;CHANNEL_REDIRECT;SCOPE_OR_OWNERSHIP_SHIFT;LOWER_PROBLEM_LOAD_SIGNAL,Sticky password-post request redirected to Core Trac.
+65350,Resolution setting (size slug) missing for featured image block,TRUE,completed,USER_REPORT;CONFIRMED_PRODUCT_PROBLEM;DUPLICATE_OR_CONSOLIDATED;LOWER_PROBLEM_LOAD_SIGNAL,Featured-image setting bug closed as duplicate.
+67360,Block editor: unwanted scroll bar while loading.,TRUE,completed,MAINTAINER_PM;CONFIRMED_PRODUCT_PROBLEM;FIXED_BY_CHANGE,Zoom-out loading scrollbar bug fixed.

@@ -1,0 +1,640 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WordPress Core Ticket Flow</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f8fafc;
+      --text: #172033;
+      --muted: #64748b;
+      --rule: #d8dee8;
+      --panel: #ffffff;
+      --ink: #0f172a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    main {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 44px 24px 64px;
+    }
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(32px, 4vw, 56px);
+      line-height: 1.02;
+      letter-spacing: 0;
+      color: var(--ink);
+    }
+    .deck {
+      margin: 0;
+      max-width: 880px;
+      color: #475569;
+      font-size: 18px;
+    }
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin: 30px 0 28px;
+    }
+    .metric {
+      background: var(--panel);
+      border: 1px solid var(--rule);
+      border-radius: 8px;
+      padding: 16px;
+      min-height: 126px;
+    }
+    .metric-label {
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .metric-value {
+      margin-top: 8px;
+      color: var(--ink);
+      font-size: 25px;
+      line-height: 1.16;
+      font-weight: 800;
+    }
+    .metric-note {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .chart-band {
+      margin-top: 18px;
+      padding: 18px 18px 10px;
+      border: 1px solid var(--rule);
+      border-radius: 8px;
+      background: var(--panel);
+      overflow-x: auto;
+      overflow-y: hidden;
+    }
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-top: 18px;
+    }
+    svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      overflow: visible;
+    }
+    .chart-title {
+      font-size: 23px;
+      font-weight: 800;
+      fill: var(--ink);
+    }
+    .chart-note {
+      font-size: 14px;
+      fill: var(--muted);
+    }
+    .legend-text, .axis, .bar-label {
+      font-size: 12px;
+      fill: #475569;
+    }
+    .bar-label {
+      font-weight: 650;
+    }
+    .grid {
+      stroke: #e2e8f0;
+      stroke-width: 1;
+    }
+    .zero-line {
+      stroke: #334155;
+      stroke-width: 1.3;
+    }
+    .discussion {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 18px;
+      margin-top: 28px;
+    }
+    .point {
+      border-top: 4px solid #0f766e;
+      background: #ffffff;
+      border-radius: 8px;
+      padding: 18px;
+      min-height: 168px;
+    }
+    .point:nth-child(2) { border-top-color: #2563eb; }
+    .point:nth-child(3) { border-top-color: #ea580c; }
+    .point h2 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      line-height: 1.25;
+      color: var(--ink);
+    }
+    .point p {
+      margin: 0;
+      color: #475569;
+    }
+    details {
+      margin-top: 24px;
+      border: 1px solid var(--rule);
+      border-radius: 8px;
+      background: #fff;
+      padding: 14px 16px;
+    }
+    summary {
+      cursor: pointer;
+      font-weight: 750;
+      color: var(--ink);
+    }
+    .method {
+      color: #475569;
+      max-width: 920px;
+    }
+    a { color: #2563eb; }
+    @media (max-width: 860px) {
+      main { padding: 30px 14px 48px; }
+      .metric-grid, .split, .discussion { grid-template-columns: 1fr; }
+      .metric { min-height: auto; }
+      .chart-band { padding: 12px 8px 6px; }
+      .chart-band svg {
+        width: 760px;
+        max-width: none;
+      }
+      .deck { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <h1>WordPress Core ticket flow</h1>
+  <p class="deck">A five-year view of Core Trac backlog, ticket flow, reporter activity, closure mix, and GitHub code-review activity linked to Trac.</p>
+
+  <div class="metric-grid">
+<div class="metric"><div class="metric-label">Current open Core tickets</div><div class="metric-value">8,223</div><div class="metric-note">Core Trac tickets not closed today</div></div>
+<div class="metric"><div class="metric-label">Five-year ticket flow</div><div class="metric-value">11,945 new / 10,633 closed</div><div class="metric-note">June 11, 2021 through June 11, 2026</div></div>
+<div class="metric"><div class="metric-label">Reporter flow</div><div class="metric-value">108 first-time in latest quarter</div><div class="metric-note">Partial 2026-Q2 quarter</div></div>
+<div class="metric"><div class="metric-label">GitHub PRs linked to Trac</div><div class="metric-value">9,125</div><div class="metric-note">wordpress-develop PRs created in the window</div></div>
+</div>
+
+  <section class="chart-band">
+    <svg viewBox="0 0 1120 365" role="img" aria-label="Open Core Trac tickets over time">
+<text x="76" y="24" class="chart-title">Open Core Trac tickets over time</text>
+<text x="76" y="46" class="chart-note">Backlog peaked at 8,442 in 2024-Q4; latest sampled count is 8,223.</text>
+<rect x="76" y="60" width="12" height="12" rx="2" fill="#0f766e"/>
+<text x="94" y="71" class="legend-text">Open tickets</text>
+<line x1="76" y1="307.0" x2="1086" y2="307.0" class="grid"/>
+<text x="66" y="311.0" text-anchor="end" class="axis">0</text>
+<line x1="76" y1="255.5" x2="1086" y2="255.5" class="grid"/>
+<text x="66" y="259.5" text-anchor="end" class="axis">2,000</text>
+<line x1="76" y1="203.9" x2="1086" y2="203.9" class="grid"/>
+<text x="66" y="207.9" text-anchor="end" class="axis">4,000</text>
+<line x1="76" y1="152.4" x2="1086" y2="152.4" class="grid"/>
+<text x="66" y="156.4" text-anchor="end" class="axis">6,000</text>
+<line x1="76" y1="100.9" x2="1086" y2="100.9" class="grid"/>
+<text x="66" y="104.9" text-anchor="end" class="axis">8,000</text>
+<line x1="76" y1="49.4" x2="1086" y2="49.4" class="grid"/>
+<text x="66" y="53.4" text-anchor="end" class="axis">10,000</text>
+<polyline points="76.0,129.1 126.5,123.5 177.0,121.1 227.5,113.8 278.0,110.0 328.5,109.7 379.0,105.8 429.5,105.1 480.0,101.4 530.5,96.5 581.0,91.1 631.5,91.0 682.0,91.2 732.5,92.1 783.0,89.5 833.5,90.6 884.0,94.3 934.5,98.8 985.0,100.9 1035.5,99.4 1086.0,95.1" fill="none" stroke="#0f766e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="76.0" cy="129.1" r="4" fill="#0f766e"><title>2021-Q2 Open tickets: 6,906</title></circle>
+<circle cx="126.5" cy="123.5" r="4" fill="#0f766e"><title>2021-Q3 Open tickets: 7,123</title></circle>
+<circle cx="177.0" cy="121.1" r="4" fill="#0f766e"><title>2021-Q4 Open tickets: 7,214</title></circle>
+<circle cx="227.5" cy="113.8" r="4" fill="#0f766e"><title>2022-Q1 Open tickets: 7,497</title></circle>
+<circle cx="278.0" cy="110.0" r="4" fill="#0f766e"><title>2022-Q2 Open tickets: 7,648</title></circle>
+<circle cx="328.5" cy="109.7" r="4" fill="#0f766e"><title>2022-Q3 Open tickets: 7,657</title></circle>
+<circle cx="379.0" cy="105.8" r="4" fill="#0f766e"><title>2022-Q4 Open tickets: 7,809</title></circle>
+<circle cx="429.5" cy="105.1" r="4" fill="#0f766e"><title>2023-Q1 Open tickets: 7,837</title></circle>
+<circle cx="480.0" cy="101.4" r="4" fill="#0f766e"><title>2023-Q2 Open tickets: 7,978</title></circle>
+<circle cx="530.5" cy="96.5" r="4" fill="#0f766e"><title>2023-Q3 Open tickets: 8,172</title></circle>
+<circle cx="581.0" cy="91.1" r="4" fill="#0f766e"><title>2023-Q4 Open tickets: 8,379</title></circle>
+<circle cx="631.5" cy="91.0" r="4" fill="#0f766e"><title>2024-Q1 Open tickets: 8,384</title></circle>
+<circle cx="682.0" cy="91.2" r="4" fill="#0f766e"><title>2024-Q2 Open tickets: 8,376</title></circle>
+<circle cx="732.5" cy="92.1" r="4" fill="#0f766e"><title>2024-Q3 Open tickets: 8,341</title></circle>
+<circle cx="783.0" cy="89.5" r="4" fill="#0f766e"><title>2024-Q4 Open tickets: 8,442</title></circle>
+<circle cx="833.5" cy="90.6" r="4" fill="#0f766e"><title>2025-Q1 Open tickets: 8,400</title></circle>
+<circle cx="884.0" cy="94.3" r="4" fill="#0f766e"><title>2025-Q2 Open tickets: 8,256</title></circle>
+<circle cx="934.5" cy="98.8" r="4" fill="#0f766e"><title>2025-Q3 Open tickets: 8,082</title></circle>
+<circle cx="985.0" cy="100.9" r="4" fill="#0f766e"><title>2025-Q4 Open tickets: 8,001</title></circle>
+<circle cx="1035.5" cy="99.4" r="4" fill="#0f766e"><title>2026-Q1 Open tickets: 8,058</title></circle>
+<circle cx="1086.0" cy="95.1" r="4" fill="#0f766e"><title>2026-Q2 Open tickets: 8,223</title></circle>
+<text x="76.0" y="341" text-anchor="middle" class="axis">2021</text>
+<text x="227.5" y="341" text-anchor="middle" class="axis">2022</text>
+<text x="429.5" y="341" text-anchor="middle" class="axis">2023</text>
+<text x="631.5" y="341" text-anchor="middle" class="axis">2024</text>
+<text x="833.5" y="341" text-anchor="middle" class="axis">2025</text>
+<text x="1035.5" y="341" text-anchor="middle" class="axis">2026</text>
+</svg>
+  </section>
+
+  <section class="chart-band">
+    <svg viewBox="0 0 1120 365" role="img" aria-label="New and closed WordPress Core Trac tickets by quarter">
+<text x="76" y="24" class="chart-title">New and closed Core tickets by quarter</text>
+<text x="76" y="46" class="chart-note">Blue is newly opened Trac tickets. Red is tickets closed during the quarter.</text>
+<rect x="76" y="60" width="12" height="12" rx="2" fill="#2563eb"/>
+<text x="94" y="71" class="legend-text">New tickets</text>
+<rect x="195" y="60" width="12" height="12" rx="2" fill="#dc2626"/>
+<text x="213" y="71" class="legend-text">Closed tickets</text>
+<line x1="76" y1="307.0" x2="1086" y2="307.0" class="grid"/>
+<text x="66" y="311.0" text-anchor="end" class="axis">0</text>
+<line x1="76" y1="258.3" x2="1086" y2="258.3" class="grid"/>
+<text x="66" y="262.3" text-anchor="end" class="axis">200</text>
+<line x1="76" y1="209.7" x2="1086" y2="209.7" class="grid"/>
+<text x="66" y="213.7" text-anchor="end" class="axis">400</text>
+<line x1="76" y1="161.0" x2="1086" y2="161.0" class="grid"/>
+<text x="66" y="165.0" text-anchor="end" class="axis">600</text>
+<line x1="76" y1="112.3" x2="1086" y2="112.3" class="grid"/>
+<text x="66" y="116.3" text-anchor="end" class="axis">800</text>
+<line x1="76" y1="63.7" x2="1086" y2="63.7" class="grid"/>
+<text x="66" y="67.7" text-anchor="end" class="axis">1,000</text>
+<polyline points="76.0,261.5 126.5,153.7 177.0,185.1 227.5,117.4 278.0,161.7 328.5,165.1 379.0,137.4 429.5,154.4 480.0,148.6 530.5,108.4 581.0,147.1 631.5,138.9 682.0,145.2 732.5,164.9 783.0,159.8 833.5,198.7 884.0,201.9 934.5,206.7 985.0,209.2 1035.5,176.1 1086.0,198.5" fill="none" stroke="#2563eb" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="76.0" cy="261.5" r="4" fill="#2563eb"><title>2021-Q2 New tickets: 187</title></circle>
+<circle cx="126.5" cy="153.7" r="4" fill="#2563eb"><title>2021-Q3 New tickets: 630</title></circle>
+<circle cx="177.0" cy="185.1" r="4" fill="#2563eb"><title>2021-Q4 New tickets: 501</title></circle>
+<circle cx="227.5" cy="117.4" r="4" fill="#2563eb"><title>2022-Q1 New tickets: 779</title></circle>
+<circle cx="278.0" cy="161.7" r="4" fill="#2563eb"><title>2022-Q2 New tickets: 597</title></circle>
+<circle cx="328.5" cy="165.1" r="4" fill="#2563eb"><title>2022-Q3 New tickets: 583</title></circle>
+<circle cx="379.0" cy="137.4" r="4" fill="#2563eb"><title>2022-Q4 New tickets: 697</title></circle>
+<circle cx="429.5" cy="154.4" r="4" fill="#2563eb"><title>2023-Q1 New tickets: 627</title></circle>
+<circle cx="480.0" cy="148.6" r="4" fill="#2563eb"><title>2023-Q2 New tickets: 651</title></circle>
+<circle cx="530.5" cy="108.4" r="4" fill="#2563eb"><title>2023-Q3 New tickets: 816</title></circle>
+<circle cx="581.0" cy="147.1" r="4" fill="#2563eb"><title>2023-Q4 New tickets: 657</title></circle>
+<circle cx="631.5" cy="138.9" r="4" fill="#2563eb"><title>2024-Q1 New tickets: 691</title></circle>
+<circle cx="682.0" cy="145.2" r="4" fill="#2563eb"><title>2024-Q2 New tickets: 665</title></circle>
+<circle cx="732.5" cy="164.9" r="4" fill="#2563eb"><title>2024-Q3 New tickets: 584</title></circle>
+<circle cx="783.0" cy="159.8" r="4" fill="#2563eb"><title>2024-Q4 New tickets: 605</title></circle>
+<circle cx="833.5" cy="198.7" r="4" fill="#2563eb"><title>2025-Q1 New tickets: 445</title></circle>
+<circle cx="884.0" cy="201.9" r="4" fill="#2563eb"><title>2025-Q2 New tickets: 432</title></circle>
+<circle cx="934.5" cy="206.7" r="4" fill="#2563eb"><title>2025-Q3 New tickets: 412</title></circle>
+<circle cx="985.0" cy="209.2" r="4" fill="#2563eb"><title>2025-Q4 New tickets: 402</title></circle>
+<circle cx="1035.5" cy="176.1" r="4" fill="#2563eb"><title>2026-Q1 New tickets: 538</title></circle>
+<circle cx="1086.0" cy="198.5" r="4" fill="#2563eb"><title>2026-Q2 New tickets: 446</title></circle>
+<polyline points="76.0,275.1 126.5,204.6 177.0,206.5 227.5,185.8 278.0,197.5 328.5,167.8 379.0,172.9 429.5,160.0 480.0,184.1 530.5,154.4 581.0,195.6 631.5,138.1 682.0,144.2 732.5,158.8 783.0,181.9 833.5,187.5 884.0,168.1 934.5,161.5 985.0,188.5 1035.5,190.0 1086.0,236.7" fill="none" stroke="#dc2626" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="76.0" cy="275.1" r="4" fill="#dc2626"><title>2021-Q2 Closed tickets: 131</title></circle>
+<circle cx="126.5" cy="204.6" r="4" fill="#dc2626"><title>2021-Q3 Closed tickets: 421</title></circle>
+<circle cx="177.0" cy="206.5" r="4" fill="#dc2626"><title>2021-Q4 Closed tickets: 413</title></circle>
+<circle cx="227.5" cy="185.8" r="4" fill="#dc2626"><title>2022-Q1 Closed tickets: 498</title></circle>
+<circle cx="278.0" cy="197.5" r="4" fill="#dc2626"><title>2022-Q2 Closed tickets: 450</title></circle>
+<circle cx="328.5" cy="167.8" r="4" fill="#dc2626"><title>2022-Q3 Closed tickets: 572</title></circle>
+<circle cx="379.0" cy="172.9" r="4" fill="#dc2626"><title>2022-Q4 Closed tickets: 551</title></circle>
+<circle cx="429.5" cy="160.0" r="4" fill="#dc2626"><title>2023-Q1 Closed tickets: 604</title></circle>
+<circle cx="480.0" cy="184.1" r="4" fill="#dc2626"><title>2023-Q2 Closed tickets: 505</title></circle>
+<circle cx="530.5" cy="154.4" r="4" fill="#dc2626"><title>2023-Q3 Closed tickets: 627</title></circle>
+<circle cx="581.0" cy="195.6" r="4" fill="#dc2626"><title>2023-Q4 Closed tickets: 458</title></circle>
+<circle cx="631.5" cy="138.1" r="4" fill="#dc2626"><title>2024-Q1 Closed tickets: 694</title></circle>
+<circle cx="682.0" cy="144.2" r="4" fill="#dc2626"><title>2024-Q2 Closed tickets: 669</title></circle>
+<circle cx="732.5" cy="158.8" r="4" fill="#dc2626"><title>2024-Q3 Closed tickets: 609</title></circle>
+<circle cx="783.0" cy="181.9" r="4" fill="#dc2626"><title>2024-Q4 Closed tickets: 514</title></circle>
+<circle cx="833.5" cy="187.5" r="4" fill="#dc2626"><title>2025-Q1 Closed tickets: 491</title></circle>
+<circle cx="884.0" cy="168.1" r="4" fill="#dc2626"><title>2025-Q2 Closed tickets: 571</title></circle>
+<circle cx="934.5" cy="161.5" r="4" fill="#dc2626"><title>2025-Q3 Closed tickets: 598</title></circle>
+<circle cx="985.0" cy="188.5" r="4" fill="#dc2626"><title>2025-Q4 Closed tickets: 487</title></circle>
+<circle cx="1035.5" cy="190.0" r="4" fill="#dc2626"><title>2026-Q1 Closed tickets: 481</title></circle>
+<circle cx="1086.0" cy="236.7" r="4" fill="#dc2626"><title>2026-Q2 Closed tickets: 289</title></circle>
+<text x="76.0" y="341" text-anchor="middle" class="axis">2021</text>
+<text x="227.5" y="341" text-anchor="middle" class="axis">2022</text>
+<text x="429.5" y="341" text-anchor="middle" class="axis">2023</text>
+<text x="631.5" y="341" text-anchor="middle" class="axis">2024</text>
+<text x="833.5" y="341" text-anchor="middle" class="axis">2025</text>
+<text x="1035.5" y="341" text-anchor="middle" class="axis">2026</text>
+</svg>
+  </section>
+
+  <section class="chart-band">
+    <svg viewBox="0 0 1120 310" role="img" aria-label="Monthly net Core ticket flow">
+<text x="70" y="24" class="chart-title">Monthly net flow around the turn</text>
+<text x="70" y="46" class="chart-note">Bars below zero mean closures exceeded new Core Trac tickets.</text>
+<line x1="70" y1="256.0" x2="1086" y2="256.0" class="grid"/>
+<text x="60" y="260.0" text-anchor="end" class="axis">-200</text>
+<line x1="70" y1="212.5" x2="1086" y2="212.5" class="grid"/>
+<text x="60" y="216.5" text-anchor="end" class="axis">-100</text>
+<line x1="70" y1="169.0" x2="1086" y2="169.0" class="zero-line"/>
+<line x1="70" y1="125.5" x2="1086" y2="125.5" class="grid"/>
+<text x="60" y="129.5" text-anchor="end" class="axis">+100</text>
+<line x1="70" y1="82.0" x2="1086" y2="82.0" class="grid"/>
+<text x="60" y="86.0" text-anchor="end" class="axis">+200</text>
+<rect x="76.4" y="163.8" width="21.0" height="5.2" fill="#2563eb" rx="2"><title>2024-01-01 net: +12</title></rect>
+<text x="86.9" y="288" text-anchor="middle" class="axis">2024</text>
+<rect x="110.3" y="169.0" width="21.0" height="6.5" fill="#dc2626" rx="2"><title>2024-02-01 net: -15</title></rect>
+<rect x="144.2" y="169.0" width="21.0" height="1.0" fill="#2563eb" rx="2"><title>2024-03-01 net: +0</title></rect>
+<rect x="178.0" y="153.3" width="21.0" height="15.7" fill="#2563eb" rx="2"><title>2024-04-01 net: +36</title></rect>
+<rect x="211.9" y="169.0" width="21.0" height="3.0" fill="#dc2626" rx="2"><title>2024-05-01 net: -7</title></rect>
+<rect x="245.8" y="169.0" width="21.0" height="14.4" fill="#dc2626" rx="2"><title>2024-06-01 net: -33</title></rect>
+<rect x="279.6" y="168.6" width="21.0" height="1.0" fill="#2563eb" rx="2"><title>2024-07-01 net: +1</title></rect>
+<rect x="313.5" y="169.0" width="21.0" height="1.0" fill="#dc2626" rx="2"><title>2024-08-01 net: -1</title></rect>
+<rect x="347.4" y="169.0" width="21.0" height="10.9" fill="#dc2626" rx="2"><title>2024-09-01 net: -25</title></rect>
+<rect x="381.2" y="166.8" width="21.0" height="2.2" fill="#2563eb" rx="2"><title>2024-10-01 net: +5</title></rect>
+<rect x="415.1" y="139.0" width="21.0" height="30.0" fill="#2563eb" rx="2"><title>2024-11-01 net: +69</title></rect>
+<rect x="449.0" y="161.6" width="21.0" height="7.4" fill="#2563eb" rx="2"><title>2024-12-01 net: +17</title></rect>
+<rect x="482.8" y="169.0" width="21.0" height="6.5" fill="#dc2626" rx="2"><title>2025-01-01 net: -15</title></rect>
+<text x="493.3" y="288" text-anchor="middle" class="axis">2025</text>
+<rect x="516.7" y="169.0" width="21.0" height="17.4" fill="#dc2626" rx="2"><title>2025-02-01 net: -40</title></rect>
+<rect x="550.6" y="165.1" width="21.0" height="3.9" fill="#2563eb" rx="2"><title>2025-03-01 net: +9</title></rect>
+<rect x="584.4" y="162.0" width="21.0" height="7.0" fill="#2563eb" rx="2"><title>2025-04-01 net: +16</title></rect>
+<rect x="618.3" y="169.0" width="21.0" height="10.9" fill="#dc2626" rx="2"><title>2025-05-01 net: -25</title></rect>
+<rect x="652.2" y="169.0" width="21.0" height="56.6" fill="#dc2626" rx="2"><title>2025-06-01 net: -130</title></rect>
+<rect x="686.0" y="169.0" width="21.0" height="57.9" fill="#dc2626" rx="2"><title>2025-07-01 net: -133</title></rect>
+<rect x="719.9" y="169.0" width="21.0" height="17.4" fill="#dc2626" rx="2"><title>2025-08-01 net: -40</title></rect>
+<rect x="753.8" y="169.0" width="21.0" height="5.7" fill="#dc2626" rx="2"><title>2025-09-01 net: -13</title></rect>
+<rect x="787.6" y="169.0" width="21.0" height="26.1" fill="#dc2626" rx="2"><title>2025-10-01 net: -60</title></rect>
+<rect x="821.5" y="169.0" width="21.0" height="11.7" fill="#dc2626" rx="2"><title>2025-11-01 net: -27</title></rect>
+<rect x="855.4" y="168.1" width="21.0" height="1.0" fill="#2563eb" rx="2"><title>2025-12-01 net: +2</title></rect>
+<rect x="889.2" y="169.0" width="21.0" height="2.6" fill="#dc2626" rx="2"><title>2026-01-01 net: -6</title></rect>
+<text x="899.7" y="288" text-anchor="middle" class="axis">2026</text>
+<rect x="923.1" y="158.6" width="21.0" height="10.4" fill="#2563eb" rx="2"><title>2026-02-01 net: +24</title></rect>
+<rect x="957.0" y="152.0" width="21.0" height="17.0" fill="#2563eb" rx="2"><title>2026-03-01 net: +39</title></rect>
+<rect x="990.8" y="134.6" width="21.0" height="34.4" fill="#2563eb" rx="2"><title>2026-04-01 net: +79</title></rect>
+<rect x="1024.7" y="131.6" width="21.0" height="37.4" fill="#2563eb" rx="2"><title>2026-05-01 net: +86</title></rect>
+<rect x="1058.6" y="169.0" width="21.0" height="3.5" fill="#dc2626" rx="2"><title>2026-06-01 net: -8</title></rect>
+</svg>
+  </section>
+
+  <section class="chart-band">
+    <svg viewBox="0 0 1120 365" role="img" aria-label="People opening WordPress Core Trac tickets">
+<text x="76" y="24" class="chart-title">People opening Core Trac tickets</text>
+<text x="76" y="46" class="chart-note">Unique reporters averaged 416 per quarter early in the window and 240 recently.</text>
+<rect x="76" y="60" width="12" height="12" rx="2" fill="#7c3aed"/>
+<text x="94" y="71" class="legend-text">Unique reporters</text>
+<rect x="230" y="60" width="12" height="12" rx="2" fill="#ea580c"/>
+<text x="248" y="71" class="legend-text">First-time reporters</text>
+<line x1="76" y1="307.0" x2="1086" y2="307.0" class="grid"/>
+<text x="66" y="311.0" text-anchor="end" class="axis">0</text>
+<line x1="76" y1="270.5" x2="1086" y2="270.5" class="grid"/>
+<text x="66" y="274.5" text-anchor="end" class="axis">100</text>
+<line x1="76" y1="234.0" x2="1086" y2="234.0" class="grid"/>
+<text x="66" y="238.0" text-anchor="end" class="axis">200</text>
+<line x1="76" y1="197.5" x2="1086" y2="197.5" class="grid"/>
+<text x="66" y="201.5" text-anchor="end" class="axis">300</text>
+<line x1="76" y1="161.0" x2="1086" y2="161.0" class="grid"/>
+<text x="66" y="165.0" text-anchor="end" class="axis">400</text>
+<line x1="76" y1="124.5" x2="1086" y2="124.5" class="grid"/>
+<text x="66" y="128.5" text-anchor="end" class="axis">500</text>
+<line x1="76" y1="88.0" x2="1086" y2="88.0" class="grid"/>
+<text x="66" y="92.0" text-anchor="end" class="axis">600</text>
+<polyline points="76.0,266.1 126.5,147.5 177.0,194.2 227.5,111.0 278.0,168.7 328.5,172.7 379.0,141.3 429.5,162.5 480.0,170.5 530.5,130.0 581.0,167.2 631.5,160.6 682.0,166.5 732.5,166.1 783.0,163.6 833.5,209.5 884.0,215.8 934.5,224.1 985.0,220.5 1035.5,217.6 1086.0,217.6" fill="none" stroke="#7c3aed" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="76.0" cy="266.1" r="4" fill="#7c3aed"><title>2021-Q2 Unique reporters: 112</title></circle>
+<circle cx="126.5" cy="147.5" r="4" fill="#7c3aed"><title>2021-Q3 Unique reporters: 437</title></circle>
+<circle cx="177.0" cy="194.2" r="4" fill="#7c3aed"><title>2021-Q4 Unique reporters: 309</title></circle>
+<circle cx="227.5" cy="111.0" r="4" fill="#7c3aed"><title>2022-Q1 Unique reporters: 537</title></circle>
+<circle cx="278.0" cy="168.7" r="4" fill="#7c3aed"><title>2022-Q2 Unique reporters: 379</title></circle>
+<circle cx="328.5" cy="172.7" r="4" fill="#7c3aed"><title>2022-Q3 Unique reporters: 368</title></circle>
+<circle cx="379.0" cy="141.3" r="4" fill="#7c3aed"><title>2022-Q4 Unique reporters: 454</title></circle>
+<circle cx="429.5" cy="162.5" r="4" fill="#7c3aed"><title>2023-Q1 Unique reporters: 396</title></circle>
+<circle cx="480.0" cy="170.5" r="4" fill="#7c3aed"><title>2023-Q2 Unique reporters: 374</title></circle>
+<circle cx="530.5" cy="130.0" r="4" fill="#7c3aed"><title>2023-Q3 Unique reporters: 485</title></circle>
+<circle cx="581.0" cy="167.2" r="4" fill="#7c3aed"><title>2023-Q4 Unique reporters: 383</title></circle>
+<circle cx="631.5" cy="160.6" r="4" fill="#7c3aed"><title>2024-Q1 Unique reporters: 401</title></circle>
+<circle cx="682.0" cy="166.5" r="4" fill="#7c3aed"><title>2024-Q2 Unique reporters: 385</title></circle>
+<circle cx="732.5" cy="166.1" r="4" fill="#7c3aed"><title>2024-Q3 Unique reporters: 386</title></circle>
+<circle cx="783.0" cy="163.6" r="4" fill="#7c3aed"><title>2024-Q4 Unique reporters: 393</title></circle>
+<circle cx="833.5" cy="209.5" r="4" fill="#7c3aed"><title>2025-Q1 Unique reporters: 267</title></circle>
+<circle cx="884.0" cy="215.8" r="4" fill="#7c3aed"><title>2025-Q2 Unique reporters: 250</title></circle>
+<circle cx="934.5" cy="224.1" r="4" fill="#7c3aed"><title>2025-Q3 Unique reporters: 227</title></circle>
+<circle cx="985.0" cy="220.5" r="4" fill="#7c3aed"><title>2025-Q4 Unique reporters: 237</title></circle>
+<circle cx="1035.5" cy="217.6" r="4" fill="#7c3aed"><title>2026-Q1 Unique reporters: 245</title></circle>
+<circle cx="1086.0" cy="217.6" r="4" fill="#7c3aed"><title>2026-Q2 Unique reporters: 245</title></circle>
+<polyline points="76.0,292.4 126.5,217.6 177.0,250.1 227.5,197.5 278.0,233.3 328.5,232.5 379.0,219.8 429.5,232.2 480.0,236.9 530.5,207.7 581.0,233.6 631.5,234.7 682.0,231.8 732.5,232.5 783.0,227.1 833.5,259.2 884.0,263.2 934.5,267.6 985.0,268.3 1035.5,271.2 1086.0,267.6" fill="none" stroke="#ea580c" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="76.0" cy="292.4" r="4" fill="#ea580c"><title>2021-Q2 First-time reporters: 40</title></circle>
+<circle cx="126.5" cy="217.6" r="4" fill="#ea580c"><title>2021-Q3 First-time reporters: 245</title></circle>
+<circle cx="177.0" cy="250.1" r="4" fill="#ea580c"><title>2021-Q4 First-time reporters: 156</title></circle>
+<circle cx="227.5" cy="197.5" r="4" fill="#ea580c"><title>2022-Q1 First-time reporters: 300</title></circle>
+<circle cx="278.0" cy="233.3" r="4" fill="#ea580c"><title>2022-Q2 First-time reporters: 202</title></circle>
+<circle cx="328.5" cy="232.5" r="4" fill="#ea580c"><title>2022-Q3 First-time reporters: 204</title></circle>
+<circle cx="379.0" cy="219.8" r="4" fill="#ea580c"><title>2022-Q4 First-time reporters: 239</title></circle>
+<circle cx="429.5" cy="232.2" r="4" fill="#ea580c"><title>2023-Q1 First-time reporters: 205</title></circle>
+<circle cx="480.0" cy="236.9" r="4" fill="#ea580c"><title>2023-Q2 First-time reporters: 192</title></circle>
+<circle cx="530.5" cy="207.7" r="4" fill="#ea580c"><title>2023-Q3 First-time reporters: 272</title></circle>
+<circle cx="581.0" cy="233.6" r="4" fill="#ea580c"><title>2023-Q4 First-time reporters: 201</title></circle>
+<circle cx="631.5" cy="234.7" r="4" fill="#ea580c"><title>2024-Q1 First-time reporters: 198</title></circle>
+<circle cx="682.0" cy="231.8" r="4" fill="#ea580c"><title>2024-Q2 First-time reporters: 206</title></circle>
+<circle cx="732.5" cy="232.5" r="4" fill="#ea580c"><title>2024-Q3 First-time reporters: 204</title></circle>
+<circle cx="783.0" cy="227.1" r="4" fill="#ea580c"><title>2024-Q4 First-time reporters: 219</title></circle>
+<circle cx="833.5" cy="259.2" r="4" fill="#ea580c"><title>2025-Q1 First-time reporters: 131</title></circle>
+<circle cx="884.0" cy="263.2" r="4" fill="#ea580c"><title>2025-Q2 First-time reporters: 120</title></circle>
+<circle cx="934.5" cy="267.6" r="4" fill="#ea580c"><title>2025-Q3 First-time reporters: 108</title></circle>
+<circle cx="985.0" cy="268.3" r="4" fill="#ea580c"><title>2025-Q4 First-time reporters: 106</title></circle>
+<circle cx="1035.5" cy="271.2" r="4" fill="#ea580c"><title>2026-Q1 First-time reporters: 98</title></circle>
+<circle cx="1086.0" cy="267.6" r="4" fill="#ea580c"><title>2026-Q2 First-time reporters: 108</title></circle>
+<text x="76.0" y="341" text-anchor="middle" class="axis">2021</text>
+<text x="227.5" y="341" text-anchor="middle" class="axis">2022</text>
+<text x="429.5" y="341" text-anchor="middle" class="axis">2023</text>
+<text x="631.5" y="341" text-anchor="middle" class="axis">2024</text>
+<text x="833.5" y="341" text-anchor="middle" class="axis">2025</text>
+<text x="1035.5" y="341" text-anchor="middle" class="axis">2026</text>
+</svg>
+  </section>
+
+  <section class="chart-band">
+    <svg viewBox="0 0 1120 412" role="img" aria-label="Current open Core tickets by component">
+<text x="40" y="24" class="chart-title">Where the open backlog sits</text>
+<text x="40" y="46" class="chart-note">Current open Core Trac tickets by component.</text>
+<text x="204" y="99" text-anchor="end" class="bar-label">General</text>
+<rect x="220" y="82" width="848" height="18" fill="#e5e7eb" rx="3"/>
+<rect x="220" y="82" width="848.0" height="18" fill="#0f766e" rx="3"/>
+<text x="1078.0" y="96" class="axis">738</text>
+<text x="204" y="129" text-anchor="end" class="bar-label">Media</text>
+<rect x="220" y="112" width="848" height="18" fill="#e5e7eb" rx="3"/>
+<rect x="220" y="112" width="700.9" height="18" fill="#0f766e" rx="3"/>
+<text x="930.9" y="126" class="axis">610</text>
+<text x="204" y="159" text-anchor="end" class="bar-label">Editor</text>
+<rect x="220" y="142" width="848" height="18" fill="#e5e7eb" rx="3"/>
+<rect x="220" y="142" width="633.1" height="18" fill="#0f766e" rx="3"/>
+<text x="863.1" y="156" class="axis">551</text>
+<text x="204" y="189" text-anchor="end" class="bar-label">Administration</text>
+<rect x="220" y="172" width="848" height="18" fill="#e5e7eb" rx="3"/>
+<rect x="220" y="172" width="520.5" height="18" fill="#0f766e" rx="3"/>
+<text x="750.5" y="186" class="axis">453</text>
+<text x="204" y="219" text-anchor="end" class="bar-label">Users</text>
+<rect x="220" y="202" width="848" height="18" fill="#e5e7eb" rx="3"/>
+<rect x="220" y="202" width="332.1" height="18" fill="#0f766e" rx="3"/>
+<text x="562.1" y="216" class="axis">289</text>
+<text x="204" y="249" text-anchor="end" class="bar-label">Upgrade/Install</text>
+<rect x="220" y="232" width="848" height="18" fill="#e5e7eb" rx="3"/>
+<rect x="220" y="232" width="320.6" height="18" fill="#0f766e" rx="3"/>
+<text x="550.6" y="246" class="axis">279</text>
+<text x="204" y="279" text-anchor="end" class="bar-label">Query</text>
+<rect x="220" y="262" width="848" height="18" fill="#e5e7eb" rx="3"/>
+<rect x="220" y="262" width="314.8" height="18" fill="#0f766e" rx="3"/>
+<text x="544.8" y="276" class="axis">274</text>
+<text x="204" y="309" text-anchor="end" class="bar-label">Plugins</text>
+<rect x="220" y="292" width="848" height="18" fill="#e5e7eb" rx="3"/>
+<rect x="220" y="292" width="310.2" height="18" fill="#0f766e" rx="3"/>
+<text x="540.2" y="306" class="axis">270</text>
+<text x="204" y="339" text-anchor="end" class="bar-label">Posts, Post Types</text>
+<rect x="220" y="322" width="848" height="18" fill="#e5e7eb" rx="3"/>
+<rect x="220" y="322" width="309.1" height="18" fill="#0f766e" rx="3"/>
+<text x="539.1" y="336" class="axis">269</text>
+<text x="204" y="369" text-anchor="end" class="bar-label">Taxonomy</text>
+<rect x="220" y="352" width="848" height="18" fill="#e5e7eb" rx="3"/>
+<rect x="220" y="352" width="282.7" height="18" fill="#0f766e" rx="3"/>
+<text x="512.7" y="366" class="axis">246</text>
+</svg>
+  </section>
+
+  <section class="chart-band">
+    <svg viewBox="0 0 1120 352" role="img" aria-label="Core Trac closure resolution mix">
+<text x="40" y="24" class="chart-title">How tickets closed</text>
+<text x="40" y="46" class="chart-note">Resolution mix for tickets closed in the five-year window.</text>
+<text x="204" y="99" text-anchor="end" class="bar-label">fixed</text>
+<rect x="220" y="82" width="848" height="18" fill="#e5e7eb" rx="3"/>
+<rect x="220" y="82" width="848.0" height="18" fill="#7c3aed" rx="3"/>
+<text x="1078.0" y="96" class="axis">4,932</text>
+<text x="204" y="129" text-anchor="end" class="bar-label">invalid</text>
+<rect x="220" y="112" width="848" height="18" fill="#e5e7eb" rx="3"/>
+<rect x="220" y="112" width="298.1" height="18" fill="#7c3aed" rx="3"/>
+<text x="528.1" y="126" class="axis">1,734</text>
+<text x="204" y="159" text-anchor="end" class="bar-label">duplicate</text>
+<rect x="220" y="142" width="848" height="18" fill="#e5e7eb" rx="3"/>
+<rect x="220" y="142" width="247.4" height="18" fill="#7c3aed" rx="3"/>
+<text x="477.4" y="156" class="axis">1,439</text>
+<text x="204" y="189" text-anchor="end" class="bar-label">wontfix</text>
+<rect x="220" y="172" width="848" height="18" fill="#e5e7eb" rx="3"/>
+<rect x="220" y="172" width="152.5" height="18" fill="#7c3aed" rx="3"/>
+<text x="382.5" y="186" class="axis">887</text>
+<text x="204" y="219" text-anchor="end" class="bar-label">worksforme</text>
+<rect x="220" y="202" width="848" height="18" fill="#e5e7eb" rx="3"/>
+<rect x="220" y="202" width="128.6" height="18" fill="#7c3aed" rx="3"/>
+<text x="358.6" y="216" class="axis">748</text>
+<text x="204" y="249" text-anchor="end" class="bar-label">reported-upstream</text>
+<rect x="220" y="232" width="848" height="18" fill="#e5e7eb" rx="3"/>
+<rect x="220" y="232" width="111.9" height="18" fill="#7c3aed" rx="3"/>
+<text x="341.9" y="246" class="axis">651</text>
+<text x="204" y="279" text-anchor="end" class="bar-label">maybelater</text>
+<rect x="220" y="262" width="848" height="18" fill="#e5e7eb" rx="3"/>
+<rect x="220" y="262" width="41.1" height="18" fill="#7c3aed" rx="3"/>
+<text x="271.1" y="276" class="axis">239</text>
+<text x="204" y="309" text-anchor="end" class="bar-label">none</text>
+<rect x="220" y="292" width="848" height="18" fill="#e5e7eb" rx="3"/>
+<rect x="220" y="292" width="0.5" height="18" fill="#7c3aed" rx="3"/>
+<text x="230.5" y="306" class="axis">3</text>
+</svg>
+  </section>
+
+  <section class="chart-band">
+    <svg viewBox="0 0 1120 365" role="img" aria-label="WordPress develop GitHub PR activity">
+<text x="76" y="24" class="chart-title">GitHub code-review activity</text>
+<text x="76" y="46" class="chart-note">wordpress-develop PRs are code review, while Trac remains the authoritative issue tracker.</text>
+<rect x="76" y="60" width="12" height="12" rx="2" fill="#0891b2"/>
+<text x="94" y="71" class="legend-text">PRs opened</text>
+<rect x="188" y="60" width="12" height="12" rx="2" fill="#be123c"/>
+<text x="206" y="71" class="legend-text">PRs closed</text>
+<rect x="300" y="60" width="12" height="12" rx="2" fill="#ea580c"/>
+<text x="318" y="71" class="legend-text">Linked to Trac</text>
+<line x1="76" y1="307.0" x2="1086" y2="307.0" class="grid"/>
+<text x="66" y="311.0" text-anchor="end" class="axis">0</text>
+<line x1="76" y1="263.2" x2="1086" y2="263.2" class="grid"/>
+<text x="66" y="267.2" text-anchor="end" class="axis">200</text>
+<line x1="76" y1="219.4" x2="1086" y2="219.4" class="grid"/>
+<text x="66" y="223.4" text-anchor="end" class="axis">400</text>
+<line x1="76" y1="175.6" x2="1086" y2="175.6" class="grid"/>
+<text x="66" y="179.6" text-anchor="end" class="axis">600</text>
+<line x1="76" y1="131.8" x2="1086" y2="131.8" class="grid"/>
+<text x="66" y="135.8" text-anchor="end" class="axis">800</text>
+<line x1="76" y1="88.0" x2="1086" y2="88.0" class="grid"/>
+<text x="66" y="92.0" text-anchor="end" class="axis">1,000</text>
+<polyline points="76.0,287.1 126.5,248.3 177.0,224.9 227.5,222.9 278.0,211.7 328.5,206.9 379.0,214.1 429.5,205.6 480.0,198.2 530.5,178.2 581.0,205.2 631.5,195.1 682.0,174.5 732.5,192.9 783.0,175.6 833.5,185.0 884.0,194.2 934.5,96.8 985.0,181.1 1035.5,144.9 1086.0,144.7" fill="none" stroke="#0891b2" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="76.0" cy="287.1" r="4" fill="#0891b2"><title>2021-Q2 PRs opened: 91</title></circle>
+<circle cx="126.5" cy="248.3" r="4" fill="#0891b2"><title>2021-Q3 PRs opened: 268</title></circle>
+<circle cx="177.0" cy="224.9" r="4" fill="#0891b2"><title>2021-Q4 PRs opened: 375</title></circle>
+<circle cx="227.5" cy="222.9" r="4" fill="#0891b2"><title>2022-Q1 PRs opened: 384</title></circle>
+<circle cx="278.0" cy="211.7" r="4" fill="#0891b2"><title>2022-Q2 PRs opened: 435</title></circle>
+<circle cx="328.5" cy="206.9" r="4" fill="#0891b2"><title>2022-Q3 PRs opened: 457</title></circle>
+<circle cx="379.0" cy="214.1" r="4" fill="#0891b2"><title>2022-Q4 PRs opened: 424</title></circle>
+<circle cx="429.5" cy="205.6" r="4" fill="#0891b2"><title>2023-Q1 PRs opened: 463</title></circle>
+<circle cx="480.0" cy="198.2" r="4" fill="#0891b2"><title>2023-Q2 PRs opened: 497</title></circle>
+<circle cx="530.5" cy="178.2" r="4" fill="#0891b2"><title>2023-Q3 PRs opened: 588</title></circle>
+<circle cx="581.0" cy="205.2" r="4" fill="#0891b2"><title>2023-Q4 PRs opened: 465</title></circle>
+<circle cx="631.5" cy="195.1" r="4" fill="#0891b2"><title>2024-Q1 PRs opened: 511</title></circle>
+<circle cx="682.0" cy="174.5" r="4" fill="#0891b2"><title>2024-Q2 PRs opened: 605</title></circle>
+<circle cx="732.5" cy="192.9" r="4" fill="#0891b2"><title>2024-Q3 PRs opened: 521</title></circle>
+<circle cx="783.0" cy="175.6" r="4" fill="#0891b2"><title>2024-Q4 PRs opened: 600</title></circle>
+<circle cx="833.5" cy="185.0" r="4" fill="#0891b2"><title>2025-Q1 PRs opened: 557</title></circle>
+<circle cx="884.0" cy="194.2" r="4" fill="#0891b2"><title>2025-Q2 PRs opened: 515</title></circle>
+<circle cx="934.5" cy="96.8" r="4" fill="#0891b2"><title>2025-Q3 PRs opened: 960</title></circle>
+<circle cx="985.0" cy="181.1" r="4" fill="#0891b2"><title>2025-Q4 PRs opened: 575</title></circle>
+<circle cx="1035.5" cy="144.9" r="4" fill="#0891b2"><title>2026-Q1 PRs opened: 740</title></circle>
+<circle cx="1086.0" cy="144.7" r="4" fill="#0891b2"><title>2026-Q2 PRs opened: 741</title></circle>
+<polyline points="76.0,295.6 126.5,269.8 177.0,241.1 227.5,240.6 278.0,230.1 328.5,217.6 379.0,234.1 429.5,213.5 480.0,227.7 530.5,203.2 581.0,238.9 631.5,216.8 682.0,219.8 732.5,212.6 783.0,222.9 833.5,219.4 884.0,245.5 934.5,140.1 985.0,165.7 1035.5,167.7 1086.0,250.7" fill="none" stroke="#be123c" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="76.0" cy="295.6" r="4" fill="#be123c"><title>2021-Q2 PRs closed: 52</title></circle>
+<circle cx="126.5" cy="269.8" r="4" fill="#be123c"><title>2021-Q3 PRs closed: 170</title></circle>
+<circle cx="177.0" cy="241.1" r="4" fill="#be123c"><title>2021-Q4 PRs closed: 301</title></circle>
+<circle cx="227.5" cy="240.6" r="4" fill="#be123c"><title>2022-Q1 PRs closed: 303</title></circle>
+<circle cx="278.0" cy="230.1" r="4" fill="#be123c"><title>2022-Q2 PRs closed: 351</title></circle>
+<circle cx="328.5" cy="217.6" r="4" fill="#be123c"><title>2022-Q3 PRs closed: 408</title></circle>
+<circle cx="379.0" cy="234.1" r="4" fill="#be123c"><title>2022-Q4 PRs closed: 333</title></circle>
+<circle cx="429.5" cy="213.5" r="4" fill="#be123c"><title>2023-Q1 PRs closed: 427</title></circle>
+<circle cx="480.0" cy="227.7" r="4" fill="#be123c"><title>2023-Q2 PRs closed: 362</title></circle>
+<circle cx="530.5" cy="203.2" r="4" fill="#be123c"><title>2023-Q3 PRs closed: 474</title></circle>
+<circle cx="581.0" cy="238.9" r="4" fill="#be123c"><title>2023-Q4 PRs closed: 311</title></circle>
+<circle cx="631.5" cy="216.8" r="4" fill="#be123c"><title>2024-Q1 PRs closed: 412</title></circle>
+<circle cx="682.0" cy="219.8" r="4" fill="#be123c"><title>2024-Q2 PRs closed: 398</title></circle>
+<circle cx="732.5" cy="212.6" r="4" fill="#be123c"><title>2024-Q3 PRs closed: 431</title></circle>
+<circle cx="783.0" cy="222.9" r="4" fill="#be123c"><title>2024-Q4 PRs closed: 384</title></circle>
+<circle cx="833.5" cy="219.4" r="4" fill="#be123c"><title>2025-Q1 PRs closed: 400</title></circle>
+<circle cx="884.0" cy="245.5" r="4" fill="#be123c"><title>2025-Q2 PRs closed: 281</title></circle>
+<circle cx="934.5" cy="140.1" r="4" fill="#be123c"><title>2025-Q3 PRs closed: 762</title></circle>
+<circle cx="985.0" cy="165.7" r="4" fill="#be123c"><title>2025-Q4 PRs closed: 645</title></circle>
+<circle cx="1035.5" cy="167.7" r="4" fill="#be123c"><title>2026-Q1 PRs closed: 636</title></circle>
+<circle cx="1086.0" cy="250.7" r="4" fill="#be123c"><title>2026-Q2 PRs closed: 257</title></circle>
+<polyline points="76.0,289.0 126.5,255.3 177.0,233.9 227.5,232.8 278.0,226.0 328.5,221.2 379.0,229.3 429.5,216.3 480.0,211.1 530.5,190.1 581.0,220.3 631.5,209.5 682.0,192.9 732.5,201.7 783.0,189.2 833.5,195.7 884.0,204.3 934.5,190.9 985.0,225.1 1035.5,159.6 1086.0,154.6" fill="none" stroke="#ea580c" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="76.0" cy="289.0" r="4" fill="#ea580c"><title>2021-Q2 Linked to Trac: 82</title></circle>
+<circle cx="126.5" cy="255.3" r="4" fill="#ea580c"><title>2021-Q3 Linked to Trac: 236</title></circle>
+<circle cx="177.0" cy="233.9" r="4" fill="#ea580c"><title>2021-Q4 Linked to Trac: 334</title></circle>
+<circle cx="227.5" cy="232.8" r="4" fill="#ea580c"><title>2022-Q1 Linked to Trac: 339</title></circle>
+<circle cx="278.0" cy="226.0" r="4" fill="#ea580c"><title>2022-Q2 Linked to Trac: 370</title></circle>
+<circle cx="328.5" cy="221.2" r="4" fill="#ea580c"><title>2022-Q3 Linked to Trac: 392</title></circle>
+<circle cx="379.0" cy="229.3" r="4" fill="#ea580c"><title>2022-Q4 Linked to Trac: 355</title></circle>
+<circle cx="429.5" cy="216.3" r="4" fill="#ea580c"><title>2023-Q1 Linked to Trac: 414</title></circle>
+<circle cx="480.0" cy="211.1" r="4" fill="#ea580c"><title>2023-Q2 Linked to Trac: 438</title></circle>
+<circle cx="530.5" cy="190.1" r="4" fill="#ea580c"><title>2023-Q3 Linked to Trac: 534</title></circle>
+<circle cx="581.0" cy="220.3" r="4" fill="#ea580c"><title>2023-Q4 Linked to Trac: 396</title></circle>
+<circle cx="631.5" cy="209.5" r="4" fill="#ea580c"><title>2024-Q1 Linked to Trac: 445</title></circle>
+<circle cx="682.0" cy="192.9" r="4" fill="#ea580c"><title>2024-Q2 Linked to Trac: 521</title></circle>
+<circle cx="732.5" cy="201.7" r="4" fill="#ea580c"><title>2024-Q3 Linked to Trac: 481</title></circle>
+<circle cx="783.0" cy="189.2" r="4" fill="#ea580c"><title>2024-Q4 Linked to Trac: 538</title></circle>
+<circle cx="833.5" cy="195.7" r="4" fill="#ea580c"><title>2025-Q1 Linked to Trac: 508</title></circle>
+<circle cx="884.0" cy="204.3" r="4" fill="#ea580c"><title>2025-Q2 Linked to Trac: 469</title></circle>
+<circle cx="934.5" cy="190.9" r="4" fill="#ea580c"><title>2025-Q3 Linked to Trac: 530</title></circle>
+<circle cx="985.0" cy="225.1" r="4" fill="#ea580c"><title>2025-Q4 Linked to Trac: 374</title></circle>
+<circle cx="1035.5" cy="159.6" r="4" fill="#ea580c"><title>2026-Q1 Linked to Trac: 673</title></circle>
+<circle cx="1086.0" cy="154.6" r="4" fill="#ea580c"><title>2026-Q2 Linked to Trac: 696</title></circle>
+<text x="76.0" y="341" text-anchor="middle" class="axis">2021</text>
+<text x="227.5" y="341" text-anchor="middle" class="axis">2022</text>
+<text x="429.5" y="341" text-anchor="middle" class="axis">2023</text>
+<text x="631.5" y="341" text-anchor="middle" class="axis">2024</text>
+<text x="833.5" y="341" text-anchor="middle" class="axis">2025</text>
+<text x="1035.5" y="341" text-anchor="middle" class="axis">2026</text>
+</svg>
+  </section>
+
+  <section class="discussion">
+    <article class="point">
+      <h2>Core is a larger, older backlog.</h2>
+      <p>Core Trac has 8,223 open tickets today. That is a much bigger and older queue than Gutenberg GitHub Issues, so the backlog line moves more slowly.</p>
+    </article>
+    <article class="point">
+      <h2>Ticket flow is the main story.</h2>
+      <p>New tickets averaged 627 per quarter early in the window and 446 recently. When closures rise above new tickets, the open backlog bends down.</p>
+    </article>
+    <article class="point">
+      <h2>GitHub is review traffic, not the issue source.</h2>
+      <p>wordpress-develop produced 10,772 PRs in the window, with 9,125 linking back to Trac. It helps explain implementation activity without replacing Trac ticket flow.</p>
+    </article>
+  </section>
+
+  <details>
+    <summary>Method and source files</summary>
+    <div class="method">
+      <p>Data window: June 11, 2021 through June 11, 2026. Core ticket inventory comes from Core Trac CSV exports. Closure and reopen timing comes from public ticket RSS feeds for closed tickets modified in the window and current reopened tickets. GitHub activity comes from the GitHub API for <code>WordPress/wordpress-develop</code> pull requests.</p>
+      <p>Generated files: <code>quarterly_metrics.csv</code>, <code>monthly_metrics.csv</code>, <code>component_summary.csv</code>, <code>resolution_summary.csv</code>, and <code>github_pr_quarterly.csv</code>.</p>
+      <p>Most closure dates are parsed from RSS status-change events. Tickets without a public close event in the parsed feed use the Trac modified timestamp as a fallback.</p>
+    </div>
+  </details>
+</main>
+</body>
+</html>

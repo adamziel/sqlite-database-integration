@@ -30,7 +30,7 @@ ROOT = Path("/Users/admin/wordpress_core_issue_analysis")
 RAW = ROOT / "raw"
 OUT = ROOT / "final_report.html"
 
-START = dt.datetime(2021, 6, 11, 0, 0, 0, tzinfo=dt.timezone.utc)
+START = dt.datetime(2003, 1, 1, 0, 0, 0, tzinfo=dt.timezone.utc)
 END = dt.datetime(2026, 6, 11, 23, 59, 59, tzinfo=dt.timezone.utc)
 
 TRAC = "https://core.trac.wordpress.org"
@@ -216,8 +216,11 @@ class TracClient:
                 raise
         raise RuntimeError(f"Could not fetch {url}")
 
-    def solve_challenge(self, trigger_url):
+    def solve_challenge(self, trigger_url, force=False):
         with self.lock:
+            if force:
+                self._clear_cookie("_hcp")
+                self._clear_cookie("_hcc")
             if self._hcp_cookie():
                 return
             headers = {"User-Agent": UA, "Accept": "text/html,*/*"}
@@ -271,7 +274,17 @@ class TracClient:
                 return cookie.value
         return None
 
+    def _clear_cookie(self, name):
+        for cookie in list(self.cookiejar):
+            if cookie.name == name:
+                try:
+                    self.cookiejar.clear(cookie.domain, cookie.path, cookie.name)
+                except KeyError:
+                    pass
+
     def cookie_header(self):
+        if not self._hcp_cookie():
+            self.solve_challenge(f"{TRAC}/")
         parts = []
         for cookie in self.cookiejar:
             if cookie.name in {"_hcp", "_hcc"}:
@@ -411,13 +424,13 @@ def rss_url(ticket_id):
     return f"{TRAC}/ticket/{ticket_id}?format=rss"
 
 
-def fetch_rss_with_cookie(ticket_id, cookie_header):
+def fetch_rss_with_session(ticket_id, session):
     headers = {
         "User-Agent": UA,
         "Accept": "application/rss+xml,text/xml,*/*",
-        "Cookie": cookie_header,
     }
     for attempt in range(6):
+        headers["Cookie"] = session.cookie_header()
         req = urllib.request.Request(rss_url(ticket_id), headers=headers)
         try:
             with urllib.request.urlopen(req, timeout=60) as resp:
@@ -425,6 +438,11 @@ def fetch_rss_with_cookie(ticket_id, cookie_header):
             events, item_count = parse_rss_events(ticket_id, data)
             return ticket_id, events, item_count, ""
         except urllib.error.HTTPError as exc:
+            exc.read(500)
+            if exc.code == 403 and attempt < 5:
+                session.solve_challenge(rss_url(ticket_id), force=True)
+                time.sleep(1 + random.random())
+                continue
             if exc.code == 429 and attempt < 5:
                 retry_after = exc.headers.get("Retry-After")
                 if retry_after and retry_after.isdigit():
@@ -434,7 +452,6 @@ def fetch_rss_with_cookie(ticket_id, cookie_header):
                 time.sleep(sleep_for + random.random())
                 continue
             raise
-
 
 def load_fetched_ids():
     if not TRAC_FETCHED.exists():
@@ -494,7 +511,7 @@ def fetch_trac_events(force=False, workers=10, limit=None):
         completed = 0
         errors = 0
         with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as pool:
-            futures = {pool.submit(fetch_rss_with_cookie, ticket_id, cookie_header): ticket_id for ticket_id in pending}
+            futures = {pool.submit(fetch_rss_with_session, ticket_id, client): ticket_id for ticket_id in pending}
             for future in concurrent.futures.as_completed(futures):
                 ticket_id = futures[future]
                 try:
@@ -1082,16 +1099,15 @@ def horizontal_bars_svg(rows, value_key, label_key, title, note, color, aria):
 
 def metric_strip(summary, q_rows, gh_rows):
     latest = q_rows[-1]
-    first_full = next((r for r in q_rows if r["quarter"] == "2021-07-01"), q_rows[0])
     current_open = summary["current_open"]
     window_created = summary["window_created"]
     window_closed = summary["window_closed"]
     linked = summary["github_window_linked"]
     items = [
         ("Current open Core tickets", fmt_int(current_open), "Core Trac tickets not closed today"),
-        ("Five-year ticket flow", f'{fmt_int(window_created)} new / {fmt_int(window_closed)} closed', "June 11, 2021 through June 11, 2026"),
-        ("Reporter flow", f'{fmt_int(latest["first_time_reporters"])} first-time in latest quarter', "Partial 2026-Q2 quarter"),
-        ("GitHub PRs linked to Trac", fmt_int(linked), "wordpress-develop PRs created in the window"),
+        ("Since 2003 ticket flow", f'{fmt_int(window_created)} new / {fmt_int(window_closed)} closed', "January 1, 2003 through June 11, 2026"),
+        ("Reporter flow", f'{fmt_int(latest["first_time_reporters"])} first-time in latest quarter', "Latest quarter is partial"),
+        ("GitHub PRs linked to Trac", fmt_int(linked), "wordpress-develop PRs created since the GitHub mirror started"),
     ]
     parts = ['<div class="metric-grid">']
     for label, value, note in items:
@@ -1114,10 +1130,11 @@ def render_report(data):
     gh_rows = data["github_quarterly"]
     summary = data["summary"]
 
-    full_q = [r for r in q_rows if r["quarter"] not in {"2021-04-01", "2026-04-01"}]
-    if full_q:
-        early = full_q[:4]
-        recent = full_q[-4:]
+    full_q = [r for r in q_rows if r["quarter"] != "2026-04-01"]
+    nonzero_full_q = [r for r in full_q if numeric(r, "created") > 0]
+    if nonzero_full_q:
+        early = nonzero_full_q[:4]
+        recent = nonzero_full_q[-4:]
     else:
         early = q_rows[:4]
         recent = q_rows[-4:]
@@ -1137,7 +1154,7 @@ def render_report(data):
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>WordPress Core Ticket Flow</title>
+  <title>WordPress Core Ticket Flow Since 2003</title>
   <style>
     :root {{
       color-scheme: light;
@@ -1298,7 +1315,7 @@ def render_report(data):
       .metric {{ min-height: auto; }}
       .chart-band {{ padding: 12px 8px 6px; }}
       .chart-band svg {{
-        width: 760px;
+        width: 900px;
         max-width: none;
       }}
       .deck {{ font-size: 16px; }}
@@ -1307,8 +1324,8 @@ def render_report(data):
 </head>
 <body>
 <main>
-  <h1>WordPress Core ticket flow</h1>
-  <p class="deck">A five-year view of Core Trac backlog, ticket flow, reporter activity, closure mix, and GitHub code-review activity linked to Trac.</p>
+  <h1>WordPress Core ticket flow since 2003</h1>
+  <p class="deck">A long-run view of Core Trac backlog, ticket flow, reporter activity, closure mix, and GitHub code-review activity linked to Trac.</p>
 
   {metric_strip(summary, q_rows, gh_rows)}
 
@@ -1325,7 +1342,7 @@ def render_report(data):
   </section>
 
   <section class="chart-band">
-    {line_chart_svg(q_rows, [("unique_reporters", "Unique reporters", LINE_COLORS["reporters"]), ("first_time_reporters", "First-time reporters", LINE_COLORS["first"])], "People opening Core Trac tickets", f"Unique reporters averaged {early_reporters:.0f} per quarter early in the window and {recent_reporters:.0f} recently.", "People opening WordPress Core Trac tickets")}
+    {line_chart_svg(q_rows, [("unique_reporters", "Unique reporters", LINE_COLORS["reporters"]), ("first_time_reporters", "First-time reporters", LINE_COLORS["first"])], "People opening Core Trac tickets", f"Unique reporters averaged {early_reporters:.0f} per quarter in the first active year and {recent_reporters:.0f} recently.", "People opening WordPress Core Trac tickets")}
   </section>
 
   <section class="chart-band">
@@ -1333,7 +1350,7 @@ def render_report(data):
   </section>
 
   <section class="chart-band">
-    {horizontal_bars_svg(resolutions, "closed_in_window", "resolution", "How tickets closed", "Resolution mix for tickets closed in the five-year window.", "#7c3aed", "Core Trac closure resolution mix")}
+    {horizontal_bars_svg(resolutions, "closed_in_window", "resolution", "How tickets closed", "Resolution mix for tickets closed since 2003.", "#7c3aed", "Core Trac closure resolution mix")}
   </section>
 
   <section class="chart-band">
@@ -1347,18 +1364,18 @@ def render_report(data):
     </article>
     <article class="point">
       <h2>Ticket flow is the main story.</h2>
-      <p>New tickets averaged {early_created:.0f} per quarter early in the window and {recent_created:.0f} recently. When closures rise above new tickets, the open backlog bends down.</p>
+      <p>New tickets averaged {early_created:.0f} per quarter in the first active year of the Trac export and {recent_created:.0f} recently. When closures rise above new tickets, the open backlog bends down.</p>
     </article>
     <article class="point">
       <h2>GitHub is review traffic, not the issue source.</h2>
-      <p>wordpress-develop produced {fmt_int(summary["github_window_created"])} PRs in the window, with {fmt_int(summary["github_window_linked"])} linking back to Trac. It helps explain implementation activity without replacing Trac ticket flow.</p>
+      <p>wordpress-develop produced {fmt_int(summary["github_window_created"])} PRs since the GitHub mirror began, with {fmt_int(summary["github_window_linked"])} linking back to Trac. It helps explain implementation activity without replacing Trac ticket flow.</p>
     </article>
   </section>
 
   <details>
     <summary>Method and source files</summary>
     <div class="method">
-      <p>Data window: June 11, 2021 through June 11, 2026. Core ticket inventory comes from Core Trac CSV exports. Closure and reopen timing comes from public ticket RSS feeds for closed tickets modified in the window and current reopened tickets. GitHub activity comes from the GitHub API for <code>WordPress/wordpress-develop</code> pull requests.</p>
+      <p>Data window: January 1, 2003 through June 11, 2026. Core ticket inventory comes from Core Trac CSV exports; the first ticket in the export was created on June 10, 2004. Closure and reopen timing comes from public ticket RSS feeds for closed and reopened tickets. GitHub activity comes from the GitHub API for <code>WordPress/wordpress-develop</code> pull requests.</p>
       <p>Generated files: <code>quarterly_metrics.csv</code>, <code>monthly_metrics.csv</code>, <code>component_summary.csv</code>, <code>resolution_summary.csv</code>, and <code>github_pr_quarterly.csv</code>.</p>
       <p>Most closure dates are parsed from RSS status-change events. Tickets without a public close event in the parsed feed use the Trac modified timestamp as a fallback.</p>
     </div>

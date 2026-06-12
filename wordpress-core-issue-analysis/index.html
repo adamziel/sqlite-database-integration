@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>WordPress Core Ticket Flow</title>
+  <title>WordPress Core Ticket Flow Since 2003</title>
   <style>
     :root {
       color-scheme: light;
@@ -164,7 +164,7 @@
       .metric { min-height: auto; }
       .chart-band { padding: 12px 8px 6px; }
       .chart-band svg {
-        width: 760px;
+        width: 900px;
         max-width: none;
       }
       .deck { font-size: 16px; }
@@ -173,14 +173,14 @@
 </head>
 <body>
 <main>
-  <h1>WordPress Core ticket flow</h1>
-  <p class="deck">A five-year view of Core Trac backlog, ticket flow, reporter activity, closure mix, and GitHub code-review activity linked to Trac.</p>
+  <h1>WordPress Core ticket flow since 2003</h1>
+  <p class="deck">A long-run view of Core Trac backlog, ticket flow, reporter activity, closure mix, and GitHub code-review activity linked to Trac.</p>
 
   <div class="metric-grid">
 <div class="metric"><div class="metric-label">Current open Core tickets</div><div class="metric-value">8,223</div><div class="metric-note">Core Trac tickets not closed today</div></div>
-<div class="metric"><div class="metric-label">Five-year ticket flow</div><div class="metric-value">11,945 new / 10,633 closed</div><div class="metric-note">June 11, 2021 through June 11, 2026</div></div>
-<div class="metric"><div class="metric-label">Reporter flow</div><div class="metric-value">108 first-time in latest quarter</div><div class="metric-note">Partial 2026-Q2 quarter</div></div>
-<div class="metric"><div class="metric-label">GitHub PRs linked to Trac</div><div class="metric-value">9,125</div><div class="metric-note">wordpress-develop PRs created in the window</div></div>
+<div class="metric"><div class="metric-label">Since 2003 ticket flow</div><div class="metric-value">64,951 new / 56,728 closed</div><div class="metric-note">January 1, 2003 through June 11, 2026</div></div>
+<div class="metric"><div class="metric-label">Reporter flow</div><div class="metric-value">108 first-time in latest quarter</div><div class="metric-note">Latest quarter is partial</div></div>
+<div class="metric"><div class="metric-label">GitHub PRs linked to Trac</div><div class="metric-value">10,237</div><div class="metric-note">wordpress-develop PRs created since the GitHub mirror started</div></div>
 </div>
 
   <section class="chart-band">
@@ -201,34 +201,125 @@
 <text x="66" y="104.9" text-anchor="end" class="axis">8,000</text>
 <line x1="76" y1="49.4" x2="1086" y2="49.4" class="grid"/>
 <text x="66" y="53.4" text-anchor="end" class="axis">10,000</text>
-<polyline points="76.0,129.1 126.5,123.5 177.0,121.1 227.5,113.8 278.0,110.0 328.5,109.7 379.0,105.8 429.5,105.1 480.0,101.4 530.5,96.5 581.0,91.1 631.5,91.0 682.0,91.2 732.5,92.1 783.0,89.5 833.5,90.6 884.0,94.3 934.5,98.8 985.0,100.9 1035.5,99.4 1086.0,95.1" fill="none" stroke="#0f766e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-<circle cx="76.0" cy="129.1" r="4" fill="#0f766e"><title>2021-Q2 Open tickets: 6,906</title></circle>
-<circle cx="126.5" cy="123.5" r="4" fill="#0f766e"><title>2021-Q3 Open tickets: 7,123</title></circle>
-<circle cx="177.0" cy="121.1" r="4" fill="#0f766e"><title>2021-Q4 Open tickets: 7,214</title></circle>
-<circle cx="227.5" cy="113.8" r="4" fill="#0f766e"><title>2022-Q1 Open tickets: 7,497</title></circle>
-<circle cx="278.0" cy="110.0" r="4" fill="#0f766e"><title>2022-Q2 Open tickets: 7,648</title></circle>
-<circle cx="328.5" cy="109.7" r="4" fill="#0f766e"><title>2022-Q3 Open tickets: 7,657</title></circle>
-<circle cx="379.0" cy="105.8" r="4" fill="#0f766e"><title>2022-Q4 Open tickets: 7,809</title></circle>
-<circle cx="429.5" cy="105.1" r="4" fill="#0f766e"><title>2023-Q1 Open tickets: 7,837</title></circle>
-<circle cx="480.0" cy="101.4" r="4" fill="#0f766e"><title>2023-Q2 Open tickets: 7,978</title></circle>
-<circle cx="530.5" cy="96.5" r="4" fill="#0f766e"><title>2023-Q3 Open tickets: 8,172</title></circle>
-<circle cx="581.0" cy="91.1" r="4" fill="#0f766e"><title>2023-Q4 Open tickets: 8,379</title></circle>
-<circle cx="631.5" cy="91.0" r="4" fill="#0f766e"><title>2024-Q1 Open tickets: 8,384</title></circle>
-<circle cx="682.0" cy="91.2" r="4" fill="#0f766e"><title>2024-Q2 Open tickets: 8,376</title></circle>
-<circle cx="732.5" cy="92.1" r="4" fill="#0f766e"><title>2024-Q3 Open tickets: 8,341</title></circle>
-<circle cx="783.0" cy="89.5" r="4" fill="#0f766e"><title>2024-Q4 Open tickets: 8,442</title></circle>
-<circle cx="833.5" cy="90.6" r="4" fill="#0f766e"><title>2025-Q1 Open tickets: 8,400</title></circle>
-<circle cx="884.0" cy="94.3" r="4" fill="#0f766e"><title>2025-Q2 Open tickets: 8,256</title></circle>
-<circle cx="934.5" cy="98.8" r="4" fill="#0f766e"><title>2025-Q3 Open tickets: 8,082</title></circle>
-<circle cx="985.0" cy="100.9" r="4" fill="#0f766e"><title>2025-Q4 Open tickets: 8,001</title></circle>
-<circle cx="1035.5" cy="99.4" r="4" fill="#0f766e"><title>2026-Q1 Open tickets: 8,058</title></circle>
+<polyline points="76.0,307.0 86.9,307.0 97.7,307.0 108.6,307.0 119.4,307.0 130.3,304.9 141.2,303.1 152.0,301.4 162.9,301.8 173.7,298.3 184.6,295.8 195.5,295.0 206.3,292.4 217.2,288.4 228.0,290.0 238.9,294.3 249.8,294.8 260.6,292.5 271.5,291.0 282.3,288.3 293.2,286.2 304.1,279.6 314.9,276.9 325.8,278.3 336.6,274.3 347.5,284.7 358.4,278.2 369.2,276.5 380.1,271.7 390.9,267.2 401.8,253.5 412.7,255.4 423.5,247.9 434.4,241.6 445.2,234.3 456.1,230.0 467.0,227.5 477.8,223.8 488.7,221.0 499.5,218.2 510.4,213.0 521.3,208.6 532.1,223.1 543.0,215.1 553.8,224.2 564.7,219.2 575.6,213.0 586.4,214.4 597.3,213.1 608.2,208.4 619.0,215.7 629.9,221.5 640.7,215.4 651.6,212.1 662.5,205.9 673.3,196.9 684.2,188.8 695.0,180.3 705.9,175.3 716.8,168.7 727.6,163.7 738.5,153.4 749.3,146.9 760.2,139.1 771.1,137.4 781.9,136.2 792.8,143.6 803.6,137.3 814.5,136.5 825.4,132.1 836.2,130.7 847.1,133.2 857.9,130.5 868.8,129.1 879.7,123.5 890.5,121.1 901.4,113.8 912.2,110.0 923.1,109.7 934.0,105.8 944.8,105.1 955.7,101.4 966.5,96.5 977.4,91.1 988.3,91.0 999.1,91.2 1010.0,92.1 1020.8,89.5 1031.7,90.6 1042.6,94.3 1053.4,98.8 1064.3,100.9 1075.1,99.4 1086.0,95.1" fill="none" stroke="#0f766e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="76.0" cy="307.0" r="4" fill="#0f766e"><title>2003-Q1 Open tickets: 0</title></circle>
+<circle cx="86.9" cy="307.0" r="4" fill="#0f766e"><title>2003-Q2 Open tickets: 0</title></circle>
+<circle cx="97.7" cy="307.0" r="4" fill="#0f766e"><title>2003-Q3 Open tickets: 0</title></circle>
+<circle cx="108.6" cy="307.0" r="4" fill="#0f766e"><title>2003-Q4 Open tickets: 0</title></circle>
+<circle cx="119.4" cy="307.0" r="4" fill="#0f766e"><title>2004-Q1 Open tickets: 0</title></circle>
+<circle cx="130.3" cy="304.9" r="4" fill="#0f766e"><title>2004-Q2 Open tickets: 82</title></circle>
+<circle cx="141.2" cy="303.1" r="4" fill="#0f766e"><title>2004-Q3 Open tickets: 152</title></circle>
+<circle cx="152.0" cy="301.4" r="4" fill="#0f766e"><title>2004-Q4 Open tickets: 216</title></circle>
+<circle cx="162.9" cy="301.8" r="4" fill="#0f766e"><title>2005-Q1 Open tickets: 202</title></circle>
+<circle cx="173.7" cy="298.3" r="4" fill="#0f766e"><title>2005-Q2 Open tickets: 338</title></circle>
+<circle cx="184.6" cy="295.8" r="4" fill="#0f766e"><title>2005-Q3 Open tickets: 435</title></circle>
+<circle cx="195.5" cy="295.0" r="4" fill="#0f766e"><title>2005-Q4 Open tickets: 464</title></circle>
+<circle cx="206.3" cy="292.4" r="4" fill="#0f766e"><title>2006-Q1 Open tickets: 568</title></circle>
+<circle cx="217.2" cy="288.4" r="4" fill="#0f766e"><title>2006-Q2 Open tickets: 721</title></circle>
+<circle cx="228.0" cy="290.0" r="4" fill="#0f766e"><title>2006-Q3 Open tickets: 661</title></circle>
+<circle cx="238.9" cy="294.3" r="4" fill="#0f766e"><title>2006-Q4 Open tickets: 492</title></circle>
+<circle cx="249.8" cy="294.8" r="4" fill="#0f766e"><title>2007-Q1 Open tickets: 472</title></circle>
+<circle cx="260.6" cy="292.5" r="4" fill="#0f766e"><title>2007-Q2 Open tickets: 561</title></circle>
+<circle cx="271.5" cy="291.0" r="4" fill="#0f766e"><title>2007-Q3 Open tickets: 622</title></circle>
+<circle cx="282.3" cy="288.3" r="4" fill="#0f766e"><title>2007-Q4 Open tickets: 724</title></circle>
+<circle cx="293.2" cy="286.2" r="4" fill="#0f766e"><title>2008-Q1 Open tickets: 806</title></circle>
+<circle cx="304.1" cy="279.6" r="4" fill="#0f766e"><title>2008-Q2 Open tickets: 1,062</title></circle>
+<circle cx="314.9" cy="276.9" r="4" fill="#0f766e"><title>2008-Q3 Open tickets: 1,170</title></circle>
+<circle cx="325.8" cy="278.3" r="4" fill="#0f766e"><title>2008-Q4 Open tickets: 1,112</title></circle>
+<circle cx="336.6" cy="274.3" r="4" fill="#0f766e"><title>2009-Q1 Open tickets: 1,268</title></circle>
+<circle cx="347.5" cy="284.7" r="4" fill="#0f766e"><title>2009-Q2 Open tickets: 864</title></circle>
+<circle cx="358.4" cy="278.2" r="4" fill="#0f766e"><title>2009-Q3 Open tickets: 1,116</title></circle>
+<circle cx="369.2" cy="276.5" r="4" fill="#0f766e"><title>2009-Q4 Open tickets: 1,182</title></circle>
+<circle cx="380.1" cy="271.7" r="4" fill="#0f766e"><title>2010-Q1 Open tickets: 1,370</title></circle>
+<circle cx="390.9" cy="267.2" r="4" fill="#0f766e"><title>2010-Q2 Open tickets: 1,545</title></circle>
+<circle cx="401.8" cy="253.5" r="4" fill="#0f766e"><title>2010-Q3 Open tickets: 2,075</title></circle>
+<circle cx="412.7" cy="255.4" r="4" fill="#0f766e"><title>2010-Q4 Open tickets: 2,004</title></circle>
+<circle cx="423.5" cy="247.9" r="4" fill="#0f766e"><title>2011-Q1 Open tickets: 2,295</title></circle>
+<circle cx="434.4" cy="241.6" r="4" fill="#0f766e"><title>2011-Q2 Open tickets: 2,540</title></circle>
+<circle cx="445.2" cy="234.3" r="4" fill="#0f766e"><title>2011-Q3 Open tickets: 2,820</title></circle>
+<circle cx="456.1" cy="230.0" r="4" fill="#0f766e"><title>2011-Q4 Open tickets: 2,987</title></circle>
+<circle cx="467.0" cy="227.5" r="4" fill="#0f766e"><title>2012-Q1 Open tickets: 3,084</title></circle>
+<circle cx="477.8" cy="223.8" r="4" fill="#0f766e"><title>2012-Q2 Open tickets: 3,230</title></circle>
+<circle cx="488.7" cy="221.0" r="4" fill="#0f766e"><title>2012-Q3 Open tickets: 3,339</title></circle>
+<circle cx="499.5" cy="218.2" r="4" fill="#0f766e"><title>2012-Q4 Open tickets: 3,445</title></circle>
+<circle cx="510.4" cy="213.0" r="4" fill="#0f766e"><title>2013-Q1 Open tickets: 3,648</title></circle>
+<circle cx="521.3" cy="208.6" r="4" fill="#0f766e"><title>2013-Q2 Open tickets: 3,819</title></circle>
+<circle cx="532.1" cy="223.1" r="4" fill="#0f766e"><title>2013-Q3 Open tickets: 3,257</title></circle>
+<circle cx="543.0" cy="215.1" r="4" fill="#0f766e"><title>2013-Q4 Open tickets: 3,566</title></circle>
+<circle cx="553.8" cy="224.2" r="4" fill="#0f766e"><title>2014-Q1 Open tickets: 3,215</title></circle>
+<circle cx="564.7" cy="219.2" r="4" fill="#0f766e"><title>2014-Q2 Open tickets: 3,406</title></circle>
+<circle cx="575.6" cy="213.0" r="4" fill="#0f766e"><title>2014-Q3 Open tickets: 3,650</title></circle>
+<circle cx="586.4" cy="214.4" r="4" fill="#0f766e"><title>2014-Q4 Open tickets: 3,596</title></circle>
+<circle cx="597.3" cy="213.1" r="4" fill="#0f766e"><title>2015-Q1 Open tickets: 3,644</title></circle>
+<circle cx="608.2" cy="208.4" r="4" fill="#0f766e"><title>2015-Q2 Open tickets: 3,825</title></circle>
+<circle cx="619.0" cy="215.7" r="4" fill="#0f766e"><title>2015-Q3 Open tickets: 3,542</title></circle>
+<circle cx="629.9" cy="221.5" r="4" fill="#0f766e"><title>2015-Q4 Open tickets: 3,318</title></circle>
+<circle cx="640.7" cy="215.4" r="4" fill="#0f766e"><title>2016-Q1 Open tickets: 3,554</title></circle>
+<circle cx="651.6" cy="212.1" r="4" fill="#0f766e"><title>2016-Q2 Open tickets: 3,682</title></circle>
+<circle cx="662.5" cy="205.9" r="4" fill="#0f766e"><title>2016-Q3 Open tickets: 3,924</title></circle>
+<circle cx="673.3" cy="196.9" r="4" fill="#0f766e"><title>2016-Q4 Open tickets: 4,274</title></circle>
+<circle cx="684.2" cy="188.8" r="4" fill="#0f766e"><title>2017-Q1 Open tickets: 4,588</title></circle>
+<circle cx="695.0" cy="180.3" r="4" fill="#0f766e"><title>2017-Q2 Open tickets: 4,916</title></circle>
+<circle cx="705.9" cy="175.3" r="4" fill="#0f766e"><title>2017-Q3 Open tickets: 5,110</title></circle>
+<circle cx="716.8" cy="168.7" r="4" fill="#0f766e"><title>2017-Q4 Open tickets: 5,367</title></circle>
+<circle cx="727.6" cy="163.7" r="4" fill="#0f766e"><title>2018-Q1 Open tickets: 5,563</title></circle>
+<circle cx="738.5" cy="153.4" r="4" fill="#0f766e"><title>2018-Q2 Open tickets: 5,961</title></circle>
+<circle cx="749.3" cy="146.9" r="4" fill="#0f766e"><title>2018-Q3 Open tickets: 6,212</title></circle>
+<circle cx="760.2" cy="139.1" r="4" fill="#0f766e"><title>2018-Q4 Open tickets: 6,517</title></circle>
+<circle cx="771.1" cy="137.4" r="4" fill="#0f766e"><title>2019-Q1 Open tickets: 6,584</title></circle>
+<circle cx="781.9" cy="136.2" r="4" fill="#0f766e"><title>2019-Q2 Open tickets: 6,629</title></circle>
+<circle cx="792.8" cy="143.6" r="4" fill="#0f766e"><title>2019-Q3 Open tickets: 6,342</title></circle>
+<circle cx="803.6" cy="137.3" r="4" fill="#0f766e"><title>2019-Q4 Open tickets: 6,588</title></circle>
+<circle cx="814.5" cy="136.5" r="4" fill="#0f766e"><title>2020-Q1 Open tickets: 6,618</title></circle>
+<circle cx="825.4" cy="132.1" r="4" fill="#0f766e"><title>2020-Q2 Open tickets: 6,789</title></circle>
+<circle cx="836.2" cy="130.7" r="4" fill="#0f766e"><title>2020-Q3 Open tickets: 6,843</title></circle>
+<circle cx="847.1" cy="133.2" r="4" fill="#0f766e"><title>2020-Q4 Open tickets: 6,745</title></circle>
+<circle cx="857.9" cy="130.5" r="4" fill="#0f766e"><title>2021-Q1 Open tickets: 6,851</title></circle>
+<circle cx="868.8" cy="129.1" r="4" fill="#0f766e"><title>2021-Q2 Open tickets: 6,906</title></circle>
+<circle cx="879.7" cy="123.5" r="4" fill="#0f766e"><title>2021-Q3 Open tickets: 7,123</title></circle>
+<circle cx="890.5" cy="121.1" r="4" fill="#0f766e"><title>2021-Q4 Open tickets: 7,214</title></circle>
+<circle cx="901.4" cy="113.8" r="4" fill="#0f766e"><title>2022-Q1 Open tickets: 7,497</title></circle>
+<circle cx="912.2" cy="110.0" r="4" fill="#0f766e"><title>2022-Q2 Open tickets: 7,648</title></circle>
+<circle cx="923.1" cy="109.7" r="4" fill="#0f766e"><title>2022-Q3 Open tickets: 7,657</title></circle>
+<circle cx="934.0" cy="105.8" r="4" fill="#0f766e"><title>2022-Q4 Open tickets: 7,809</title></circle>
+<circle cx="944.8" cy="105.1" r="4" fill="#0f766e"><title>2023-Q1 Open tickets: 7,837</title></circle>
+<circle cx="955.7" cy="101.4" r="4" fill="#0f766e"><title>2023-Q2 Open tickets: 7,978</title></circle>
+<circle cx="966.5" cy="96.5" r="4" fill="#0f766e"><title>2023-Q3 Open tickets: 8,172</title></circle>
+<circle cx="977.4" cy="91.1" r="4" fill="#0f766e"><title>2023-Q4 Open tickets: 8,379</title></circle>
+<circle cx="988.3" cy="91.0" r="4" fill="#0f766e"><title>2024-Q1 Open tickets: 8,384</title></circle>
+<circle cx="999.1" cy="91.2" r="4" fill="#0f766e"><title>2024-Q2 Open tickets: 8,376</title></circle>
+<circle cx="1010.0" cy="92.1" r="4" fill="#0f766e"><title>2024-Q3 Open tickets: 8,341</title></circle>
+<circle cx="1020.8" cy="89.5" r="4" fill="#0f766e"><title>2024-Q4 Open tickets: 8,442</title></circle>
+<circle cx="1031.7" cy="90.6" r="4" fill="#0f766e"><title>2025-Q1 Open tickets: 8,400</title></circle>
+<circle cx="1042.6" cy="94.3" r="4" fill="#0f766e"><title>2025-Q2 Open tickets: 8,256</title></circle>
+<circle cx="1053.4" cy="98.8" r="4" fill="#0f766e"><title>2025-Q3 Open tickets: 8,082</title></circle>
+<circle cx="1064.3" cy="100.9" r="4" fill="#0f766e"><title>2025-Q4 Open tickets: 8,001</title></circle>
+<circle cx="1075.1" cy="99.4" r="4" fill="#0f766e"><title>2026-Q1 Open tickets: 8,058</title></circle>
 <circle cx="1086.0" cy="95.1" r="4" fill="#0f766e"><title>2026-Q2 Open tickets: 8,223</title></circle>
-<text x="76.0" y="341" text-anchor="middle" class="axis">2021</text>
-<text x="227.5" y="341" text-anchor="middle" class="axis">2022</text>
-<text x="429.5" y="341" text-anchor="middle" class="axis">2023</text>
-<text x="631.5" y="341" text-anchor="middle" class="axis">2024</text>
-<text x="833.5" y="341" text-anchor="middle" class="axis">2025</text>
-<text x="1035.5" y="341" text-anchor="middle" class="axis">2026</text>
+<text x="76.0" y="341" text-anchor="middle" class="axis">2003</text>
+<text x="119.4" y="341" text-anchor="middle" class="axis">2004</text>
+<text x="162.9" y="341" text-anchor="middle" class="axis">2005</text>
+<text x="206.3" y="341" text-anchor="middle" class="axis">2006</text>
+<text x="249.8" y="341" text-anchor="middle" class="axis">2007</text>
+<text x="293.2" y="341" text-anchor="middle" class="axis">2008</text>
+<text x="336.6" y="341" text-anchor="middle" class="axis">2009</text>
+<text x="380.1" y="341" text-anchor="middle" class="axis">2010</text>
+<text x="423.5" y="341" text-anchor="middle" class="axis">2011</text>
+<text x="467.0" y="341" text-anchor="middle" class="axis">2012</text>
+<text x="510.4" y="341" text-anchor="middle" class="axis">2013</text>
+<text x="553.8" y="341" text-anchor="middle" class="axis">2014</text>
+<text x="597.3" y="341" text-anchor="middle" class="axis">2015</text>
+<text x="640.7" y="341" text-anchor="middle" class="axis">2016</text>
+<text x="684.2" y="341" text-anchor="middle" class="axis">2017</text>
+<text x="727.6" y="341" text-anchor="middle" class="axis">2018</text>
+<text x="771.1" y="341" text-anchor="middle" class="axis">2019</text>
+<text x="814.5" y="341" text-anchor="middle" class="axis">2020</text>
+<text x="857.9" y="341" text-anchor="middle" class="axis">2021</text>
+<text x="901.4" y="341" text-anchor="middle" class="axis">2022</text>
+<text x="944.8" y="341" text-anchor="middle" class="axis">2023</text>
+<text x="988.3" y="341" text-anchor="middle" class="axis">2024</text>
+<text x="1031.7" y="341" text-anchor="middle" class="axis">2025</text>
+<text x="1075.1" y="341" text-anchor="middle" class="axis">2026</text>
 </svg>
   </section>
 
@@ -242,66 +333,228 @@
 <text x="213" y="71" class="legend-text">Closed tickets</text>
 <line x1="76" y1="307.0" x2="1086" y2="307.0" class="grid"/>
 <text x="66" y="311.0" text-anchor="end" class="axis">0</text>
-<line x1="76" y1="258.3" x2="1086" y2="258.3" class="grid"/>
-<text x="66" y="262.3" text-anchor="end" class="axis">200</text>
-<line x1="76" y1="209.7" x2="1086" y2="209.7" class="grid"/>
-<text x="66" y="213.7" text-anchor="end" class="axis">400</text>
-<line x1="76" y1="161.0" x2="1086" y2="161.0" class="grid"/>
-<text x="66" y="165.0" text-anchor="end" class="axis">600</text>
-<line x1="76" y1="112.3" x2="1086" y2="112.3" class="grid"/>
-<text x="66" y="116.3" text-anchor="end" class="axis">800</text>
-<line x1="76" y1="63.7" x2="1086" y2="63.7" class="grid"/>
-<text x="66" y="67.7" text-anchor="end" class="axis">1,000</text>
-<polyline points="76.0,261.5 126.5,153.7 177.0,185.1 227.5,117.4 278.0,161.7 328.5,165.1 379.0,137.4 429.5,154.4 480.0,148.6 530.5,108.4 581.0,147.1 631.5,138.9 682.0,145.2 732.5,164.9 783.0,159.8 833.5,198.7 884.0,201.9 934.5,206.7 985.0,209.2 1035.5,176.1 1086.0,198.5" fill="none" stroke="#2563eb" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-<circle cx="76.0" cy="261.5" r="4" fill="#2563eb"><title>2021-Q2 New tickets: 187</title></circle>
-<circle cx="126.5" cy="153.7" r="4" fill="#2563eb"><title>2021-Q3 New tickets: 630</title></circle>
-<circle cx="177.0" cy="185.1" r="4" fill="#2563eb"><title>2021-Q4 New tickets: 501</title></circle>
-<circle cx="227.5" cy="117.4" r="4" fill="#2563eb"><title>2022-Q1 New tickets: 779</title></circle>
-<circle cx="278.0" cy="161.7" r="4" fill="#2563eb"><title>2022-Q2 New tickets: 597</title></circle>
-<circle cx="328.5" cy="165.1" r="4" fill="#2563eb"><title>2022-Q3 New tickets: 583</title></circle>
-<circle cx="379.0" cy="137.4" r="4" fill="#2563eb"><title>2022-Q4 New tickets: 697</title></circle>
-<circle cx="429.5" cy="154.4" r="4" fill="#2563eb"><title>2023-Q1 New tickets: 627</title></circle>
-<circle cx="480.0" cy="148.6" r="4" fill="#2563eb"><title>2023-Q2 New tickets: 651</title></circle>
-<circle cx="530.5" cy="108.4" r="4" fill="#2563eb"><title>2023-Q3 New tickets: 816</title></circle>
-<circle cx="581.0" cy="147.1" r="4" fill="#2563eb"><title>2023-Q4 New tickets: 657</title></circle>
-<circle cx="631.5" cy="138.9" r="4" fill="#2563eb"><title>2024-Q1 New tickets: 691</title></circle>
-<circle cx="682.0" cy="145.2" r="4" fill="#2563eb"><title>2024-Q2 New tickets: 665</title></circle>
-<circle cx="732.5" cy="164.9" r="4" fill="#2563eb"><title>2024-Q3 New tickets: 584</title></circle>
-<circle cx="783.0" cy="159.8" r="4" fill="#2563eb"><title>2024-Q4 New tickets: 605</title></circle>
-<circle cx="833.5" cy="198.7" r="4" fill="#2563eb"><title>2025-Q1 New tickets: 445</title></circle>
-<circle cx="884.0" cy="201.9" r="4" fill="#2563eb"><title>2025-Q2 New tickets: 432</title></circle>
-<circle cx="934.5" cy="206.7" r="4" fill="#2563eb"><title>2025-Q3 New tickets: 412</title></circle>
-<circle cx="985.0" cy="209.2" r="4" fill="#2563eb"><title>2025-Q4 New tickets: 402</title></circle>
-<circle cx="1035.5" cy="176.1" r="4" fill="#2563eb"><title>2026-Q1 New tickets: 538</title></circle>
-<circle cx="1086.0" cy="198.5" r="4" fill="#2563eb"><title>2026-Q2 New tickets: 446</title></circle>
-<polyline points="76.0,275.1 126.5,204.6 177.0,206.5 227.5,185.8 278.0,197.5 328.5,167.8 379.0,172.9 429.5,160.0 480.0,184.1 530.5,154.4 581.0,195.6 631.5,138.1 682.0,144.2 732.5,158.8 783.0,181.9 833.5,187.5 884.0,168.1 934.5,161.5 985.0,188.5 1035.5,190.0 1086.0,236.7" fill="none" stroke="#dc2626" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-<circle cx="76.0" cy="275.1" r="4" fill="#dc2626"><title>2021-Q2 Closed tickets: 131</title></circle>
-<circle cx="126.5" cy="204.6" r="4" fill="#dc2626"><title>2021-Q3 Closed tickets: 421</title></circle>
-<circle cx="177.0" cy="206.5" r="4" fill="#dc2626"><title>2021-Q4 Closed tickets: 413</title></circle>
-<circle cx="227.5" cy="185.8" r="4" fill="#dc2626"><title>2022-Q1 Closed tickets: 498</title></circle>
-<circle cx="278.0" cy="197.5" r="4" fill="#dc2626"><title>2022-Q2 Closed tickets: 450</title></circle>
-<circle cx="328.5" cy="167.8" r="4" fill="#dc2626"><title>2022-Q3 Closed tickets: 572</title></circle>
-<circle cx="379.0" cy="172.9" r="4" fill="#dc2626"><title>2022-Q4 Closed tickets: 551</title></circle>
-<circle cx="429.5" cy="160.0" r="4" fill="#dc2626"><title>2023-Q1 Closed tickets: 604</title></circle>
-<circle cx="480.0" cy="184.1" r="4" fill="#dc2626"><title>2023-Q2 Closed tickets: 505</title></circle>
-<circle cx="530.5" cy="154.4" r="4" fill="#dc2626"><title>2023-Q3 Closed tickets: 627</title></circle>
-<circle cx="581.0" cy="195.6" r="4" fill="#dc2626"><title>2023-Q4 Closed tickets: 458</title></circle>
-<circle cx="631.5" cy="138.1" r="4" fill="#dc2626"><title>2024-Q1 Closed tickets: 694</title></circle>
-<circle cx="682.0" cy="144.2" r="4" fill="#dc2626"><title>2024-Q2 Closed tickets: 669</title></circle>
-<circle cx="732.5" cy="158.8" r="4" fill="#dc2626"><title>2024-Q3 Closed tickets: 609</title></circle>
-<circle cx="783.0" cy="181.9" r="4" fill="#dc2626"><title>2024-Q4 Closed tickets: 514</title></circle>
-<circle cx="833.5" cy="187.5" r="4" fill="#dc2626"><title>2025-Q1 Closed tickets: 491</title></circle>
-<circle cx="884.0" cy="168.1" r="4" fill="#dc2626"><title>2025-Q2 Closed tickets: 571</title></circle>
-<circle cx="934.5" cy="161.5" r="4" fill="#dc2626"><title>2025-Q3 Closed tickets: 598</title></circle>
-<circle cx="985.0" cy="188.5" r="4" fill="#dc2626"><title>2025-Q4 Closed tickets: 487</title></circle>
-<circle cx="1035.5" cy="190.0" r="4" fill="#dc2626"><title>2026-Q1 Closed tickets: 481</title></circle>
-<circle cx="1086.0" cy="236.7" r="4" fill="#dc2626"><title>2026-Q2 Closed tickets: 289</title></circle>
-<text x="76.0" y="341" text-anchor="middle" class="axis">2021</text>
-<text x="227.5" y="341" text-anchor="middle" class="axis">2022</text>
-<text x="429.5" y="341" text-anchor="middle" class="axis">2023</text>
-<text x="631.5" y="341" text-anchor="middle" class="axis">2024</text>
-<text x="833.5" y="341" text-anchor="middle" class="axis">2025</text>
-<text x="1035.5" y="341" text-anchor="middle" class="axis">2026</text>
+<line x1="76" y1="252.2" x2="1086" y2="252.2" class="grid"/>
+<text x="66" y="256.2" text-anchor="end" class="axis">500</text>
+<line x1="76" y1="197.5" x2="1086" y2="197.5" class="grid"/>
+<text x="66" y="201.5" text-anchor="end" class="axis">1,000</text>
+<line x1="76" y1="142.8" x2="1086" y2="142.8" class="grid"/>
+<text x="66" y="146.8" text-anchor="end" class="axis">1,500</text>
+<line x1="76" y1="88.0" x2="1086" y2="88.0" class="grid"/>
+<text x="66" y="92.0" text-anchor="end" class="axis">2,000</text>
+<polyline points="76.0,307.0 86.9,307.0 97.7,307.0 108.6,307.0 119.4,307.0 130.3,292.9 141.2,287.6 152.0,278.3 162.9,245.2 173.7,276.3 184.6,280.8 195.5,256.1 206.3,259.8 217.2,277.5 228.0,274.8 238.9,270.6 249.8,246.7 260.6,251.4 271.5,246.7 282.3,259.5 293.2,201.9 304.1,230.7 314.9,241.0 325.8,202.5 336.6,234.6 347.5,210.2 358.4,245.0 369.2,219.5 380.1,185.8 390.9,156.5 401.8,214.9 412.7,191.8 423.5,202.5 434.4,203.7 445.2,210.6 456.1,211.7 467.0,237.4 477.8,220.8 488.7,204.5 499.5,193.7 510.4,217.5 521.3,224.9 532.1,220.3 543.0,165.2 553.8,213.7 564.7,190.3 575.6,188.8 586.4,192.4 597.3,203.5 608.2,195.0 619.0,169.8 629.9,178.8 640.7,197.0 651.6,214.5 662.5,203.0 673.3,172.5 684.2,209.2 695.0,209.4 705.9,216.0 716.8,202.9 727.6,234.7 738.5,218.1 749.3,249.6 760.2,221.0 771.1,204.2 781.9,210.2 792.8,247.0 803.6,206.8 814.5,238.1 825.4,223.5 836.2,208.0 847.1,223.7 857.9,224.7 868.8,240.4 879.7,238.0 890.5,252.1 901.4,221.7 912.2,241.6 923.1,243.2 934.0,230.7 944.8,238.3 955.7,235.7 966.5,217.6 977.4,235.1 988.3,231.3 999.1,234.2 1010.0,243.1 1020.8,240.8 1031.7,258.3 1042.6,259.7 1053.4,261.9 1064.3,263.0 1075.1,248.1 1086.0,258.2" fill="none" stroke="#2563eb" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="76.0" cy="307.0" r="4" fill="#2563eb"><title>2003-Q1 New tickets: 0</title></circle>
+<circle cx="86.9" cy="307.0" r="4" fill="#2563eb"><title>2003-Q2 New tickets: 0</title></circle>
+<circle cx="97.7" cy="307.0" r="4" fill="#2563eb"><title>2003-Q3 New tickets: 0</title></circle>
+<circle cx="108.6" cy="307.0" r="4" fill="#2563eb"><title>2003-Q4 New tickets: 0</title></circle>
+<circle cx="119.4" cy="307.0" r="4" fill="#2563eb"><title>2004-Q1 New tickets: 0</title></circle>
+<circle cx="130.3" cy="292.9" r="4" fill="#2563eb"><title>2004-Q2 New tickets: 129</title></circle>
+<circle cx="141.2" cy="287.6" r="4" fill="#2563eb"><title>2004-Q3 New tickets: 177</title></circle>
+<circle cx="152.0" cy="278.3" r="4" fill="#2563eb"><title>2004-Q4 New tickets: 262</title></circle>
+<circle cx="162.9" cy="245.2" r="4" fill="#2563eb"><title>2005-Q1 New tickets: 564</title></circle>
+<circle cx="173.7" cy="276.3" r="4" fill="#2563eb"><title>2005-Q2 New tickets: 280</title></circle>
+<circle cx="184.6" cy="280.8" r="4" fill="#2563eb"><title>2005-Q3 New tickets: 239</title></circle>
+<circle cx="195.5" cy="256.1" r="4" fill="#2563eb"><title>2005-Q4 New tickets: 465</title></circle>
+<circle cx="206.3" cy="259.8" r="4" fill="#2563eb"><title>2006-Q1 New tickets: 431</title></circle>
+<circle cx="217.2" cy="277.5" r="4" fill="#2563eb"><title>2006-Q2 New tickets: 269</title></circle>
+<circle cx="228.0" cy="274.8" r="4" fill="#2563eb"><title>2006-Q3 New tickets: 294</title></circle>
+<circle cx="238.9" cy="270.6" r="4" fill="#2563eb"><title>2006-Q4 New tickets: 332</title></circle>
+<circle cx="249.8" cy="246.7" r="4" fill="#2563eb"><title>2007-Q1 New tickets: 551</title></circle>
+<circle cx="260.6" cy="251.4" r="4" fill="#2563eb"><title>2007-Q2 New tickets: 508</title></circle>
+<circle cx="271.5" cy="246.7" r="4" fill="#2563eb"><title>2007-Q3 New tickets: 551</title></circle>
+<circle cx="282.3" cy="259.5" r="4" fill="#2563eb"><title>2007-Q4 New tickets: 434</title></circle>
+<circle cx="293.2" cy="201.9" r="4" fill="#2563eb"><title>2008-Q1 New tickets: 960</title></circle>
+<circle cx="304.1" cy="230.7" r="4" fill="#2563eb"><title>2008-Q2 New tickets: 697</title></circle>
+<circle cx="314.9" cy="241.0" r="4" fill="#2563eb"><title>2008-Q3 New tickets: 603</title></circle>
+<circle cx="325.8" cy="202.5" r="4" fill="#2563eb"><title>2008-Q4 New tickets: 954</title></circle>
+<circle cx="336.6" cy="234.6" r="4" fill="#2563eb"><title>2009-Q1 New tickets: 661</title></circle>
+<circle cx="347.5" cy="210.2" r="4" fill="#2563eb"><title>2009-Q2 New tickets: 884</title></circle>
+<circle cx="358.4" cy="245.0" r="4" fill="#2563eb"><title>2009-Q3 New tickets: 566</title></circle>
+<circle cx="369.2" cy="219.5" r="4" fill="#2563eb"><title>2009-Q4 New tickets: 799</title></circle>
+<circle cx="380.1" cy="185.8" r="4" fill="#2563eb"><title>2010-Q1 New tickets: 1,107</title></circle>
+<circle cx="390.9" cy="156.5" r="4" fill="#2563eb"><title>2010-Q2 New tickets: 1,374</title></circle>
+<circle cx="401.8" cy="214.9" r="4" fill="#2563eb"><title>2010-Q3 New tickets: 841</title></circle>
+<circle cx="412.7" cy="191.8" r="4" fill="#2563eb"><title>2010-Q4 New tickets: 1,052</title></circle>
+<circle cx="423.5" cy="202.5" r="4" fill="#2563eb"><title>2011-Q1 New tickets: 954</title></circle>
+<circle cx="434.4" cy="203.7" r="4" fill="#2563eb"><title>2011-Q2 New tickets: 943</title></circle>
+<circle cx="445.2" cy="210.6" r="4" fill="#2563eb"><title>2011-Q3 New tickets: 880</title></circle>
+<circle cx="456.1" cy="211.7" r="4" fill="#2563eb"><title>2011-Q4 New tickets: 870</title></circle>
+<circle cx="467.0" cy="237.4" r="4" fill="#2563eb"><title>2012-Q1 New tickets: 636</title></circle>
+<circle cx="477.8" cy="220.8" r="4" fill="#2563eb"><title>2012-Q2 New tickets: 787</title></circle>
+<circle cx="488.7" cy="204.5" r="4" fill="#2563eb"><title>2012-Q3 New tickets: 936</title></circle>
+<circle cx="499.5" cy="193.7" r="4" fill="#2563eb"><title>2012-Q4 New tickets: 1,035</title></circle>
+<circle cx="510.4" cy="217.5" r="4" fill="#2563eb"><title>2013-Q1 New tickets: 817</title></circle>
+<circle cx="521.3" cy="224.9" r="4" fill="#2563eb"><title>2013-Q2 New tickets: 750</title></circle>
+<circle cx="532.1" cy="220.3" r="4" fill="#2563eb"><title>2013-Q3 New tickets: 792</title></circle>
+<circle cx="543.0" cy="165.2" r="4" fill="#2563eb"><title>2013-Q4 New tickets: 1,295</title></circle>
+<circle cx="553.8" cy="213.7" r="4" fill="#2563eb"><title>2014-Q1 New tickets: 852</title></circle>
+<circle cx="564.7" cy="190.3" r="4" fill="#2563eb"><title>2014-Q2 New tickets: 1,066</title></circle>
+<circle cx="575.6" cy="188.8" r="4" fill="#2563eb"><title>2014-Q3 New tickets: 1,079</title></circle>
+<circle cx="586.4" cy="192.4" r="4" fill="#2563eb"><title>2014-Q4 New tickets: 1,047</title></circle>
+<circle cx="597.3" cy="203.5" r="4" fill="#2563eb"><title>2015-Q1 New tickets: 945</title></circle>
+<circle cx="608.2" cy="195.0" r="4" fill="#2563eb"><title>2015-Q2 New tickets: 1,023</title></circle>
+<circle cx="619.0" cy="169.8" r="4" fill="#2563eb"><title>2015-Q3 New tickets: 1,253</title></circle>
+<circle cx="629.9" cy="178.8" r="4" fill="#2563eb"><title>2015-Q4 New tickets: 1,171</title></circle>
+<circle cx="640.7" cy="197.0" r="4" fill="#2563eb"><title>2016-Q1 New tickets: 1,005</title></circle>
+<circle cx="651.6" cy="214.5" r="4" fill="#2563eb"><title>2016-Q2 New tickets: 845</title></circle>
+<circle cx="662.5" cy="203.0" r="4" fill="#2563eb"><title>2016-Q3 New tickets: 950</title></circle>
+<circle cx="673.3" cy="172.5" r="4" fill="#2563eb"><title>2016-Q4 New tickets: 1,228</title></circle>
+<circle cx="684.2" cy="209.2" r="4" fill="#2563eb"><title>2017-Q1 New tickets: 893</title></circle>
+<circle cx="695.0" cy="209.4" r="4" fill="#2563eb"><title>2017-Q2 New tickets: 891</title></circle>
+<circle cx="705.9" cy="216.0" r="4" fill="#2563eb"><title>2017-Q3 New tickets: 831</title></circle>
+<circle cx="716.8" cy="202.9" r="4" fill="#2563eb"><title>2017-Q4 New tickets: 951</title></circle>
+<circle cx="727.6" cy="234.7" r="4" fill="#2563eb"><title>2018-Q1 New tickets: 660</title></circle>
+<circle cx="738.5" cy="218.1" r="4" fill="#2563eb"><title>2018-Q2 New tickets: 812</title></circle>
+<circle cx="749.3" cy="249.6" r="4" fill="#2563eb"><title>2018-Q3 New tickets: 524</title></circle>
+<circle cx="760.2" cy="221.0" r="4" fill="#2563eb"><title>2018-Q4 New tickets: 785</title></circle>
+<circle cx="771.1" cy="204.2" r="4" fill="#2563eb"><title>2019-Q1 New tickets: 939</title></circle>
+<circle cx="781.9" cy="210.2" r="4" fill="#2563eb"><title>2019-Q2 New tickets: 884</title></circle>
+<circle cx="792.8" cy="247.0" r="4" fill="#2563eb"><title>2019-Q3 New tickets: 548</title></circle>
+<circle cx="803.6" cy="206.8" r="4" fill="#2563eb"><title>2019-Q4 New tickets: 915</title></circle>
+<circle cx="814.5" cy="238.1" r="4" fill="#2563eb"><title>2020-Q1 New tickets: 629</title></circle>
+<circle cx="825.4" cy="223.5" r="4" fill="#2563eb"><title>2020-Q2 New tickets: 763</title></circle>
+<circle cx="836.2" cy="208.0" r="4" fill="#2563eb"><title>2020-Q3 New tickets: 904</title></circle>
+<circle cx="847.1" cy="223.7" r="4" fill="#2563eb"><title>2020-Q4 New tickets: 761</title></circle>
+<circle cx="857.9" cy="224.7" r="4" fill="#2563eb"><title>2021-Q1 New tickets: 752</title></circle>
+<circle cx="868.8" cy="240.4" r="4" fill="#2563eb"><title>2021-Q2 New tickets: 608</title></circle>
+<circle cx="879.7" cy="238.0" r="4" fill="#2563eb"><title>2021-Q3 New tickets: 630</title></circle>
+<circle cx="890.5" cy="252.1" r="4" fill="#2563eb"><title>2021-Q4 New tickets: 501</title></circle>
+<circle cx="901.4" cy="221.7" r="4" fill="#2563eb"><title>2022-Q1 New tickets: 779</title></circle>
+<circle cx="912.2" cy="241.6" r="4" fill="#2563eb"><title>2022-Q2 New tickets: 597</title></circle>
+<circle cx="923.1" cy="243.2" r="4" fill="#2563eb"><title>2022-Q3 New tickets: 583</title></circle>
+<circle cx="934.0" cy="230.7" r="4" fill="#2563eb"><title>2022-Q4 New tickets: 697</title></circle>
+<circle cx="944.8" cy="238.3" r="4" fill="#2563eb"><title>2023-Q1 New tickets: 627</title></circle>
+<circle cx="955.7" cy="235.7" r="4" fill="#2563eb"><title>2023-Q2 New tickets: 651</title></circle>
+<circle cx="966.5" cy="217.6" r="4" fill="#2563eb"><title>2023-Q3 New tickets: 816</title></circle>
+<circle cx="977.4" cy="235.1" r="4" fill="#2563eb"><title>2023-Q4 New tickets: 657</title></circle>
+<circle cx="988.3" cy="231.3" r="4" fill="#2563eb"><title>2024-Q1 New tickets: 691</title></circle>
+<circle cx="999.1" cy="234.2" r="4" fill="#2563eb"><title>2024-Q2 New tickets: 665</title></circle>
+<circle cx="1010.0" cy="243.1" r="4" fill="#2563eb"><title>2024-Q3 New tickets: 584</title></circle>
+<circle cx="1020.8" cy="240.8" r="4" fill="#2563eb"><title>2024-Q4 New tickets: 605</title></circle>
+<circle cx="1031.7" cy="258.3" r="4" fill="#2563eb"><title>2025-Q1 New tickets: 445</title></circle>
+<circle cx="1042.6" cy="259.7" r="4" fill="#2563eb"><title>2025-Q2 New tickets: 432</title></circle>
+<circle cx="1053.4" cy="261.9" r="4" fill="#2563eb"><title>2025-Q3 New tickets: 412</title></circle>
+<circle cx="1064.3" cy="263.0" r="4" fill="#2563eb"><title>2025-Q4 New tickets: 402</title></circle>
+<circle cx="1075.1" cy="248.1" r="4" fill="#2563eb"><title>2026-Q1 New tickets: 538</title></circle>
+<circle cx="1086.0" cy="258.2" r="4" fill="#2563eb"><title>2026-Q2 New tickets: 446</title></circle>
+<polyline points="76.0,307.0 86.9,307.0 97.7,307.0 108.6,307.0 119.4,307.0 130.3,301.9 141.2,295.5 152.0,285.6 162.9,244.6 173.7,291.1 184.6,291.6 195.5,260.1 206.3,272.7 217.2,293.1 228.0,268.7 238.9,253.7 249.8,246.4 260.6,260.7 271.5,253.6 282.3,270.9 293.2,211.4 304.1,258.4 314.9,253.9 325.8,197.8 336.6,250.9 347.5,170.6 358.4,271.2 369.2,228.2 380.1,208.7 390.9,176.4 401.8,272.0 412.7,186.1 423.5,233.7 434.4,229.8 445.2,240.8 456.1,227.7 467.0,249.0 477.8,235.2 488.7,218.6 499.5,203.6 510.4,241.5 521.3,243.2 532.1,161.5 543.0,198.7 553.8,175.8 564.7,212.9 575.6,212.8 586.4,186.2 597.3,209.3 608.2,214.6 619.0,140.3 629.9,153.2 640.7,222.1 651.6,227.8 662.5,228.1 673.3,209.7 684.2,243.2 695.0,244.6 705.9,237.4 716.8,232.0 727.6,260.0 738.5,261.9 749.3,279.5 760.2,244.8 771.1,210.7 781.9,215.8 792.8,215.0 803.6,232.4 814.5,241.2 825.4,242.2 836.2,213.3 847.1,212.6 857.9,236.3 868.8,246.7 879.7,260.9 890.5,261.8 901.4,252.5 912.2,257.7 923.1,244.4 934.0,246.7 944.8,240.9 955.7,251.7 966.5,238.3 977.4,256.8 988.3,231.0 999.1,233.7 1010.0,240.3 1020.8,250.7 1031.7,253.2 1042.6,244.5 1053.4,241.5 1064.3,253.7 1075.1,254.3 1086.0,275.4" fill="none" stroke="#dc2626" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="76.0" cy="307.0" r="4" fill="#dc2626"><title>2003-Q1 Closed tickets: 0</title></circle>
+<circle cx="86.9" cy="307.0" r="4" fill="#dc2626"><title>2003-Q2 Closed tickets: 0</title></circle>
+<circle cx="97.7" cy="307.0" r="4" fill="#dc2626"><title>2003-Q3 Closed tickets: 0</title></circle>
+<circle cx="108.6" cy="307.0" r="4" fill="#dc2626"><title>2003-Q4 Closed tickets: 0</title></circle>
+<circle cx="119.4" cy="307.0" r="4" fill="#dc2626"><title>2004-Q1 Closed tickets: 0</title></circle>
+<circle cx="130.3" cy="301.9" r="4" fill="#dc2626"><title>2004-Q2 Closed tickets: 47</title></circle>
+<circle cx="141.2" cy="295.5" r="4" fill="#dc2626"><title>2004-Q3 Closed tickets: 105</title></circle>
+<circle cx="152.0" cy="285.6" r="4" fill="#dc2626"><title>2004-Q4 Closed tickets: 195</title></circle>
+<circle cx="162.9" cy="244.6" r="4" fill="#dc2626"><title>2005-Q1 Closed tickets: 570</title></circle>
+<circle cx="173.7" cy="291.1" r="4" fill="#dc2626"><title>2005-Q2 Closed tickets: 145</title></circle>
+<circle cx="184.6" cy="291.6" r="4" fill="#dc2626"><title>2005-Q3 Closed tickets: 141</title></circle>
+<circle cx="195.5" cy="260.1" r="4" fill="#dc2626"><title>2005-Q4 Closed tickets: 428</title></circle>
+<circle cx="206.3" cy="272.7" r="4" fill="#dc2626"><title>2006-Q1 Closed tickets: 313</title></circle>
+<circle cx="217.2" cy="293.1" r="4" fill="#dc2626"><title>2006-Q2 Closed tickets: 127</title></circle>
+<circle cx="228.0" cy="268.7" r="4" fill="#dc2626"><title>2006-Q3 Closed tickets: 350</title></circle>
+<circle cx="238.9" cy="253.7" r="4" fill="#dc2626"><title>2006-Q4 Closed tickets: 487</title></circle>
+<circle cx="249.8" cy="246.4" r="4" fill="#dc2626"><title>2007-Q1 Closed tickets: 553</title></circle>
+<circle cx="260.6" cy="260.7" r="4" fill="#dc2626"><title>2007-Q2 Closed tickets: 423</title></circle>
+<circle cx="271.5" cy="253.6" r="4" fill="#dc2626"><title>2007-Q3 Closed tickets: 488</title></circle>
+<circle cx="282.3" cy="270.9" r="4" fill="#dc2626"><title>2007-Q4 Closed tickets: 330</title></circle>
+<circle cx="293.2" cy="211.4" r="4" fill="#dc2626"><title>2008-Q1 Closed tickets: 873</title></circle>
+<circle cx="304.1" cy="258.4" r="4" fill="#dc2626"><title>2008-Q2 Closed tickets: 444</title></circle>
+<circle cx="314.9" cy="253.9" r="4" fill="#dc2626"><title>2008-Q3 Closed tickets: 485</title></circle>
+<circle cx="325.8" cy="197.8" r="4" fill="#dc2626"><title>2008-Q4 Closed tickets: 997</title></circle>
+<circle cx="336.6" cy="250.9" r="4" fill="#dc2626"><title>2009-Q1 Closed tickets: 512</title></circle>
+<circle cx="347.5" cy="170.6" r="4" fill="#dc2626"><title>2009-Q2 Closed tickets: 1,246</title></circle>
+<circle cx="358.4" cy="271.2" r="4" fill="#dc2626"><title>2009-Q3 Closed tickets: 327</title></circle>
+<circle cx="369.2" cy="228.2" r="4" fill="#dc2626"><title>2009-Q4 Closed tickets: 720</title></circle>
+<circle cx="380.1" cy="208.7" r="4" fill="#dc2626"><title>2010-Q1 Closed tickets: 898</title></circle>
+<circle cx="390.9" cy="176.4" r="4" fill="#dc2626"><title>2010-Q2 Closed tickets: 1,193</title></circle>
+<circle cx="401.8" cy="272.0" r="4" fill="#dc2626"><title>2010-Q3 Closed tickets: 320</title></circle>
+<circle cx="412.7" cy="186.1" r="4" fill="#dc2626"><title>2010-Q4 Closed tickets: 1,104</title></circle>
+<circle cx="423.5" cy="233.7" r="4" fill="#dc2626"><title>2011-Q1 Closed tickets: 669</title></circle>
+<circle cx="434.4" cy="229.8" r="4" fill="#dc2626"><title>2011-Q2 Closed tickets: 705</title></circle>
+<circle cx="445.2" cy="240.8" r="4" fill="#dc2626"><title>2011-Q3 Closed tickets: 605</title></circle>
+<circle cx="456.1" cy="227.7" r="4" fill="#dc2626"><title>2011-Q4 Closed tickets: 724</title></circle>
+<circle cx="467.0" cy="249.0" r="4" fill="#dc2626"><title>2012-Q1 Closed tickets: 530</title></circle>
+<circle cx="477.8" cy="235.2" r="4" fill="#dc2626"><title>2012-Q2 Closed tickets: 656</title></circle>
+<circle cx="488.7" cy="218.6" r="4" fill="#dc2626"><title>2012-Q3 Closed tickets: 807</title></circle>
+<circle cx="499.5" cy="203.6" r="4" fill="#dc2626"><title>2012-Q4 Closed tickets: 944</title></circle>
+<circle cx="510.4" cy="241.5" r="4" fill="#dc2626"><title>2013-Q1 Closed tickets: 598</title></circle>
+<circle cx="521.3" cy="243.2" r="4" fill="#dc2626"><title>2013-Q2 Closed tickets: 583</title></circle>
+<circle cx="532.1" cy="161.5" r="4" fill="#dc2626"><title>2013-Q3 Closed tickets: 1,329</title></circle>
+<circle cx="543.0" cy="198.7" r="4" fill="#dc2626"><title>2013-Q4 Closed tickets: 989</title></circle>
+<circle cx="553.8" cy="175.8" r="4" fill="#dc2626"><title>2014-Q1 Closed tickets: 1,198</title></circle>
+<circle cx="564.7" cy="212.9" r="4" fill="#dc2626"><title>2014-Q2 Closed tickets: 859</title></circle>
+<circle cx="575.6" cy="212.8" r="4" fill="#dc2626"><title>2014-Q3 Closed tickets: 860</title></circle>
+<circle cx="586.4" cy="186.2" r="4" fill="#dc2626"><title>2014-Q4 Closed tickets: 1,103</title></circle>
+<circle cx="597.3" cy="209.3" r="4" fill="#dc2626"><title>2015-Q1 Closed tickets: 892</title></circle>
+<circle cx="608.2" cy="214.6" r="4" fill="#dc2626"><title>2015-Q2 Closed tickets: 844</title></circle>
+<circle cx="619.0" cy="140.3" r="4" fill="#dc2626"><title>2015-Q3 Closed tickets: 1,522</title></circle>
+<circle cx="629.9" cy="153.2" r="4" fill="#dc2626"><title>2015-Q4 Closed tickets: 1,405</title></circle>
+<circle cx="640.7" cy="222.1" r="4" fill="#dc2626"><title>2016-Q1 Closed tickets: 775</title></circle>
+<circle cx="651.6" cy="227.8" r="4" fill="#dc2626"><title>2016-Q2 Closed tickets: 723</title></circle>
+<circle cx="662.5" cy="228.1" r="4" fill="#dc2626"><title>2016-Q3 Closed tickets: 721</title></circle>
+<circle cx="673.3" cy="209.7" r="4" fill="#dc2626"><title>2016-Q4 Closed tickets: 889</title></circle>
+<circle cx="684.2" cy="243.2" r="4" fill="#dc2626"><title>2017-Q1 Closed tickets: 583</title></circle>
+<circle cx="695.0" cy="244.6" r="4" fill="#dc2626"><title>2017-Q2 Closed tickets: 570</title></circle>
+<circle cx="705.9" cy="237.4" r="4" fill="#dc2626"><title>2017-Q3 Closed tickets: 636</title></circle>
+<circle cx="716.8" cy="232.0" r="4" fill="#dc2626"><title>2017-Q4 Closed tickets: 685</title></circle>
+<circle cx="727.6" cy="260.0" r="4" fill="#dc2626"><title>2018-Q1 Closed tickets: 429</title></circle>
+<circle cx="738.5" cy="261.9" r="4" fill="#dc2626"><title>2018-Q2 Closed tickets: 412</title></circle>
+<circle cx="749.3" cy="279.5" r="4" fill="#dc2626"><title>2018-Q3 Closed tickets: 251</title></circle>
+<circle cx="760.2" cy="244.8" r="4" fill="#dc2626"><title>2018-Q4 Closed tickets: 568</title></circle>
+<circle cx="771.1" cy="210.7" r="4" fill="#dc2626"><title>2019-Q1 Closed tickets: 879</title></circle>
+<circle cx="781.9" cy="215.8" r="4" fill="#dc2626"><title>2019-Q2 Closed tickets: 833</title></circle>
+<circle cx="792.8" cy="215.0" r="4" fill="#dc2626"><title>2019-Q3 Closed tickets: 840</title></circle>
+<circle cx="803.6" cy="232.4" r="4" fill="#dc2626"><title>2019-Q4 Closed tickets: 681</title></circle>
+<circle cx="814.5" cy="241.2" r="4" fill="#dc2626"><title>2020-Q1 Closed tickets: 601</title></circle>
+<circle cx="825.4" cy="242.2" r="4" fill="#dc2626"><title>2020-Q2 Closed tickets: 592</title></circle>
+<circle cx="836.2" cy="213.3" r="4" fill="#dc2626"><title>2020-Q3 Closed tickets: 856</title></circle>
+<circle cx="847.1" cy="212.6" r="4" fill="#dc2626"><title>2020-Q4 Closed tickets: 862</title></circle>
+<circle cx="857.9" cy="236.3" r="4" fill="#dc2626"><title>2021-Q1 Closed tickets: 646</title></circle>
+<circle cx="868.8" cy="246.7" r="4" fill="#dc2626"><title>2021-Q2 Closed tickets: 551</title></circle>
+<circle cx="879.7" cy="260.9" r="4" fill="#dc2626"><title>2021-Q3 Closed tickets: 421</title></circle>
+<circle cx="890.5" cy="261.8" r="4" fill="#dc2626"><title>2021-Q4 Closed tickets: 413</title></circle>
+<circle cx="901.4" cy="252.5" r="4" fill="#dc2626"><title>2022-Q1 Closed tickets: 498</title></circle>
+<circle cx="912.2" cy="257.7" r="4" fill="#dc2626"><title>2022-Q2 Closed tickets: 450</title></circle>
+<circle cx="923.1" cy="244.4" r="4" fill="#dc2626"><title>2022-Q3 Closed tickets: 572</title></circle>
+<circle cx="934.0" cy="246.7" r="4" fill="#dc2626"><title>2022-Q4 Closed tickets: 551</title></circle>
+<circle cx="944.8" cy="240.9" r="4" fill="#dc2626"><title>2023-Q1 Closed tickets: 604</title></circle>
+<circle cx="955.7" cy="251.7" r="4" fill="#dc2626"><title>2023-Q2 Closed tickets: 505</title></circle>
+<circle cx="966.5" cy="238.3" r="4" fill="#dc2626"><title>2023-Q3 Closed tickets: 627</title></circle>
+<circle cx="977.4" cy="256.8" r="4" fill="#dc2626"><title>2023-Q4 Closed tickets: 458</title></circle>
+<circle cx="988.3" cy="231.0" r="4" fill="#dc2626"><title>2024-Q1 Closed tickets: 694</title></circle>
+<circle cx="999.1" cy="233.7" r="4" fill="#dc2626"><title>2024-Q2 Closed tickets: 669</title></circle>
+<circle cx="1010.0" cy="240.3" r="4" fill="#dc2626"><title>2024-Q3 Closed tickets: 609</title></circle>
+<circle cx="1020.8" cy="250.7" r="4" fill="#dc2626"><title>2024-Q4 Closed tickets: 514</title></circle>
+<circle cx="1031.7" cy="253.2" r="4" fill="#dc2626"><title>2025-Q1 Closed tickets: 491</title></circle>
+<circle cx="1042.6" cy="244.5" r="4" fill="#dc2626"><title>2025-Q2 Closed tickets: 571</title></circle>
+<circle cx="1053.4" cy="241.5" r="4" fill="#dc2626"><title>2025-Q3 Closed tickets: 598</title></circle>
+<circle cx="1064.3" cy="253.7" r="4" fill="#dc2626"><title>2025-Q4 Closed tickets: 487</title></circle>
+<circle cx="1075.1" cy="254.3" r="4" fill="#dc2626"><title>2026-Q1 Closed tickets: 481</title></circle>
+<circle cx="1086.0" cy="275.4" r="4" fill="#dc2626"><title>2026-Q2 Closed tickets: 289</title></circle>
+<text x="76.0" y="341" text-anchor="middle" class="axis">2003</text>
+<text x="119.4" y="341" text-anchor="middle" class="axis">2004</text>
+<text x="162.9" y="341" text-anchor="middle" class="axis">2005</text>
+<text x="206.3" y="341" text-anchor="middle" class="axis">2006</text>
+<text x="249.8" y="341" text-anchor="middle" class="axis">2007</text>
+<text x="293.2" y="341" text-anchor="middle" class="axis">2008</text>
+<text x="336.6" y="341" text-anchor="middle" class="axis">2009</text>
+<text x="380.1" y="341" text-anchor="middle" class="axis">2010</text>
+<text x="423.5" y="341" text-anchor="middle" class="axis">2011</text>
+<text x="467.0" y="341" text-anchor="middle" class="axis">2012</text>
+<text x="510.4" y="341" text-anchor="middle" class="axis">2013</text>
+<text x="553.8" y="341" text-anchor="middle" class="axis">2014</text>
+<text x="597.3" y="341" text-anchor="middle" class="axis">2015</text>
+<text x="640.7" y="341" text-anchor="middle" class="axis">2016</text>
+<text x="684.2" y="341" text-anchor="middle" class="axis">2017</text>
+<text x="727.6" y="341" text-anchor="middle" class="axis">2018</text>
+<text x="771.1" y="341" text-anchor="middle" class="axis">2019</text>
+<text x="814.5" y="341" text-anchor="middle" class="axis">2020</text>
+<text x="857.9" y="341" text-anchor="middle" class="axis">2021</text>
+<text x="901.4" y="341" text-anchor="middle" class="axis">2022</text>
+<text x="944.8" y="341" text-anchor="middle" class="axis">2023</text>
+<text x="988.3" y="341" text-anchor="middle" class="axis">2024</text>
+<text x="1031.7" y="341" text-anchor="middle" class="axis">2025</text>
+<text x="1075.1" y="341" text-anchor="middle" class="axis">2026</text>
 </svg>
   </section>
 
@@ -357,75 +610,235 @@
   <section class="chart-band">
     <svg viewBox="0 0 1120 365" role="img" aria-label="People opening WordPress Core Trac tickets">
 <text x="76" y="24" class="chart-title">People opening Core Trac tickets</text>
-<text x="76" y="46" class="chart-note">Unique reporters averaged 416 per quarter early in the window and 240 recently.</text>
+<text x="76" y="46" class="chart-note">Unique reporters averaged 100 per quarter in the first active year and 240 recently.</text>
 <rect x="76" y="60" width="12" height="12" rx="2" fill="#7c3aed"/>
 <text x="94" y="71" class="legend-text">Unique reporters</text>
 <rect x="230" y="60" width="12" height="12" rx="2" fill="#ea580c"/>
 <text x="248" y="71" class="legend-text">First-time reporters</text>
 <line x1="76" y1="307.0" x2="1086" y2="307.0" class="grid"/>
 <text x="66" y="311.0" text-anchor="end" class="axis">0</text>
-<line x1="76" y1="270.5" x2="1086" y2="270.5" class="grid"/>
-<text x="66" y="274.5" text-anchor="end" class="axis">100</text>
-<line x1="76" y1="234.0" x2="1086" y2="234.0" class="grid"/>
-<text x="66" y="238.0" text-anchor="end" class="axis">200</text>
-<line x1="76" y1="197.5" x2="1086" y2="197.5" class="grid"/>
-<text x="66" y="201.5" text-anchor="end" class="axis">300</text>
-<line x1="76" y1="161.0" x2="1086" y2="161.0" class="grid"/>
-<text x="66" y="165.0" text-anchor="end" class="axis">400</text>
-<line x1="76" y1="124.5" x2="1086" y2="124.5" class="grid"/>
-<text x="66" y="128.5" text-anchor="end" class="axis">500</text>
-<line x1="76" y1="88.0" x2="1086" y2="88.0" class="grid"/>
-<text x="66" y="92.0" text-anchor="end" class="axis">600</text>
-<polyline points="76.0,266.1 126.5,147.5 177.0,194.2 227.5,111.0 278.0,168.7 328.5,172.7 379.0,141.3 429.5,162.5 480.0,170.5 530.5,130.0 581.0,167.2 631.5,160.6 682.0,166.5 732.5,166.1 783.0,163.6 833.5,209.5 884.0,215.8 934.5,224.1 985.0,220.5 1035.5,217.6 1086.0,217.6" fill="none" stroke="#7c3aed" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-<circle cx="76.0" cy="266.1" r="4" fill="#7c3aed"><title>2021-Q2 Unique reporters: 112</title></circle>
-<circle cx="126.5" cy="147.5" r="4" fill="#7c3aed"><title>2021-Q3 Unique reporters: 437</title></circle>
-<circle cx="177.0" cy="194.2" r="4" fill="#7c3aed"><title>2021-Q4 Unique reporters: 309</title></circle>
-<circle cx="227.5" cy="111.0" r="4" fill="#7c3aed"><title>2022-Q1 Unique reporters: 537</title></circle>
-<circle cx="278.0" cy="168.7" r="4" fill="#7c3aed"><title>2022-Q2 Unique reporters: 379</title></circle>
-<circle cx="328.5" cy="172.7" r="4" fill="#7c3aed"><title>2022-Q3 Unique reporters: 368</title></circle>
-<circle cx="379.0" cy="141.3" r="4" fill="#7c3aed"><title>2022-Q4 Unique reporters: 454</title></circle>
-<circle cx="429.5" cy="162.5" r="4" fill="#7c3aed"><title>2023-Q1 Unique reporters: 396</title></circle>
-<circle cx="480.0" cy="170.5" r="4" fill="#7c3aed"><title>2023-Q2 Unique reporters: 374</title></circle>
-<circle cx="530.5" cy="130.0" r="4" fill="#7c3aed"><title>2023-Q3 Unique reporters: 485</title></circle>
-<circle cx="581.0" cy="167.2" r="4" fill="#7c3aed"><title>2023-Q4 Unique reporters: 383</title></circle>
-<circle cx="631.5" cy="160.6" r="4" fill="#7c3aed"><title>2024-Q1 Unique reporters: 401</title></circle>
-<circle cx="682.0" cy="166.5" r="4" fill="#7c3aed"><title>2024-Q2 Unique reporters: 385</title></circle>
-<circle cx="732.5" cy="166.1" r="4" fill="#7c3aed"><title>2024-Q3 Unique reporters: 386</title></circle>
-<circle cx="783.0" cy="163.6" r="4" fill="#7c3aed"><title>2024-Q4 Unique reporters: 393</title></circle>
-<circle cx="833.5" cy="209.5" r="4" fill="#7c3aed"><title>2025-Q1 Unique reporters: 267</title></circle>
-<circle cx="884.0" cy="215.8" r="4" fill="#7c3aed"><title>2025-Q2 Unique reporters: 250</title></circle>
-<circle cx="934.5" cy="224.1" r="4" fill="#7c3aed"><title>2025-Q3 Unique reporters: 227</title></circle>
-<circle cx="985.0" cy="220.5" r="4" fill="#7c3aed"><title>2025-Q4 Unique reporters: 237</title></circle>
-<circle cx="1035.5" cy="217.6" r="4" fill="#7c3aed"><title>2026-Q1 Unique reporters: 245</title></circle>
-<circle cx="1086.0" cy="217.6" r="4" fill="#7c3aed"><title>2026-Q2 Unique reporters: 245</title></circle>
-<polyline points="76.0,292.4 126.5,217.6 177.0,250.1 227.5,197.5 278.0,233.3 328.5,232.5 379.0,219.8 429.5,232.2 480.0,236.9 530.5,207.7 581.0,233.6 631.5,234.7 682.0,231.8 732.5,232.5 783.0,227.1 833.5,259.2 884.0,263.2 934.5,267.6 985.0,268.3 1035.5,271.2 1086.0,267.6" fill="none" stroke="#ea580c" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-<circle cx="76.0" cy="292.4" r="4" fill="#ea580c"><title>2021-Q2 First-time reporters: 40</title></circle>
-<circle cx="126.5" cy="217.6" r="4" fill="#ea580c"><title>2021-Q3 First-time reporters: 245</title></circle>
-<circle cx="177.0" cy="250.1" r="4" fill="#ea580c"><title>2021-Q4 First-time reporters: 156</title></circle>
-<circle cx="227.5" cy="197.5" r="4" fill="#ea580c"><title>2022-Q1 First-time reporters: 300</title></circle>
-<circle cx="278.0" cy="233.3" r="4" fill="#ea580c"><title>2022-Q2 First-time reporters: 202</title></circle>
-<circle cx="328.5" cy="232.5" r="4" fill="#ea580c"><title>2022-Q3 First-time reporters: 204</title></circle>
-<circle cx="379.0" cy="219.8" r="4" fill="#ea580c"><title>2022-Q4 First-time reporters: 239</title></circle>
-<circle cx="429.5" cy="232.2" r="4" fill="#ea580c"><title>2023-Q1 First-time reporters: 205</title></circle>
-<circle cx="480.0" cy="236.9" r="4" fill="#ea580c"><title>2023-Q2 First-time reporters: 192</title></circle>
-<circle cx="530.5" cy="207.7" r="4" fill="#ea580c"><title>2023-Q3 First-time reporters: 272</title></circle>
-<circle cx="581.0" cy="233.6" r="4" fill="#ea580c"><title>2023-Q4 First-time reporters: 201</title></circle>
-<circle cx="631.5" cy="234.7" r="4" fill="#ea580c"><title>2024-Q1 First-time reporters: 198</title></circle>
-<circle cx="682.0" cy="231.8" r="4" fill="#ea580c"><title>2024-Q2 First-time reporters: 206</title></circle>
-<circle cx="732.5" cy="232.5" r="4" fill="#ea580c"><title>2024-Q3 First-time reporters: 204</title></circle>
-<circle cx="783.0" cy="227.1" r="4" fill="#ea580c"><title>2024-Q4 First-time reporters: 219</title></circle>
-<circle cx="833.5" cy="259.2" r="4" fill="#ea580c"><title>2025-Q1 First-time reporters: 131</title></circle>
-<circle cx="884.0" cy="263.2" r="4" fill="#ea580c"><title>2025-Q2 First-time reporters: 120</title></circle>
-<circle cx="934.5" cy="267.6" r="4" fill="#ea580c"><title>2025-Q3 First-time reporters: 108</title></circle>
-<circle cx="985.0" cy="268.3" r="4" fill="#ea580c"><title>2025-Q4 First-time reporters: 106</title></circle>
-<circle cx="1035.5" cy="271.2" r="4" fill="#ea580c"><title>2026-Q1 First-time reporters: 98</title></circle>
-<circle cx="1086.0" cy="267.6" r="4" fill="#ea580c"><title>2026-Q2 First-time reporters: 108</title></circle>
-<text x="76.0" y="341" text-anchor="middle" class="axis">2021</text>
-<text x="227.5" y="341" text-anchor="middle" class="axis">2022</text>
-<text x="429.5" y="341" text-anchor="middle" class="axis">2023</text>
-<text x="631.5" y="341" text-anchor="middle" class="axis">2024</text>
-<text x="833.5" y="341" text-anchor="middle" class="axis">2025</text>
-<text x="1035.5" y="341" text-anchor="middle" class="axis">2026</text>
+<line x1="76" y1="244.4" x2="1086" y2="244.4" class="grid"/>
+<text x="66" y="248.4" text-anchor="end" class="axis">200</text>
+<line x1="76" y1="181.9" x2="1086" y2="181.9" class="grid"/>
+<text x="66" y="185.9" text-anchor="end" class="axis">400</text>
+<line x1="76" y1="119.3" x2="1086" y2="119.3" class="grid"/>
+<text x="66" y="123.3" text-anchor="end" class="axis">600</text>
+<line x1="76" y1="56.7" x2="1086" y2="56.7" class="grid"/>
+<text x="66" y="60.7" text-anchor="end" class="axis">800</text>
+<polyline points="76.0,307.0 86.9,307.0 97.7,307.0 108.6,307.0 119.4,307.0 130.3,289.5 141.2,281.7 152.0,280.1 162.9,252.2 173.7,266.0 184.6,264.1 195.5,253.2 206.3,236.0 217.2,258.8 228.0,261.3 238.9,271.3 249.8,224.1 260.6,237.9 271.5,233.5 282.3,241.6 293.2,211.0 304.1,209.1 314.9,219.1 325.8,196.2 336.6,202.2 347.5,205.6 358.4,212.5 369.2,215.3 380.1,177.2 390.9,130.2 401.8,163.1 412.7,177.5 423.5,158.7 434.4,174.3 445.2,164.7 456.1,177.2 467.0,194.4 477.8,187.8 488.7,168.1 499.5,165.9 510.4,175.0 521.3,196.2 532.1,183.7 543.0,147.8 553.8,161.2 564.7,125.2 575.6,139.0 586.4,138.4 597.3,146.8 608.2,132.4 619.0,109.9 629.9,119.6 640.7,149.9 651.6,148.1 662.5,151.5 673.3,135.2 684.2,124.9 695.0,134.3 705.9,154.3 716.8,126.2 727.6,163.7 738.5,165.3 749.3,192.2 760.2,157.5 771.1,137.4 781.9,150.9 792.8,189.4 803.6,133.1 814.5,175.3 825.4,139.9 836.2,128.0 847.1,150.6 857.9,149.0 868.8,190.9 879.7,170.3 890.5,210.3 901.4,139.0 912.2,188.4 923.1,191.9 934.0,165.0 944.8,183.1 955.7,190.0 966.5,155.3 977.4,187.2 988.3,181.5 999.1,186.6 1010.0,186.2 1020.8,184.0 1031.7,223.5 1042.6,228.8 1053.4,236.0 1064.3,232.9 1075.1,230.3 1086.0,230.3" fill="none" stroke="#7c3aed" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="76.0" cy="307.0" r="4" fill="#7c3aed"><title>2003-Q1 Unique reporters: 0</title></circle>
+<circle cx="86.9" cy="307.0" r="4" fill="#7c3aed"><title>2003-Q2 Unique reporters: 0</title></circle>
+<circle cx="97.7" cy="307.0" r="4" fill="#7c3aed"><title>2003-Q3 Unique reporters: 0</title></circle>
+<circle cx="108.6" cy="307.0" r="4" fill="#7c3aed"><title>2003-Q4 Unique reporters: 0</title></circle>
+<circle cx="119.4" cy="307.0" r="4" fill="#7c3aed"><title>2004-Q1 Unique reporters: 0</title></circle>
+<circle cx="130.3" cy="289.5" r="4" fill="#7c3aed"><title>2004-Q2 Unique reporters: 56</title></circle>
+<circle cx="141.2" cy="281.7" r="4" fill="#7c3aed"><title>2004-Q3 Unique reporters: 81</title></circle>
+<circle cx="152.0" cy="280.1" r="4" fill="#7c3aed"><title>2004-Q4 Unique reporters: 86</title></circle>
+<circle cx="162.9" cy="252.2" r="4" fill="#7c3aed"><title>2005-Q1 Unique reporters: 175</title></circle>
+<circle cx="173.7" cy="266.0" r="4" fill="#7c3aed"><title>2005-Q2 Unique reporters: 131</title></circle>
+<circle cx="184.6" cy="264.1" r="4" fill="#7c3aed"><title>2005-Q3 Unique reporters: 137</title></circle>
+<circle cx="195.5" cy="253.2" r="4" fill="#7c3aed"><title>2005-Q4 Unique reporters: 172</title></circle>
+<circle cx="206.3" cy="236.0" r="4" fill="#7c3aed"><title>2006-Q1 Unique reporters: 227</title></circle>
+<circle cx="217.2" cy="258.8" r="4" fill="#7c3aed"><title>2006-Q2 Unique reporters: 154</title></circle>
+<circle cx="228.0" cy="261.3" r="4" fill="#7c3aed"><title>2006-Q3 Unique reporters: 146</title></circle>
+<circle cx="238.9" cy="271.3" r="4" fill="#7c3aed"><title>2006-Q4 Unique reporters: 114</title></circle>
+<circle cx="249.8" cy="224.1" r="4" fill="#7c3aed"><title>2007-Q1 Unique reporters: 265</title></circle>
+<circle cx="260.6" cy="237.9" r="4" fill="#7c3aed"><title>2007-Q2 Unique reporters: 221</title></circle>
+<circle cx="271.5" cy="233.5" r="4" fill="#7c3aed"><title>2007-Q3 Unique reporters: 235</title></circle>
+<circle cx="282.3" cy="241.6" r="4" fill="#7c3aed"><title>2007-Q4 Unique reporters: 209</title></circle>
+<circle cx="293.2" cy="211.0" r="4" fill="#7c3aed"><title>2008-Q1 Unique reporters: 307</title></circle>
+<circle cx="304.1" cy="209.1" r="4" fill="#7c3aed"><title>2008-Q2 Unique reporters: 313</title></circle>
+<circle cx="314.9" cy="219.1" r="4" fill="#7c3aed"><title>2008-Q3 Unique reporters: 281</title></circle>
+<circle cx="325.8" cy="196.2" r="4" fill="#7c3aed"><title>2008-Q4 Unique reporters: 354</title></circle>
+<circle cx="336.6" cy="202.2" r="4" fill="#7c3aed"><title>2009-Q1 Unique reporters: 335</title></circle>
+<circle cx="347.5" cy="205.6" r="4" fill="#7c3aed"><title>2009-Q2 Unique reporters: 324</title></circle>
+<circle cx="358.4" cy="212.5" r="4" fill="#7c3aed"><title>2009-Q3 Unique reporters: 302</title></circle>
+<circle cx="369.2" cy="215.3" r="4" fill="#7c3aed"><title>2009-Q4 Unique reporters: 293</title></circle>
+<circle cx="380.1" cy="177.2" r="4" fill="#7c3aed"><title>2010-Q1 Unique reporters: 415</title></circle>
+<circle cx="390.9" cy="130.2" r="4" fill="#7c3aed"><title>2010-Q2 Unique reporters: 565</title></circle>
+<circle cx="401.8" cy="163.1" r="4" fill="#7c3aed"><title>2010-Q3 Unique reporters: 460</title></circle>
+<circle cx="412.7" cy="177.5" r="4" fill="#7c3aed"><title>2010-Q4 Unique reporters: 414</title></circle>
+<circle cx="423.5" cy="158.7" r="4" fill="#7c3aed"><title>2011-Q1 Unique reporters: 474</title></circle>
+<circle cx="434.4" cy="174.3" r="4" fill="#7c3aed"><title>2011-Q2 Unique reporters: 424</title></circle>
+<circle cx="445.2" cy="164.7" r="4" fill="#7c3aed"><title>2011-Q3 Unique reporters: 455</title></circle>
+<circle cx="456.1" cy="177.2" r="4" fill="#7c3aed"><title>2011-Q4 Unique reporters: 415</title></circle>
+<circle cx="467.0" cy="194.4" r="4" fill="#7c3aed"><title>2012-Q1 Unique reporters: 360</title></circle>
+<circle cx="477.8" cy="187.8" r="4" fill="#7c3aed"><title>2012-Q2 Unique reporters: 381</title></circle>
+<circle cx="488.7" cy="168.1" r="4" fill="#7c3aed"><title>2012-Q3 Unique reporters: 444</title></circle>
+<circle cx="499.5" cy="165.9" r="4" fill="#7c3aed"><title>2012-Q4 Unique reporters: 451</title></circle>
+<circle cx="510.4" cy="175.0" r="4" fill="#7c3aed"><title>2013-Q1 Unique reporters: 422</title></circle>
+<circle cx="521.3" cy="196.2" r="4" fill="#7c3aed"><title>2013-Q2 Unique reporters: 354</title></circle>
+<circle cx="532.1" cy="183.7" r="4" fill="#7c3aed"><title>2013-Q3 Unique reporters: 394</title></circle>
+<circle cx="543.0" cy="147.8" r="4" fill="#7c3aed"><title>2013-Q4 Unique reporters: 509</title></circle>
+<circle cx="553.8" cy="161.2" r="4" fill="#7c3aed"><title>2014-Q1 Unique reporters: 466</title></circle>
+<circle cx="564.7" cy="125.2" r="4" fill="#7c3aed"><title>2014-Q2 Unique reporters: 581</title></circle>
+<circle cx="575.6" cy="139.0" r="4" fill="#7c3aed"><title>2014-Q3 Unique reporters: 537</title></circle>
+<circle cx="586.4" cy="138.4" r="4" fill="#7c3aed"><title>2014-Q4 Unique reporters: 539</title></circle>
+<circle cx="597.3" cy="146.8" r="4" fill="#7c3aed"><title>2015-Q1 Unique reporters: 512</title></circle>
+<circle cx="608.2" cy="132.4" r="4" fill="#7c3aed"><title>2015-Q2 Unique reporters: 558</title></circle>
+<circle cx="619.0" cy="109.9" r="4" fill="#7c3aed"><title>2015-Q3 Unique reporters: 630</title></circle>
+<circle cx="629.9" cy="119.6" r="4" fill="#7c3aed"><title>2015-Q4 Unique reporters: 599</title></circle>
+<circle cx="640.7" cy="149.9" r="4" fill="#7c3aed"><title>2016-Q1 Unique reporters: 502</title></circle>
+<circle cx="651.6" cy="148.1" r="4" fill="#7c3aed"><title>2016-Q2 Unique reporters: 508</title></circle>
+<circle cx="662.5" cy="151.5" r="4" fill="#7c3aed"><title>2016-Q3 Unique reporters: 497</title></circle>
+<circle cx="673.3" cy="135.2" r="4" fill="#7c3aed"><title>2016-Q4 Unique reporters: 549</title></circle>
+<circle cx="684.2" cy="124.9" r="4" fill="#7c3aed"><title>2017-Q1 Unique reporters: 582</title></circle>
+<circle cx="695.0" cy="134.3" r="4" fill="#7c3aed"><title>2017-Q2 Unique reporters: 552</title></circle>
+<circle cx="705.9" cy="154.3" r="4" fill="#7c3aed"><title>2017-Q3 Unique reporters: 488</title></circle>
+<circle cx="716.8" cy="126.2" r="4" fill="#7c3aed"><title>2017-Q4 Unique reporters: 578</title></circle>
+<circle cx="727.6" cy="163.7" r="4" fill="#7c3aed"><title>2018-Q1 Unique reporters: 458</title></circle>
+<circle cx="738.5" cy="165.3" r="4" fill="#7c3aed"><title>2018-Q2 Unique reporters: 453</title></circle>
+<circle cx="749.3" cy="192.2" r="4" fill="#7c3aed"><title>2018-Q3 Unique reporters: 367</title></circle>
+<circle cx="760.2" cy="157.5" r="4" fill="#7c3aed"><title>2018-Q4 Unique reporters: 478</title></circle>
+<circle cx="771.1" cy="137.4" r="4" fill="#7c3aed"><title>2019-Q1 Unique reporters: 542</title></circle>
+<circle cx="781.9" cy="150.9" r="4" fill="#7c3aed"><title>2019-Q2 Unique reporters: 499</title></circle>
+<circle cx="792.8" cy="189.4" r="4" fill="#7c3aed"><title>2019-Q3 Unique reporters: 376</title></circle>
+<circle cx="803.6" cy="133.1" r="4" fill="#7c3aed"><title>2019-Q4 Unique reporters: 556</title></circle>
+<circle cx="814.5" cy="175.3" r="4" fill="#7c3aed"><title>2020-Q1 Unique reporters: 421</title></circle>
+<circle cx="825.4" cy="139.9" r="4" fill="#7c3aed"><title>2020-Q2 Unique reporters: 534</title></circle>
+<circle cx="836.2" cy="128.0" r="4" fill="#7c3aed"><title>2020-Q3 Unique reporters: 572</title></circle>
+<circle cx="847.1" cy="150.6" r="4" fill="#7c3aed"><title>2020-Q4 Unique reporters: 500</title></circle>
+<circle cx="857.9" cy="149.0" r="4" fill="#7c3aed"><title>2021-Q1 Unique reporters: 505</title></circle>
+<circle cx="868.8" cy="190.9" r="4" fill="#7c3aed"><title>2021-Q2 Unique reporters: 371</title></circle>
+<circle cx="879.7" cy="170.3" r="4" fill="#7c3aed"><title>2021-Q3 Unique reporters: 437</title></circle>
+<circle cx="890.5" cy="210.3" r="4" fill="#7c3aed"><title>2021-Q4 Unique reporters: 309</title></circle>
+<circle cx="901.4" cy="139.0" r="4" fill="#7c3aed"><title>2022-Q1 Unique reporters: 537</title></circle>
+<circle cx="912.2" cy="188.4" r="4" fill="#7c3aed"><title>2022-Q2 Unique reporters: 379</title></circle>
+<circle cx="923.1" cy="191.9" r="4" fill="#7c3aed"><title>2022-Q3 Unique reporters: 368</title></circle>
+<circle cx="934.0" cy="165.0" r="4" fill="#7c3aed"><title>2022-Q4 Unique reporters: 454</title></circle>
+<circle cx="944.8" cy="183.1" r="4" fill="#7c3aed"><title>2023-Q1 Unique reporters: 396</title></circle>
+<circle cx="955.7" cy="190.0" r="4" fill="#7c3aed"><title>2023-Q2 Unique reporters: 374</title></circle>
+<circle cx="966.5" cy="155.3" r="4" fill="#7c3aed"><title>2023-Q3 Unique reporters: 485</title></circle>
+<circle cx="977.4" cy="187.2" r="4" fill="#7c3aed"><title>2023-Q4 Unique reporters: 383</title></circle>
+<circle cx="988.3" cy="181.5" r="4" fill="#7c3aed"><title>2024-Q1 Unique reporters: 401</title></circle>
+<circle cx="999.1" cy="186.6" r="4" fill="#7c3aed"><title>2024-Q2 Unique reporters: 385</title></circle>
+<circle cx="1010.0" cy="186.2" r="4" fill="#7c3aed"><title>2024-Q3 Unique reporters: 386</title></circle>
+<circle cx="1020.8" cy="184.0" r="4" fill="#7c3aed"><title>2024-Q4 Unique reporters: 393</title></circle>
+<circle cx="1031.7" cy="223.5" r="4" fill="#7c3aed"><title>2025-Q1 Unique reporters: 267</title></circle>
+<circle cx="1042.6" cy="228.8" r="4" fill="#7c3aed"><title>2025-Q2 Unique reporters: 250</title></circle>
+<circle cx="1053.4" cy="236.0" r="4" fill="#7c3aed"><title>2025-Q3 Unique reporters: 227</title></circle>
+<circle cx="1064.3" cy="232.9" r="4" fill="#7c3aed"><title>2025-Q4 Unique reporters: 237</title></circle>
+<circle cx="1075.1" cy="230.3" r="4" fill="#7c3aed"><title>2026-Q1 Unique reporters: 245</title></circle>
+<circle cx="1086.0" cy="230.3" r="4" fill="#7c3aed"><title>2026-Q2 Unique reporters: 245</title></circle>
+<polyline points="76.0,307.0 86.9,307.0 97.7,307.0 108.6,307.0 119.4,307.0 130.3,289.5 141.2,287.3 152.0,288.5 162.9,269.1 173.7,279.2 184.6,275.1 195.5,267.3 206.3,256.9 217.2,274.1 228.0,278.8 238.9,285.4 249.8,248.5 260.6,266.3 271.5,260.4 282.3,267.0 293.2,251.3 304.1,244.7 314.9,257.3 325.8,248.2 336.6,240.7 347.5,246.0 358.4,252.9 369.2,255.7 380.1,227.5 390.9,202.2 401.8,228.5 412.7,244.7 423.5,225.7 434.4,241.9 445.2,231.0 456.1,244.4 467.0,257.3 477.8,248.2 488.7,237.2 499.5,244.7 510.4,246.9 521.3,257.9 532.1,250.4 543.0,226.0 553.8,229.4 564.7,205.9 575.6,214.4 586.4,219.7 597.3,221.3 608.2,212.2 619.0,193.4 629.9,213.5 640.7,226.9 651.6,221.6 662.5,232.5 673.3,218.8 684.2,200.6 695.0,212.8 705.9,225.0 716.8,198.1 727.6,226.0 738.5,229.1 749.3,246.6 760.2,219.1 771.1,202.5 781.9,219.7 792.8,239.4 803.6,208.8 814.5,230.0 825.4,205.0 836.2,197.2 847.1,216.0 857.9,215.3 868.8,241.9 879.7,230.3 890.5,258.2 901.4,213.1 912.2,243.8 923.1,243.2 934.0,232.2 944.8,242.9 955.7,246.9 966.5,221.9 977.4,244.1 988.3,245.1 999.1,242.6 1010.0,243.2 1020.8,238.5 1031.7,266.0 1042.6,269.5 1053.4,273.2 1064.3,273.8 1075.1,276.3 1086.0,273.2" fill="none" stroke="#ea580c" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="76.0" cy="307.0" r="4" fill="#ea580c"><title>2003-Q1 First-time reporters: 0</title></circle>
+<circle cx="86.9" cy="307.0" r="4" fill="#ea580c"><title>2003-Q2 First-time reporters: 0</title></circle>
+<circle cx="97.7" cy="307.0" r="4" fill="#ea580c"><title>2003-Q3 First-time reporters: 0</title></circle>
+<circle cx="108.6" cy="307.0" r="4" fill="#ea580c"><title>2003-Q4 First-time reporters: 0</title></circle>
+<circle cx="119.4" cy="307.0" r="4" fill="#ea580c"><title>2004-Q1 First-time reporters: 0</title></circle>
+<circle cx="130.3" cy="289.5" r="4" fill="#ea580c"><title>2004-Q2 First-time reporters: 56</title></circle>
+<circle cx="141.2" cy="287.3" r="4" fill="#ea580c"><title>2004-Q3 First-time reporters: 63</title></circle>
+<circle cx="152.0" cy="288.5" r="4" fill="#ea580c"><title>2004-Q4 First-time reporters: 59</title></circle>
+<circle cx="162.9" cy="269.1" r="4" fill="#ea580c"><title>2005-Q1 First-time reporters: 121</title></circle>
+<circle cx="173.7" cy="279.2" r="4" fill="#ea580c"><title>2005-Q2 First-time reporters: 89</title></circle>
+<circle cx="184.6" cy="275.1" r="4" fill="#ea580c"><title>2005-Q3 First-time reporters: 102</title></circle>
+<circle cx="195.5" cy="267.3" r="4" fill="#ea580c"><title>2005-Q4 First-time reporters: 127</title></circle>
+<circle cx="206.3" cy="256.9" r="4" fill="#ea580c"><title>2006-Q1 First-time reporters: 160</title></circle>
+<circle cx="217.2" cy="274.1" r="4" fill="#ea580c"><title>2006-Q2 First-time reporters: 105</title></circle>
+<circle cx="228.0" cy="278.8" r="4" fill="#ea580c"><title>2006-Q3 First-time reporters: 90</title></circle>
+<circle cx="238.9" cy="285.4" r="4" fill="#ea580c"><title>2006-Q4 First-time reporters: 69</title></circle>
+<circle cx="249.8" cy="248.5" r="4" fill="#ea580c"><title>2007-Q1 First-time reporters: 187</title></circle>
+<circle cx="260.6" cy="266.3" r="4" fill="#ea580c"><title>2007-Q2 First-time reporters: 130</title></circle>
+<circle cx="271.5" cy="260.4" r="4" fill="#ea580c"><title>2007-Q3 First-time reporters: 149</title></circle>
+<circle cx="282.3" cy="267.0" r="4" fill="#ea580c"><title>2007-Q4 First-time reporters: 128</title></circle>
+<circle cx="293.2" cy="251.3" r="4" fill="#ea580c"><title>2008-Q1 First-time reporters: 178</title></circle>
+<circle cx="304.1" cy="244.7" r="4" fill="#ea580c"><title>2008-Q2 First-time reporters: 199</title></circle>
+<circle cx="314.9" cy="257.3" r="4" fill="#ea580c"><title>2008-Q3 First-time reporters: 159</title></circle>
+<circle cx="325.8" cy="248.2" r="4" fill="#ea580c"><title>2008-Q4 First-time reporters: 188</title></circle>
+<circle cx="336.6" cy="240.7" r="4" fill="#ea580c"><title>2009-Q1 First-time reporters: 212</title></circle>
+<circle cx="347.5" cy="246.0" r="4" fill="#ea580c"><title>2009-Q2 First-time reporters: 195</title></circle>
+<circle cx="358.4" cy="252.9" r="4" fill="#ea580c"><title>2009-Q3 First-time reporters: 173</title></circle>
+<circle cx="369.2" cy="255.7" r="4" fill="#ea580c"><title>2009-Q4 First-time reporters: 164</title></circle>
+<circle cx="380.1" cy="227.5" r="4" fill="#ea580c"><title>2010-Q1 First-time reporters: 254</title></circle>
+<circle cx="390.9" cy="202.2" r="4" fill="#ea580c"><title>2010-Q2 First-time reporters: 335</title></circle>
+<circle cx="401.8" cy="228.5" r="4" fill="#ea580c"><title>2010-Q3 First-time reporters: 251</title></circle>
+<circle cx="412.7" cy="244.7" r="4" fill="#ea580c"><title>2010-Q4 First-time reporters: 199</title></circle>
+<circle cx="423.5" cy="225.7" r="4" fill="#ea580c"><title>2011-Q1 First-time reporters: 260</title></circle>
+<circle cx="434.4" cy="241.9" r="4" fill="#ea580c"><title>2011-Q2 First-time reporters: 208</title></circle>
+<circle cx="445.2" cy="231.0" r="4" fill="#ea580c"><title>2011-Q3 First-time reporters: 243</title></circle>
+<circle cx="456.1" cy="244.4" r="4" fill="#ea580c"><title>2011-Q4 First-time reporters: 200</title></circle>
+<circle cx="467.0" cy="257.3" r="4" fill="#ea580c"><title>2012-Q1 First-time reporters: 159</title></circle>
+<circle cx="477.8" cy="248.2" r="4" fill="#ea580c"><title>2012-Q2 First-time reporters: 188</title></circle>
+<circle cx="488.7" cy="237.2" r="4" fill="#ea580c"><title>2012-Q3 First-time reporters: 223</title></circle>
+<circle cx="499.5" cy="244.7" r="4" fill="#ea580c"><title>2012-Q4 First-time reporters: 199</title></circle>
+<circle cx="510.4" cy="246.9" r="4" fill="#ea580c"><title>2013-Q1 First-time reporters: 192</title></circle>
+<circle cx="521.3" cy="257.9" r="4" fill="#ea580c"><title>2013-Q2 First-time reporters: 157</title></circle>
+<circle cx="532.1" cy="250.4" r="4" fill="#ea580c"><title>2013-Q3 First-time reporters: 181</title></circle>
+<circle cx="543.0" cy="226.0" r="4" fill="#ea580c"><title>2013-Q4 First-time reporters: 259</title></circle>
+<circle cx="553.8" cy="229.4" r="4" fill="#ea580c"><title>2014-Q1 First-time reporters: 248</title></circle>
+<circle cx="564.7" cy="205.9" r="4" fill="#ea580c"><title>2014-Q2 First-time reporters: 323</title></circle>
+<circle cx="575.6" cy="214.4" r="4" fill="#ea580c"><title>2014-Q3 First-time reporters: 296</title></circle>
+<circle cx="586.4" cy="219.7" r="4" fill="#ea580c"><title>2014-Q4 First-time reporters: 279</title></circle>
+<circle cx="597.3" cy="221.3" r="4" fill="#ea580c"><title>2015-Q1 First-time reporters: 274</title></circle>
+<circle cx="608.2" cy="212.2" r="4" fill="#ea580c"><title>2015-Q2 First-time reporters: 303</title></circle>
+<circle cx="619.0" cy="193.4" r="4" fill="#ea580c"><title>2015-Q3 First-time reporters: 363</title></circle>
+<circle cx="629.9" cy="213.5" r="4" fill="#ea580c"><title>2015-Q4 First-time reporters: 299</title></circle>
+<circle cx="640.7" cy="226.9" r="4" fill="#ea580c"><title>2016-Q1 First-time reporters: 256</title></circle>
+<circle cx="651.6" cy="221.6" r="4" fill="#ea580c"><title>2016-Q2 First-time reporters: 273</title></circle>
+<circle cx="662.5" cy="232.5" r="4" fill="#ea580c"><title>2016-Q3 First-time reporters: 238</title></circle>
+<circle cx="673.3" cy="218.8" r="4" fill="#ea580c"><title>2016-Q4 First-time reporters: 282</title></circle>
+<circle cx="684.2" cy="200.6" r="4" fill="#ea580c"><title>2017-Q1 First-time reporters: 340</title></circle>
+<circle cx="695.0" cy="212.8" r="4" fill="#ea580c"><title>2017-Q2 First-time reporters: 301</title></circle>
+<circle cx="705.9" cy="225.0" r="4" fill="#ea580c"><title>2017-Q3 First-time reporters: 262</title></circle>
+<circle cx="716.8" cy="198.1" r="4" fill="#ea580c"><title>2017-Q4 First-time reporters: 348</title></circle>
+<circle cx="727.6" cy="226.0" r="4" fill="#ea580c"><title>2018-Q1 First-time reporters: 259</title></circle>
+<circle cx="738.5" cy="229.1" r="4" fill="#ea580c"><title>2018-Q2 First-time reporters: 249</title></circle>
+<circle cx="749.3" cy="246.6" r="4" fill="#ea580c"><title>2018-Q3 First-time reporters: 193</title></circle>
+<circle cx="760.2" cy="219.1" r="4" fill="#ea580c"><title>2018-Q4 First-time reporters: 281</title></circle>
+<circle cx="771.1" cy="202.5" r="4" fill="#ea580c"><title>2019-Q1 First-time reporters: 334</title></circle>
+<circle cx="781.9" cy="219.7" r="4" fill="#ea580c"><title>2019-Q2 First-time reporters: 279</title></circle>
+<circle cx="792.8" cy="239.4" r="4" fill="#ea580c"><title>2019-Q3 First-time reporters: 216</title></circle>
+<circle cx="803.6" cy="208.8" r="4" fill="#ea580c"><title>2019-Q4 First-time reporters: 314</title></circle>
+<circle cx="814.5" cy="230.0" r="4" fill="#ea580c"><title>2020-Q1 First-time reporters: 246</title></circle>
+<circle cx="825.4" cy="205.0" r="4" fill="#ea580c"><title>2020-Q2 First-time reporters: 326</title></circle>
+<circle cx="836.2" cy="197.2" r="4" fill="#ea580c"><title>2020-Q3 First-time reporters: 351</title></circle>
+<circle cx="847.1" cy="216.0" r="4" fill="#ea580c"><title>2020-Q4 First-time reporters: 291</title></circle>
+<circle cx="857.9" cy="215.3" r="4" fill="#ea580c"><title>2021-Q1 First-time reporters: 293</title></circle>
+<circle cx="868.8" cy="241.9" r="4" fill="#ea580c"><title>2021-Q2 First-time reporters: 208</title></circle>
+<circle cx="879.7" cy="230.3" r="4" fill="#ea580c"><title>2021-Q3 First-time reporters: 245</title></circle>
+<circle cx="890.5" cy="258.2" r="4" fill="#ea580c"><title>2021-Q4 First-time reporters: 156</title></circle>
+<circle cx="901.4" cy="213.1" r="4" fill="#ea580c"><title>2022-Q1 First-time reporters: 300</title></circle>
+<circle cx="912.2" cy="243.8" r="4" fill="#ea580c"><title>2022-Q2 First-time reporters: 202</title></circle>
+<circle cx="923.1" cy="243.2" r="4" fill="#ea580c"><title>2022-Q3 First-time reporters: 204</title></circle>
+<circle cx="934.0" cy="232.2" r="4" fill="#ea580c"><title>2022-Q4 First-time reporters: 239</title></circle>
+<circle cx="944.8" cy="242.9" r="4" fill="#ea580c"><title>2023-Q1 First-time reporters: 205</title></circle>
+<circle cx="955.7" cy="246.9" r="4" fill="#ea580c"><title>2023-Q2 First-time reporters: 192</title></circle>
+<circle cx="966.5" cy="221.9" r="4" fill="#ea580c"><title>2023-Q3 First-time reporters: 272</title></circle>
+<circle cx="977.4" cy="244.1" r="4" fill="#ea580c"><title>2023-Q4 First-time reporters: 201</title></circle>
+<circle cx="988.3" cy="245.1" r="4" fill="#ea580c"><title>2024-Q1 First-time reporters: 198</title></circle>
+<circle cx="999.1" cy="242.6" r="4" fill="#ea580c"><title>2024-Q2 First-time reporters: 206</title></circle>
+<circle cx="1010.0" cy="243.2" r="4" fill="#ea580c"><title>2024-Q3 First-time reporters: 204</title></circle>
+<circle cx="1020.8" cy="238.5" r="4" fill="#ea580c"><title>2024-Q4 First-time reporters: 219</title></circle>
+<circle cx="1031.7" cy="266.0" r="4" fill="#ea580c"><title>2025-Q1 First-time reporters: 131</title></circle>
+<circle cx="1042.6" cy="269.5" r="4" fill="#ea580c"><title>2025-Q2 First-time reporters: 120</title></circle>
+<circle cx="1053.4" cy="273.2" r="4" fill="#ea580c"><title>2025-Q3 First-time reporters: 108</title></circle>
+<circle cx="1064.3" cy="273.8" r="4" fill="#ea580c"><title>2025-Q4 First-time reporters: 106</title></circle>
+<circle cx="1075.1" cy="276.3" r="4" fill="#ea580c"><title>2026-Q1 First-time reporters: 98</title></circle>
+<circle cx="1086.0" cy="273.2" r="4" fill="#ea580c"><title>2026-Q2 First-time reporters: 108</title></circle>
+<text x="76.0" y="341" text-anchor="middle" class="axis">2003</text>
+<text x="119.4" y="341" text-anchor="middle" class="axis">2004</text>
+<text x="162.9" y="341" text-anchor="middle" class="axis">2005</text>
+<text x="206.3" y="341" text-anchor="middle" class="axis">2006</text>
+<text x="249.8" y="341" text-anchor="middle" class="axis">2007</text>
+<text x="293.2" y="341" text-anchor="middle" class="axis">2008</text>
+<text x="336.6" y="341" text-anchor="middle" class="axis">2009</text>
+<text x="380.1" y="341" text-anchor="middle" class="axis">2010</text>
+<text x="423.5" y="341" text-anchor="middle" class="axis">2011</text>
+<text x="467.0" y="341" text-anchor="middle" class="axis">2012</text>
+<text x="510.4" y="341" text-anchor="middle" class="axis">2013</text>
+<text x="553.8" y="341" text-anchor="middle" class="axis">2014</text>
+<text x="597.3" y="341" text-anchor="middle" class="axis">2015</text>
+<text x="640.7" y="341" text-anchor="middle" class="axis">2016</text>
+<text x="684.2" y="341" text-anchor="middle" class="axis">2017</text>
+<text x="727.6" y="341" text-anchor="middle" class="axis">2018</text>
+<text x="771.1" y="341" text-anchor="middle" class="axis">2019</text>
+<text x="814.5" y="341" text-anchor="middle" class="axis">2020</text>
+<text x="857.9" y="341" text-anchor="middle" class="axis">2021</text>
+<text x="901.4" y="341" text-anchor="middle" class="axis">2022</text>
+<text x="944.8" y="341" text-anchor="middle" class="axis">2023</text>
+<text x="988.3" y="341" text-anchor="middle" class="axis">2024</text>
+<text x="1031.7" y="341" text-anchor="middle" class="axis">2025</text>
+<text x="1075.1" y="341" text-anchor="middle" class="axis">2026</text>
 </svg>
   </section>
 
@@ -479,39 +892,39 @@
   <section class="chart-band">
     <svg viewBox="0 0 1120 352" role="img" aria-label="Core Trac closure resolution mix">
 <text x="40" y="24" class="chart-title">How tickets closed</text>
-<text x="40" y="46" class="chart-note">Resolution mix for tickets closed in the five-year window.</text>
+<text x="40" y="46" class="chart-note">Resolution mix for tickets closed since 2003.</text>
 <text x="204" y="99" text-anchor="end" class="bar-label">fixed</text>
 <rect x="220" y="82" width="848" height="18" fill="#e5e7eb" rx="3"/>
 <rect x="220" y="82" width="848.0" height="18" fill="#7c3aed" rx="3"/>
-<text x="1078.0" y="96" class="axis">4,932</text>
+<text x="1078.0" y="96" class="axis">29,347</text>
 <text x="204" y="129" text-anchor="end" class="bar-label">invalid</text>
 <rect x="220" y="112" width="848" height="18" fill="#e5e7eb" rx="3"/>
-<rect x="220" y="112" width="298.1" height="18" fill="#7c3aed" rx="3"/>
-<text x="528.1" y="126" class="axis">1,734</text>
+<rect x="220" y="112" width="250.1" height="18" fill="#7c3aed" rx="3"/>
+<text x="480.1" y="126" class="axis">8,654</text>
 <text x="204" y="159" text-anchor="end" class="bar-label">duplicate</text>
 <rect x="220" y="142" width="848" height="18" fill="#e5e7eb" rx="3"/>
-<rect x="220" y="142" width="247.4" height="18" fill="#7c3aed" rx="3"/>
-<text x="477.4" y="156" class="axis">1,439</text>
+<rect x="220" y="142" width="232.4" height="18" fill="#7c3aed" rx="3"/>
+<text x="462.4" y="156" class="axis">8,044</text>
 <text x="204" y="189" text-anchor="end" class="bar-label">wontfix</text>
 <rect x="220" y="172" width="848" height="18" fill="#e5e7eb" rx="3"/>
-<rect x="220" y="172" width="152.5" height="18" fill="#7c3aed" rx="3"/>
-<text x="382.5" y="186" class="axis">887</text>
+<rect x="220" y="172" width="151.4" height="18" fill="#7c3aed" rx="3"/>
+<text x="381.4" y="186" class="axis">5,240</text>
 <text x="204" y="219" text-anchor="end" class="bar-label">worksforme</text>
 <rect x="220" y="202" width="848" height="18" fill="#e5e7eb" rx="3"/>
-<rect x="220" y="202" width="128.6" height="18" fill="#7c3aed" rx="3"/>
-<text x="358.6" y="216" class="axis">748</text>
-<text x="204" y="249" text-anchor="end" class="bar-label">reported-upstream</text>
+<rect x="220" y="202" width="99.5" height="18" fill="#7c3aed" rx="3"/>
+<text x="329.5" y="216" class="axis">3,444</text>
+<text x="204" y="249" text-anchor="end" class="bar-label">maybelater</text>
 <rect x="220" y="232" width="848" height="18" fill="#e5e7eb" rx="3"/>
-<rect x="220" y="232" width="111.9" height="18" fill="#7c3aed" rx="3"/>
-<text x="341.9" y="246" class="axis">651</text>
-<text x="204" y="279" text-anchor="end" class="bar-label">maybelater</text>
+<rect x="220" y="232" width="28.8" height="18" fill="#7c3aed" rx="3"/>
+<text x="258.8" y="246" class="axis">997</text>
+<text x="204" y="279" text-anchor="end" class="bar-label">reported-upstream</text>
 <rect x="220" y="262" width="848" height="18" fill="#e5e7eb" rx="3"/>
-<rect x="220" y="262" width="41.1" height="18" fill="#7c3aed" rx="3"/>
-<text x="271.1" y="276" class="axis">239</text>
+<rect x="220" y="262" width="28.0" height="18" fill="#7c3aed" rx="3"/>
+<text x="258.0" y="276" class="axis">970</text>
 <text x="204" y="309" text-anchor="end" class="bar-label">none</text>
 <rect x="220" y="292" width="848" height="18" fill="#e5e7eb" rx="3"/>
-<rect x="220" y="292" width="0.5" height="18" fill="#7c3aed" rx="3"/>
-<text x="230.5" y="306" class="axis">3</text>
+<rect x="220" y="292" width="0.9" height="18" fill="#7c3aed" rx="3"/>
+<text x="230.9" y="306" class="axis">32</text>
 </svg>
   </section>
 
@@ -537,78 +950,315 @@
 <text x="66" y="135.8" text-anchor="end" class="axis">800</text>
 <line x1="76" y1="88.0" x2="1086" y2="88.0" class="grid"/>
 <text x="66" y="92.0" text-anchor="end" class="axis">1,000</text>
-<polyline points="76.0,287.1 126.5,248.3 177.0,224.9 227.5,222.9 278.0,211.7 328.5,206.9 379.0,214.1 429.5,205.6 480.0,198.2 530.5,178.2 581.0,205.2 631.5,195.1 682.0,174.5 732.5,192.9 783.0,175.6 833.5,185.0 884.0,194.2 934.5,96.8 985.0,181.1 1035.5,144.9 1086.0,144.7" fill="none" stroke="#0891b2" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-<circle cx="76.0" cy="287.1" r="4" fill="#0891b2"><title>2021-Q2 PRs opened: 91</title></circle>
-<circle cx="126.5" cy="248.3" r="4" fill="#0891b2"><title>2021-Q3 PRs opened: 268</title></circle>
-<circle cx="177.0" cy="224.9" r="4" fill="#0891b2"><title>2021-Q4 PRs opened: 375</title></circle>
-<circle cx="227.5" cy="222.9" r="4" fill="#0891b2"><title>2022-Q1 PRs opened: 384</title></circle>
-<circle cx="278.0" cy="211.7" r="4" fill="#0891b2"><title>2022-Q2 PRs opened: 435</title></circle>
-<circle cx="328.5" cy="206.9" r="4" fill="#0891b2"><title>2022-Q3 PRs opened: 457</title></circle>
-<circle cx="379.0" cy="214.1" r="4" fill="#0891b2"><title>2022-Q4 PRs opened: 424</title></circle>
-<circle cx="429.5" cy="205.6" r="4" fill="#0891b2"><title>2023-Q1 PRs opened: 463</title></circle>
-<circle cx="480.0" cy="198.2" r="4" fill="#0891b2"><title>2023-Q2 PRs opened: 497</title></circle>
-<circle cx="530.5" cy="178.2" r="4" fill="#0891b2"><title>2023-Q3 PRs opened: 588</title></circle>
-<circle cx="581.0" cy="205.2" r="4" fill="#0891b2"><title>2023-Q4 PRs opened: 465</title></circle>
-<circle cx="631.5" cy="195.1" r="4" fill="#0891b2"><title>2024-Q1 PRs opened: 511</title></circle>
-<circle cx="682.0" cy="174.5" r="4" fill="#0891b2"><title>2024-Q2 PRs opened: 605</title></circle>
-<circle cx="732.5" cy="192.9" r="4" fill="#0891b2"><title>2024-Q3 PRs opened: 521</title></circle>
-<circle cx="783.0" cy="175.6" r="4" fill="#0891b2"><title>2024-Q4 PRs opened: 600</title></circle>
-<circle cx="833.5" cy="185.0" r="4" fill="#0891b2"><title>2025-Q1 PRs opened: 557</title></circle>
-<circle cx="884.0" cy="194.2" r="4" fill="#0891b2"><title>2025-Q2 PRs opened: 515</title></circle>
-<circle cx="934.5" cy="96.8" r="4" fill="#0891b2"><title>2025-Q3 PRs opened: 960</title></circle>
-<circle cx="985.0" cy="181.1" r="4" fill="#0891b2"><title>2025-Q4 PRs opened: 575</title></circle>
-<circle cx="1035.5" cy="144.9" r="4" fill="#0891b2"><title>2026-Q1 PRs opened: 740</title></circle>
+<polyline points="76.0,307.0 86.9,307.0 97.7,307.0 108.6,307.0 119.4,307.0 130.3,307.0 141.2,307.0 152.0,307.0 162.9,307.0 173.7,307.0 184.6,307.0 195.5,307.0 206.3,307.0 217.2,307.0 228.0,307.0 238.9,307.0 249.8,307.0 260.6,307.0 271.5,307.0 282.3,307.0 293.2,307.0 304.1,307.0 314.9,307.0 325.8,307.0 336.6,307.0 347.5,307.0 358.4,307.0 369.2,307.0 380.1,307.0 390.9,307.0 401.8,307.0 412.7,307.0 423.5,307.0 434.4,307.0 445.2,307.0 456.1,307.0 467.0,307.0 477.8,307.0 488.7,307.0 499.5,307.0 510.4,307.0 521.3,307.0 532.1,307.0 543.0,307.0 553.8,307.0 564.7,307.0 575.6,307.0 586.4,307.0 597.3,307.0 608.2,307.0 619.0,307.0 629.9,307.0 640.7,307.0 651.6,307.0 662.5,307.0 673.3,307.0 684.2,306.8 695.0,307.0 705.9,306.6 716.8,305.7 727.6,306.6 738.5,306.1 749.3,306.6 760.2,303.3 771.1,302.6 781.9,303.7 792.8,299.6 803.6,301.7 814.5,289.3 825.4,270.9 836.2,266.0 847.1,244.4 857.9,240.2 868.8,240.4 879.7,248.3 890.5,224.9 901.4,222.9 912.2,211.7 923.1,206.9 934.0,214.1 944.8,205.6 955.7,198.2 966.5,178.2 977.4,205.2 988.3,195.1 999.1,174.5 1010.0,192.9 1020.8,175.6 1031.7,185.0 1042.6,194.2 1053.4,96.8 1064.3,181.1 1075.1,144.9 1086.0,144.7" fill="none" stroke="#0891b2" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="76.0" cy="307.0" r="4" fill="#0891b2"><title>2003-Q1 PRs opened: 0</title></circle>
+<circle cx="86.9" cy="307.0" r="4" fill="#0891b2"><title>2003-Q2 PRs opened: 0</title></circle>
+<circle cx="97.7" cy="307.0" r="4" fill="#0891b2"><title>2003-Q3 PRs opened: 0</title></circle>
+<circle cx="108.6" cy="307.0" r="4" fill="#0891b2"><title>2003-Q4 PRs opened: 0</title></circle>
+<circle cx="119.4" cy="307.0" r="4" fill="#0891b2"><title>2004-Q1 PRs opened: 0</title></circle>
+<circle cx="130.3" cy="307.0" r="4" fill="#0891b2"><title>2004-Q2 PRs opened: 0</title></circle>
+<circle cx="141.2" cy="307.0" r="4" fill="#0891b2"><title>2004-Q3 PRs opened: 0</title></circle>
+<circle cx="152.0" cy="307.0" r="4" fill="#0891b2"><title>2004-Q4 PRs opened: 0</title></circle>
+<circle cx="162.9" cy="307.0" r="4" fill="#0891b2"><title>2005-Q1 PRs opened: 0</title></circle>
+<circle cx="173.7" cy="307.0" r="4" fill="#0891b2"><title>2005-Q2 PRs opened: 0</title></circle>
+<circle cx="184.6" cy="307.0" r="4" fill="#0891b2"><title>2005-Q3 PRs opened: 0</title></circle>
+<circle cx="195.5" cy="307.0" r="4" fill="#0891b2"><title>2005-Q4 PRs opened: 0</title></circle>
+<circle cx="206.3" cy="307.0" r="4" fill="#0891b2"><title>2006-Q1 PRs opened: 0</title></circle>
+<circle cx="217.2" cy="307.0" r="4" fill="#0891b2"><title>2006-Q2 PRs opened: 0</title></circle>
+<circle cx="228.0" cy="307.0" r="4" fill="#0891b2"><title>2006-Q3 PRs opened: 0</title></circle>
+<circle cx="238.9" cy="307.0" r="4" fill="#0891b2"><title>2006-Q4 PRs opened: 0</title></circle>
+<circle cx="249.8" cy="307.0" r="4" fill="#0891b2"><title>2007-Q1 PRs opened: 0</title></circle>
+<circle cx="260.6" cy="307.0" r="4" fill="#0891b2"><title>2007-Q2 PRs opened: 0</title></circle>
+<circle cx="271.5" cy="307.0" r="4" fill="#0891b2"><title>2007-Q3 PRs opened: 0</title></circle>
+<circle cx="282.3" cy="307.0" r="4" fill="#0891b2"><title>2007-Q4 PRs opened: 0</title></circle>
+<circle cx="293.2" cy="307.0" r="4" fill="#0891b2"><title>2008-Q1 PRs opened: 0</title></circle>
+<circle cx="304.1" cy="307.0" r="4" fill="#0891b2"><title>2008-Q2 PRs opened: 0</title></circle>
+<circle cx="314.9" cy="307.0" r="4" fill="#0891b2"><title>2008-Q3 PRs opened: 0</title></circle>
+<circle cx="325.8" cy="307.0" r="4" fill="#0891b2"><title>2008-Q4 PRs opened: 0</title></circle>
+<circle cx="336.6" cy="307.0" r="4" fill="#0891b2"><title>2009-Q1 PRs opened: 0</title></circle>
+<circle cx="347.5" cy="307.0" r="4" fill="#0891b2"><title>2009-Q2 PRs opened: 0</title></circle>
+<circle cx="358.4" cy="307.0" r="4" fill="#0891b2"><title>2009-Q3 PRs opened: 0</title></circle>
+<circle cx="369.2" cy="307.0" r="4" fill="#0891b2"><title>2009-Q4 PRs opened: 0</title></circle>
+<circle cx="380.1" cy="307.0" r="4" fill="#0891b2"><title>2010-Q1 PRs opened: 0</title></circle>
+<circle cx="390.9" cy="307.0" r="4" fill="#0891b2"><title>2010-Q2 PRs opened: 0</title></circle>
+<circle cx="401.8" cy="307.0" r="4" fill="#0891b2"><title>2010-Q3 PRs opened: 0</title></circle>
+<circle cx="412.7" cy="307.0" r="4" fill="#0891b2"><title>2010-Q4 PRs opened: 0</title></circle>
+<circle cx="423.5" cy="307.0" r="4" fill="#0891b2"><title>2011-Q1 PRs opened: 0</title></circle>
+<circle cx="434.4" cy="307.0" r="4" fill="#0891b2"><title>2011-Q2 PRs opened: 0</title></circle>
+<circle cx="445.2" cy="307.0" r="4" fill="#0891b2"><title>2011-Q3 PRs opened: 0</title></circle>
+<circle cx="456.1" cy="307.0" r="4" fill="#0891b2"><title>2011-Q4 PRs opened: 0</title></circle>
+<circle cx="467.0" cy="307.0" r="4" fill="#0891b2"><title>2012-Q1 PRs opened: 0</title></circle>
+<circle cx="477.8" cy="307.0" r="4" fill="#0891b2"><title>2012-Q2 PRs opened: 0</title></circle>
+<circle cx="488.7" cy="307.0" r="4" fill="#0891b2"><title>2012-Q3 PRs opened: 0</title></circle>
+<circle cx="499.5" cy="307.0" r="4" fill="#0891b2"><title>2012-Q4 PRs opened: 0</title></circle>
+<circle cx="510.4" cy="307.0" r="4" fill="#0891b2"><title>2013-Q1 PRs opened: 0</title></circle>
+<circle cx="521.3" cy="307.0" r="4" fill="#0891b2"><title>2013-Q2 PRs opened: 0</title></circle>
+<circle cx="532.1" cy="307.0" r="4" fill="#0891b2"><title>2013-Q3 PRs opened: 0</title></circle>
+<circle cx="543.0" cy="307.0" r="4" fill="#0891b2"><title>2013-Q4 PRs opened: 0</title></circle>
+<circle cx="553.8" cy="307.0" r="4" fill="#0891b2"><title>2014-Q1 PRs opened: 0</title></circle>
+<circle cx="564.7" cy="307.0" r="4" fill="#0891b2"><title>2014-Q2 PRs opened: 0</title></circle>
+<circle cx="575.6" cy="307.0" r="4" fill="#0891b2"><title>2014-Q3 PRs opened: 0</title></circle>
+<circle cx="586.4" cy="307.0" r="4" fill="#0891b2"><title>2014-Q4 PRs opened: 0</title></circle>
+<circle cx="597.3" cy="307.0" r="4" fill="#0891b2"><title>2015-Q1 PRs opened: 0</title></circle>
+<circle cx="608.2" cy="307.0" r="4" fill="#0891b2"><title>2015-Q2 PRs opened: 0</title></circle>
+<circle cx="619.0" cy="307.0" r="4" fill="#0891b2"><title>2015-Q3 PRs opened: 0</title></circle>
+<circle cx="629.9" cy="307.0" r="4" fill="#0891b2"><title>2015-Q4 PRs opened: 0</title></circle>
+<circle cx="640.7" cy="307.0" r="4" fill="#0891b2"><title>2016-Q1 PRs opened: 0</title></circle>
+<circle cx="651.6" cy="307.0" r="4" fill="#0891b2"><title>2016-Q2 PRs opened: 0</title></circle>
+<circle cx="662.5" cy="307.0" r="4" fill="#0891b2"><title>2016-Q3 PRs opened: 0</title></circle>
+<circle cx="673.3" cy="307.0" r="4" fill="#0891b2"><title>2016-Q4 PRs opened: 0</title></circle>
+<circle cx="684.2" cy="306.8" r="4" fill="#0891b2"><title>2017-Q1 PRs opened: 1</title></circle>
+<circle cx="695.0" cy="307.0" r="4" fill="#0891b2"><title>2017-Q2 PRs opened: 0</title></circle>
+<circle cx="705.9" cy="306.6" r="4" fill="#0891b2"><title>2017-Q3 PRs opened: 2</title></circle>
+<circle cx="716.8" cy="305.7" r="4" fill="#0891b2"><title>2017-Q4 PRs opened: 6</title></circle>
+<circle cx="727.6" cy="306.6" r="4" fill="#0891b2"><title>2018-Q1 PRs opened: 2</title></circle>
+<circle cx="738.5" cy="306.1" r="4" fill="#0891b2"><title>2018-Q2 PRs opened: 4</title></circle>
+<circle cx="749.3" cy="306.6" r="4" fill="#0891b2"><title>2018-Q3 PRs opened: 2</title></circle>
+<circle cx="760.2" cy="303.3" r="4" fill="#0891b2"><title>2018-Q4 PRs opened: 17</title></circle>
+<circle cx="771.1" cy="302.6" r="4" fill="#0891b2"><title>2019-Q1 PRs opened: 20</title></circle>
+<circle cx="781.9" cy="303.7" r="4" fill="#0891b2"><title>2019-Q2 PRs opened: 15</title></circle>
+<circle cx="792.8" cy="299.6" r="4" fill="#0891b2"><title>2019-Q3 PRs opened: 34</title></circle>
+<circle cx="803.6" cy="301.7" r="4" fill="#0891b2"><title>2019-Q4 PRs opened: 24</title></circle>
+<circle cx="814.5" cy="289.3" r="4" fill="#0891b2"><title>2020-Q1 PRs opened: 81</title></circle>
+<circle cx="825.4" cy="270.9" r="4" fill="#0891b2"><title>2020-Q2 PRs opened: 165</title></circle>
+<circle cx="836.2" cy="266.0" r="4" fill="#0891b2"><title>2020-Q3 PRs opened: 187</title></circle>
+<circle cx="847.1" cy="244.4" r="4" fill="#0891b2"><title>2020-Q4 PRs opened: 286</title></circle>
+<circle cx="857.9" cy="240.2" r="4" fill="#0891b2"><title>2021-Q1 PRs opened: 305</title></circle>
+<circle cx="868.8" cy="240.4" r="4" fill="#0891b2"><title>2021-Q2 PRs opened: 304</title></circle>
+<circle cx="879.7" cy="248.3" r="4" fill="#0891b2"><title>2021-Q3 PRs opened: 268</title></circle>
+<circle cx="890.5" cy="224.9" r="4" fill="#0891b2"><title>2021-Q4 PRs opened: 375</title></circle>
+<circle cx="901.4" cy="222.9" r="4" fill="#0891b2"><title>2022-Q1 PRs opened: 384</title></circle>
+<circle cx="912.2" cy="211.7" r="4" fill="#0891b2"><title>2022-Q2 PRs opened: 435</title></circle>
+<circle cx="923.1" cy="206.9" r="4" fill="#0891b2"><title>2022-Q3 PRs opened: 457</title></circle>
+<circle cx="934.0" cy="214.1" r="4" fill="#0891b2"><title>2022-Q4 PRs opened: 424</title></circle>
+<circle cx="944.8" cy="205.6" r="4" fill="#0891b2"><title>2023-Q1 PRs opened: 463</title></circle>
+<circle cx="955.7" cy="198.2" r="4" fill="#0891b2"><title>2023-Q2 PRs opened: 497</title></circle>
+<circle cx="966.5" cy="178.2" r="4" fill="#0891b2"><title>2023-Q3 PRs opened: 588</title></circle>
+<circle cx="977.4" cy="205.2" r="4" fill="#0891b2"><title>2023-Q4 PRs opened: 465</title></circle>
+<circle cx="988.3" cy="195.1" r="4" fill="#0891b2"><title>2024-Q1 PRs opened: 511</title></circle>
+<circle cx="999.1" cy="174.5" r="4" fill="#0891b2"><title>2024-Q2 PRs opened: 605</title></circle>
+<circle cx="1010.0" cy="192.9" r="4" fill="#0891b2"><title>2024-Q3 PRs opened: 521</title></circle>
+<circle cx="1020.8" cy="175.6" r="4" fill="#0891b2"><title>2024-Q4 PRs opened: 600</title></circle>
+<circle cx="1031.7" cy="185.0" r="4" fill="#0891b2"><title>2025-Q1 PRs opened: 557</title></circle>
+<circle cx="1042.6" cy="194.2" r="4" fill="#0891b2"><title>2025-Q2 PRs opened: 515</title></circle>
+<circle cx="1053.4" cy="96.8" r="4" fill="#0891b2"><title>2025-Q3 PRs opened: 960</title></circle>
+<circle cx="1064.3" cy="181.1" r="4" fill="#0891b2"><title>2025-Q4 PRs opened: 575</title></circle>
+<circle cx="1075.1" cy="144.9" r="4" fill="#0891b2"><title>2026-Q1 PRs opened: 740</title></circle>
 <circle cx="1086.0" cy="144.7" r="4" fill="#0891b2"><title>2026-Q2 PRs opened: 741</title></circle>
-<polyline points="76.0,295.6 126.5,269.8 177.0,241.1 227.5,240.6 278.0,230.1 328.5,217.6 379.0,234.1 429.5,213.5 480.0,227.7 530.5,203.2 581.0,238.9 631.5,216.8 682.0,219.8 732.5,212.6 783.0,222.9 833.5,219.4 884.0,245.5 934.5,140.1 985.0,165.7 1035.5,167.7 1086.0,250.7" fill="none" stroke="#be123c" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-<circle cx="76.0" cy="295.6" r="4" fill="#be123c"><title>2021-Q2 PRs closed: 52</title></circle>
-<circle cx="126.5" cy="269.8" r="4" fill="#be123c"><title>2021-Q3 PRs closed: 170</title></circle>
-<circle cx="177.0" cy="241.1" r="4" fill="#be123c"><title>2021-Q4 PRs closed: 301</title></circle>
-<circle cx="227.5" cy="240.6" r="4" fill="#be123c"><title>2022-Q1 PRs closed: 303</title></circle>
-<circle cx="278.0" cy="230.1" r="4" fill="#be123c"><title>2022-Q2 PRs closed: 351</title></circle>
-<circle cx="328.5" cy="217.6" r="4" fill="#be123c"><title>2022-Q3 PRs closed: 408</title></circle>
-<circle cx="379.0" cy="234.1" r="4" fill="#be123c"><title>2022-Q4 PRs closed: 333</title></circle>
-<circle cx="429.5" cy="213.5" r="4" fill="#be123c"><title>2023-Q1 PRs closed: 427</title></circle>
-<circle cx="480.0" cy="227.7" r="4" fill="#be123c"><title>2023-Q2 PRs closed: 362</title></circle>
-<circle cx="530.5" cy="203.2" r="4" fill="#be123c"><title>2023-Q3 PRs closed: 474</title></circle>
-<circle cx="581.0" cy="238.9" r="4" fill="#be123c"><title>2023-Q4 PRs closed: 311</title></circle>
-<circle cx="631.5" cy="216.8" r="4" fill="#be123c"><title>2024-Q1 PRs closed: 412</title></circle>
-<circle cx="682.0" cy="219.8" r="4" fill="#be123c"><title>2024-Q2 PRs closed: 398</title></circle>
-<circle cx="732.5" cy="212.6" r="4" fill="#be123c"><title>2024-Q3 PRs closed: 431</title></circle>
-<circle cx="783.0" cy="222.9" r="4" fill="#be123c"><title>2024-Q4 PRs closed: 384</title></circle>
-<circle cx="833.5" cy="219.4" r="4" fill="#be123c"><title>2025-Q1 PRs closed: 400</title></circle>
-<circle cx="884.0" cy="245.5" r="4" fill="#be123c"><title>2025-Q2 PRs closed: 281</title></circle>
-<circle cx="934.5" cy="140.1" r="4" fill="#be123c"><title>2025-Q3 PRs closed: 762</title></circle>
-<circle cx="985.0" cy="165.7" r="4" fill="#be123c"><title>2025-Q4 PRs closed: 645</title></circle>
-<circle cx="1035.5" cy="167.7" r="4" fill="#be123c"><title>2026-Q1 PRs closed: 636</title></circle>
+<polyline points="76.0,307.0 86.9,307.0 97.7,307.0 108.6,307.0 119.4,307.0 130.3,307.0 141.2,307.0 152.0,307.0 162.9,307.0 173.7,307.0 184.6,307.0 195.5,307.0 206.3,307.0 217.2,307.0 228.0,307.0 238.9,307.0 249.8,307.0 260.6,307.0 271.5,307.0 282.3,307.0 293.2,307.0 304.1,307.0 314.9,307.0 325.8,307.0 336.6,307.0 347.5,307.0 358.4,307.0 369.2,307.0 380.1,307.0 390.9,307.0 401.8,307.0 412.7,307.0 423.5,307.0 434.4,307.0 445.2,307.0 456.1,307.0 467.0,307.0 477.8,307.0 488.7,307.0 499.5,307.0 510.4,307.0 521.3,307.0 532.1,307.0 543.0,307.0 553.8,307.0 564.7,307.0 575.6,307.0 586.4,307.0 597.3,307.0 608.2,307.0 619.0,307.0 629.9,307.0 640.7,307.0 651.6,307.0 662.5,307.0 673.3,307.0 684.2,307.0 695.0,307.0 705.9,306.3 716.8,305.9 727.6,306.3 738.5,306.3 749.3,306.6 760.2,303.9 771.1,303.9 781.9,303.9 792.8,304.4 803.6,303.9 814.5,290.6 825.4,287.7 836.2,276.3 847.1,254.9 857.9,252.9 868.8,263.2 879.7,269.8 890.5,241.1 901.4,240.6 912.2,230.1 923.1,217.6 934.0,234.1 944.8,213.5 955.7,227.7 966.5,203.2 977.4,238.9 988.3,216.8 999.1,219.8 1010.0,212.6 1020.8,222.9 1031.7,219.4 1042.6,245.5 1053.4,140.1 1064.3,165.7 1075.1,167.7 1086.0,250.7" fill="none" stroke="#be123c" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="76.0" cy="307.0" r="4" fill="#be123c"><title>2003-Q1 PRs closed: 0</title></circle>
+<circle cx="86.9" cy="307.0" r="4" fill="#be123c"><title>2003-Q2 PRs closed: 0</title></circle>
+<circle cx="97.7" cy="307.0" r="4" fill="#be123c"><title>2003-Q3 PRs closed: 0</title></circle>
+<circle cx="108.6" cy="307.0" r="4" fill="#be123c"><title>2003-Q4 PRs closed: 0</title></circle>
+<circle cx="119.4" cy="307.0" r="4" fill="#be123c"><title>2004-Q1 PRs closed: 0</title></circle>
+<circle cx="130.3" cy="307.0" r="4" fill="#be123c"><title>2004-Q2 PRs closed: 0</title></circle>
+<circle cx="141.2" cy="307.0" r="4" fill="#be123c"><title>2004-Q3 PRs closed: 0</title></circle>
+<circle cx="152.0" cy="307.0" r="4" fill="#be123c"><title>2004-Q4 PRs closed: 0</title></circle>
+<circle cx="162.9" cy="307.0" r="4" fill="#be123c"><title>2005-Q1 PRs closed: 0</title></circle>
+<circle cx="173.7" cy="307.0" r="4" fill="#be123c"><title>2005-Q2 PRs closed: 0</title></circle>
+<circle cx="184.6" cy="307.0" r="4" fill="#be123c"><title>2005-Q3 PRs closed: 0</title></circle>
+<circle cx="195.5" cy="307.0" r="4" fill="#be123c"><title>2005-Q4 PRs closed: 0</title></circle>
+<circle cx="206.3" cy="307.0" r="4" fill="#be123c"><title>2006-Q1 PRs closed: 0</title></circle>
+<circle cx="217.2" cy="307.0" r="4" fill="#be123c"><title>2006-Q2 PRs closed: 0</title></circle>
+<circle cx="228.0" cy="307.0" r="4" fill="#be123c"><title>2006-Q3 PRs closed: 0</title></circle>
+<circle cx="238.9" cy="307.0" r="4" fill="#be123c"><title>2006-Q4 PRs closed: 0</title></circle>
+<circle cx="249.8" cy="307.0" r="4" fill="#be123c"><title>2007-Q1 PRs closed: 0</title></circle>
+<circle cx="260.6" cy="307.0" r="4" fill="#be123c"><title>2007-Q2 PRs closed: 0</title></circle>
+<circle cx="271.5" cy="307.0" r="4" fill="#be123c"><title>2007-Q3 PRs closed: 0</title></circle>
+<circle cx="282.3" cy="307.0" r="4" fill="#be123c"><title>2007-Q4 PRs closed: 0</title></circle>
+<circle cx="293.2" cy="307.0" r="4" fill="#be123c"><title>2008-Q1 PRs closed: 0</title></circle>
+<circle cx="304.1" cy="307.0" r="4" fill="#be123c"><title>2008-Q2 PRs closed: 0</title></circle>
+<circle cx="314.9" cy="307.0" r="4" fill="#be123c"><title>2008-Q3 PRs closed: 0</title></circle>
+<circle cx="325.8" cy="307.0" r="4" fill="#be123c"><title>2008-Q4 PRs closed: 0</title></circle>
+<circle cx="336.6" cy="307.0" r="4" fill="#be123c"><title>2009-Q1 PRs closed: 0</title></circle>
+<circle cx="347.5" cy="307.0" r="4" fill="#be123c"><title>2009-Q2 PRs closed: 0</title></circle>
+<circle cx="358.4" cy="307.0" r="4" fill="#be123c"><title>2009-Q3 PRs closed: 0</title></circle>
+<circle cx="369.2" cy="307.0" r="4" fill="#be123c"><title>2009-Q4 PRs closed: 0</title></circle>
+<circle cx="380.1" cy="307.0" r="4" fill="#be123c"><title>2010-Q1 PRs closed: 0</title></circle>
+<circle cx="390.9" cy="307.0" r="4" fill="#be123c"><title>2010-Q2 PRs closed: 0</title></circle>
+<circle cx="401.8" cy="307.0" r="4" fill="#be123c"><title>2010-Q3 PRs closed: 0</title></circle>
+<circle cx="412.7" cy="307.0" r="4" fill="#be123c"><title>2010-Q4 PRs closed: 0</title></circle>
+<circle cx="423.5" cy="307.0" r="4" fill="#be123c"><title>2011-Q1 PRs closed: 0</title></circle>
+<circle cx="434.4" cy="307.0" r="4" fill="#be123c"><title>2011-Q2 PRs closed: 0</title></circle>
+<circle cx="445.2" cy="307.0" r="4" fill="#be123c"><title>2011-Q3 PRs closed: 0</title></circle>
+<circle cx="456.1" cy="307.0" r="4" fill="#be123c"><title>2011-Q4 PRs closed: 0</title></circle>
+<circle cx="467.0" cy="307.0" r="4" fill="#be123c"><title>2012-Q1 PRs closed: 0</title></circle>
+<circle cx="477.8" cy="307.0" r="4" fill="#be123c"><title>2012-Q2 PRs closed: 0</title></circle>
+<circle cx="488.7" cy="307.0" r="4" fill="#be123c"><title>2012-Q3 PRs closed: 0</title></circle>
+<circle cx="499.5" cy="307.0" r="4" fill="#be123c"><title>2012-Q4 PRs closed: 0</title></circle>
+<circle cx="510.4" cy="307.0" r="4" fill="#be123c"><title>2013-Q1 PRs closed: 0</title></circle>
+<circle cx="521.3" cy="307.0" r="4" fill="#be123c"><title>2013-Q2 PRs closed: 0</title></circle>
+<circle cx="532.1" cy="307.0" r="4" fill="#be123c"><title>2013-Q3 PRs closed: 0</title></circle>
+<circle cx="543.0" cy="307.0" r="4" fill="#be123c"><title>2013-Q4 PRs closed: 0</title></circle>
+<circle cx="553.8" cy="307.0" r="4" fill="#be123c"><title>2014-Q1 PRs closed: 0</title></circle>
+<circle cx="564.7" cy="307.0" r="4" fill="#be123c"><title>2014-Q2 PRs closed: 0</title></circle>
+<circle cx="575.6" cy="307.0" r="4" fill="#be123c"><title>2014-Q3 PRs closed: 0</title></circle>
+<circle cx="586.4" cy="307.0" r="4" fill="#be123c"><title>2014-Q4 PRs closed: 0</title></circle>
+<circle cx="597.3" cy="307.0" r="4" fill="#be123c"><title>2015-Q1 PRs closed: 0</title></circle>
+<circle cx="608.2" cy="307.0" r="4" fill="#be123c"><title>2015-Q2 PRs closed: 0</title></circle>
+<circle cx="619.0" cy="307.0" r="4" fill="#be123c"><title>2015-Q3 PRs closed: 0</title></circle>
+<circle cx="629.9" cy="307.0" r="4" fill="#be123c"><title>2015-Q4 PRs closed: 0</title></circle>
+<circle cx="640.7" cy="307.0" r="4" fill="#be123c"><title>2016-Q1 PRs closed: 0</title></circle>
+<circle cx="651.6" cy="307.0" r="4" fill="#be123c"><title>2016-Q2 PRs closed: 0</title></circle>
+<circle cx="662.5" cy="307.0" r="4" fill="#be123c"><title>2016-Q3 PRs closed: 0</title></circle>
+<circle cx="673.3" cy="307.0" r="4" fill="#be123c"><title>2016-Q4 PRs closed: 0</title></circle>
+<circle cx="684.2" cy="307.0" r="4" fill="#be123c"><title>2017-Q1 PRs closed: 0</title></circle>
+<circle cx="695.0" cy="307.0" r="4" fill="#be123c"><title>2017-Q2 PRs closed: 0</title></circle>
+<circle cx="705.9" cy="306.3" r="4" fill="#be123c"><title>2017-Q3 PRs closed: 3</title></circle>
+<circle cx="716.8" cy="305.9" r="4" fill="#be123c"><title>2017-Q4 PRs closed: 5</title></circle>
+<circle cx="727.6" cy="306.3" r="4" fill="#be123c"><title>2018-Q1 PRs closed: 3</title></circle>
+<circle cx="738.5" cy="306.3" r="4" fill="#be123c"><title>2018-Q2 PRs closed: 3</title></circle>
+<circle cx="749.3" cy="306.6" r="4" fill="#be123c"><title>2018-Q3 PRs closed: 2</title></circle>
+<circle cx="760.2" cy="303.9" r="4" fill="#be123c"><title>2018-Q4 PRs closed: 14</title></circle>
+<circle cx="771.1" cy="303.9" r="4" fill="#be123c"><title>2019-Q1 PRs closed: 14</title></circle>
+<circle cx="781.9" cy="303.9" r="4" fill="#be123c"><title>2019-Q2 PRs closed: 14</title></circle>
+<circle cx="792.8" cy="304.4" r="4" fill="#be123c"><title>2019-Q3 PRs closed: 12</title></circle>
+<circle cx="803.6" cy="303.9" r="4" fill="#be123c"><title>2019-Q4 PRs closed: 14</title></circle>
+<circle cx="814.5" cy="290.6" r="4" fill="#be123c"><title>2020-Q1 PRs closed: 75</title></circle>
+<circle cx="825.4" cy="287.7" r="4" fill="#be123c"><title>2020-Q2 PRs closed: 88</title></circle>
+<circle cx="836.2" cy="276.3" r="4" fill="#be123c"><title>2020-Q3 PRs closed: 140</title></circle>
+<circle cx="847.1" cy="254.9" r="4" fill="#be123c"><title>2020-Q4 PRs closed: 238</title></circle>
+<circle cx="857.9" cy="252.9" r="4" fill="#be123c"><title>2021-Q1 PRs closed: 247</title></circle>
+<circle cx="868.8" cy="263.2" r="4" fill="#be123c"><title>2021-Q2 PRs closed: 200</title></circle>
+<circle cx="879.7" cy="269.8" r="4" fill="#be123c"><title>2021-Q3 PRs closed: 170</title></circle>
+<circle cx="890.5" cy="241.1" r="4" fill="#be123c"><title>2021-Q4 PRs closed: 301</title></circle>
+<circle cx="901.4" cy="240.6" r="4" fill="#be123c"><title>2022-Q1 PRs closed: 303</title></circle>
+<circle cx="912.2" cy="230.1" r="4" fill="#be123c"><title>2022-Q2 PRs closed: 351</title></circle>
+<circle cx="923.1" cy="217.6" r="4" fill="#be123c"><title>2022-Q3 PRs closed: 408</title></circle>
+<circle cx="934.0" cy="234.1" r="4" fill="#be123c"><title>2022-Q4 PRs closed: 333</title></circle>
+<circle cx="944.8" cy="213.5" r="4" fill="#be123c"><title>2023-Q1 PRs closed: 427</title></circle>
+<circle cx="955.7" cy="227.7" r="4" fill="#be123c"><title>2023-Q2 PRs closed: 362</title></circle>
+<circle cx="966.5" cy="203.2" r="4" fill="#be123c"><title>2023-Q3 PRs closed: 474</title></circle>
+<circle cx="977.4" cy="238.9" r="4" fill="#be123c"><title>2023-Q4 PRs closed: 311</title></circle>
+<circle cx="988.3" cy="216.8" r="4" fill="#be123c"><title>2024-Q1 PRs closed: 412</title></circle>
+<circle cx="999.1" cy="219.8" r="4" fill="#be123c"><title>2024-Q2 PRs closed: 398</title></circle>
+<circle cx="1010.0" cy="212.6" r="4" fill="#be123c"><title>2024-Q3 PRs closed: 431</title></circle>
+<circle cx="1020.8" cy="222.9" r="4" fill="#be123c"><title>2024-Q4 PRs closed: 384</title></circle>
+<circle cx="1031.7" cy="219.4" r="4" fill="#be123c"><title>2025-Q1 PRs closed: 400</title></circle>
+<circle cx="1042.6" cy="245.5" r="4" fill="#be123c"><title>2025-Q2 PRs closed: 281</title></circle>
+<circle cx="1053.4" cy="140.1" r="4" fill="#be123c"><title>2025-Q3 PRs closed: 762</title></circle>
+<circle cx="1064.3" cy="165.7" r="4" fill="#be123c"><title>2025-Q4 PRs closed: 645</title></circle>
+<circle cx="1075.1" cy="167.7" r="4" fill="#be123c"><title>2026-Q1 PRs closed: 636</title></circle>
 <circle cx="1086.0" cy="250.7" r="4" fill="#be123c"><title>2026-Q2 PRs closed: 257</title></circle>
-<polyline points="76.0,289.0 126.5,255.3 177.0,233.9 227.5,232.8 278.0,226.0 328.5,221.2 379.0,229.3 429.5,216.3 480.0,211.1 530.5,190.1 581.0,220.3 631.5,209.5 682.0,192.9 732.5,201.7 783.0,189.2 833.5,195.7 884.0,204.3 934.5,190.9 985.0,225.1 1035.5,159.6 1086.0,154.6" fill="none" stroke="#ea580c" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-<circle cx="76.0" cy="289.0" r="4" fill="#ea580c"><title>2021-Q2 Linked to Trac: 82</title></circle>
-<circle cx="126.5" cy="255.3" r="4" fill="#ea580c"><title>2021-Q3 Linked to Trac: 236</title></circle>
-<circle cx="177.0" cy="233.9" r="4" fill="#ea580c"><title>2021-Q4 Linked to Trac: 334</title></circle>
-<circle cx="227.5" cy="232.8" r="4" fill="#ea580c"><title>2022-Q1 Linked to Trac: 339</title></circle>
-<circle cx="278.0" cy="226.0" r="4" fill="#ea580c"><title>2022-Q2 Linked to Trac: 370</title></circle>
-<circle cx="328.5" cy="221.2" r="4" fill="#ea580c"><title>2022-Q3 Linked to Trac: 392</title></circle>
-<circle cx="379.0" cy="229.3" r="4" fill="#ea580c"><title>2022-Q4 Linked to Trac: 355</title></circle>
-<circle cx="429.5" cy="216.3" r="4" fill="#ea580c"><title>2023-Q1 Linked to Trac: 414</title></circle>
-<circle cx="480.0" cy="211.1" r="4" fill="#ea580c"><title>2023-Q2 Linked to Trac: 438</title></circle>
-<circle cx="530.5" cy="190.1" r="4" fill="#ea580c"><title>2023-Q3 Linked to Trac: 534</title></circle>
-<circle cx="581.0" cy="220.3" r="4" fill="#ea580c"><title>2023-Q4 Linked to Trac: 396</title></circle>
-<circle cx="631.5" cy="209.5" r="4" fill="#ea580c"><title>2024-Q1 Linked to Trac: 445</title></circle>
-<circle cx="682.0" cy="192.9" r="4" fill="#ea580c"><title>2024-Q2 Linked to Trac: 521</title></circle>
-<circle cx="732.5" cy="201.7" r="4" fill="#ea580c"><title>2024-Q3 Linked to Trac: 481</title></circle>
-<circle cx="783.0" cy="189.2" r="4" fill="#ea580c"><title>2024-Q4 Linked to Trac: 538</title></circle>
-<circle cx="833.5" cy="195.7" r="4" fill="#ea580c"><title>2025-Q1 Linked to Trac: 508</title></circle>
-<circle cx="884.0" cy="204.3" r="4" fill="#ea580c"><title>2025-Q2 Linked to Trac: 469</title></circle>
-<circle cx="934.5" cy="190.9" r="4" fill="#ea580c"><title>2025-Q3 Linked to Trac: 530</title></circle>
-<circle cx="985.0" cy="225.1" r="4" fill="#ea580c"><title>2025-Q4 Linked to Trac: 374</title></circle>
-<circle cx="1035.5" cy="159.6" r="4" fill="#ea580c"><title>2026-Q1 Linked to Trac: 673</title></circle>
+<polyline points="76.0,307.0 86.9,307.0 97.7,307.0 108.6,307.0 119.4,307.0 130.3,307.0 141.2,307.0 152.0,307.0 162.9,307.0 173.7,307.0 184.6,307.0 195.5,307.0 206.3,307.0 217.2,307.0 228.0,307.0 238.9,307.0 249.8,307.0 260.6,307.0 271.5,307.0 282.3,307.0 293.2,307.0 304.1,307.0 314.9,307.0 325.8,307.0 336.6,307.0 347.5,307.0 358.4,307.0 369.2,307.0 380.1,307.0 390.9,307.0 401.8,307.0 412.7,307.0 423.5,307.0 434.4,307.0 445.2,307.0 456.1,307.0 467.0,307.0 477.8,307.0 488.7,307.0 499.5,307.0 510.4,307.0 521.3,307.0 532.1,307.0 543.0,307.0 553.8,307.0 564.7,307.0 575.6,307.0 586.4,307.0 597.3,307.0 608.2,307.0 619.0,307.0 629.9,307.0 640.7,307.0 651.6,307.0 662.5,307.0 673.3,307.0 684.2,307.0 695.0,307.0 705.9,306.8 716.8,306.6 727.6,306.8 738.5,306.8 749.3,306.8 760.2,306.3 771.1,305.5 781.9,306.1 792.8,305.5 803.6,305.2 814.5,292.8 825.4,272.6 836.2,268.7 847.1,248.5 857.9,254.2 868.8,251.4 879.7,255.3 890.5,233.9 901.4,232.8 912.2,226.0 923.1,221.2 934.0,229.3 944.8,216.3 955.7,211.1 966.5,190.1 977.4,220.3 988.3,209.5 999.1,192.9 1010.0,201.7 1020.8,189.2 1031.7,195.7 1042.6,204.3 1053.4,190.9 1064.3,225.1 1075.1,159.6 1086.0,154.6" fill="none" stroke="#ea580c" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="76.0" cy="307.0" r="4" fill="#ea580c"><title>2003-Q1 Linked to Trac: 0</title></circle>
+<circle cx="86.9" cy="307.0" r="4" fill="#ea580c"><title>2003-Q2 Linked to Trac: 0</title></circle>
+<circle cx="97.7" cy="307.0" r="4" fill="#ea580c"><title>2003-Q3 Linked to Trac: 0</title></circle>
+<circle cx="108.6" cy="307.0" r="4" fill="#ea580c"><title>2003-Q4 Linked to Trac: 0</title></circle>
+<circle cx="119.4" cy="307.0" r="4" fill="#ea580c"><title>2004-Q1 Linked to Trac: 0</title></circle>
+<circle cx="130.3" cy="307.0" r="4" fill="#ea580c"><title>2004-Q2 Linked to Trac: 0</title></circle>
+<circle cx="141.2" cy="307.0" r="4" fill="#ea580c"><title>2004-Q3 Linked to Trac: 0</title></circle>
+<circle cx="152.0" cy="307.0" r="4" fill="#ea580c"><title>2004-Q4 Linked to Trac: 0</title></circle>
+<circle cx="162.9" cy="307.0" r="4" fill="#ea580c"><title>2005-Q1 Linked to Trac: 0</title></circle>
+<circle cx="173.7" cy="307.0" r="4" fill="#ea580c"><title>2005-Q2 Linked to Trac: 0</title></circle>
+<circle cx="184.6" cy="307.0" r="4" fill="#ea580c"><title>2005-Q3 Linked to Trac: 0</title></circle>
+<circle cx="195.5" cy="307.0" r="4" fill="#ea580c"><title>2005-Q4 Linked to Trac: 0</title></circle>
+<circle cx="206.3" cy="307.0" r="4" fill="#ea580c"><title>2006-Q1 Linked to Trac: 0</title></circle>
+<circle cx="217.2" cy="307.0" r="4" fill="#ea580c"><title>2006-Q2 Linked to Trac: 0</title></circle>
+<circle cx="228.0" cy="307.0" r="4" fill="#ea580c"><title>2006-Q3 Linked to Trac: 0</title></circle>
+<circle cx="238.9" cy="307.0" r="4" fill="#ea580c"><title>2006-Q4 Linked to Trac: 0</title></circle>
+<circle cx="249.8" cy="307.0" r="4" fill="#ea580c"><title>2007-Q1 Linked to Trac: 0</title></circle>
+<circle cx="260.6" cy="307.0" r="4" fill="#ea580c"><title>2007-Q2 Linked to Trac: 0</title></circle>
+<circle cx="271.5" cy="307.0" r="4" fill="#ea580c"><title>2007-Q3 Linked to Trac: 0</title></circle>
+<circle cx="282.3" cy="307.0" r="4" fill="#ea580c"><title>2007-Q4 Linked to Trac: 0</title></circle>
+<circle cx="293.2" cy="307.0" r="4" fill="#ea580c"><title>2008-Q1 Linked to Trac: 0</title></circle>
+<circle cx="304.1" cy="307.0" r="4" fill="#ea580c"><title>2008-Q2 Linked to Trac: 0</title></circle>
+<circle cx="314.9" cy="307.0" r="4" fill="#ea580c"><title>2008-Q3 Linked to Trac: 0</title></circle>
+<circle cx="325.8" cy="307.0" r="4" fill="#ea580c"><title>2008-Q4 Linked to Trac: 0</title></circle>
+<circle cx="336.6" cy="307.0" r="4" fill="#ea580c"><title>2009-Q1 Linked to Trac: 0</title></circle>
+<circle cx="347.5" cy="307.0" r="4" fill="#ea580c"><title>2009-Q2 Linked to Trac: 0</title></circle>
+<circle cx="358.4" cy="307.0" r="4" fill="#ea580c"><title>2009-Q3 Linked to Trac: 0</title></circle>
+<circle cx="369.2" cy="307.0" r="4" fill="#ea580c"><title>2009-Q4 Linked to Trac: 0</title></circle>
+<circle cx="380.1" cy="307.0" r="4" fill="#ea580c"><title>2010-Q1 Linked to Trac: 0</title></circle>
+<circle cx="390.9" cy="307.0" r="4" fill="#ea580c"><title>2010-Q2 Linked to Trac: 0</title></circle>
+<circle cx="401.8" cy="307.0" r="4" fill="#ea580c"><title>2010-Q3 Linked to Trac: 0</title></circle>
+<circle cx="412.7" cy="307.0" r="4" fill="#ea580c"><title>2010-Q4 Linked to Trac: 0</title></circle>
+<circle cx="423.5" cy="307.0" r="4" fill="#ea580c"><title>2011-Q1 Linked to Trac: 0</title></circle>
+<circle cx="434.4" cy="307.0" r="4" fill="#ea580c"><title>2011-Q2 Linked to Trac: 0</title></circle>
+<circle cx="445.2" cy="307.0" r="4" fill="#ea580c"><title>2011-Q3 Linked to Trac: 0</title></circle>
+<circle cx="456.1" cy="307.0" r="4" fill="#ea580c"><title>2011-Q4 Linked to Trac: 0</title></circle>
+<circle cx="467.0" cy="307.0" r="4" fill="#ea580c"><title>2012-Q1 Linked to Trac: 0</title></circle>
+<circle cx="477.8" cy="307.0" r="4" fill="#ea580c"><title>2012-Q2 Linked to Trac: 0</title></circle>
+<circle cx="488.7" cy="307.0" r="4" fill="#ea580c"><title>2012-Q3 Linked to Trac: 0</title></circle>
+<circle cx="499.5" cy="307.0" r="4" fill="#ea580c"><title>2012-Q4 Linked to Trac: 0</title></circle>
+<circle cx="510.4" cy="307.0" r="4" fill="#ea580c"><title>2013-Q1 Linked to Trac: 0</title></circle>
+<circle cx="521.3" cy="307.0" r="4" fill="#ea580c"><title>2013-Q2 Linked to Trac: 0</title></circle>
+<circle cx="532.1" cy="307.0" r="4" fill="#ea580c"><title>2013-Q3 Linked to Trac: 0</title></circle>
+<circle cx="543.0" cy="307.0" r="4" fill="#ea580c"><title>2013-Q4 Linked to Trac: 0</title></circle>
+<circle cx="553.8" cy="307.0" r="4" fill="#ea580c"><title>2014-Q1 Linked to Trac: 0</title></circle>
+<circle cx="564.7" cy="307.0" r="4" fill="#ea580c"><title>2014-Q2 Linked to Trac: 0</title></circle>
+<circle cx="575.6" cy="307.0" r="4" fill="#ea580c"><title>2014-Q3 Linked to Trac: 0</title></circle>
+<circle cx="586.4" cy="307.0" r="4" fill="#ea580c"><title>2014-Q4 Linked to Trac: 0</title></circle>
+<circle cx="597.3" cy="307.0" r="4" fill="#ea580c"><title>2015-Q1 Linked to Trac: 0</title></circle>
+<circle cx="608.2" cy="307.0" r="4" fill="#ea580c"><title>2015-Q2 Linked to Trac: 0</title></circle>
+<circle cx="619.0" cy="307.0" r="4" fill="#ea580c"><title>2015-Q3 Linked to Trac: 0</title></circle>
+<circle cx="629.9" cy="307.0" r="4" fill="#ea580c"><title>2015-Q4 Linked to Trac: 0</title></circle>
+<circle cx="640.7" cy="307.0" r="4" fill="#ea580c"><title>2016-Q1 Linked to Trac: 0</title></circle>
+<circle cx="651.6" cy="307.0" r="4" fill="#ea580c"><title>2016-Q2 Linked to Trac: 0</title></circle>
+<circle cx="662.5" cy="307.0" r="4" fill="#ea580c"><title>2016-Q3 Linked to Trac: 0</title></circle>
+<circle cx="673.3" cy="307.0" r="4" fill="#ea580c"><title>2016-Q4 Linked to Trac: 0</title></circle>
+<circle cx="684.2" cy="307.0" r="4" fill="#ea580c"><title>2017-Q1 Linked to Trac: 0</title></circle>
+<circle cx="695.0" cy="307.0" r="4" fill="#ea580c"><title>2017-Q2 Linked to Trac: 0</title></circle>
+<circle cx="705.9" cy="306.8" r="4" fill="#ea580c"><title>2017-Q3 Linked to Trac: 1</title></circle>
+<circle cx="716.8" cy="306.6" r="4" fill="#ea580c"><title>2017-Q4 Linked to Trac: 2</title></circle>
+<circle cx="727.6" cy="306.8" r="4" fill="#ea580c"><title>2018-Q1 Linked to Trac: 1</title></circle>
+<circle cx="738.5" cy="306.8" r="4" fill="#ea580c"><title>2018-Q2 Linked to Trac: 1</title></circle>
+<circle cx="749.3" cy="306.8" r="4" fill="#ea580c"><title>2018-Q3 Linked to Trac: 1</title></circle>
+<circle cx="760.2" cy="306.3" r="4" fill="#ea580c"><title>2018-Q4 Linked to Trac: 3</title></circle>
+<circle cx="771.1" cy="305.5" r="4" fill="#ea580c"><title>2019-Q1 Linked to Trac: 7</title></circle>
+<circle cx="781.9" cy="306.1" r="4" fill="#ea580c"><title>2019-Q2 Linked to Trac: 4</title></circle>
+<circle cx="792.8" cy="305.5" r="4" fill="#ea580c"><title>2019-Q3 Linked to Trac: 7</title></circle>
+<circle cx="803.6" cy="305.2" r="4" fill="#ea580c"><title>2019-Q4 Linked to Trac: 8</title></circle>
+<circle cx="814.5" cy="292.8" r="4" fill="#ea580c"><title>2020-Q1 Linked to Trac: 65</title></circle>
+<circle cx="825.4" cy="272.6" r="4" fill="#ea580c"><title>2020-Q2 Linked to Trac: 157</title></circle>
+<circle cx="836.2" cy="268.7" r="4" fill="#ea580c"><title>2020-Q3 Linked to Trac: 175</title></circle>
+<circle cx="847.1" cy="248.5" r="4" fill="#ea580c"><title>2020-Q4 Linked to Trac: 267</title></circle>
+<circle cx="857.9" cy="254.2" r="4" fill="#ea580c"><title>2021-Q1 Linked to Trac: 241</title></circle>
+<circle cx="868.8" cy="251.4" r="4" fill="#ea580c"><title>2021-Q2 Linked to Trac: 254</title></circle>
+<circle cx="879.7" cy="255.3" r="4" fill="#ea580c"><title>2021-Q3 Linked to Trac: 236</title></circle>
+<circle cx="890.5" cy="233.9" r="4" fill="#ea580c"><title>2021-Q4 Linked to Trac: 334</title></circle>
+<circle cx="901.4" cy="232.8" r="4" fill="#ea580c"><title>2022-Q1 Linked to Trac: 339</title></circle>
+<circle cx="912.2" cy="226.0" r="4" fill="#ea580c"><title>2022-Q2 Linked to Trac: 370</title></circle>
+<circle cx="923.1" cy="221.2" r="4" fill="#ea580c"><title>2022-Q3 Linked to Trac: 392</title></circle>
+<circle cx="934.0" cy="229.3" r="4" fill="#ea580c"><title>2022-Q4 Linked to Trac: 355</title></circle>
+<circle cx="944.8" cy="216.3" r="4" fill="#ea580c"><title>2023-Q1 Linked to Trac: 414</title></circle>
+<circle cx="955.7" cy="211.1" r="4" fill="#ea580c"><title>2023-Q2 Linked to Trac: 438</title></circle>
+<circle cx="966.5" cy="190.1" r="4" fill="#ea580c"><title>2023-Q3 Linked to Trac: 534</title></circle>
+<circle cx="977.4" cy="220.3" r="4" fill="#ea580c"><title>2023-Q4 Linked to Trac: 396</title></circle>
+<circle cx="988.3" cy="209.5" r="4" fill="#ea580c"><title>2024-Q1 Linked to Trac: 445</title></circle>
+<circle cx="999.1" cy="192.9" r="4" fill="#ea580c"><title>2024-Q2 Linked to Trac: 521</title></circle>
+<circle cx="1010.0" cy="201.7" r="4" fill="#ea580c"><title>2024-Q3 Linked to Trac: 481</title></circle>
+<circle cx="1020.8" cy="189.2" r="4" fill="#ea580c"><title>2024-Q4 Linked to Trac: 538</title></circle>
+<circle cx="1031.7" cy="195.7" r="4" fill="#ea580c"><title>2025-Q1 Linked to Trac: 508</title></circle>
+<circle cx="1042.6" cy="204.3" r="4" fill="#ea580c"><title>2025-Q2 Linked to Trac: 469</title></circle>
+<circle cx="1053.4" cy="190.9" r="4" fill="#ea580c"><title>2025-Q3 Linked to Trac: 530</title></circle>
+<circle cx="1064.3" cy="225.1" r="4" fill="#ea580c"><title>2025-Q4 Linked to Trac: 374</title></circle>
+<circle cx="1075.1" cy="159.6" r="4" fill="#ea580c"><title>2026-Q1 Linked to Trac: 673</title></circle>
 <circle cx="1086.0" cy="154.6" r="4" fill="#ea580c"><title>2026-Q2 Linked to Trac: 696</title></circle>
-<text x="76.0" y="341" text-anchor="middle" class="axis">2021</text>
-<text x="227.5" y="341" text-anchor="middle" class="axis">2022</text>
-<text x="429.5" y="341" text-anchor="middle" class="axis">2023</text>
-<text x="631.5" y="341" text-anchor="middle" class="axis">2024</text>
-<text x="833.5" y="341" text-anchor="middle" class="axis">2025</text>
-<text x="1035.5" y="341" text-anchor="middle" class="axis">2026</text>
+<text x="76.0" y="341" text-anchor="middle" class="axis">2003</text>
+<text x="119.4" y="341" text-anchor="middle" class="axis">2004</text>
+<text x="162.9" y="341" text-anchor="middle" class="axis">2005</text>
+<text x="206.3" y="341" text-anchor="middle" class="axis">2006</text>
+<text x="249.8" y="341" text-anchor="middle" class="axis">2007</text>
+<text x="293.2" y="341" text-anchor="middle" class="axis">2008</text>
+<text x="336.6" y="341" text-anchor="middle" class="axis">2009</text>
+<text x="380.1" y="341" text-anchor="middle" class="axis">2010</text>
+<text x="423.5" y="341" text-anchor="middle" class="axis">2011</text>
+<text x="467.0" y="341" text-anchor="middle" class="axis">2012</text>
+<text x="510.4" y="341" text-anchor="middle" class="axis">2013</text>
+<text x="553.8" y="341" text-anchor="middle" class="axis">2014</text>
+<text x="597.3" y="341" text-anchor="middle" class="axis">2015</text>
+<text x="640.7" y="341" text-anchor="middle" class="axis">2016</text>
+<text x="684.2" y="341" text-anchor="middle" class="axis">2017</text>
+<text x="727.6" y="341" text-anchor="middle" class="axis">2018</text>
+<text x="771.1" y="341" text-anchor="middle" class="axis">2019</text>
+<text x="814.5" y="341" text-anchor="middle" class="axis">2020</text>
+<text x="857.9" y="341" text-anchor="middle" class="axis">2021</text>
+<text x="901.4" y="341" text-anchor="middle" class="axis">2022</text>
+<text x="944.8" y="341" text-anchor="middle" class="axis">2023</text>
+<text x="988.3" y="341" text-anchor="middle" class="axis">2024</text>
+<text x="1031.7" y="341" text-anchor="middle" class="axis">2025</text>
+<text x="1075.1" y="341" text-anchor="middle" class="axis">2026</text>
 </svg>
   </section>
 
@@ -619,18 +1269,18 @@
     </article>
     <article class="point">
       <h2>Ticket flow is the main story.</h2>
-      <p>New tickets averaged 627 per quarter early in the window and 446 recently. When closures rise above new tickets, the open backlog bends down.</p>
+      <p>New tickets averaged 283 per quarter in the first active year of the Trac export and 446 recently. When closures rise above new tickets, the open backlog bends down.</p>
     </article>
     <article class="point">
       <h2>GitHub is review traffic, not the issue source.</h2>
-      <p>wordpress-develop produced 10,772 PRs in the window, with 9,125 linking back to Trac. It helps explain implementation activity without replacing Trac ticket flow.</p>
+      <p>wordpress-develop produced 12,136 PRs since the GitHub mirror began, with 10,237 linking back to Trac. It helps explain implementation activity without replacing Trac ticket flow.</p>
     </article>
   </section>
 
   <details>
     <summary>Method and source files</summary>
     <div class="method">
-      <p>Data window: June 11, 2021 through June 11, 2026. Core ticket inventory comes from Core Trac CSV exports. Closure and reopen timing comes from public ticket RSS feeds for closed tickets modified in the window and current reopened tickets. GitHub activity comes from the GitHub API for <code>WordPress/wordpress-develop</code> pull requests.</p>
+      <p>Data window: January 1, 2003 through June 11, 2026. Core ticket inventory comes from Core Trac CSV exports; the first ticket in the export was created on June 10, 2004. Closure and reopen timing comes from public ticket RSS feeds for closed and reopened tickets. GitHub activity comes from the GitHub API for <code>WordPress/wordpress-develop</code> pull requests.</p>
       <p>Generated files: <code>quarterly_metrics.csv</code>, <code>monthly_metrics.csv</code>, <code>component_summary.csv</code>, <code>resolution_summary.csv</code>, and <code>github_pr_quarterly.csv</code>.</p>
       <p>Most closure dates are parsed from RSS status-change events. Tickets without a public close event in the parsed feed use the Trac modified timestamp as a fallback.</p>
     </div>

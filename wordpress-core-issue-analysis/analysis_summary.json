@@ -1,19 +1,19 @@
 {
   "close_sources": {
-    "modified_fallback": 44827,
+    "modified_fallback": 1,
     "open": 8223,
-    "rss": 11901
+    "rss": 56727
   },
   "current_closed": 56728,
   "current_open": 8223,
   "end": "2026-06-11T23:59:59Z",
-  "generated_at": "2026-06-11T23:41:45.436456Z",
+  "generated_at": "2026-06-12T01:27:25.150900Z",
   "github_pr_count": 12136,
-  "github_window_created": 10772,
-  "github_window_linked": 9125,
-  "rss_event_tickets": 12326,
-  "start": "2021-06-11T00:00:00Z",
+  "github_window_created": 12136,
+  "github_window_linked": 10237,
+  "rss_event_tickets": 57152,
+  "start": "2003-01-01T00:00:00Z",
   "ticket_count": 64951,
-  "window_closed": 10633,
-  "window_created": 11945
+  "window_closed": 56728,
+  "window_created": 64951
 }

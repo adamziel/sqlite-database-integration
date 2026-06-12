@@ -1129,6 +1129,86 @@ def line_chart_svg(rows, series, title, note, aria, height=365):
     return "\n".join(parts)
 
 
+def annual_sum_rows(rows, keys, date_key="quarter"):
+    buckets = defaultdict(lambda: {key: 0 for key in keys})
+    for row in rows:
+        year = row[date_key][:4]
+        buckets[year]["label"] = year
+        for key in keys:
+            buckets[year][key] += numeric(row, key)
+    return [dict({"year": year}, **buckets[year]) for year in sorted(buckets)]
+
+
+def annual_reporter_rows(rows):
+    by_year = defaultdict(list)
+    for row in rows:
+        by_year[row["quarter"][:4]].append(row)
+    annual = []
+    for year in sorted(by_year):
+        q_rows = by_year[year]
+        annual.append(
+            {
+                "year": year,
+                "label": year,
+                "unique_reporters": round(statistics.mean(numeric(row, "unique_reporters") for row in q_rows)),
+                "first_time_reporters": sum(numeric(row, "first_time_reporters") for row in q_rows),
+            }
+        )
+    return annual
+
+
+def grouped_bars_svg(rows, series, title, note, aria, height=365):
+    width = 1120
+    left, right, top, bottom = 76, 34, 92, 58
+    plot_w = width - left - right
+    plot_h = height - top - bottom
+    all_values = [numeric(row, key) for row in rows for key, _label, _color in series]
+    max_v = max(all_values) if all_values else 1
+    if max_v > 1000:
+        max_v = int(math.ceil(max_v / 500) * 500)
+    elif max_v > 100:
+        max_v = int(math.ceil(max_v / 100) * 100)
+    else:
+        max_v = max(10, int(math.ceil(max_v / 10) * 10))
+    group_w = plot_w / max(len(rows), 1)
+    bar_gap = 2
+    bar_w = min(14, max(3, (group_w - 8) / max(len(series), 1) - bar_gap))
+    series_w = len(series) * bar_w + (len(series) - 1) * bar_gap
+
+    def y_for(value):
+        return scale(value, 0, max_v, top + plot_h, top)
+
+    parts = [
+        f'<svg viewBox="0 0 {width} {height}" role="img" aria-label="{esc(aria)}">',
+        f'<text x="{left}" y="24" class="chart-title">{esc(title)}</text>',
+        f'<text x="{left}" y="46" class="chart-note">{esc(note)}</text>',
+    ]
+    legend_x = left
+    for _key, label, color in series:
+        parts.append(f'<rect x="{legend_x}" y="62" width="12" height="12" rx="2" fill="{color}"/>')
+        parts.append(f'<text x="{legend_x + 18}" y="73" class="legend-text">{esc(label)}</text>')
+        legend_x += max(120, len(label) * 7 + 42)
+    for tick in axis_ticks(0, max_v, 4):
+        y = y_for(tick)
+        parts.append(f'<line x1="{left}" y1="{y:.1f}" x2="{left + plot_w}" y2="{y:.1f}" class="grid"/>')
+        parts.append(f'<text x="{left - 10}" y="{y + 4:.1f}" text-anchor="end" class="axis">{tick:,}</text>')
+    for idx, row in enumerate(rows):
+        group_x = left + idx * group_w + (group_w - series_w) / 2
+        for s_idx, (key, label, color) in enumerate(series):
+            value = numeric(row, key)
+            x = group_x + s_idx * (bar_w + bar_gap)
+            y = y_for(value)
+            h = max(1, top + plot_h - y)
+            parts.append(
+                f'<rect x="{x:.1f}" y="{y:.1f}" width="{bar_w:.1f}" height="{h:.1f}" fill="{color}" rx="2">'
+                f'<title>{esc(row["label"])} {esc(label)}: {value:,}</title></rect>'
+            )
+        if idx == 0 or idx == len(rows) - 1 or idx % 2 == 0:
+            parts.append(f'<text x="{left + idx * group_w + group_w / 2:.1f}" y="{height - 24}" text-anchor="middle" class="axis">{esc(row["label"])}</text>')
+    parts.append("</svg>")
+    return "\n".join(parts)
+
+
 def monthly_net_svg(rows, noun="Core Trac tickets"):
     recent = [row for row in rows if row["month"] >= "2024-01-01"]
     width, height = 1120, 310
@@ -1292,7 +1372,7 @@ def render_view_panel(slug, view, active=False):
     </section>
 
     <section class="chart-band">
-      {line_chart_svg(q_rows, [("created", "New tickets", LINE_COLORS["created"]), ("closed", "Closed tickets", LINE_COLORS["closed"])], f"New and closed {noun} by quarter", "Blue is newly opened Trac tickets. Red is tickets closed during the quarter.", f"New and closed {noun} by quarter")}
+      {grouped_bars_svg(annual_sum_rows(q_rows, ["created", "closed"]), [("created", "New tickets", LINE_COLORS["created"]), ("closed", "Closed tickets", LINE_COLORS["closed"])], f"New and closed {noun} by year", "Annual totals make the long-run flow readable; blue is newly opened and red is closed.", f"New and closed {noun} by year")}
     </section>
 
     <section class="chart-band">
@@ -1300,7 +1380,7 @@ def render_view_panel(slug, view, active=False):
     </section>
 
     <section class="chart-band">
-      {line_chart_svg(q_rows, [("unique_reporters", "Unique reporters", LINE_COLORS["reporters"]), ("first_time_reporters", "First-time reporters", LINE_COLORS["first"])], f"People opening {noun}", f"Unique reporters averaged {stats['early_reporters']:.0f} per quarter in the first active year and {stats['recent_reporters']:.0f} recently.", f"People opening {noun}")}
+      {grouped_bars_svg(annual_reporter_rows(q_rows), [("unique_reporters", "Avg quarterly reporters", LINE_COLORS["reporters"]), ("first_time_reporters", "First-time reporters", LINE_COLORS["first"])], f"People opening {noun}", f"Purple is average unique reporters per quarter; orange is first-time reporters during the year.", f"People opening {noun}")}
     </section>
 
     <section class="chart-band">
@@ -1312,7 +1392,7 @@ def render_view_panel(slug, view, active=False):
     </section>
 
     <section class="chart-band">
-      {line_chart_svg(gh_rows, gh_series, "GitHub code-review activity", gh_note, gh_aria)}
+      {grouped_bars_svg(annual_sum_rows(gh_rows, [key for key, _label, _color in gh_series]), gh_series, "GitHub code-review activity", gh_note, gh_aria)}
     </section>
 
     <section class="discussion">

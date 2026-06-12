@@ -9,56 +9,56 @@ WordPress `7.0`, PHP 8.5.7 (cli) (built: Jun  2 2026 20:59:56) (NTS), PHP 8.5.7 
 
 | Variant | Workload | Concurrent requests | Reps | Median flows/s | Median avg request ms | Median p95 ms | Median write/s | Failed flows | Verify failures | SQLite lock errors | Max WAL bytes |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| mariadb-innodb-baseline | balanced | 4 | 3 | 97.10 | 26.77 | 99.90 | 19.68 | 0 | 0 | 0 | 0 |
-| mariadb-innodb-baseline | balanced | 16 | 3 | 94.14 | 106.99 | 521.30 | 19.28 | 0 | 0 | 0 | 0 |
-| mariadb-innodb-baseline | balanced | 32 | 3 | 89.61 | 212.92 | 1,113.06 | 18.22 | 0 | 0 | 0 | 0 |
-| mariadb-innodb-baseline | balanced | 64 | 3 | 92.94 | 424.92 | 1,872.67 | 19.32 | 0 | 0 | 0 | 0 |
-| mariadb-innodb-baseline | read-heavy | 4 | 3 | 99.59 | 25.03 | 92.56 | 0.00 | 0 | 0 | 0 | 0 |
-| mariadb-innodb-baseline | read-heavy | 16 | 3 | 95.78 | 98.05 | 499.56 | 0.00 | 0 | 0 | 0 | 0 |
-| mariadb-innodb-baseline | read-heavy | 32 | 3 | 94.98 | 208.56 | 1,002.28 | 0.00 | 0 | 0 | 0 | 0 |
-| mariadb-innodb-baseline | read-heavy | 64 | 3 | 96.41 | 396.59 | 1,885.23 | 0.00 | 0 | 0 | 0 | 0 |
-| mariadb-innodb-baseline | write-heavy | 4 | 3 | 99.90 | 28.32 | 102.76 | 29.51 | 0 | 0 | 0 | 0 |
-| mariadb-innodb-baseline | write-heavy | 16 | 3 | 101.23 | 112.79 | 526.78 | 29.14 | 0 | 0 | 0 | 0 |
-| mariadb-innodb-baseline | write-heavy | 32 | 3 | 102.54 | 226.39 | 1,016.87 | 32.06 | 0 | 0 | 0 | 0 |
-| mariadb-innodb-baseline | write-heavy | 64 | 3 | 103.24 | 452.38 | 1,640.31 | 31.33 | 0 | 0 | 0 | 0 |
-| sqlite-wal-pr405-lalr-pr429 | balanced | 4 | 3 | 91.71 | 28.41 | 107.89 | 19.16 | 0 | 0 | 0 | 4350752 |
-| sqlite-wal-pr405-lalr-pr429 | balanced | 16 | 3 | 86.49 | 115.53 | 472.27 | 17.62 | 0 | 0 | 0 | 4527912 |
-| sqlite-wal-pr405-lalr-pr429 | balanced | 32 | 3 | 85.45 | 223.63 | 915.89 | 17.54 | 0 | 0 | 0 | 4606192 |
-| sqlite-wal-pr405-lalr-pr429 | balanced | 64 | 3 | 86.90 | 460.23 | 1,894.80 | 18.13 | 0 | 0 | 0 | 5491992 |
-| sqlite-wal-pr405-lalr-pr429 | read-heavy | 4 | 3 | 89.52 | 27.96 | 102.03 | 0.00 | 0 | 0 | 0 | 74192 |
-| sqlite-wal-pr405-lalr-pr429 | read-heavy | 16 | 3 | 84.37 | 112.32 | 426.52 | 0.00 | 0 | 0 | 0 | 78312 |
-| sqlite-wal-pr405-lalr-pr429 | read-heavy | 32 | 3 | 87.35 | 226.04 | 821.91 | 0.00 | 0 | 0 | 0 | 78312 |
-| sqlite-wal-pr405-lalr-pr429 | read-heavy | 64 | 3 | 84.17 | 454.30 | 1,738.22 | 0.00 | 0 | 0 | 0 | 78312 |
-| sqlite-wal-pr405-lalr-pr429 | write-heavy | 4 | 3 | 92.77 | 30.24 | 110.70 | 27.33 | 0 | 0 | 0 | 4255992 |
-| sqlite-wal-pr405-lalr-pr429 | write-heavy | 16 | 3 | 91.82 | 123.79 | 491.84 | 26.96 | 0 | 0 | 0 | 5409592 |
-| sqlite-wal-pr405-lalr-pr429 | write-heavy | 32 | 3 | 94.08 | 242.59 | 900.41 | 28.78 | 0 | 0 | 0 | 6612632 |
-| sqlite-wal-pr405-lalr-pr429 | write-heavy | 64 | 3 | 92.97 | 500.70 | 1,853.09 | 28.22 | 0 | 0 | 0 | 18342272 |
+| mariadb-innodb-baseline | balanced | 4 | 3 | 102.55 | 25.36 | 96.61 | 20.91 | 0 | 0 | 0 | 0 |
+| mariadb-innodb-baseline | balanced | 16 | 3 | 95.57 | 105.44 | 523.35 | 19.37 | 0 | 0 | 0 | 0 |
+| mariadb-innodb-baseline | balanced | 32 | 3 | 95.26 | 202.06 | 1,061.68 | 19.04 | 0 | 0 | 0 | 0 |
+| mariadb-innodb-baseline | balanced | 64 | 3 | 100.03 | 396.50 | 1,737.06 | 21.37 | 0 | 0 | 0 | 0 |
+| mariadb-innodb-baseline | read-heavy | 4 | 3 | 97.42 | 25.62 | 94.02 | 0.00 | 0 | 0 | 0 | 0 |
+| mariadb-innodb-baseline | read-heavy | 16 | 3 | 90.62 | 104.50 | 515.84 | 0.00 | 0 | 0 | 0 | 0 |
+| mariadb-innodb-baseline | read-heavy | 32 | 3 | 98.09 | 204.50 | 919.75 | 0.00 | 0 | 0 | 0 | 0 |
+| mariadb-innodb-baseline | read-heavy | 64 | 3 | 93.76 | 407.79 | 1,932.67 | 0.00 | 0 | 0 | 0 | 0 |
+| mariadb-innodb-baseline | write-heavy | 4 | 3 | 106.20 | 26.60 | 98.02 | 31.61 | 0 | 0 | 0 | 0 |
+| mariadb-innodb-baseline | write-heavy | 16 | 3 | 101.01 | 113.85 | 501.18 | 29.61 | 0 | 0 | 0 | 0 |
+| mariadb-innodb-baseline | write-heavy | 32 | 3 | 101.73 | 225.97 | 997.57 | 30.90 | 0 | 0 | 0 | 0 |
+| mariadb-innodb-baseline | write-heavy | 64 | 3 | 98.61 | 475.23 | 1,784.23 | 29.86 | 0 | 0 | 0 | 0 |
+| sqlite-wal-pr405-lalr-wired | balanced | 4 | 3 | 11.00 | 221.86 | 1,959.16 | 2.70 | 0 | 0 | 0 | 4152992 |
+| sqlite-wal-pr405-lalr-wired | balanced | 16 | 3 | 35.68 | 258.89 | 1,978.11 | 7.95 | 0 | 0 | 0 | 4148872 |
+| sqlite-wal-pr405-lalr-wired | balanced | 32 | 3 | 59.47 | 309.32 | 2,044.88 | 12.32 | 0 | 0 | 0 | 4255992 |
+| sqlite-wal-pr405-lalr-wired | balanced | 64 | 3 | 66.71 | 549.25 | 2,591.44 | 13.78 | 0 | 0 | 0 | 4602072 |
+| sqlite-wal-pr405-lalr-wired | read-heavy | 4 | 3 | 16.32 | 144.24 | 1,926.05 | 0.00 | 0 | 0 | 0 | 123632 |
+| sqlite-wal-pr405-lalr-wired | read-heavy | 16 | 3 | 60.99 | 148.06 | 1,937.09 | 0.00 | 0 | 0 | 0 | 70072 |
+| sqlite-wal-pr405-lalr-wired | read-heavy | 32 | 3 | 70.94 | 268.16 | 1,998.89 | 0.00 | 0 | 0 | 0 | 74192 |
+| sqlite-wal-pr405-lalr-wired | read-heavy | 64 | 3 | 70.60 | 519.27 | 2,397.54 | 0.00 | 0 | 0 | 0 | 65952 |
+| sqlite-wal-pr405-lalr-wired | write-heavy | 4 | 3 | 5.86 | 473.63 | 1,984.35 | 1.63 | 0 | 0 | 0 | 2426712 |
+| sqlite-wal-pr405-lalr-wired | write-heavy | 16 | 3 | 25.47 | 432.35 | 2,006.26 | 7.27 | 0 | 0 | 0 | 4173592 |
+| sqlite-wal-pr405-lalr-wired | write-heavy | 32 | 3 | 50.63 | 421.55 | 2,041.41 | 15.67 | 0 | 0 | 0 | 4293072 |
+| sqlite-wal-pr405-lalr-wired | write-heavy | 64 | 3 | 58.30 | 680.43 | 2,651.25 | 17.45 | 0 | 0 | 0 | 4523792 |
 
 ## Server Load Summary
 
 | Variant | Workload | Concurrent requests | CPU core-s / 1k flows | Peak process CPU % | Peak total RSS | Peak PHP-FPM RSS | Peak DB RSS | Peak disk MB/sample | Median loopback bytes/s |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| mariadb-innodb-baseline | balanced | 4 | 34.406 | 361.10 | 1.01 GiB | 657.95 MiB | 355.03 MiB | 29.68 | 90,645,297 |
-| mariadb-innodb-baseline | balanced | 16 | 36.440 | 350.90 | 1.44 GiB | 1.08 GiB | 358.94 MiB | 16.27 | 82,497,497 |
-| mariadb-innodb-baseline | balanced | 32 | 36.921 | 348.00 | 2.14 GiB | 1.76 GiB | 363.78 MiB | 7.97 | 80,278,694 |
-| mariadb-innodb-baseline | balanced | 64 | 36.300 | 349.00 | 3.54 GiB | 3.15 GiB | 369.00 MiB | 18.10 | 80,506,751 |
-| mariadb-innodb-baseline | read-heavy | 4 | 33.475 | 359.40 | 1.03 GiB | 645.83 MiB | 386.05 MiB | 12.32 | 73,959,929 |
-| mariadb-innodb-baseline | read-heavy | 16 | 36.213 | 355.50 | 1.44 GiB | 1.03 GiB | 397.25 MiB | 5.70 | 73,235,300 |
-| mariadb-innodb-baseline | read-heavy | 32 | 33.783 | 355.70 | 2.09 GiB | 1.68 GiB | 405.58 MiB | 14.38 | 70,474,874 |
-| mariadb-innodb-baseline | read-heavy | 64 | 35.361 | 348.50 | 3.62 GiB | 3.30 GiB | 412.59 MiB | 50.42 | 70,612,883 |
-| mariadb-innodb-baseline | write-heavy | 4 | 33.263 | 352.30 | 1.02 GiB | 667.97 MiB | 367.52 MiB | 26.50 | 115,657,042 |
-| mariadb-innodb-baseline | write-heavy | 16 | 33.708 | 356.50 | 1.43 GiB | 1.04 GiB | 374.72 MiB | 22.80 | 131,496,327 |
-| mariadb-innodb-baseline | write-heavy | 32 | 32.506 | 353.30 | 2.13 GiB | 1.74 GiB | 381.39 MiB | 21.76 | 121,382,305 |
-| mariadb-innodb-baseline | write-heavy | 64 | 32.679 | 351.30 | 3.51 GiB | 3.14 GiB | 387.41 MiB | 20.90 | 125,582,884 |
-| sqlite-wal-pr405-lalr-pr429 | balanced | 4 | 39.043 | 374.20 | 1.13 GiB | 769.64 MiB | 370.98 MiB | 47.19 | 40,380,735 |
-| sqlite-wal-pr405-lalr-pr429 | balanced | 16 | 39.090 | 369.30 | 1.62 GiB | 1.26 GiB | 370.98 MiB | 14.83 | 35,887,107 |
-| sqlite-wal-pr405-lalr-pr429 | balanced | 32 | 40.517 | 370.70 | 2.29 GiB | 1.94 GiB | 370.98 MiB | 6.82 | 36,615,890 |
-| sqlite-wal-pr405-lalr-pr429 | balanced | 64 | 41.555 | 364.10 | 3.69 GiB | 3.33 GiB | 370.98 MiB | 13.60 | 35,736,565 |
-| sqlite-wal-pr405-lalr-pr429 | read-heavy | 4 | 40.554 | 369.30 | 1.10 GiB | 725.97 MiB | 381.47 MiB | 13.32 | 34,713,260 |
-| sqlite-wal-pr405-lalr-pr429 | read-heavy | 16 | 41.816 | 365.40 | 1.56 GiB | 1.20 GiB | 381.47 MiB | 12.71 | 33,480,249 |
-| sqlite-wal-pr405-lalr-pr429 | read-heavy | 32 | 39.859 | 369.90 | 2.26 GiB | 1.90 GiB | 381.47 MiB | 12.85 | 33,336,164 |
-| sqlite-wal-pr405-lalr-pr429 | read-heavy | 64 | 41.265 | 370.10 | 3.43 GiB | 3.07 GiB | 381.47 MiB | 25.66 | 32,077,421 |
-| sqlite-wal-pr405-lalr-pr429 | write-heavy | 4 | 38.043 | 366.10 | 1.15 GiB | 788.80 MiB | 370.98 MiB | 12.81 | 44,270,281 |
-| sqlite-wal-pr405-lalr-pr429 | write-heavy | 16 | 39.110 | 369.60 | 1.66 GiB | 1.27 GiB | 370.98 MiB | 11.21 | 44,716,660 |
-| sqlite-wal-pr405-lalr-pr429 | write-heavy | 32 | 37.051 | 372.00 | 2.38 GiB | 1.99 GiB | 370.98 MiB | 12.02 | 45,219,948 |
-| sqlite-wal-pr405-lalr-pr429 | write-heavy | 64 | 38.847 | 368.50 | 3.97 GiB | 3.61 GiB | 370.98 MiB | 15.90 | 44,780,208 |
+| mariadb-innodb-baseline | balanced | 4 | 33.658 | 360.50 | 1.04 GiB | 657.97 MiB | 393.56 MiB | 26.52 | 97,984,831 |
+| mariadb-innodb-baseline | balanced | 16 | 35.023 | 355.90 | 1.45 GiB | 1.05 GiB | 397.89 MiB | 18.99 | 85,427,764 |
+| mariadb-innodb-baseline | balanced | 32 | 34.650 | 351.00 | 2.13 GiB | 1.71 GiB | 400.53 MiB | 14.59 | 85,828,003 |
+| mariadb-innodb-baseline | balanced | 64 | 34.698 | 348.30 | 3.65 GiB | 3.26 GiB | 403.17 MiB | 14.47 | 84,026,391 |
+| mariadb-innodb-baseline | read-heavy | 4 | 35.194 | 365.60 | 1.03 GiB | 643.89 MiB | 383.00 MiB | 24.73 | 71,917,310 |
+| mariadb-innodb-baseline | read-heavy | 16 | 36.397 | 359.10 | 1.40 GiB | 1.02 GiB | 383.69 MiB | 16.00 | 70,036,363 |
+| mariadb-innodb-baseline | read-heavy | 32 | 33.862 | 353.20 | 2.05 GiB | 1.65 GiB | 386.48 MiB | 10.59 | 72,551,516 |
+| mariadb-innodb-baseline | read-heavy | 64 | 35.922 | 345.50 | 3.60 GiB | 3.25 GiB | 390.62 MiB | 16.88 | 71,414,811 |
+| mariadb-innodb-baseline | write-heavy | 4 | 32.389 | 352.60 | 1.05 GiB | 668.55 MiB | 386.09 MiB | 31.57 | 128,713,028 |
+| mariadb-innodb-baseline | write-heavy | 16 | 34.351 | 355.20 | 1.43 GiB | 1.07 GiB | 391.81 MiB | 79.29 | 130,130,807 |
+| mariadb-innodb-baseline | write-heavy | 32 | 33.478 | 350.10 | 2.18 GiB | 1.80 GiB | 397.44 MiB | 24.43 | 122,279,682 |
+| mariadb-innodb-baseline | write-heavy | 64 | 32.595 | 341.00 | 3.42 GiB | 3.04 GiB | 401.27 MiB | 19.92 | 115,128,677 |
+| sqlite-wal-pr405-lalr-wired | balanced | 4 | 21.618 | 89.10 | 1.12 GiB | 879.38 MiB | 260.30 MiB | 23.94 | 3,514,871 |
+| sqlite-wal-pr405-lalr-wired | balanced | 16 | 33.200 | 254.00 | 1.64 GiB | 1.37 GiB | 260.30 MiB | 40.73 | 15,056,047 |
+| sqlite-wal-pr405-lalr-wired | balanced | 32 | 45.095 | 353.20 | 2.55 GiB | 2.32 GiB | 260.30 MiB | 17.44 | 25,894,663 |
+| sqlite-wal-pr405-lalr-wired | balanced | 64 | 44.202 | 358.50 | 4.38 GiB | 4.10 GiB | 260.30 MiB | 15.85 | 27,532,828 |
+| sqlite-wal-pr405-lalr-wired | read-heavy | 4 | 40.390 | 214.60 | 1.25 GiB | 878.00 MiB | 376.75 MiB | 53.53 | 5,927,281 |
+| sqlite-wal-pr405-lalr-wired | read-heavy | 16 | 44.241 | 362.70 | 1.72 GiB | 1.40 GiB | 376.75 MiB | 19.96 | 23,611,763 |
+| sqlite-wal-pr405-lalr-wired | read-heavy | 32 | 42.921 | 358.10 | 2.54 GiB | 2.31 GiB | 368.78 MiB | 20.94 | 26,970,959 |
+| sqlite-wal-pr405-lalr-wired | read-heavy | 64 | 45.169 | 361.00 | 4.09 GiB | 3.91 GiB | 368.17 MiB | 23.56 | 27,610,606 |
+| sqlite-wal-pr405-lalr-wired | write-heavy | 4 | 84.164 | 194.80 | 1.13 GiB | 882.05 MiB | 260.30 MiB | 13.18 | 2,754,673 |
+| sqlite-wal-pr405-lalr-wired | write-heavy | 16 | 46.036 | 256.40 | 1.60 GiB | 1.33 GiB | 260.30 MiB | 17.20 | 13,508,188 |
+| sqlite-wal-pr405-lalr-wired | write-heavy | 32 | 43.771 | 347.40 | 2.60 GiB | 2.32 GiB | 260.30 MiB | 19.07 | 23,249,769 |
+| sqlite-wal-pr405-lalr-wired | write-heavy | 64 | 45.597 | 359.00 | 4.35 GiB | 4.10 GiB | 260.30 MiB | 32.25 | 29,211,669 |

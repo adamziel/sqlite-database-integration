@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WordPress Ticket Classification</title>
+  <style>
+    :root { --bg:#f8fafc; --panel:#fff; --text:#172033; --muted:#5b6b7f; --line:#d8e0ea; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--text); font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    main { max-width:1220px; margin:0 auto; padding:44px 24px 64px; }
+    h1 { margin:0 0 10px; font-size:clamp(32px,4vw,56px); line-height:1.03; letter-spacing:0; }
+    h2 { margin:34px 0 10px; font-size:25px; line-height:1.15; letter-spacing:0; }
+    .deck { margin:0; max-width:900px; color:#475569; font-size:18px; }
+    .metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin:30px 0; }
+    .metric,.chart,.note,.discussion { background:var(--panel); border:1px solid var(--line); border-radius:8px; }
+    .metric { padding:16px; min-height:126px; }
+    .metric-label { color:#64748b; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.04em; }
+    .metric-value { margin-top:8px; font-size:27px; line-height:1.15; font-weight:850; }
+    .metric-note { margin-top:8px; color:#64748b; font-size:13px; }
+    .source-band { margin-top:26px; }
+    .category-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-top:14px; }
+    .category-tile { background:#fff; border:1px solid var(--line); border-top:5px solid var(--accent); border-radius:8px; padding:13px; min-height:118px; }
+    .tile-top { display:flex; align-items:center; gap:8px; min-height:34px; color:#334155; font-size:13px; font-weight:800; }
+    .swatch { width:10px; height:10px; background:var(--accent); border-radius:2px; flex:0 0 auto; }
+    .tile-value { margin-top:10px; font-size:26px; line-height:1; font-weight:850; color:#0f172a; }
+    .tile-meta { margin-top:8px; color:#64748b; font-size:13px; }
+    .chart { margin-top:18px; padding:18px; overflow-x:auto; overflow-y:hidden; }
+    svg { display:block; width:100%; height:auto; overflow:visible; }
+    .chart-title { font-size:23px; font-weight:850; fill:#0f172a; }
+    .chart-note { font-size:14px; fill:#53667f; }
+    .axis,.bar-label,.legend-label { font-size:12px; fill:#334155; }
+    .bar-label { font-weight:700; }
+    .discussion { margin-top:18px; padding:18px; display:grid; grid-template-columns:1fr 1fr; gap:18px; color:#475569; }
+    .discussion p { margin:0; }
+    .note { margin-top:22px; padding:18px; color:#475569; }
+    a { color:#1d4ed8; font-weight:800; text-decoration:none; }
+    a:hover { text-decoration:underline; }
+    code { background:#eef2f7; padding:2px 5px; border-radius:4px; overflow-wrap:anywhere; word-break:break-word; }
+    @media (max-width:860px) {
+      main { padding:30px 14px 48px; }
+      .metrics { grid-template-columns:1fr; }
+      .category-grid { grid-template-columns:1fr; }
+      .discussion { grid-template-columns:1fr; }
+      .chart { padding:12px; overflow:visible; }
+      .chart svg { width:100%; max-width:100%; }
+      .deck { font-size:16px; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <h1>WordPress ticket classification</h1>
+  <p class="deck">Large-category classification for Gutenberg GitHub issues and WordPress Core Trac tickets, stored in a reusable SQLite database.</p>
+  <section class="metrics">
+    <div class="metric"><div class="metric-label">Gutenberg classified</div><div class="metric-value">32,144</div><div class="metric-note">15,217 comments stored</div></div>
+    <div class="metric"><div class="metric-label">Core classified</div><div class="metric-value">64,951</div><div class="metric-note">304,500 comments stored</div></div>
+    <div class="metric"><div class="metric-label">Gutenberg confidence</div><div class="metric-value">22,081 high</div><div class="metric-note">3,201 low-confidence rows</div></div>
+    <div class="metric"><div class="metric-label">Core confidence</div><div class="metric-value">64,951 high</div><div class="metric-note">0 low-confidence rows</div></div>
+  </section>
+  <section class="source-band">
+    <h2>Gutenberg GitHub issues</h2>
+    <div class="category-grid">
+
+            <div class="category-tile" style="--accent:#dc2626">
+              <div class="tile-top"><span class="swatch"></span><span>Bugs</span></div>
+              <div class="tile-value">15,801</div>
+              <div class="tile-meta">49% of all tickets · 1,957 open</div>
+            </div>
+            
+
+            <div class="category-tile" style="--accent:#0891b2">
+              <div class="tile-top"><span class="swatch"></span><span>Enhancements</span></div>
+              <div class="tile-value">8,434</div>
+              <div class="tile-meta">26% of all tickets · 2,975 open</div>
+            </div>
+            
+
+            <div class="category-tile" style="--accent:#64748b">
+              <div class="tile-top"><span class="swatch"></span><span>Other / unclear</span></div>
+              <div class="tile-value">3,201</div>
+              <div class="tile-meta">10% of all tickets · 172 open</div>
+            </div>
+            
+
+            <div class="category-tile" style="--accent:#0f766e">
+              <div class="tile-top"><span class="swatch"></span><span>Documentation</span></div>
+              <div class="tile-value">1,083</div>
+              <div class="tile-meta">3% of all tickets · 141 open</div>
+            </div>
+            
+
+            <div class="category-tile" style="--accent:#ea580c">
+              <div class="tile-top"><span class="swatch"></span><span>Support / questions</span></div>
+              <div class="tile-value">1,052</div>
+              <div class="tile-meta">3% of all tickets · 11 open</div>
+            </div>
+            
+
+            <div class="category-tile" style="--accent:#2563eb">
+              <div class="tile-top"><span class="swatch"></span><span>Feature requests</span></div>
+              <div class="tile-value">678</div>
+              <div class="tile-meta">2% of all tickets · 60 open</div>
+            </div>
+            
+
+            <div class="category-tile" style="--accent:#7c3aed">
+              <div class="tile-top"><span class="swatch"></span><span>Tasks / maintenance</span></div>
+              <div class="tile-value">658</div>
+              <div class="tile-meta">2% of all tickets · 88 open</div>
+            </div>
+            
+
+            <div class="category-tile" style="--accent:#be123c">
+              <div class="tile-top"><span class="swatch"></span><span>Flaky tests</span></div>
+              <div class="tile-value">650</div>
+              <div class="tile-meta">2% of all tickets · 87 open</div>
+            </div>
+            
+
+            <div class="category-tile" style="--accent:#9333ea">
+              <div class="tile-top"><span class="swatch"></span><span>Accessibility</span></div>
+              <div class="tile-value">430</div>
+              <div class="tile-meta">1% of all tickets · 58 open</div>
+            </div>
+            
+
+            <div class="category-tile" style="--accent:#16a34a">
+              <div class="tile-top"><span class="swatch"></span><span>Performance</span></div>
+              <div class="tile-value">126</div>
+              <div class="tile-meta">0% of all tickets · 26 open</div>
+            </div>
+            
+
+            <div class="category-tile" style="--accent:#b91c1c">
+              <div class="tile-top"><span class="swatch"></span><span>Security</span></div>
+              <div class="tile-value">31</div>
+              <div class="tile-meta">0% of all tickets · 2 open</div>
+            </div>
+            
+</div>
+    <section class="chart"><svg viewBox="0 0 1120 442" role="img" aria-label="Gutenberg category timeline">
+<text x="40" y="28" class="chart-title">Gutenberg category timeline</text>
+<text x="40" y="50" class="chart-note">Tickets created per year, split by primary category.</text>
+<rect x="40" y="66" width="10" height="10" fill="#dc2626" rx="2"/>
+<text x="56" y="76" class="legend-label">Bugs</text>
+<rect x="245" y="66" width="10" height="10" fill="#2563eb" rx="2"/>
+<text x="261" y="76" class="legend-label">Feature requests</text>
+<rect x="450" y="66" width="10" height="10" fill="#0891b2" rx="2"/>
+<text x="466" y="76" class="legend-label">Enhancements</text>
+<rect x="655" y="66" width="10" height="10" fill="#7c3aed" rx="2"/>
+<text x="671" y="76" class="legend-label">Tasks / maintenance</text>
+<rect x="860" y="66" width="10" height="10" fill="#0f766e" rx="2"/>
+<text x="876" y="76" class="legend-label">Documentation</text>
+<rect x="40" y="86" width="10" height="10" fill="#ea580c" rx="2"/>
+<text x="56" y="96" class="legend-label">Support / questions</text>
+<rect x="245" y="86" width="10" height="10" fill="#be123c" rx="2"/>
+<text x="261" y="96" class="legend-label">Flaky tests</text>
+<rect x="450" y="86" width="10" height="10" fill="#9333ea" rx="2"/>
+<text x="466" y="96" class="legend-label">Accessibility</text>
+<rect x="655" y="86" width="10" height="10" fill="#16a34a" rx="2"/>
+<text x="671" y="96" class="legend-label">Performance</text>
+<rect x="860" y="86" width="10" height="10" fill="#b91c1c" rx="2"/>
+<text x="876" y="96" class="legend-label">Security</text>
+<rect x="40" y="106" width="10" height="10" fill="#64748b" rx="2"/>
+<text x="56" y="116" class="legend-label">Other / unclear</text>
+<line x1="58" y1="388" x2="1086" y2="388" stroke="#cbd5e1" stroke-width="1"/>
+<rect x="97.4" y="342.1" width="24.0" height="45.9" fill="#dc2626" rx="2"/>
+<rect x="97.4" y="338.9" width="24.0" height="3.2" fill="#2563eb" rx="2"/>
+<rect x="97.4" y="322.8" width="24.0" height="16.0" fill="#0891b2" rx="2"/>
+<rect x="97.4" y="314.5" width="24.0" height="8.3" fill="#7c3aed" rx="2"/>
+<rect x="97.4" y="310.8" width="24.0" height="3.7" fill="#0f766e" rx="2"/>
+<rect x="97.4" y="309.8" width="24.0" height="1.0" fill="#ea580c" rx="2"/>
+<rect x="97.4" y="308.0" width="24.0" height="1.8" fill="#9333ea" rx="2"/>
+<rect x="97.4" y="307.0" width="24.0" height="1.0" fill="#16a34a" rx="2"/>
+<rect x="97.4" y="306.0" width="24.0" height="1.0" fill="#b91c1c" rx="2"/>
+<rect x="97.4" y="292.5" width="24.0" height="13.5" fill="#64748b" rx="2"/>
+<text x="109.4" y="410" text-anchor="middle" class="axis">2017</text>
+<rect x="200.2" y="269.8" width="24.0" height="118.2" fill="#dc2626" rx="2"/>
+<rect x="200.2" y="264.9" width="24.0" height="4.9" fill="#2563eb" rx="2"/>
+<rect x="200.2" y="218.7" width="24.0" height="46.3" fill="#0891b2" rx="2"/>
+<rect x="200.2" y="213.7" width="24.0" height="4.9" fill="#7c3aed" rx="2"/>
+<rect x="200.2" y="205.6" width="24.0" height="8.1" fill="#0f766e" rx="2"/>
+<rect x="200.2" y="182.3" width="24.0" height="23.2" fill="#ea580c" rx="2"/>
+<rect x="200.2" y="180.0" width="24.0" height="2.4" fill="#9333ea" rx="2"/>
+<rect x="200.2" y="179.0" width="24.0" height="1.0" fill="#16a34a" rx="2"/>
+<rect x="200.2" y="178.0" width="24.0" height="1.0" fill="#b91c1c" rx="2"/>
+<rect x="200.2" y="156.9" width="24.0" height="21.0" fill="#64748b" rx="2"/>
+<text x="212.2" y="410" text-anchor="middle" class="axis">2018</text>
+<rect x="303.0" y="319.4" width="24.0" height="68.6" fill="#dc2626" rx="2"/>
+<rect x="303.0" y="314.6" width="24.0" height="4.9" fill="#2563eb" rx="2"/>
+<rect x="303.0" y="287.8" width="24.0" height="26.8" fill="#0891b2" rx="2"/>
+<rect x="303.0" y="285.0" width="24.0" height="2.8" fill="#7c3aed" rx="2"/>
+<rect x="303.0" y="278.7" width="24.0" height="6.3" fill="#0f766e" rx="2"/>
+<rect x="303.0" y="266.9" width="24.0" height="11.8" fill="#ea580c" rx="2"/>
+<rect x="303.0" y="265.9" width="24.0" height="1.0" fill="#be123c" rx="2"/>
+<rect x="303.0" y="263.9" width="24.0" height="2.0" fill="#9333ea" rx="2"/>
+<rect x="303.0" y="262.9" width="24.0" height="1.0" fill="#16a34a" rx="2"/>
+<rect x="303.0" y="261.9" width="24.0" height="1.0" fill="#b91c1c" rx="2"/>
+<rect x="303.0" y="248.5" width="24.0" height="13.4" fill="#64748b" rx="2"/>
+<text x="315.0" y="410" text-anchor="middle" class="axis">2019</text>
+<rect x="405.8" y="301.8" width="24.0" height="86.2" fill="#dc2626" rx="2"/>
+<rect x="405.8" y="294.3" width="24.0" height="7.5" fill="#2563eb" rx="2"/>
+<rect x="405.8" y="260.3" width="24.0" height="34.0" fill="#0891b2" rx="2"/>
+<rect x="405.8" y="257.3" width="24.0" height="3.0" fill="#7c3aed" rx="2"/>
+<rect x="405.8" y="252.1" width="24.0" height="5.2" fill="#0f766e" rx="2"/>
+<rect x="405.8" y="246.3" width="24.0" height="5.8" fill="#ea580c" rx="2"/>
+<rect x="405.8" y="245.3" width="24.0" height="1.0" fill="#be123c" rx="2"/>
+<rect x="405.8" y="242.3" width="24.0" height="2.9" fill="#9333ea" rx="2"/>
+<rect x="405.8" y="241.3" width="24.0" height="1.0" fill="#16a34a" rx="2"/>
+<rect x="405.8" y="240.3" width="24.0" height="1.0" fill="#b91c1c" rx="2"/>
+<rect x="405.8" y="218.8" width="24.0" height="21.5" fill="#64748b" rx="2"/>
+<text x="417.8" y="410" text-anchor="middle" class="axis">2020</text>
+<rect x="508.6" y="297.3" width="24.0" height="90.7" fill="#dc2626" rx="2"/>
+<rect x="508.6" y="293.2" width="24.0" height="4.1" fill="#2563eb" rx="2"/>
+<rect x="508.6" y="243.7" width="24.0" height="49.4" fill="#0891b2" rx="2"/>
+<rect x="508.6" y="240.5" width="24.0" height="3.2" fill="#7c3aed" rx="2"/>
+<rect x="508.6" y="235.3" width="24.0" height="5.2" fill="#0f766e" rx="2"/>
+<rect x="508.6" y="232.7" width="24.0" height="2.6" fill="#ea580c" rx="2"/>
+<rect x="508.6" y="229.7" width="24.0" height="3.0" fill="#be123c" rx="2"/>
+<rect x="508.6" y="226.8" width="24.0" height="2.9" fill="#9333ea" rx="2"/>
+<rect x="508.6" y="225.8" width="24.0" height="1.0" fill="#16a34a" rx="2"/>
+<rect x="508.6" y="224.8" width="24.0" height="1.0" fill="#b91c1c" rx="2"/>
+<rect x="508.6" y="198.4" width="24.0" height="26.5" fill="#64748b" rx="2"/>
+<text x="520.6" y="410" text-anchor="middle" class="axis">2021</text>
+<rect x="611.4" y="321.5" width="24.0" height="66.5" fill="#dc2626" rx="2"/>
+<rect x="611.4" y="319.8" width="24.0" height="1.7" fill="#2563eb" rx="2"/>
+<rect x="611.4" y="270.2" width="24.0" height="49.6" fill="#0891b2" rx="2"/>
+<rect x="611.4" y="268.5" width="24.0" height="1.7" fill="#7c3aed" rx="2"/>
+<rect x="611.4" y="264.3" width="24.0" height="4.3" fill="#0f766e" rx="2"/>
+<rect x="611.4" y="262.6" width="24.0" height="1.6" fill="#ea580c" rx="2"/>
+<rect x="611.4" y="255.8" width="24.0" height="6.9" fill="#be123c" rx="2"/>
+<rect x="611.4" y="253.1" width="24.0" height="2.7" fill="#9333ea" rx="2"/>
+<rect x="611.4" y="251.8" width="24.0" height="1.2" fill="#16a34a" rx="2"/>
+<rect x="611.4" y="250.8" width="24.0" height="1.0" fill="#b91c1c" rx="2"/>
+<rect x="611.4" y="226.9" width="24.0" height="23.9" fill="#64748b" rx="2"/>
+<text x="623.4" y="410" text-anchor="middle" class="axis">2022</text>
+<rect x="714.2" y="302.5" width="24.0" height="85.5" fill="#dc2626" rx="2"/>
+<rect x="714.2" y="300.4" width="24.0" height="2.1" fill="#2563eb" rx="2"/>
+<rect x="714.2" y="234.5" width="24.0" height="65.9" fill="#0891b2" rx="2"/>
+<rect x="714.2" y="230.8" width="24.0" height="3.7" fill="#7c3aed" rx="2"/>
+<rect x="714.2" y="223.9" width="24.0" height="6.9" fill="#0f766e" rx="2"/>
+<rect x="714.2" y="222.2" width="24.0" height="1.7" fill="#ea580c" rx="2"/>
+<rect x="714.2" y="210.0" width="24.0" height="12.2" fill="#be123c" rx="2"/>
+<rect x="714.2" y="207.2" width="24.0" height="2.8" fill="#9333ea" rx="2"/>
+<rect x="714.2" y="206.2" width="24.0" height="1.0" fill="#16a34a" rx="2"/>
+<rect x="714.2" y="205.2" width="24.0" height="1.0" fill="#b91c1c" rx="2"/>
+<rect x="714.2" y="190.7" width="24.0" height="14.5" fill="#64748b" rx="2"/>
+<text x="726.2" y="410" text-anchor="middle" class="axis">2023</text>
+<rect x="817.0" y="294.6" width="24.0" height="93.4" fill="#dc2626" rx="2"/>
+<rect x="817.0" y="293.2" width="24.0" height="1.4" fill="#2563eb" rx="2"/>
+<rect x="817.0" y="238.9" width="24.0" height="54.3" fill="#0891b2" rx="2"/>
+<rect x="817.0" y="237.9" width="24.0" height="1.0" fill="#7c3aed" rx="2"/>
+<rect x="817.0" y="231.4" width="24.0" height="6.5" fill="#0f766e" rx="2"/>
+<rect x="817.0" y="230.4" width="24.0" height="1.0" fill="#ea580c" rx="2"/>
+<rect x="817.0" y="227.2" width="24.0" height="3.3" fill="#be123c" rx="2"/>
+<rect x="817.0" y="225.6" width="24.0" height="1.6" fill="#9333ea" rx="2"/>
+<rect x="817.0" y="224.6" width="24.0" height="1.0" fill="#16a34a" rx="2"/>
+<rect x="817.0" y="223.6" width="24.0" height="1.0" fill="#b91c1c" rx="2"/>
+<rect x="817.0" y="218.0" width="24.0" height="5.6" fill="#64748b" rx="2"/>
+<text x="829.0" y="410" text-anchor="middle" class="axis">2024</text>
+<rect x="919.8" y="340.3" width="24.0" height="47.7" fill="#dc2626" rx="2"/>
+<rect x="919.8" y="339.3" width="24.0" height="1.0" fill="#2563eb" rx="2"/>
+<rect x="919.8" y="310.0" width="24.0" height="29.3" fill="#0891b2" rx="2"/>
+<rect x="919.8" y="309.0" width="24.0" height="1.0" fill="#7c3aed" rx="2"/>
+<rect x="919.8" y="306.6" width="24.0" height="2.4" fill="#0f766e" rx="2"/>
+<rect x="919.8" y="305.6" width="24.0" height="1.0" fill="#ea580c" rx="2"/>
+<rect x="919.8" y="304.3" width="24.0" height="1.3" fill="#be123c" rx="2"/>
+<rect x="919.8" y="303.3" width="24.0" height="1.0" fill="#9333ea" rx="2"/>
+<rect x="919.8" y="302.3" width="24.0" height="1.0" fill="#16a34a" rx="2"/>
+<rect x="919.8" y="298.5" width="24.0" height="3.8" fill="#64748b" rx="2"/>
+<text x="931.8" y="410" text-anchor="middle" class="axis">2025</text>
+<rect x="1022.6" y="363.5" width="24.0" height="24.5" fill="#dc2626" rx="2"/>
+<rect x="1022.6" y="362.5" width="24.0" height="1.0" fill="#2563eb" rx="2"/>
+<rect x="1022.6" y="346.0" width="24.0" height="16.5" fill="#0891b2" rx="2"/>
+<rect x="1022.6" y="344.8" width="24.0" height="1.2" fill="#7c3aed" rx="2"/>
+<rect x="1022.6" y="343.6" width="24.0" height="1.2" fill="#0f766e" rx="2"/>
+<rect x="1022.6" y="342.6" width="24.0" height="1.0" fill="#ea580c" rx="2"/>
+<rect x="1022.6" y="339.4" width="24.0" height="3.2" fill="#be123c" rx="2"/>
+<rect x="1022.6" y="338.4" width="24.0" height="1.0" fill="#9333ea" rx="2"/>
+<rect x="1022.6" y="337.4" width="24.0" height="1.0" fill="#16a34a" rx="2"/>
+<rect x="1022.6" y="336.4" width="24.0" height="1.0" fill="#b91c1c" rx="2"/>
+<rect x="1022.6" y="332.9" width="24.0" height="3.5" fill="#64748b" rx="2"/>
+<text x="1034.6" y="410" text-anchor="middle" class="axis">2026</text>
+<text x="58" y="148" class="axis">4,998 tickets</text>
+</svg></section>
+    <section class="chart"><svg viewBox="0 0 1120 486" role="img" aria-label="Gutenberg issues by category">
+<text x="40" y="28" class="chart-title">Gutenberg issues by category</text>
+<text x="40" y="50" class="chart-note">Primary category across all cached WordPress/gutenberg issues.</text>
+<text x="206" y="94" text-anchor="end" class="bar-label">Bugs</text>
+<rect x="220" y="76" width="856" height="20" fill="#e5e7eb" rx="3"/>
+<rect x="220" y="76" width="856.0" height="20" fill="#dc2626" rx="3"/>
+<text x="1066.0" y="91" text-anchor="end" class="axis">15,801</text>
+<text x="206" y="128" text-anchor="end" class="bar-label">Enhancements</text>
+<rect x="220" y="110" width="856" height="20" fill="#e5e7eb" rx="3"/>
+<rect x="220" y="110" width="456.9" height="20" fill="#0891b2" rx="3"/>
+<text x="686.9" y="125" text-anchor="start" class="axis">8,434</text>
+<text x="206" y="162" text-anchor="end" class="bar-label">Other / unclear</text>
+<rect x="220" y="144" width="856" height="20" fill="#e5e7eb" rx="3"/>
+<rect x="220" y="144" width="173.4" height="20" fill="#64748b" rx="3"/>
+<text x="403.4" y="159" text-anchor="start" class="axis">3,201</text>
+<text x="206" y="196" text-anchor="end" class="bar-label">Documentation</text>
+<rect x="220" y="178" width="856" height="20" fill="#e5e7eb" rx="3"/>
+<rect x="220" y="178" width="58.7" height="20" fill="#0f766e" rx="3"/>
+<text x="288.7" y="193" text-anchor="start" class="axis">1,083</text>
+<text x="206" y="230" text-anchor="end" class="bar-label">Support / questions</text>
+<rect x="220" y="212" width="856" height="20" fill="#e5e7eb" rx="3"/>
+<rect x="220" y="212" width="57.0" height="20" fill="#ea580c" rx="3"/>
+<text x="287.0" y="227" text-anchor="start" class="axis">1,052</text>
+<text x="206" y="264" text-anchor="end" class="bar-label">Feature requests</text>
+<rect x="220" y="246" width="856" height="20" fill="#e5e7eb" rx="3"/>
+<rect x="220" y="246" width="36.7" height="20" fill="#2563eb" rx="3"/>
+<text x="266.7" y="261" text-anchor="start" class="axis">678</text>
+<text x="206" y="298" text-anchor="end" class="bar-label">Tasks / maintenance</text>
+<rect x="220" y="280" width="856" height="20" fill="#e5e7eb" rx="3"/>
+<rect x="220" y="280" width="35.6" height="20" fill="#7c3aed" rx="3"/>
+<text x="265.6" y="295" text-anchor="start" class="axis">658</text>
+<text x="206" y="332" text-anchor="end" class="bar-label">Flaky tests</text>
+<rect x="220" y="314" width="856" height="20" fill="#e5e7eb" rx="3"/>
+<rect x="220" y="314" width="35.2" height="20" fill="#be123c" rx="3"/>
+<text x="265.2" y="329" text-anchor="start" class="axis">650</text>
+<text x="206" y="366" text-anchor="end" class="bar-label">Accessibility</text>
+<rect x="220" y="348" width="856" height="20" fill="#e5e7eb" rx="3"/>
+<rect x="220" y="348" width="23.3" height="20" fill="#9333ea" rx="3"/>
+<text x="253.3" y="363" text-anchor="start" class="axis">430</text>
+<text x="206" y="400" text-anchor="end" class="bar-label">Performance</text>
+<rect x="220" y="382" width="856" height="20" fill="#e5e7eb" rx="3"/>
+<rect x="220" y="382" width="6.8" height="20" fill="#16a34a" rx="3"/>
+<text x="236.8" y="397" text-anchor="start" class="axis">126</text>
+<text x="206" y="434" text-anchor="end" class="bar-label">Security</text>
+<rect x="220" y="416" width="856" height="20" fill="#e5e7eb" rx="3"/>
+<rect x="220" y="416" width="1.7" height="20" fill="#b91c1c" rx="3"/>
+<text x="231.7" y="431" text-anchor="start" class="axis">31</text>
+</svg></section>
+    <section class="chart"><svg viewBox="0 0 1120 486" role="img" aria-label="Gutenberg open backlog by category">
+<text x="40" y="28" class="chart-title">Gutenberg open backlog by category</text>
+<text x="40" y="50" class="chart-note">Dark bars are currently open issues; pale bars are total issues in that category.</text>
+<text x="206" y="94" text-anchor="end" class="bar-label">Bugs</text>
+<rect x="220" y="76" width="856.0" height="20" fill="#dbeafe" rx="3"/>
+<rect x="220" y="76" width="106.0" height="20" fill="#dc2626" rx="3"/>
+<text x="1066.0" y="91" text-anchor="end" class="axis">1,957 open / 15,801 total</text>
+<text x="206" y="128" text-anchor="end" class="bar-label">Enhancements</text>
+<rect x="220" y="110" width="456.9" height="20" fill="#dbeafe" rx="3"/>
+<rect x="220" y="110" width="161.2" height="20" fill="#0891b2" rx="3"/>
+<text x="686.9" y="125" text-anchor="start" class="axis">2,975 open / 8,434 total</text>
+<text x="206" y="162" text-anchor="end" class="bar-label">Other / unclear</text>
+<rect x="220" y="144" width="173.4" height="20" fill="#dbeafe" rx="3"/>
+<rect x="220" y="144" width="9.3" height="20" fill="#64748b" rx="3"/>
+<text x="403.4" y="159" text-anchor="start" class="axis">172 open / 3,201 total</text>
+<text x="206" y="196" text-anchor="end" class="bar-label">Documentation</text>
+<rect x="220" y="178" width="58.7" height="20" fill="#dbeafe" rx="3"/>
+<rect x="220" y="178" width="7.6" height="20" fill="#0f766e" rx="3"/>
+<text x="288.7" y="193" text-anchor="start" class="axis">141 open / 1,083 total</text>
+<text x="206" y="230" text-anchor="end" class="bar-label">Support / questions</text>
+<rect x="220" y="212" width="57.0" height="20" fill="#dbeafe" rx="3"/>
+<rect x="220" y="212" width="0.6" height="20" fill="#ea580c" rx="3"/>
+<text x="287.0" y="227" text-anchor="start" class="axis">11 open / 1,052 total</text>
+<text x="206" y="264" text-anchor="end" class="bar-label">Feature requests</text>
+<rect x="220" y="246" width="36.7" height="20" fill="#dbeafe" rx="3"/>
+<rect x="220" y="246" width="3.3" height="20" fill="#2563eb" rx="3"/>
+<text x="266.7" y="261" text-anchor="start" class="axis">60 open / 678 total</text>
+<text x="206" y="298" text-anchor="end" class="bar-label">Tasks / maintenance</text>
+<rect x="220" y="280" width="35.6" height="20" fill="#dbeafe" rx="3"/>
+<rect x="220" y="280" width="4.8" height="20" fill="#7c3aed" rx="3"/>
+<text x="265.6" y="295" text-anchor="start" class="axis">88 open / 658 total</text>
+<text x="206" y="332" text-anchor="end" class="bar-label">Flaky tests</text>
+<rect x="220" y="314" width="35.2" height="20" fill="#dbeafe" rx="3"/>
+<rect x="220" y="314" width="4.7" height="20" fill="#be123c" rx="3"/>
+<text x="265.2" y="329" text-anchor="start" class="axis">87 open / 650 total</text>
+<text x="206" y="366" text-anchor="end" class="bar-label">Accessibility</text>
+<rect x="220" y="348" width="23.3" height="20" fill="#dbeafe" rx="3"/>
+<rect x="220" y="348" width="3.1" height="20" fill="#9333ea" rx="3"/>
+<text x="253.3" y="363" text-anchor="start" class="axis">58 open / 430 total</text>
+<text x="206" y="400" text-anchor="end" class="bar-label">Performance</text>
+<rect x="220" y="382" width="6.8" height="20" fill="#dbeafe" rx="3"/>
+<rect x="220" y="382" width="1.4" height="20" fill="#16a34a" rx="3"/>
+<text x="236.8" y="397" text-anchor="start" class="axis">26 open / 126 total</text>
+<text x="206" y="434" text-anchor="end" class="bar-label">Security</text>
+<rect x="220" y="416" width="1.7" height="20" fill="#dbeafe" rx="3"/>
+<rect x="220" y="416" width="0.1" height="20" fill="#b91c1c" rx="3"/>
+<text x="231.7" y="431" text-anchor="start" class="axis">2 open / 31 total</text>
+</svg></section>
+    <section class="discussion"><p>Gutenberg is mainly concentrated in bugs (49%), enhancements (26%), other / unclear (10%).</p><p>The current open set is led by enhancements (2,975 open), bugs (1,957 open), other / unclear (172 open).</p></section>
+  </section>
+  <section class="source-band">
+    <h2>WordPress Core Trac tickets</h2>
+    <div class="category-grid">
+
+            <div class="category-tile" style="--accent:#dc2626">
+              <div class="tile-top"><span class="swatch"></span><span>Bugs</span></div>
+              <div class="tile-value">44,740</div>
+              <div class="tile-meta">69% of all tickets · 4,664 open</div>
+            </div>
+            
+
+            <div class="category-tile" style="--accent:#0891b2">
+              <div class="tile-top"><span class="swatch"></span><span>Enhancements</span></div>
+              <div class="tile-value">16,067</div>
+              <div class="tile-meta">25% of all tickets · 2,941 open</div>
+            </div>
+            
+
+            <div class="category-tile" style="--accent:#2563eb">
+              <div class="tile-top"><span class="swatch"></span><span>Feature requests</span></div>
+              <div class="tile-value">2,357</div>
+              <div class="tile-meta">4% of all tickets · 524 open</div>
+            </div>
+            
+
+            <div class="category-tile" style="--accent:#7c3aed">
+              <div class="tile-top"><span class="swatch"></span><span>Tasks / maintenance</span></div>
+              <div class="tile-value">1,787</div>
+              <div class="tile-meta">3% of all tickets · 94 open</div>
+            </div>
+            
+</div>
+    <section class="chart"><svg viewBox="0 0 1120 398" role="img" aria-label="Core category timeline">
+<text x="40" y="28" class="chart-title">Core category timeline</text>
+<text x="40" y="50" class="chart-note">Tickets created per year since 2003, split by primary category.</text>
+<rect x="40" y="66" width="10" height="10" fill="#dc2626" rx="2"/>
+<text x="56" y="76" class="legend-label">Bugs</text>
+<rect x="245" y="66" width="10" height="10" fill="#2563eb" rx="2"/>
+<text x="261" y="76" class="legend-label">Feature requests</text>
+<rect x="450" y="66" width="10" height="10" fill="#0891b2" rx="2"/>
+<text x="466" y="76" class="legend-label">Enhancements</text>
+<rect x="655" y="66" width="10" height="10" fill="#7c3aed" rx="2"/>
+<text x="671" y="76" class="legend-label">Tasks / maintenance</text>
+<line x1="58" y1="344" x2="1086" y2="344" stroke="#cbd5e1" stroke-width="1"/>
+<rect x="68.3" y="320.0" width="24.0" height="24.0" fill="#dc2626" rx="2"/>
+<rect x="68.3" y="314.3" width="24.0" height="5.8" fill="#0891b2" rx="2"/>
+<text x="80.3" y="366" text-anchor="middle" class="axis">2004</text>
+<rect x="113.0" y="273.5" width="24.0" height="70.5" fill="#dc2626" rx="2"/>
+<rect x="113.0" y="262.9" width="24.0" height="10.5" fill="#0891b2" rx="2"/>
+<rect x="157.7" y="289.4" width="24.0" height="54.6" fill="#dc2626" rx="2"/>
+<rect x="157.7" y="288.4" width="24.0" height="1.0" fill="#2563eb" rx="2"/>
+<rect x="157.7" y="274.1" width="24.0" height="14.3" fill="#0891b2" rx="2"/>
+<rect x="157.7" y="273.1" width="24.0" height="1.0" fill="#7c3aed" rx="2"/>
+<text x="169.7" y="366" text-anchor="middle" class="axis">2006</text>
+<rect x="202.4" y="267.5" width="24.0" height="76.5" fill="#dc2626" rx="2"/>
+<rect x="202.4" y="266.5" width="24.0" height="1.0" fill="#2563eb" rx="2"/>
+<rect x="202.4" y="238.6" width="24.0" height="27.9" fill="#0891b2" rx="2"/>
+<rect x="202.4" y="236.6" width="24.0" height="2.0" fill="#7c3aed" rx="2"/>
+<rect x="247.1" y="223.1" width="24.0" height="120.9" fill="#dc2626" rx="2"/>
+<rect x="247.1" y="221.4" width="24.0" height="1.7" fill="#2563eb" rx="2"/>
+<rect x="247.1" y="177.9" width="24.0" height="43.5" fill="#0891b2" rx="2"/>
+<rect x="247.1" y="175.7" width="24.0" height="2.2" fill="#7c3aed" rx="2"/>
+<text x="259.1" y="366" text-anchor="middle" class="axis">2008</text>
+<rect x="291.8" y="245.5" width="24.0" height="98.5" fill="#dc2626" rx="2"/>
+<rect x="291.8" y="237.6" width="24.0" height="7.9" fill="#2563eb" rx="2"/>
+<rect x="291.8" y="195.0" width="24.0" height="42.6" fill="#0891b2" rx="2"/>
+<rect x="291.8" y="191.6" width="24.0" height="3.4" fill="#7c3aed" rx="2"/>
+<rect x="336.5" y="184.5" width="24.0" height="159.5" fill="#dc2626" rx="2"/>
+<rect x="336.5" y="173.5" width="24.0" height="11.0" fill="#2563eb" rx="2"/>
+<rect x="336.5" y="119.3" width="24.0" height="54.1" fill="#0891b2" rx="2"/>
+<rect x="336.5" y="114.9" width="24.0" height="4.4" fill="#7c3aed" rx="2"/>
+<text x="348.5" y="366" text-anchor="middle" class="axis">2010</text>
+<rect x="381.2" y="218.1" width="24.0" height="125.9" fill="#dc2626" rx="2"/>
+<rect x="381.2" y="209.7" width="24.0" height="8.4" fill="#2563eb" rx="2"/>
+<rect x="381.2" y="158.5" width="24.0" height="51.3" fill="#0891b2" rx="2"/>
+<rect x="381.2" y="153.0" width="24.0" height="5.4" fill="#7c3aed" rx="2"/>
+<rect x="425.9" y="232.2" width="24.0" height="111.8" fill="#dc2626" rx="2"/>
+<rect x="425.9" y="225.4" width="24.0" height="6.8" fill="#2563eb" rx="2"/>
+<rect x="425.9" y="171.3" width="24.0" height="54.1" fill="#0891b2" rx="2"/>
+<rect x="425.9" y="166.3" width="24.0" height="5.1" fill="#7c3aed" rx="2"/>
+<text x="437.9" y="366" text-anchor="middle" class="axis">2012</text>
+<rect x="470.6" y="212.0" width="24.0" height="132.0" fill="#dc2626" rx="2"/>
+<rect x="470.6" y="206.1" width="24.0" height="5.9" fill="#2563eb" rx="2"/>
+<rect x="470.6" y="157.0" width="24.0" height="49.1" fill="#0891b2" rx="2"/>
+<rect x="470.6" y="152.6" width="24.0" height="4.3" fill="#7c3aed" rx="2"/>
+<rect x="515.3" y="196.6" width="24.0" height="147.4" fill="#dc2626" rx="2"/>
+<rect x="515.3" y="190.2" width="24.0" height="6.4" fill="#2563eb" rx="2"/>
+<rect x="515.3" y="137.3" width="24.0" height="52.9" fill="#0891b2" rx="2"/>
+<rect x="515.3" y="132.2" width="24.0" height="5.1" fill="#7c3aed" rx="2"/>
+<text x="527.3" y="366" text-anchor="middle" class="axis">2014</text>
+<rect x="560.0" y="188.1" width="24.0" height="155.9" fill="#dc2626" rx="2"/>
+<rect x="560.0" y="178.3" width="24.0" height="9.8" fill="#2563eb" rx="2"/>
+<rect x="560.0" y="120.8" width="24.0" height="57.6" fill="#0891b2" rx="2"/>
+<rect x="560.0" y="114.0" width="24.0" height="6.8" fill="#7c3aed" rx="2"/>
+<rect x="604.7" y="205.4" width="24.0" height="138.6" fill="#dc2626" rx="2"/>
+<rect x="604.7" y="196.8" width="24.0" height="8.5" fill="#2563eb" rx="2"/>
+<rect x="604.7" y="137.8" width="24.0" height="59.1" fill="#0891b2" rx="2"/>
+<rect x="604.7" y="133.1" width="24.0" height="4.7" fill="#7c3aed" rx="2"/>
+<text x="616.7" y="366" text-anchor="middle" class="axis">2016</text>
+<rect x="649.4" y="219.8" width="24.0" height="124.2" fill="#dc2626" rx="2"/>
+<rect x="649.4" y="211.9" width="24.0" height="8.0" fill="#2563eb" rx="2"/>
+<rect x="649.4" y="162.3" width="24.0" height="49.6" fill="#0891b2" rx="2"/>
+<rect x="649.4" y="157.3" width="24.0" height="5.0" fill="#7c3aed" rx="2"/>
+<rect x="694.1" y="248.4" width="24.0" height="95.6" fill="#dc2626" rx="2"/>
+<rect x="694.1" y="241.9" width="24.0" height="6.4" fill="#2563eb" rx="2"/>
+<rect x="694.1" y="202.2" width="24.0" height="39.7" fill="#0891b2" rx="2"/>
+<rect x="694.1" y="198.4" width="24.0" height="3.9" fill="#7c3aed" rx="2"/>
+<text x="706.1" y="366" text-anchor="middle" class="axis">2018</text>
+<rect x="738.8" y="221.4" width="24.0" height="122.6" fill="#dc2626" rx="2"/>
+<rect x="738.8" y="214.9" width="24.0" height="6.5" fill="#2563eb" rx="2"/>
+<rect x="738.8" y="177.0" width="24.0" height="37.9" fill="#0891b2" rx="2"/>
+<rect x="738.8" y="171.9" width="24.0" height="5.1" fill="#7c3aed" rx="2"/>
+<rect x="783.5" y="230.7" width="24.0" height="113.3" fill="#dc2626" rx="2"/>
+<rect x="783.5" y="223.0" width="24.0" height="7.7" fill="#2563eb" rx="2"/>
+<rect x="783.5" y="189.7" width="24.0" height="33.3" fill="#0891b2" rx="2"/>
+<rect x="783.5" y="183.9" width="24.0" height="5.8" fill="#7c3aed" rx="2"/>
+<text x="795.5" y="366" text-anchor="middle" class="axis">2020</text>
+<rect x="828.2" y="254.1" width="24.0" height="89.9" fill="#dc2626" rx="2"/>
+<rect x="828.2" y="248.1" width="24.0" height="6.1" fill="#2563eb" rx="2"/>
+<rect x="828.2" y="220.1" width="24.0" height="27.9" fill="#0891b2" rx="2"/>
+<rect x="828.2" y="213.6" width="24.0" height="6.6" fill="#7c3aed" rx="2"/>
+<rect x="872.9" y="246.3" width="24.0" height="97.7" fill="#dc2626" rx="2"/>
+<rect x="872.9" y="241.4" width="24.0" height="4.9" fill="#2563eb" rx="2"/>
+<rect x="872.9" y="211.3" width="24.0" height="30.1" fill="#0891b2" rx="2"/>
+<rect x="872.9" y="204.9" width="24.0" height="6.4" fill="#7c3aed" rx="2"/>
+<text x="884.9" y="366" text-anchor="middle" class="axis">2022</text>
+<rect x="917.6" y="247.0" width="24.0" height="97.0" fill="#dc2626" rx="2"/>
+<rect x="917.6" y="242.1" width="24.0" height="4.9" fill="#2563eb" rx="2"/>
+<rect x="917.6" y="206.5" width="24.0" height="35.6" fill="#0891b2" rx="2"/>
+<rect x="917.6" y="199.9" width="24.0" height="6.5" fill="#7c3aed" rx="2"/>
+<rect x="962.3" y="252.0" width="24.0" height="92.0" fill="#dc2626" rx="2"/>
+<rect x="962.3" y="245.7" width="24.0" height="6.4" fill="#2563eb" rx="2"/>
+<rect x="962.3" y="215.5" width="24.0" height="30.1" fill="#0891b2" rx="2"/>
+<rect x="962.3" y="210.7" width="24.0" height="4.8" fill="#7c3aed" rx="2"/>
+<text x="974.3" y="366" text-anchor="middle" class="axis">2024</text>
+<rect x="1007.0" y="283.6" width="24.0" height="60.4" fill="#dc2626" rx="2"/>
+<rect x="1007.0" y="280.1" width="24.0" height="3.5" fill="#2563eb" rx="2"/>
+<rect x="1007.0" y="258.7" width="24.0" height="21.4" fill="#0891b2" rx="2"/>
+<rect x="1007.0" y="255.4" width="24.0" height="3.3" fill="#7c3aed" rx="2"/>
+<rect x="1051.7" y="309.8" width="24.0" height="34.2" fill="#dc2626" rx="2"/>
+<rect x="1051.7" y="308.0" width="24.0" height="1.8" fill="#2563eb" rx="2"/>
+<rect x="1051.7" y="294.8" width="24.0" height="13.2" fill="#0891b2" rx="2"/>
+<rect x="1051.7" y="292.5" width="24.0" height="2.4" fill="#7c3aed" rx="2"/>
+<text x="1063.7" y="366" text-anchor="middle" class="axis">2026</text>
+<text x="58" y="104" class="axis">4,392 tickets</text>
+</svg></section>
+    <section class="chart"><svg viewBox="0 0 1120 248" role="img" aria-label="WordPress Core tickets by category">
+<text x="40" y="28" class="chart-title">WordPress Core tickets by category</text>
+<text x="40" y="50" class="chart-note">Primary category across all Core Trac tickets in the database.</text>
+<text x="206" y="94" text-anchor="end" class="bar-label">Bugs</text>
+<rect x="220" y="76" width="856" height="20" fill="#e5e7eb" rx="3"/>
+<rect x="220" y="76" width="856.0" height="20" fill="#dc2626" rx="3"/>
+<text x="1066.0" y="91" text-anchor="end" class="axis">44,740</text>
+<text x="206" y="128" text-anchor="end" class="bar-label">Enhancements</text>
+<rect x="220" y="110" width="856" height="20" fill="#e5e7eb" rx="3"/>
+<rect x="220" y="110" width="307.4" height="20" fill="#0891b2" rx="3"/>
+<text x="537.4" y="125" text-anchor="start" class="axis">16,067</text>
+<text x="206" y="162" text-anchor="end" class="bar-label">Feature requests</text>
+<rect x="220" y="144" width="856" height="20" fill="#e5e7eb" rx="3"/>
+<rect x="220" y="144" width="45.1" height="20" fill="#2563eb" rx="3"/>
+<text x="275.1" y="159" text-anchor="start" class="axis">2,357</text>
+<text x="206" y="196" text-anchor="end" class="bar-label">Tasks / maintenance</text>
+<rect x="220" y="178" width="856" height="20" fill="#e5e7eb" rx="3"/>
+<rect x="220" y="178" width="34.2" height="20" fill="#7c3aed" rx="3"/>
+<text x="264.2" y="193" text-anchor="start" class="axis">1,787</text>
+</svg></section>
+    <section class="chart"><svg viewBox="0 0 1120 248" role="img" aria-label="Core open backlog by category">
+<text x="40" y="28" class="chart-title">Core open backlog by category</text>
+<text x="40" y="50" class="chart-note">Dark bars are currently open tickets; pale bars are total tickets in that category.</text>
+<text x="206" y="94" text-anchor="end" class="bar-label">Bugs</text>
+<rect x="220" y="76" width="856.0" height="20" fill="#dbeafe" rx="3"/>
+<rect x="220" y="76" width="89.2" height="20" fill="#dc2626" rx="3"/>
+<text x="1066.0" y="91" text-anchor="end" class="axis">4,664 open / 44,740 total</text>
+<text x="206" y="128" text-anchor="end" class="bar-label">Enhancements</text>
+<rect x="220" y="110" width="307.4" height="20" fill="#dbeafe" rx="3"/>
+<rect x="220" y="110" width="56.3" height="20" fill="#0891b2" rx="3"/>
+<text x="537.4" y="125" text-anchor="start" class="axis">2,941 open / 16,067 total</text>
+<text x="206" y="162" text-anchor="end" class="bar-label">Feature requests</text>
+<rect x="220" y="144" width="45.1" height="20" fill="#dbeafe" rx="3"/>
+<rect x="220" y="144" width="10.0" height="20" fill="#2563eb" rx="3"/>
+<text x="275.1" y="159" text-anchor="start" class="axis">524 open / 2,357 total</text>
+<text x="206" y="196" text-anchor="end" class="bar-label">Tasks / maintenance</text>
+<rect x="220" y="178" width="34.2" height="20" fill="#dbeafe" rx="3"/>
+<rect x="220" y="178" width="1.8" height="20" fill="#7c3aed" rx="3"/>
+<text x="264.2" y="193" text-anchor="start" class="axis">94 open / 1,787 total</text>
+</svg></section>
+    <section class="discussion"><p>Core is mainly concentrated in bugs (69%), enhancements (25%), feature requests (4%).</p><p>The current open set is led by bugs (4,664 open), enhancements (2,941 open), feature requests (524 open).</p></section>
+  </section>
+  <section class="note">
+    <p>Local SQLite database: <code>/Users/admin/wordpress_ticket_classification/wordpress_tickets.sqlite</code>. Classification version: <code>2026-06-12.1</code>.</p>
+    <p>Published CSVs: <a href="classification_summary_gutenberg.csv">Gutenberg summary</a>, <a href="classification_summary_core.csv">Core summary</a>, <a href="classification_trend_quarterly.csv">category trend</a>.</p>
+    <p>Core uses Trac type as the strongest signal. Gutenberg uses issue type labels first, then title/body/comment text. Secondary facets preserve accessibility, performance, security, duplicate, stale, needs-info, and has-patch signals.</p>
+  </section>
+</main>
+</body>
+</html>

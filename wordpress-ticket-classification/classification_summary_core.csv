@@ -1,0 +1,5 @@
+category,total,open_count,high_confidence,medium_confidence,low_confidence
+bug,44740,4664,44740,0,0
+enhancement,16067,2941,16067,0,0
+feature_request,2357,524,2357,0,0
+task_maintenance,1787,94,1787,0,0

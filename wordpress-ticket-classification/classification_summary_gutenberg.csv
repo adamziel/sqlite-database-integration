@@ -1,0 +1,12 @@
+category,total,open_count,high_confidence,medium_confidence,low_confidence
+bug,15801,1957,11202,4599,0
+enhancement,8434,2975,7743,691,0
+other,3201,172,0,0,3201
+documentation,1083,141,776,307,0
+support_question,1052,11,1052,0,0
+feature_request,678,60,0,678,0
+task_maintenance,658,88,658,0,0
+test_flake,650,87,650,0,0
+accessibility,430,58,0,430,0
+performance,126,26,0,126,0
+security,31,2,0,31,0

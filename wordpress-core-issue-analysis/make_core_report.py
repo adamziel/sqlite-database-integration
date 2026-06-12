@@ -13,6 +13,7 @@ import math
 import os
 import random
 import re
+import sqlite3
 import statistics
 import subprocess
 import sys
@@ -66,6 +67,19 @@ COMPONENTS = ROOT / "component_summary.csv"
 RESOLUTIONS = ROOT / "resolution_summary.csv"
 GITHUB_QUARTERLY = ROOT / "github_pr_quarterly.csv"
 SUMMARY = ROOT / "analysis_summary.json"
+CLASSIFICATION_DB = Path("/Users/admin/wordpress_ticket_classification/wordpress_tickets.sqlite")
+
+VIEW_SPECS = [
+    {"slug": "all", "label": "All tickets", "category": None, "noun": "Core tickets", "chart": "Core Trac tickets"},
+    {"slug": "bugs", "label": "Bugs", "category": "bug", "noun": "Core bugs", "chart": "Core Trac bugs"},
+    {
+        "slug": "feature_requests",
+        "label": "Feature requests",
+        "category": "feature_request",
+        "noun": "Core feature requests",
+        "chart": "Core Trac feature requests",
+    },
+]
 
 UA = "codex-wordpress-core-analysis/1.0"
 OPEN_STATUSES = {"new", "assigned", "accepted", "reopened", "reviewing"}
@@ -707,6 +721,47 @@ def load_events():
     return events
 
 
+def category_from_trac_type(ticket):
+    ticket_type = (ticket.get("type") or "").lower()
+    if "defect" in ticket_type or "bug" in ticket_type:
+        return "bug"
+    if "feature" in ticket_type:
+        return "feature_request"
+    if "enhancement" in ticket_type:
+        return "enhancement"
+    if "task" in ticket_type:
+        return "task_maintenance"
+    return "other"
+
+
+def load_core_category_map(tickets):
+    categories = {ticket["id"]: category_from_trac_type(ticket) for ticket in tickets}
+    if not CLASSIFICATION_DB.exists():
+        return categories
+    try:
+        conn = sqlite3.connect(CLASSIFICATION_DB)
+        rows = conn.execute(
+            """
+            SELECT ticket_id, primary_category
+            FROM ticket_classifications
+            WHERE source='core'
+            """
+        ).fetchall()
+        conn.close()
+    except sqlite3.Error as exc:
+        eprint(f"could not read {CLASSIFICATION_DB}: {exc}; falling back to Trac type")
+        return categories
+    for ticket_id, category in rows:
+        categories[str(ticket_id)] = category
+    return categories
+
+
+def selected_for_view(tickets, category_map, category):
+    if category is None:
+        return list(tickets)
+    return [ticket for ticket in tickets if category_map.get(ticket["id"]) == category]
+
+
 def event_close_dates(events_by_ticket, ticket, created, modified):
     rows = events_by_ticket.get(ticket["id"], [])
     close_dates = [parse_iso_dt(r["event_at"]) for r in rows if r["event_type"] == "closed"]
@@ -786,45 +841,72 @@ def make_periods():
     return quarters, months
 
 
-def analyze():
-    tickets = read_csv(TRAC_TICKETS)
-    events_by_ticket = load_events()
-    prs = load_jsonl(GITHUB_PRS)
+def pr_matches_tickets(pr, selected_ids):
+    if selected_ids is None:
+        return True
+    return any(str(ticket_id) in selected_ids for ticket_id in (pr.get("trac_ticket_ids") or []))
 
-    ticket_by_id = {ticket["id"]: ticket for ticket in tickets}
-    intervals_by_ticket = {
-        ticket["id"]: open_intervals_for_ticket(ticket, events_by_ticket)
-        for ticket in tickets
-    }
-    close_info = {}
-    close_sources = Counter()
-    for ticket in tickets:
-        close_at, source = event_close_dates(
-            events_by_ticket,
-            ticket,
-            parse_iso_dt(ticket["created_at"]),
-            parse_iso_dt(ticket["modified_at"]),
+
+def build_pr_quarter_rows(prs, quarters, selected_ids=None):
+    view_prs = [pr for pr in prs if pr_matches_tickets(pr, selected_ids)]
+    pr_quarter_rows = []
+    first_pr_author = {}
+    for pr in sorted(view_prs, key=lambda p: parse_iso_dt(p["created_at"]) or dt.datetime.max.replace(tzinfo=dt.timezone.utc)):
+        author = (pr.get("author_login") or "").lower()
+        created = parse_iso_dt(pr.get("created_at"))
+        if author and created and author not in first_pr_author:
+            first_pr_author[author] = created
+    for q in quarters:
+        q_next = add_months(q, 3)
+        effective_start = max(q, START)
+        effective_end = min(q_next, END + dt.timedelta(seconds=1))
+        created_prs = [p for p in view_prs if in_range(parse_iso_dt(p.get("created_at")), effective_start, effective_end)]
+        closed_prs = [p for p in view_prs if in_range(parse_iso_dt(p.get("closed_at")), effective_start, effective_end)]
+        linked_prs = [p for p in created_prs if p.get("trac_ticket_ids")]
+        authors = {(p.get("author_login") or "").lower() for p in created_prs if p.get("author_login")}
+        first_authors = {
+            a for a in authors if first_pr_author.get(a) and in_range(first_pr_author[a], effective_start, effective_end)
+        }
+        pr_quarter_rows.append(
+            {
+                "quarter": q.date().isoformat(),
+                "label": quarter_label(q),
+                "created": len(created_prs),
+                "closed": len(closed_prs),
+                "linked_to_trac": len(linked_prs),
+                "unique_authors": len(authors),
+                "first_time_authors": len(first_authors),
+            }
         )
-        close_info[ticket["id"]] = close_at
-        close_sources[source] += 1
+    return pr_quarter_rows, view_prs
+
+
+def view_path(base_path, slug):
+    if slug == "all":
+        return base_path
+    return base_path.with_name(f"{base_path.stem}_{slug}{base_path.suffix}")
+
+
+def analyze_ticket_view(spec, tickets, events_by_ticket, prs, quarters, months, intervals_by_ticket, close_info, close_sources):
+    selected_tickets = selected_for_view(tickets, spec["category_map"], spec["category"])
+    selected_ids = {ticket["id"] for ticket in selected_tickets}
 
     first_reporter_seen = {}
-    for ticket in sorted(tickets, key=lambda t: parse_iso_dt(t["created_at"]) or dt.datetime.max.replace(tzinfo=dt.timezone.utc)):
+    for ticket in sorted(selected_tickets, key=lambda t: parse_iso_dt(t["created_at"]) or dt.datetime.max.replace(tzinfo=dt.timezone.utc)):
         reporter = (ticket["reporter"] or "").strip().lower()
         created = parse_iso_dt(ticket["created_at"])
         if reporter and created and reporter not in first_reporter_seen:
             first_reporter_seen[reporter] = created
 
-    quarters, months = make_periods()
     quarterly_rows = []
     for q in quarters:
         q_next = add_months(q, 3)
         effective_start = max(q, START)
         effective_end = min(q_next, END + dt.timedelta(seconds=1))
         point = min(q_next - dt.timedelta(seconds=1), END)
-        created_tickets = [t for t in tickets if in_range(parse_iso_dt(t["created_at"]), effective_start, effective_end)]
+        created_tickets = [t for t in selected_tickets if in_range(parse_iso_dt(t["created_at"]), effective_start, effective_end)]
         closed_tickets = [
-            t for t in tickets
+            t for t in selected_tickets
             if t["status"].lower() == "closed" and in_range(close_info.get(t["id"]), effective_start, effective_end)
         ]
         reporters = {(t["reporter"] or "").strip().lower() for t in created_tickets if t.get("reporter")}
@@ -833,7 +915,7 @@ def analyze():
             for r in reporters
             if first_reporter_seen.get(r) and in_range(first_reporter_seen[r], effective_start, effective_end)
         }
-        open_count = sum(1 for tid, intervals in intervals_by_ticket.items() if is_open_at(intervals, point))
+        open_count = sum(1 for ticket_id in selected_ids if is_open_at(intervals_by_ticket[ticket_id], point))
         defect_created = sum(1 for t in created_tickets if "defect" in t["type"].lower())
         enhancement_created = sum(1 for t in created_tickets if "enhancement" in t["type"].lower())
         feature_created = sum(1 for t in created_tickets if "feature" in t["type"].lower())
@@ -860,39 +942,30 @@ def analyze():
         m_next = add_months(m, 1)
         effective_start = max(m, START)
         effective_end = min(m_next, END + dt.timedelta(seconds=1))
-        created = sum(1 for t in tickets if in_range(parse_iso_dt(t["created_at"]), effective_start, effective_end))
+        created = sum(1 for t in selected_tickets if in_range(parse_iso_dt(t["created_at"]), effective_start, effective_end))
         closed = sum(
             1
-            for t in tickets
+            for t in selected_tickets
             if t["status"].lower() == "closed" and in_range(close_info.get(t["id"]), effective_start, effective_end)
         )
-        monthly_rows.append(
-            {
-                "month": m.date().isoformat(),
-                "created": created,
-                "closed": closed,
-                "net": created - closed,
-            }
-        )
+        monthly_rows.append({"month": m.date().isoformat(), "created": created, "closed": closed, "net": created - closed})
 
-    current_open = [t for t in tickets if t["status"].lower() != "closed"]
-    window_created = [t for t in tickets if START <= (parse_iso_dt(t["created_at"]) or START - dt.timedelta(days=1)) <= END]
+    current_open = [t for t in selected_tickets if t["status"].lower() != "closed"]
+    window_created = [
+        t for t in selected_tickets
+        if START <= (parse_iso_dt(t["created_at"]) or START - dt.timedelta(days=1)) <= END
+    ]
     window_closed = [
         t
-        for t in tickets
+        for t in selected_tickets
         if t["status"].lower() == "closed" and close_info.get(t["id"]) and START <= close_info[t["id"]] <= END
     ]
+
     component_rows = []
     open_components = Counter(t["component"] or "Unknown" for t in current_open)
     created_components = Counter(t["component"] or "Unknown" for t in window_created)
     for component, count in open_components.most_common(12):
-        component_rows.append(
-            {
-                "component": component,
-                "current_open": count,
-                "created_in_window": created_components.get(component, 0),
-            }
-        )
+        component_rows.append({"component": component, "current_open": count, "created_in_window": created_components.get(component, 0)})
 
     resolution_counts = Counter(t["resolution"] or "none" for t in window_closed)
     resolution_rows = [
@@ -900,62 +973,47 @@ def analyze():
         for resolution, count in resolution_counts.most_common(12)
     ]
 
-    pr_quarter_rows = []
-    first_pr_author = {}
-    for pr in sorted(prs, key=lambda p: parse_iso_dt(p["created_at"]) or dt.datetime.max.replace(tzinfo=dt.timezone.utc)):
-        author = (pr.get("author_login") or "").lower()
-        created = parse_iso_dt(pr.get("created_at"))
-        if author and created and author not in first_pr_author:
-            first_pr_author[author] = created
-    for q in quarters:
-        q_next = add_months(q, 3)
-        effective_start = max(q, START)
-        effective_end = min(q_next, END + dt.timedelta(seconds=1))
-        created_prs = [p for p in prs if in_range(parse_iso_dt(p.get("created_at")), effective_start, effective_end)]
-        closed_prs = [p for p in prs if in_range(parse_iso_dt(p.get("closed_at")), effective_start, effective_end)]
-        linked_prs = [p for p in created_prs if p.get("trac_ticket_ids")]
-        authors = {(p.get("author_login") or "").lower() for p in created_prs if p.get("author_login")}
-        first_authors = {
-            a for a in authors if first_pr_author.get(a) and in_range(first_pr_author[a], effective_start, effective_end)
-        }
-        pr_quarter_rows.append(
-            {
-                "quarter": q.date().isoformat(),
-                "label": quarter_label(q),
-                "created": len(created_prs),
-                "closed": len(closed_prs),
-                "linked_to_trac": len(linked_prs),
-                "unique_authors": len(authors),
-                "first_time_authors": len(first_authors),
-            }
-        )
+    pr_selected_ids = None if spec["slug"] == "all" else selected_ids
+    pr_quarter_rows, view_prs = build_pr_quarter_rows(prs, quarters, selected_ids=pr_selected_ids)
+    github_window_created = sum(
+        1 for p in view_prs if START <= (parse_iso_dt(p.get("created_at")) or START - dt.timedelta(days=1)) <= END
+    )
+    github_window_linked = sum(
+        1
+        for p in view_prs
+        if p.get("trac_ticket_ids") and START <= (parse_iso_dt(p.get("created_at")) or START - dt.timedelta(days=1)) <= END
+    )
 
-    write_csv(QUARTERLY, quarterly_rows, list(quarterly_rows[0].keys()))
-    write_csv(MONTHLY, monthly_rows, list(monthly_rows[0].keys()))
-    write_csv(COMPONENTS, component_rows, ["component", "current_open", "created_in_window"])
-    write_csv(RESOLUTIONS, resolution_rows, ["resolution", "closed_in_window"])
-    write_csv(GITHUB_QUARTERLY, pr_quarter_rows, list(pr_quarter_rows[0].keys()))
+    filtered_close_sources = Counter()
+    for ticket in selected_tickets:
+        filtered_close_sources[close_sources.get(ticket["id"], "open")] += 1
 
     summary = {
+        "slug": spec["slug"],
+        "view_label": spec["label"],
+        "view_noun": spec["noun"],
+        "chart_label": spec["chart"],
         "generated_at": iso(dt.datetime.now(dt.timezone.utc)),
         "start": iso(START),
         "end": iso(END),
-        "ticket_count": len(tickets),
+        "ticket_count": len(selected_tickets),
         "current_open": len(current_open),
-        "current_closed": len(tickets) - len(current_open),
+        "current_closed": len(selected_tickets) - len(current_open),
         "window_created": len(window_created),
         "window_closed": len(window_closed),
-        "close_sources": dict(close_sources),
-        "rss_event_tickets": len(events_by_ticket),
-        "github_pr_count": len(prs),
-        "github_window_created": sum(1 for p in prs if START <= (parse_iso_dt(p.get("created_at")) or START - dt.timedelta(days=1)) <= END),
-        "github_window_linked": sum(
-            1
-            for p in prs
-            if p.get("trac_ticket_ids") and START <= (parse_iso_dt(p.get("created_at")) or START - dt.timedelta(days=1)) <= END
-        ),
+        "close_sources": dict(filtered_close_sources),
+        "rss_event_tickets": sum(1 for ticket_id in selected_ids if events_by_ticket.get(ticket_id)),
+        "github_pr_count": len(view_prs),
+        "github_window_created": github_window_created,
+        "github_window_linked": github_window_linked,
     }
-    SUMMARY.write_text(json.dumps(summary, indent=2, sort_keys=True), encoding="utf-8")
+
+    write_csv(view_path(QUARTERLY, spec["slug"]), quarterly_rows, list(quarterly_rows[0].keys()))
+    write_csv(view_path(MONTHLY, spec["slug"]), monthly_rows, list(monthly_rows[0].keys()))
+    write_csv(view_path(COMPONENTS, spec["slug"]), component_rows, ["component", "current_open", "created_in_window"])
+    write_csv(view_path(RESOLUTIONS, spec["slug"]), resolution_rows, ["resolution", "closed_in_window"])
+    write_csv(view_path(GITHUB_QUARTERLY, spec["slug"]), pr_quarter_rows, list(pr_quarter_rows[0].keys()))
+
     return {
         "quarterly": quarterly_rows,
         "monthly": monthly_rows,
@@ -964,6 +1022,48 @@ def analyze():
         "github_quarterly": pr_quarter_rows,
         "summary": summary,
     }
+
+
+def analyze():
+    tickets = read_csv(TRAC_TICKETS)
+    events_by_ticket = load_events()
+    prs = load_jsonl(GITHUB_PRS)
+    category_map = load_core_category_map(tickets)
+
+    intervals_by_ticket = {
+        ticket["id"]: open_intervals_for_ticket(ticket, events_by_ticket)
+        for ticket in tickets
+    }
+    close_info = {}
+    close_sources = {}
+    for ticket in tickets:
+        close_at, source = event_close_dates(
+            events_by_ticket,
+            ticket,
+            parse_iso_dt(ticket["created_at"]),
+            parse_iso_dt(ticket["modified_at"]),
+        )
+        close_info[ticket["id"]] = close_at
+        close_sources[ticket["id"]] = source
+
+    quarters, months = make_periods()
+    views = {}
+    for raw_spec in VIEW_SPECS:
+        spec = dict(raw_spec)
+        spec["category_map"] = category_map
+        views[spec["slug"]] = analyze_ticket_view(
+            spec, tickets, events_by_ticket, prs, quarters, months, intervals_by_ticket, close_info, close_sources
+        )
+
+    summary = {
+        "generated_at": iso(dt.datetime.now(dt.timezone.utc)),
+        "start": iso(START),
+        "end": iso(END),
+        "classification_db": str(CLASSIFICATION_DB),
+        "views": {slug: view["summary"] for slug, view in views.items()},
+    }
+    SUMMARY.write_text(json.dumps(summary, indent=2, sort_keys=True), encoding="utf-8")
+    return {"views": views, "view_order": [spec["slug"] for spec in VIEW_SPECS], "summary": summary}
 
 
 def numeric(row, key):
@@ -1029,7 +1129,7 @@ def line_chart_svg(rows, series, title, note, aria, height=365):
     return "\n".join(parts)
 
 
-def monthly_net_svg(rows):
+def monthly_net_svg(rows, noun="Core Trac tickets"):
     recent = [row for row in rows if row["month"] >= "2024-01-01"]
     width, height = 1120, 310
     left, right, top, bottom = 70, 34, 82, 54
@@ -1046,9 +1146,9 @@ def monthly_net_svg(rows):
 
     zero = y_for(0)
     parts = [
-        f'<svg viewBox="0 0 {width} {height}" role="img" aria-label="Monthly net Core ticket flow">',
+        f'<svg viewBox="0 0 {width} {height}" role="img" aria-label="Monthly net flow for {esc(noun)}">',
         f'<text x="{left}" y="24" class="chart-title">Monthly net flow around the turn</text>',
-        f'<text x="{left}" y="46" class="chart-note">Bars below zero mean closures exceeded new Core Trac tickets.</text>',
+        f'<text x="{left}" y="46" class="chart-note">Bars below zero mean closures exceeded new {esc(noun)}.</text>',
     ]
     for tick in axis_ticks(-max_abs, max_abs, 4):
         y = y_for(tick)
@@ -1103,11 +1203,15 @@ def metric_strip(summary, q_rows, gh_rows):
     window_created = summary["window_created"]
     window_closed = summary["window_closed"]
     linked = summary["github_window_linked"]
+    noun = summary["view_noun"]
+    pr_note = "wordpress-develop PRs created since the GitHub mirror started"
+    if summary["slug"] != "all":
+        pr_note = f'wordpress-develop PRs linked to {noun.lower()}'
     items = [
-        ("Current open Core tickets", fmt_int(current_open), "Core Trac tickets not closed today"),
+        (f"Current open {noun}", fmt_int(current_open), f"{summary['chart_label']} not closed today"),
         ("Since 2003 ticket flow", f'{fmt_int(window_created)} new / {fmt_int(window_closed)} closed', "January 1, 2003 through June 11, 2026"),
         ("Reporter flow", f'{fmt_int(latest["first_time_reporters"])} first-time in latest quarter', "Latest quarter is partial"),
-        ("GitHub PRs linked to Trac", fmt_int(linked), "wordpress-develop PRs created since the GitHub mirror started"),
+        ("GitHub PRs linked to Trac", fmt_int(linked), pr_note),
     ]
     parts = ['<div class="metric-grid">']
     for label, value, note in items:
@@ -1122,14 +1226,8 @@ def metric_strip(summary, q_rows, gh_rows):
     return "\n".join(parts)
 
 
-def render_report(data):
-    q_rows = data["quarterly"]
-    m_rows = data["monthly"]
-    components = data["components"]
-    resolutions = data["resolutions"]
-    gh_rows = data["github_quarterly"]
-    summary = data["summary"]
-
+def report_stats_for_view(view):
+    q_rows = view["quarterly"]
     full_q = [r for r in q_rows if r["quarter"] != "2026-04-01"]
     nonzero_full_q = [r for r in full_q if numeric(r, "created") > 0]
     if nonzero_full_q:
@@ -1146,8 +1244,103 @@ def render_report(data):
     peak = max(q_rows, key=lambda r: numeric(r, "open_at_end"))
     peak_open = numeric(peak, "open_at_end")
     peak_label = peak["label"]
-    resolution_top = resolutions[0]["resolution"] if resolutions else "fixed"
-    resolution_top_count = numeric(resolutions[0], "closed_in_window") if resolutions else 0
+    return {
+        "early_created": early_created,
+        "recent_created": recent_created,
+        "early_reporters": early_reporters,
+        "recent_reporters": recent_reporters,
+        "latest_open": latest_open,
+        "peak_open": peak_open,
+        "peak_label": peak_label,
+    }
+
+
+def render_view_panel(slug, view, active=False):
+    q_rows = view["quarterly"]
+    m_rows = view["monthly"]
+    components = view["components"]
+    resolutions = view["resolutions"]
+    gh_rows = view["github_quarterly"]
+    summary = view["summary"]
+    stats = report_stats_for_view(view)
+    noun = summary["view_noun"]
+    chart_label = summary["chart_label"]
+    hidden = "" if active else " hidden"
+    active_class = " is-active" if active else ""
+    if summary["slug"] == "all":
+        gh_series = [
+            ("created", "PRs opened", LINE_COLORS["prs"]),
+            ("closed", "PRs closed", LINE_COLORS["pr_closed"]),
+            ("linked_to_trac", "Linked to Trac", LINE_COLORS["first"]),
+        ]
+        gh_note = "wordpress-develop PRs are code review, while Trac remains the authoritative issue tracker."
+        gh_aria = "WordPress develop GitHub PR activity"
+    else:
+        gh_series = [
+            ("created", "Linked PRs opened", LINE_COLORS["prs"]),
+            ("closed", "Linked PRs closed", LINE_COLORS["pr_closed"]),
+        ]
+        gh_note = f"Only wordpress-develop PRs that reference {noun.lower()} are shown."
+        gh_aria = f"WordPress develop GitHub PR activity for {noun}"
+
+    return f"""
+  <section class="view-panel{active_class}" data-view-panel="{esc(slug)}"{hidden}>
+    {metric_strip(summary, q_rows, gh_rows)}
+
+    <section class="chart-band">
+      {line_chart_svg(q_rows, [("open_at_end", "Open tickets", LINE_COLORS["open"])], f"Open {chart_label} over time", f"Backlog peaked at {fmt_int(stats['peak_open'])} in {stats['peak_label']}; latest sampled count is {fmt_int(stats['latest_open'])}.", f"Open {chart_label} over time")}
+    </section>
+
+    <section class="chart-band">
+      {line_chart_svg(q_rows, [("created", "New tickets", LINE_COLORS["created"]), ("closed", "Closed tickets", LINE_COLORS["closed"])], f"New and closed {noun} by quarter", "Blue is newly opened Trac tickets. Red is tickets closed during the quarter.", f"New and closed {noun} by quarter")}
+    </section>
+
+    <section class="chart-band">
+      {monthly_net_svg(m_rows, noun.lower())}
+    </section>
+
+    <section class="chart-band">
+      {line_chart_svg(q_rows, [("unique_reporters", "Unique reporters", LINE_COLORS["reporters"]), ("first_time_reporters", "First-time reporters", LINE_COLORS["first"])], f"People opening {noun}", f"Unique reporters averaged {stats['early_reporters']:.0f} per quarter in the first active year and {stats['recent_reporters']:.0f} recently.", f"People opening {noun}")}
+    </section>
+
+    <section class="chart-band">
+      {horizontal_bars_svg(components, "current_open", "component", "Where the open backlog sits", f"Current open {noun.lower()} by component.", "#0f766e", f"Current open {noun} by component")}
+    </section>
+
+    <section class="chart-band">
+      {horizontal_bars_svg(resolutions, "closed_in_window", "resolution", "How tickets closed", f"Resolution mix for {noun.lower()} closed since 2003.", "#7c3aed", f"{noun} closure resolution mix")}
+    </section>
+
+    <section class="chart-band">
+      {line_chart_svg(gh_rows, gh_series, "GitHub code-review activity", gh_note, gh_aria)}
+    </section>
+
+    <section class="discussion">
+      <article class="point">
+        <h2>{esc(summary["view_label"])} backlog today.</h2>
+        <p>{esc(chart_label)} have {fmt_int(summary["current_open"])} open tickets today out of {fmt_int(summary["ticket_count"])} total tickets in this view.</p>
+      </article>
+      <article class="point">
+        <h2>Ticket flow is the main story.</h2>
+        <p>New tickets averaged {stats['early_created']:.0f} per quarter in the first active year of this view and {stats['recent_created']:.0f} recently. When closures rise above new tickets, the open backlog bends down.</p>
+      </article>
+      <article class="point">
+        <h2>GitHub is review traffic, not the issue source.</h2>
+        <p>wordpress-develop has {fmt_int(summary["github_window_linked"])} PRs linked to this view. It helps explain implementation activity without replacing Trac ticket flow.</p>
+      </article>
+    </section>
+  </section>
+"""
+
+
+def render_report(data):
+    views = data["views"]
+    view_order = data["view_order"]
+    panels = "\n".join(render_view_panel(slug, views[slug], active=(idx == 0)) for idx, slug in enumerate(view_order))
+    buttons = "\n".join(
+        f'<button class="view-button{" is-active" if idx == 0 else ""}" type="button" data-view-button="{esc(slug)}" aria-pressed="{"true" if idx == 0 else "false"}">{esc(views[slug]["summary"]["view_label"])}</button>'
+        for idx, slug in enumerate(view_order)
+    )
 
     html_text = f"""<!doctype html>
 <html lang="en">
@@ -1189,6 +1382,34 @@ def render_report(data):
       max-width: 880px;
       color: #475569;
       font-size: 18px;
+    }}
+    .view-switch {{
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 24px;
+      padding: 5px;
+      border: 1px solid var(--rule);
+      border-radius: 8px;
+      background: #ffffff;
+    }}
+    .view-button {{
+      appearance: none;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      color: #475569;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 800;
+      padding: 9px 12px;
+    }}
+    .view-button.is-active {{
+      background: #172033;
+      color: #ffffff;
+    }}
+    .view-panel[hidden] {{
+      display: none;
     }}
     .metric-grid {{
       display: grid;
@@ -1313,10 +1534,10 @@ def render_report(data):
       main {{ padding: 30px 14px 48px; }}
       .metric-grid, .split, .discussion {{ grid-template-columns: 1fr; }}
       .metric {{ min-height: auto; }}
-      .chart-band {{ padding: 12px 8px 6px; }}
+      .chart-band {{ padding: 12px 8px 6px; overflow: visible; }}
       .chart-band svg {{
-        width: 900px;
-        max-width: none;
+        width: 100%;
+        max-width: 100%;
       }}
       .deck {{ font-size: 16px; }}
     }}
@@ -1327,59 +1548,44 @@ def render_report(data):
   <h1>WordPress Core ticket flow since 2003</h1>
   <p class="deck">A long-run view of Core Trac backlog, ticket flow, reporter activity, closure mix, and GitHub code-review activity linked to Trac.</p>
 
-  {metric_strip(summary, q_rows, gh_rows)}
+  <nav class="view-switch" aria-label="Ticket category view">
+    {buttons}
+  </nav>
 
-  <section class="chart-band">
-    {line_chart_svg(q_rows, [("open_at_end", "Open tickets", LINE_COLORS["open"])], "Open Core Trac tickets over time", f"Backlog peaked at {fmt_int(peak_open)} in {peak_label}; latest sampled count is {fmt_int(latest_open)}.", "Open Core Trac tickets over time")}
-  </section>
-
-  <section class="chart-band">
-    {line_chart_svg(q_rows, [("created", "New tickets", LINE_COLORS["created"]), ("closed", "Closed tickets", LINE_COLORS["closed"])], "New and closed Core tickets by quarter", "Blue is newly opened Trac tickets. Red is tickets closed during the quarter.", "New and closed WordPress Core Trac tickets by quarter")}
-  </section>
-
-  <section class="chart-band">
-    {monthly_net_svg(m_rows)}
-  </section>
-
-  <section class="chart-band">
-    {line_chart_svg(q_rows, [("unique_reporters", "Unique reporters", LINE_COLORS["reporters"]), ("first_time_reporters", "First-time reporters", LINE_COLORS["first"])], "People opening Core Trac tickets", f"Unique reporters averaged {early_reporters:.0f} per quarter in the first active year and {recent_reporters:.0f} recently.", "People opening WordPress Core Trac tickets")}
-  </section>
-
-  <section class="chart-band">
-    {horizontal_bars_svg(components, "current_open", "component", "Where the open backlog sits", "Current open Core Trac tickets by component.", "#0f766e", "Current open Core tickets by component")}
-  </section>
-
-  <section class="chart-band">
-    {horizontal_bars_svg(resolutions, "closed_in_window", "resolution", "How tickets closed", "Resolution mix for tickets closed since 2003.", "#7c3aed", "Core Trac closure resolution mix")}
-  </section>
-
-  <section class="chart-band">
-    {line_chart_svg(gh_rows, [("created", "PRs opened", LINE_COLORS["prs"]), ("closed", "PRs closed", LINE_COLORS["pr_closed"]), ("linked_to_trac", "Linked to Trac", LINE_COLORS["first"])], "GitHub code-review activity", "wordpress-develop PRs are code review, while Trac remains the authoritative issue tracker.", "WordPress develop GitHub PR activity")}
-  </section>
-
-  <section class="discussion">
-    <article class="point">
-      <h2>Core is a larger, older backlog.</h2>
-      <p>Core Trac has {fmt_int(summary["current_open"])} open tickets today. That is a much bigger and older queue than Gutenberg GitHub Issues, so the backlog line moves more slowly.</p>
-    </article>
-    <article class="point">
-      <h2>Ticket flow is the main story.</h2>
-      <p>New tickets averaged {early_created:.0f} per quarter in the first active year of the Trac export and {recent_created:.0f} recently. When closures rise above new tickets, the open backlog bends down.</p>
-    </article>
-    <article class="point">
-      <h2>GitHub is review traffic, not the issue source.</h2>
-      <p>wordpress-develop produced {fmt_int(summary["github_window_created"])} PRs since the GitHub mirror began, with {fmt_int(summary["github_window_linked"])} linking back to Trac. It helps explain implementation activity without replacing Trac ticket flow.</p>
-    </article>
-  </section>
+  {panels}
 
   <details>
     <summary>Method and source files</summary>
     <div class="method">
       <p>Data window: January 1, 2003 through June 11, 2026. Core ticket inventory comes from Core Trac CSV exports; the first ticket in the export was created on June 10, 2004. Closure and reopen timing comes from public ticket RSS feeds for closed and reopened tickets. GitHub activity comes from the GitHub API for <code>WordPress/wordpress-develop</code> pull requests.</p>
       <p>Generated files: <code>quarterly_metrics.csv</code>, <code>monthly_metrics.csv</code>, <code>component_summary.csv</code>, <code>resolution_summary.csv</code>, and <code>github_pr_quarterly.csv</code>.</p>
+      <p>Filtered CSVs add <code>_bugs</code> or <code>_feature_requests</code> before the extension. Category filters come from <code>{esc(CLASSIFICATION_DB)}</code>.</p>
       <p>Most closure dates are parsed from RSS status-change events. Tickets without a public close event in the parsed feed use the Trac modified timestamp as a fallback.</p>
     </div>
   </details>
+  <script>
+    const buttons = [...document.querySelectorAll("[data-view-button]")];
+    const panels = [...document.querySelectorAll("[data-view-panel]")];
+    function setView(slug) {{
+      buttons.forEach((button) => {{
+        const active = button.dataset.viewButton === slug;
+        button.classList.toggle("is-active", active);
+        button.setAttribute("aria-pressed", active ? "true" : "false");
+      }});
+      panels.forEach((panel) => {{
+        panel.hidden = panel.dataset.viewPanel !== slug;
+        panel.classList.toggle("is-active", panel.dataset.viewPanel === slug);
+      }});
+      try {{ localStorage.setItem("core-ticket-flow-view", slug); }} catch (_error) {{}}
+    }}
+    buttons.forEach((button) => button.addEventListener("click", () => setView(button.dataset.viewButton)));
+    const initial = (() => {{
+      try {{ return localStorage.getItem("core-ticket-flow-view"); }} catch (_error) {{ return null; }}
+    }})();
+    if (initial && buttons.some((button) => button.dataset.viewButton === initial)) {{
+      setView(initial);
+    }}
+  </script>
 </main>
 </body>
 </html>

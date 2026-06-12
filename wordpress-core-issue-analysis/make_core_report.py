@@ -1070,7 +1070,7 @@ def numeric(row, key):
     return int(row[key])
 
 
-def line_chart_svg(rows, series, title, note, aria, height=365):
+def line_chart_svg(rows, series, title, note, aria, height=365, x_key="quarter"):
     width = 1120
     left, right, top, bottom = 76, 34, 88, 58
     plot_w = width - left - right
@@ -1119,12 +1119,18 @@ def line_chart_svg(rows, series, title, note, aria, height=365):
             y = y_for(numeric(row, key))
             parts.append(
                 f'<circle cx="{x:.1f}" cy="{y:.1f}" r="4" fill="{color}">'
-                f'<title>{esc(row["label"])} {esc(label)}: {numeric(row, key):,}</title></circle>'
+                f'<title>{esc(row.get("label", row.get(x_key, "")))} {esc(label)}: {numeric(row, key):,}</title></circle>'
             )
     for idx, row in enumerate(rows):
-        if idx == 0 or row["quarter"][5:10] == "01-01":
+        if x_key == "quarter":
+            show_label = idx == 0 or row["quarter"][5:10] == "01-01"
+            label_text = row["quarter"][:4]
+        else:
+            show_label = idx == 0 or idx == len(rows) - 1 or idx % 2 == 0
+            label_text = row.get("label", row.get(x_key, ""))
+        if show_label:
             x = x_for(idx)
-            parts.append(f'<text x="{x:.1f}" y="{height - 24}" text-anchor="middle" class="axis">{esc(row["quarter"][:4])}</text>')
+            parts.append(f'<text x="{x:.1f}" y="{height - 24}" text-anchor="middle" class="axis">{esc(label_text)}</text>')
     parts.append("</svg>")
     return "\n".join(parts)
 
@@ -1228,7 +1234,7 @@ def monthly_net_svg(rows, noun="Core Trac tickets"):
     parts = [
         f'<svg viewBox="0 0 {width} {height}" role="img" aria-label="Monthly net flow for {esc(noun)}">',
         f'<text x="{left}" y="24" class="chart-title">Monthly net flow around the turn</text>',
-        f'<text x="{left}" y="46" class="chart-note">Bars below zero mean closures exceeded new {esc(noun)}.</text>',
+        f'<text x="{left}" y="46" class="chart-note">The line below zero means closures exceeded new {esc(noun)}.</text>',
     ]
     for tick in axis_ticks(-max_abs, max_abs, 4):
         y = y_for(tick)
@@ -1236,18 +1242,27 @@ def monthly_net_svg(rows, noun="Core Trac tickets"):
         parts.append(f'<line x1="{left}" y1="{y:.1f}" x2="{left + plot_w}" y2="{y:.1f}" class="{cls}"/>')
         if tick != 0:
             parts.append(f'<text x="{left - 10}" y="{y + 4:.1f}" text-anchor="end" class="axis">{tick:+,}</text>')
+    points = []
+    for idx, row in enumerate(recent):
+        x = left + idx * group_w + group_w / 2
+        y = y_for(numeric(row, "net"))
+        points.append(f"{x:.1f},{y:.1f}")
+    if points:
+        parts.append(
+            f'<polyline points="{" ".join(points)}" fill="none" stroke="#2563eb" stroke-width="4" '
+            'stroke-linecap="round" stroke-linejoin="round"/>'
+        )
     for idx, row in enumerate(recent):
         value = numeric(row, "net")
-        x = left + idx * group_w + (group_w - bar_w) / 2
-        y = min(y_for(value), zero)
-        h = max(1, abs(y_for(value) - zero))
+        x = left + idx * group_w + group_w / 2
+        y = y_for(value)
         color = "#2563eb" if value >= 0 else "#dc2626"
         parts.append(
-            f'<rect x="{x:.1f}" y="{y:.1f}" width="{bar_w:.1f}" height="{h:.1f}" fill="{color}" rx="2">'
-            f'<title>{esc(row["month"])} net: {value:+,}</title></rect>'
+            f'<circle cx="{x:.1f}" cy="{y:.1f}" r="4" fill="{color}">'
+            f'<title>{esc(row["month"])} net: {value:+,}</title></circle>'
         )
         if idx == 0 or row["month"][5:7] == "01":
-            parts.append(f'<text x="{x + bar_w / 2:.1f}" y="{height - 22}" text-anchor="middle" class="axis">{esc(row["month"][:4])}</text>')
+            parts.append(f'<text x="{x:.1f}" y="{height - 22}" text-anchor="middle" class="axis">{esc(row["month"][:4])}</text>')
     parts.append("</svg>")
     return "\n".join(parts)
 
@@ -1372,7 +1387,7 @@ def render_view_panel(slug, view, active=False):
     </section>
 
     <section class="chart-band">
-      {grouped_bars_svg(annual_sum_rows(q_rows, ["created", "closed"]), [("created", "New tickets", LINE_COLORS["created"]), ("closed", "Closed tickets", LINE_COLORS["closed"])], f"New and closed {noun} by year", "Annual totals make the long-run flow readable; blue is newly opened and red is closed.", f"New and closed {noun} by year")}
+      {line_chart_svg(annual_sum_rows(q_rows, ["created", "closed"]), [("created", "New tickets", LINE_COLORS["created"]), ("closed", "Closed tickets", LINE_COLORS["closed"])], f"New and closed {noun} by year", "Annual totals make the long-run flow readable; blue is newly opened and red is closed.", f"New and closed {noun} by year", x_key="year")}
     </section>
 
     <section class="chart-band">
@@ -1380,7 +1395,7 @@ def render_view_panel(slug, view, active=False):
     </section>
 
     <section class="chart-band">
-      {grouped_bars_svg(annual_reporter_rows(q_rows), [("unique_reporters", "Avg quarterly reporters", LINE_COLORS["reporters"]), ("first_time_reporters", "First-time reporters", LINE_COLORS["first"])], f"People opening {noun}", f"Purple is average unique reporters per quarter; orange is first-time reporters during the year.", f"People opening {noun}")}
+      {line_chart_svg(annual_reporter_rows(q_rows), [("unique_reporters", "Avg quarterly reporters", LINE_COLORS["reporters"]), ("first_time_reporters", "First-time reporters", LINE_COLORS["first"])], f"People opening {noun}", f"Purple is average unique reporters per quarter; orange is first-time reporters during the year.", f"People opening {noun}", x_key="year")}
     </section>
 
     <section class="chart-band">
@@ -1392,7 +1407,7 @@ def render_view_panel(slug, view, active=False):
     </section>
 
     <section class="chart-band">
-      {grouped_bars_svg(annual_sum_rows(gh_rows, [key for key, _label, _color in gh_series]), gh_series, "GitHub code-review activity", gh_note, gh_aria)}
+      {line_chart_svg(annual_sum_rows(gh_rows, [key for key, _label, _color in gh_series]), gh_series, "GitHub code-review activity", gh_note, gh_aria, x_key="year")}
     </section>
 
     <section class="discussion">

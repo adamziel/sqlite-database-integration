@@ -23,7 +23,9 @@ Important caveats:
 Main result:
 
 - With LALR actually wired, SQLite WAL+LALR was slower than MySQL 8.4 InnoDB in every workload/concurrent-request cell.
-- SQLite had 0 failed flows, 0 write verification failures, and 0 SQLite busy/locked log events, so the regression is throughput/latency rather than visible request errors.
+- SQLite had 0 failed flows, 0 write verification failures, and 0 SQLite busy/locked log events, so the regression did not show up as visible HTTP/request failures.
+- The wired SQLite cells did emit PHP warning/database-error log events. Across the 36 SQLite raw rows there were 68,566 warning log events. The c4 read-heavy row had 763 warning log events while still returning only HTTP 200 responses.
+- The warnings point to adapter/translation correctness, not clean LALR parser performance. The logs show malformed translation for WordPress `INSERT ... ON DUPLICATE KEY UPDATE` option/transient writes, including `wp_styles_for_blocks`, plus an `@@SESSION.sql_mode` compatibility warning.
 - The lowest-concurrency write-heavy cell was the worst relative result: SQLite median throughput was 5.86 flows/s vs MySQL 106.20 flows/s, with p95 latency 1.98s vs 98ms.
 
 Validation summary:
@@ -35,7 +37,8 @@ Validation summary:
 - 0 HTTP failures
 - 0 write verification failures
 - 0 SQLite busy/locked log events
-- 0 fatal or warning PHP log events
+- 0 fatal PHP log events
+- 68,566 SQLite PHP warning/database-error log events across measured SQLite rows
 
 Primary report:
 

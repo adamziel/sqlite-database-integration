@@ -39,14 +39,18 @@ code { background: #eef2f7; padding: 2px 5px; border-radius: 4px; }
   <div class="stat"><strong>4, 16, 32, 64</strong><span>concurrent requests tested</span></div>
   <div class="stat"><strong>0</strong><span>SQLite WAL PR #405 + LALR PR #429 failed benchmark flows</span></div>
   <div class="stat"><strong>0</strong><span>SQLite WAL PR #405 + LALR PR #429 lock/busy log events</span></div>
+  <div class="stat"><strong>68,566</strong><span>SQLite PHP warning/database-error log events across measured rows</span></div>
 </div>
 <p class="note">This is a local diagnostic, not the blocked dedicated-Linux full matrix. The measured window starts after fixture restore, server startup, login setup, and warm-up.</p>
 <section>
 <h2>Headline Result</h2>
 <p class="finding"><strong>When the LALR parser is actually wired into the request-time SQLite driver path, SQLite WAL+LALR is slower than MySQL 8.4 InnoDB in every workload and concurrent-request cell in this small restaurant benchmark.</strong></p>
 <ul>
-  <li>SQLite had 0 failed flows, 0 write verification failures, and 0 SQLite lock/busy log events. The problem shown here is not user-visible 500s; it is much lower throughput and much higher latency.</li>
+  <li>SQLite had 0 failed flows, 0 write verification failures, and 0 SQLite lock/busy log events, but it did emit PHP warning/database-error log events in every measured SQLite row. The result should be read as an adapter/translation regression, not clean LALR parser performance.</li>
   <li>At write-heavy concurrency 4, SQLite completed 5.86 median flows/s with p95 1.98s; MySQL completed 106.20 median flows/s with p95 98ms.</li>
+  <li>In the c4 read-heavy SQLite row, all measured HTTP responses were 200s, but the server logged 763 PHP warning/database-error events. Public page browsing stayed near 48ms p95 and REST/XHR near 164ms p95, while <code>admin_read</code> jumped to about 2.01s p95.</li>
+  <li>The request log for that same row shows 1.87s wall-time p95 but only 10.6ms database-time p95. The extra time is PHP/driver/parser/translation/error-handling work around the query, not SQLite engine time.</li>
+  <li>The PHP logs show malformed translation for WordPress <code>INSERT ... ON DUPLICATE KEY UPDATE</code> option/transient writes, including <code>wp_styles_for_blocks</code>, plus an <code>@@SESSION.sql_mode</code> compatibility warning.</li>
   <li>The measured SQLite PHP-FPM pools contained <code>env[WP_SQLITE_USE_LALR_PARSER] = 1</code>. WAL setup returned <code>wal</code> from <code>PRAGMA journal_mode=WAL</code>.</li>
   <li>The combined benchmark branch was <code>94b33a7cc426ce81ad573e561dedbf67d33a3def</code>, including the local adapter fix for <code>SELECT @@SESSION.sql_mode</code>.</li>
 </ul>

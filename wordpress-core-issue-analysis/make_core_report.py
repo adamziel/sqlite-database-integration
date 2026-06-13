@@ -1387,7 +1387,7 @@ def render_view_panel(slug, view, active=False):
     </section>
 
     <section class="chart-band">
-      {line_chart_svg(annual_sum_rows(q_rows, ["created", "closed"]), [("created", "New tickets", LINE_COLORS["created"]), ("closed", "Closed tickets", LINE_COLORS["closed"])], f"New and closed {noun} by year", "Annual totals make the long-run flow readable; blue is newly opened and red is closed.", f"New and closed {noun} by year", x_key="year")}
+      {line_chart_svg(q_rows, [("created", "New tickets", LINE_COLORS["created"]), ("closed", "Closed tickets", LINE_COLORS["closed"])], f"New and closed {noun} by quarter", "Quarterly flow: blue is newly opened and red is closed.", f"New and closed {noun} by quarter")}
     </section>
 
     <section class="chart-band">
@@ -1395,7 +1395,7 @@ def render_view_panel(slug, view, active=False):
     </section>
 
     <section class="chart-band">
-      {line_chart_svg(annual_reporter_rows(q_rows), [("unique_reporters", "Avg quarterly reporters", LINE_COLORS["reporters"]), ("first_time_reporters", "First-time reporters", LINE_COLORS["first"])], f"People opening {noun}", f"Purple is average unique reporters per quarter; orange is first-time reporters during the year.", f"People opening {noun}", x_key="year")}
+      {line_chart_svg(q_rows, [("unique_reporters", "Unique reporters", LINE_COLORS["reporters"]), ("first_time_reporters", "First-time reporters", LINE_COLORS["first"])], f"People opening {noun}", f"Purple is unique reporters per quarter; orange is first-time reporters per quarter.", f"People opening {noun}")}
     </section>
 
     <section class="chart-band">
@@ -1407,7 +1407,7 @@ def render_view_panel(slug, view, active=False):
     </section>
 
     <section class="chart-band">
-      {line_chart_svg(annual_sum_rows(gh_rows, [key for key, _label, _color in gh_series]), gh_series, "GitHub code-review activity", gh_note, gh_aria, x_key="year")}
+      {line_chart_svg(gh_rows, gh_series, "GitHub code-review activity", gh_note, gh_aria)}
     </section>
 
     <section class="discussion">

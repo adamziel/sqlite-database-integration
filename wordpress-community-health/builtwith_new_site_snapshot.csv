@@ -1,0 +1,6 @@
+collected_at,technology,category,source_url,total_live,new_last_7_days,new_last_14_days,new_last_month,new_last_3_months,top_1m,top_100k,top_10k,top_1000,source_note
+2026-06-13T23:00:00Z,WordPress,CMS,https://trends.builtwith.com/cms/WordPress,37365862,105152,274038,615371,2424408,280299,19253,1956,226,"BuiltWith public page exposes Net New Pipeline and traffic tiers."
+2026-06-13T23:00:00Z,Shopify,eCommerce,https://trends.builtwith.com/shop/Shopify,6868648,62443,142208,263662,726119,61939,2099,191,36,"BuiltWith public page exposes Net New Pipeline and traffic tiers."
+2026-06-13T23:00:00Z,Wix,CMS,https://trends.builtwith.com/cms/Wix,8801736,29405,81853,128142,403904,3844,250,59,10,"BuiltWith public page exposes Net New Pipeline and traffic tiers."
+2026-06-13T23:00:00Z,Squarespace,CMS,https://trends.builtwith.com/cms/Squarespace,7870232,,,,,3932,459,93,18,"BuiltWith public CMS page exposes live and traffic tiers, but no Net New Pipeline counts."
+2026-06-13T23:00:00Z,Webflow,CMS,https://trends.builtwith.com/cms/Webflow,664571,1890,4696,11084,43720,12419,1762,217,30,"BuiltWith public page exposes Net New Pipeline and traffic tiers."

@@ -51,6 +51,7 @@ SOURCE_FILES = {
     "support_forum_topics": ROOT / "support_forum_topics.jsonl",
     "support_forum_view_snapshots": ROOT / "support_forum_view_snapshots.csv",
     "support_forum_forum_summary": ROOT / "support_forum_forum_summary.csv",
+    "builtwith_new_site_snapshot": ROOT / "builtwith_new_site_snapshot.csv",
 }
 
 W3TECHS_USAGE_URL = "https://w3techs.com/technologies/history_overview/content_management/all/y"
@@ -80,6 +81,7 @@ COLORS = {
     "shopify": "#16a34a",
     "wix": "#f59e0b",
     "squarespace": "#7c3aed",
+    "webflow": "#0891b2",
     "neutral": "#64748b",
     "red": "#dc2626",
 }
@@ -876,9 +878,25 @@ def build_database(data, fetched):
         )
         """
     )
-    gaps = [
-        ("new_site_share", "missing", "BuiltWith paid trends or HTTP Archive cohort queries", "Current report uses all-site and CMS-share trends, not newly created site cohorts."),
-    ]
+    gaps = []
+    if data.get("builtwith_new_site_snapshot"):
+        gaps.append(
+            (
+                "new_site_share_history",
+                "partial",
+                "BuiltWith historical trends or HTTP Archive cohort queries",
+                "Current report includes a BuiltWith current Net New Pipeline snapshot, not a multi-year newly created site trend.",
+            )
+        )
+    else:
+        gaps.append(
+            (
+                "new_site_share",
+                "missing",
+                "BuiltWith paid trends or HTTP Archive cohort queries",
+                "Current report uses all-site and CMS-share trends, not newly created site cohorts.",
+            )
+        )
     if data.get("support_forum_topics"):
         gaps.append(
             (
@@ -1297,7 +1315,11 @@ def source_status_rows(fetched):
         ("Core committers per release", "covered" if fetched.get("core_release_committers") else "missing", "GitHub tag-to-tag compare ranges by major release"),
         ("Core reopen rate", "covered" if fetched.get("core_reopen_quarterly") else "missing", "Quarterly Core Trac reopened status-change events"),
         ("Five for the Future", "covered" if fetched.get("fttf_pledges") else "missing", "Current pledge organizations, hours, and listed profiles"),
-        ("Newly created sites", "missing", "Needs BuiltWith cohort/trend data or HTTP Archive cohort queries"),
+        (
+            "Newly detected sites",
+            "partial" if SOURCE_FILES["builtwith_new_site_snapshot"].exists() else "missing",
+            "Current BuiltWith Net New Pipeline snapshot; historical trend still needs paid BuiltWith or HTTP Archive cohort queries",
+        ),
         (
             "Support forums",
             "partial" if SOURCE_FILES["support_forum_topics"].exists() else "missing",
@@ -1333,6 +1355,7 @@ def build_report(data, fetched):
     support_topics = data["support_forum_topics"]
     support_views = data["support_forum_view_snapshots"]
     support_forums = data["support_forum_forum_summary"]
+    builtwith_new_sites = data["builtwith_new_site_snapshot"]
 
     core_latest = current_latest(core_q)
     gut_latest = current_latest(gut_q)
@@ -1413,6 +1436,16 @@ def build_report(data, fetched):
     support_queue_max = max(support_resolved_count, support_unresolved_count, support_no_reply_count, support_recent_count, 1)
     top_support_forums = sorted(support_forums, key=lambda row: num(row.get("topics")), reverse=True)[:8]
     max_support_forum_topics = max([num(row.get("topics")) for row in top_support_forums] or [1])
+    builtwith_by_tech = {row.get("technology"): row for row in builtwith_new_sites}
+    builtwith_new_rows = [row for row in builtwith_new_sites if num(row.get("new_last_3_months")) > 0]
+    builtwith_max_90 = max([num(row.get("new_last_3_months")) for row in builtwith_new_rows] or [1])
+    builtwith_total_90 = sum(num(row.get("new_last_3_months")) for row in builtwith_new_rows)
+    builtwith_total_30 = sum(num(row.get("new_last_month")) for row in builtwith_new_rows)
+    builtwith_wp_90 = num(builtwith_by_tech.get("WordPress", {}).get("new_last_3_months"))
+    builtwith_wp_30 = num(builtwith_by_tech.get("WordPress", {}).get("new_last_month"))
+    builtwith_wp_90_share = builtwith_wp_90 / builtwith_total_90 * 100 if builtwith_total_90 else 0
+    builtwith_wp_30_share = builtwith_wp_30 / builtwith_total_30 * 100 if builtwith_total_30 else 0
+    builtwith_top_tiers = ["top_1000", "top_10k", "top_100k", "top_1m"]
 
     classification_by_source_cat = defaultdict(int)
     for row in classifications:
@@ -1513,6 +1546,7 @@ p {{ margin:0 0 12px; }}
 .stat-value {{ font-size:28px; font-weight:800; margin:4px 0; }}
 .stat-note {{ color:var(--muted); font-size:13px; }}
 .card {{ border:1px solid var(--line); border-radius:8px; padding:16px; background:#fff; }}
+.card .stats {{ grid-template-columns:repeat(2,minmax(0,1fr)); }}
 .chart {{ width:100%; height:auto; display:block; border:1px solid var(--line); border-radius:8px; background:#fff; margin:14px 0; }}
 .chart-title {{ font-size:20px; font-weight:800; fill:var(--ink); }}
 .chart-note {{ font-size:13px; fill:var(--muted); }}
@@ -1767,7 +1801,7 @@ p {{ margin:0 0 12px; }}
 
   <section id="market" class="section">
     <h2>Market Position</h2>
-    <p class="callout">The market signal is: WordPress is still far ahead, but its share has flattened and recently declined while hosted builders gained small, distributed share. This does not measure newly created sites yet.</p>
+    <p class="callout">The market signal is: WordPress is still far ahead, but its share has flattened and recently declined while hosted builders gained small, distributed share. BuiltWith adds a current newly found-site snapshot, but not a historical new-site trend.</p>
     <div class="stats">
       {stat_card("W3Techs all-site share", pct(wp_usage_latest["value"]) if wp_usage_latest else "n/a", f"{wp_usage_latest['date'] if wp_usage_latest else 'not fetched'}", "soft")}
       {stat_card("W3Techs CMS share", pct(wp_cms_latest["value"]) if wp_cms_latest else "n/a", f"{wp_cms_latest['date'] if wp_cms_latest else 'not fetched'}", "soft")}
@@ -1777,6 +1811,24 @@ p {{ margin:0 0 12px; }}
     <div class="grid-2">
       {svg_line_chart("Share of all websites", "W3Techs yearly usage trend. This includes sites with no known CMS.", market_usage_series, y_suffix="%")}
       {svg_line_chart("Share among CMS sites", "W3Techs yearly CMS market-share trend.", market_cms_series, y_suffix="%")}
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Newly found site pipeline</h3>
+        <p>BuiltWith public Net New Pipeline counts for the last 90 days. Squarespace's top-level CMS page does not expose new-site counts, so it is excluded from this share.</p>
+        <div class="stats">
+          {stat_card("WordPress share", pct(builtwith_wp_90_share), "of tracked 90-day new-site counts", "soft")}
+          {stat_card("WordPress 90 days", compact(builtwith_wp_90), "BuiltWith newly found sites", "good")}
+          {stat_card("WordPress 30 days", compact(builtwith_wp_30), f"{pct(builtwith_wp_30_share)} of tracked set", "good")}
+          {stat_card("Tracked set", compact(builtwith_total_90), "WordPress, Shopify, Wix, Webflow", "soft")}
+        </div>
+        {''.join(horizontal_count_metric(str(row.get("technology", "")), num(row.get("new_last_3_months")), builtwith_max_90, COLORS.get(str(row.get("technology", "")).lower(), COLORS["neutral"]), "") for row in builtwith_new_rows)}
+      </div>
+      <div class="card">
+        <h3>Top-site presence</h3>
+        <p>BuiltWith traffic-tier counts show where each technology appears among higher-traffic sites.</p>
+        {''.join(horizontal_count_metric(f"{tech} top 1M", num(row.get("top_1m")), max([num(r.get("top_1m")) for r in builtwith_new_sites] or [1]), COLORS.get(str(tech).lower(), COLORS["neutral"]), "") for tech, row in builtwith_by_tech.items())}
+      </div>
     </div>
     <div class="stats">
       {stat_card("Plugin directory", compact(plugin_count), "current WordPress.org API result", "good")}
@@ -1796,7 +1848,7 @@ p {{ margin:0 0 12px; }}
 
   <section class="footer">
     <p>Generated {dt.datetime.now(dt.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')} from local Core/Gutenberg exports and public sources.</p>
-    <p>Sources: <a href="{W3TECHS_USAGE_URL}">W3Techs usage trend</a>, <a href="{W3TECHS_MARKET_SHARE_URL}">W3Techs CMS market-share trend</a>, <a href="{HTTP_ARCHIVE_CMS_URL}">HTTP Archive Web Almanac CMS 2025</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="{EVENTS_WORDPRESS_URL}">WordPress Events</a>, <a href="https://make.wordpress.org/core/wp-json/wp/v2/posts">Make/Core REST API</a>, <a href="https://wordpress.org/support/view/all-topics/">WordPress.org support forums</a>, <a href="https://github.com/WordPress/gutenberg/issues">Gutenberg GitHub issues</a>, <a href="{FTTF_PLEDGES_URL}">Five for the Future pledges</a>, <a href="{RELEASE_ARCHIVE_URL}">WordPress release archive</a>, and <a href="{CREDITS_API}">Core credits API</a>.</p>
+    <p>Sources: <a href="{W3TECHS_USAGE_URL}">W3Techs usage trend</a>, <a href="{W3TECHS_MARKET_SHARE_URL}">W3Techs CMS market-share trend</a>, <a href="{HTTP_ARCHIVE_CMS_URL}">HTTP Archive Web Almanac CMS 2025</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="{EVENTS_WORDPRESS_URL}">WordPress Events</a>, <a href="https://make.wordpress.org/core/wp-json/wp/v2/posts">Make/Core REST API</a>, <a href="https://wordpress.org/support/view/all-topics/">WordPress.org support forums</a>, <a href="https://trends.builtwith.com/cms/WordPress">BuiltWith technology pages</a>, <a href="https://github.com/WordPress/gutenberg/issues">Gutenberg GitHub issues</a>, <a href="{FTTF_PLEDGES_URL}">Five for the Future pledges</a>, <a href="{RELEASE_ARCHIVE_URL}">WordPress release archive</a>, and <a href="{CREDITS_API}">Core credits API</a>.</p>
   </section>
 </main>
 </body>

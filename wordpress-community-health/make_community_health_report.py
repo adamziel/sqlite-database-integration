@@ -908,6 +908,39 @@ def build_database(data, fetched):
     conn.close()
 
 
+def build_derived_metrics(data):
+    core_q = data.get("core_quarterly", [])
+    core_events = data.get("core_events", [])
+    closed_by_quarter = {row.get("quarter"): num(row.get("closed")) for row in core_q}
+    reopened_events = Counter()
+    reopened_tickets = defaultdict(set)
+    for event in core_events:
+        if event.get("event_type") != "reopened":
+            continue
+        q = quarter_start(event.get("event_at"))
+        if not q:
+            continue
+        reopened_events[q] += 1
+        reopened_tickets[q].add(str(event.get("ticket_id", "")))
+    rows = []
+    for quarter in sorted(set(closed_by_quarter) | set(reopened_events)):
+        closed = closed_by_quarter.get(quarter, 0)
+        event_count = reopened_events.get(quarter, 0)
+        ticket_count = len(reopened_tickets.get(quarter, set()))
+        rows.append(
+            {
+                "quarter": quarter,
+                "label": quarter_label(quarter),
+                "closed": closed,
+                "reopened_events": event_count,
+                "reopened_tickets": ticket_count,
+                "reopened_events_per_100_closed": round(event_count / closed * 100, 2) if closed else 0,
+                "source": "Core Trac ticket RSS status-change events",
+            }
+        )
+    return {"core_reopen_quarterly": rows}
+
+
 def load_data():
     data = {}
     for table, path in SOURCE_FILES.items():
@@ -1223,6 +1256,7 @@ def source_status_rows(fetched):
         ("Make/Core posts", "covered" if fetched.get("make_core_posts") else "missing", "Post counts and author IDs"),
         ("Core release credits", "covered" if fetched.get("core_release_credits") else "missing", "WordPress.org credits API props by major release"),
         ("Core committers per release", "covered" if fetched.get("core_release_committers") else "missing", "GitHub tag-to-tag compare ranges by major release"),
+        ("Core reopen rate", "covered" if fetched.get("core_reopen_quarterly") else "missing", "Quarterly Core Trac reopened status-change events"),
         ("Five for the Future", "covered" if fetched.get("fttf_pledges") else "missing", "Current pledge organizations, hours, and listed profiles"),
         ("Newly created sites", "missing", "Needs BuiltWith cohort/trend data or HTTP Archive cohort queries"),
         ("First response time", "missing", "Needs comments/timeline data for Core and Gutenberg"),
@@ -1249,6 +1283,7 @@ def build_report(data, fetched):
     make_posts = fetched.get("make_core_posts", [])
     release_credits = fetched.get("core_release_credits", [])
     release_committers = fetched.get("core_release_committers", [])
+    core_reopen_q = fetched.get("core_reopen_quarterly", [])
     fttf_snapshots = fetched.get("fttf_snapshots", [])
     fttf_pledges = fetched.get("fttf_pledges", [])
     directory = {row["metric"]: row for row in fetched.get("directory_snapshots", [])}
@@ -1297,6 +1332,8 @@ def build_report(data, fetched):
     latest_release_credit = max(release_credits, key=lambda row: row.get("release_date", "")) if release_credits else {}
     release_committer_points = [(row["release_date"], num(row.get("committer_count"))) for row in release_committers]
     latest_release_committer = max(release_committers, key=lambda row: row.get("release_date", "")) if release_committers else {}
+    latest_core_reopen = max(core_reopen_q, key=lambda row: row.get("quarter", "")) if core_reopen_q else {}
+    core_reopen_rate_points = point_series(core_reopen_q, "quarter", "reopened_events_per_100_closed")
     fttf_snapshot = fttf_snapshots[0] if fttf_snapshots else {}
     top_fttf_pledges = sorted(fttf_pledges, key=lambda row: float(row.get("hours_per_week") or 0), reverse=True)[:8]
     max_fttf_hours = max([float(row.get("hours_per_week") or 0) for row in top_fttf_pledges] or [0])
@@ -1597,13 +1634,24 @@ p {{ margin:0 0 12px; }}
           {"label": "Core", "color": COLORS["core"], "points": core_close_age},
           {"label": "Gutenberg", "color": COLORS["gutenberg"], "points": gut_close_age},
       ])}
-      <div class="card">
-        <h3>Backlog and reopen readout</h3>
-        <p>These are direct tracker-derived signals, not adoption signals.</p>
-        {horizontal_metric("Core open stale share", core_stale_pct, 100, COLORS["orange"])}
-        {horizontal_metric("Gutenberg open stale share", gut_stale_pct, 100, COLORS["orange"])}
-        {horizontal_metric("Core tickets ever reopened", reopened_pct, 100, COLORS["red"])}
-        <p class="stat-note">Gutenberg reopen rate needs GitHub timeline events, which are not in the current export.</p>
+      {svg_line_chart("Core reopen pressure by quarter", "Reopened status-change events per 100 closed Core tickets. Lower means fewer tickets coming back after closure.", [
+          {"label": "Reopens per 100 closes", "color": COLORS["red"], "points": core_reopen_rate_points},
+      ], y_suffix="%")}
+    </div>
+    <div class="card">
+      <h3>Backlog and reopen readout</h3>
+      <p>These are direct tracker-derived signals, not adoption signals.</p>
+      <div class="grid-2">
+        <div>
+          {horizontal_metric("Core open stale share", core_stale_pct, 100, COLORS["orange"])}
+          {horizontal_metric("Gutenberg open stale share", gut_stale_pct, 100, COLORS["orange"])}
+          {horizontal_metric("Core tickets ever reopened", reopened_pct, 100, COLORS["red"])}
+        </div>
+        <div>
+          {horizontal_count_metric("Latest Core reopen events", num(latest_core_reopen.get("reopened_events")), max([num(row.get("reopened_events")) for row in core_reopen_q] or [1]), COLORS["red"], "")}
+          {horizontal_metric("Latest Core reopens per 100 closes", float(latest_core_reopen.get("reopened_events_per_100_closed") or 0), 100, COLORS["red"])}
+          <p class="stat-note">Gutenberg reopen rate needs GitHub timeline events, which are not in the current export.</p>
+        </div>
       </div>
     </div>
     {svg_line_chart("Large ticket categories by quarter", "Combined Core plus Gutenberg classified issue/ticket categories since 2021.", cat_series)}
@@ -1657,6 +1705,7 @@ def main():
     ROOT.mkdir(parents=True, exist_ok=True)
     data = load_data()
     fetched = {}
+    fetched.update(build_derived_metrics(data))
     fetched["market_share"] = []
     fetched["market_share"].extend(parse_w3techs_history(W3TECHS_USAGE_URL, "all_sites_usage", args.skip_network))
     fetched["market_share"].extend(parse_w3techs_history(W3TECHS_MARKET_SHARE_URL, "cms_market_share", args.skip_network))

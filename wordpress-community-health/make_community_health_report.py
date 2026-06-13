@@ -10,6 +10,7 @@ import os
 import re
 import sqlite3
 import statistics
+import subprocess
 import sys
 import time
 import urllib.error
@@ -54,6 +55,8 @@ WORDCAMP_API = "https://central.wordcamp.org/wp-json/wp/v2/wordcamps"
 MAKE_CORE_API = "https://make.wordpress.org/core/wp-json/wp/v2/posts"
 RELEASE_ARCHIVE_URL = "https://wordpress.org/download/releases/"
 CREDITS_API = "https://api.wordpress.org/core/credits/1.1/"
+GITHUB_COMPARE_API = "https://api.github.com/repos/WordPress/wordpress-develop/compare"
+CACHE = ROOT / "cache"
 
 COLORS = {
     "core": "#2563eb",
@@ -239,6 +242,63 @@ def fetch_json(url):
     req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "application/json"})
     with urllib.request.urlopen(req, timeout=60) as resp:
         return json.loads(resp.read().decode("utf-8")), dict(resp.headers.items())
+
+
+def credential_from_git():
+    env = os.environ.copy()
+    env["GIT_TERMINAL_PROMPT"] = "0"
+    proc = subprocess.run(
+        ["git", "credential", "fill"],
+        input="protocol=https\nhost=github.com\n\n",
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        env=env,
+        check=False,
+    )
+    for line in proc.stdout.splitlines():
+        if line.startswith("password="):
+            return line.split("=", 1)[1]
+    return None
+
+
+def next_link(headers):
+    link = headers.get("Link") or headers.get("link") or ""
+    for part in link.split(","):
+        part = part.strip()
+        if 'rel="next"' in part and part.startswith("<") and ">" in part:
+            return part[1 : part.index(">")]
+    return None
+
+
+def github_json(url, token=None, use_cache=True):
+    CACHE.mkdir(parents=True, exist_ok=True)
+    cache_key = hashlib.sha256(url.encode("utf-8")).hexdigest()
+    cache_path = CACHE / f"github-{cache_key}.json"
+    if use_cache and cache_path.exists():
+        cached = json.loads(cache_path.read_text(encoding="utf-8"))
+        if isinstance(cached, dict) and "data" in cached and "headers" in cached:
+            headers = dict(cached["headers"])
+            headers["X-Cache"] = "HIT"
+            return cached["data"], headers
+        return cached, {"X-Cache": "HIT"}
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "User-Agent": UA,
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    req = urllib.request.Request(url, headers=headers)
+    with urllib.request.urlopen(req, timeout=60) as resp:
+        data = json.loads(resp.read().decode("utf-8"))
+        response_headers = dict(resp.headers.items())
+    if use_cache:
+        cache_path.write_text(
+            json.dumps({"data": data, "headers": response_headers}, ensure_ascii=True, sort_keys=True),
+            encoding="utf-8",
+        )
+    return data, response_headers
 
 
 def date_from_w3_header(cell):
@@ -490,6 +550,114 @@ def fetch_core_release_credits(skip_network=False):
     return releases, credit_rows
 
 
+def version_tuple(version):
+    return tuple(int(part) for part in str(version).split("."))
+
+
+def release_tag(version):
+    return f"{version}.0"
+
+
+def commit_person(commit, role):
+    user = commit.get(role) or {}
+    if user.get("login"):
+        return user["login"], user.get("html_url", "")
+    raw = (commit.get("commit") or {}).get(role) or {}
+    if raw.get("email"):
+        return raw["email"].lower(), ""
+    return raw.get("name") or "(unknown)", ""
+
+
+def fetch_compare_commits(base_tag, head_tag, token, skip_network=False):
+    if skip_network:
+        return []
+    url = f"{GITHUB_COMPARE_API}/{urllib.parse.quote(base_tag)}...{urllib.parse.quote(head_tag)}?per_page=100"
+    commits = []
+    while url:
+        try:
+            data, headers = github_json(url, token=token)
+        except urllib.error.HTTPError as exc:
+            if exc.code in (404, 422):
+                eprint(f"compare unavailable for {base_tag}...{head_tag}: HTTP {exc.code}")
+                return commits
+            raise
+        commits.extend(data.get("commits", []))
+        url = next_link(headers)
+        if url:
+            time.sleep(0.05)
+    unique = {}
+    for commit in commits:
+        sha = commit.get("sha")
+        if sha:
+            unique[sha] = commit
+    return list(unique.values())
+
+
+def fetch_core_release_committers(releases, skip_network=False):
+    if skip_network or not releases:
+        return [], []
+    token = credential_from_git()
+    sorted_releases = sorted(releases, key=lambda row: version_tuple(row["version"]))
+    release_by_version = {row["version"]: row for row in sorted_releases}
+    summary_rows = []
+    author_rows = []
+    for index, release in enumerate(sorted_releases):
+        version = release["version"]
+        if version_tuple(version) < (3, 2) or index == 0:
+            continue
+        previous = sorted_releases[index - 1]
+        base_tag = release_tag(previous["version"])
+        head_tag = release_tag(version)
+        commits = fetch_compare_commits(base_tag, head_tag, token, skip_network)
+        if not commits:
+            continue
+        committer_counts = Counter()
+        author_counts = Counter()
+        commit_dates = []
+        for commit in commits:
+            committer, committer_url = commit_person(commit, "committer")
+            author, _author_url = commit_person(commit, "author")
+            committer_counts[(committer, committer_url)] += 1
+            author_counts[author] += 1
+            raw_date = ((commit.get("commit") or {}).get("committer") or {}).get("date")
+            if raw_date:
+                commit_dates.append(raw_date)
+        total_commits = len(commits)
+        top_committer, top_count = committer_counts.most_common(1)[0]
+        summary_rows.append(
+            {
+                "version": version,
+                "previous_version": previous["version"],
+                "base_tag": base_tag,
+                "head_tag": head_tag,
+                "release_date": release_by_version[version]["release_date"],
+                "commit_count": total_commits,
+                "committer_count": len(committer_counts),
+                "author_count": len(author_counts),
+                "top_committer": top_committer[0],
+                "top_committer_url": top_committer[1],
+                "top_committer_commits": top_count,
+                "top_committer_share": round(top_count / total_commits * 100, 2),
+                "first_commit_at": min(commit_dates) if commit_dates else "",
+                "last_commit_at": max(commit_dates) if commit_dates else "",
+                "source_url": f"{GITHUB_COMPARE_API}/{base_tag}...{head_tag}",
+            }
+        )
+        for (committer, committer_url), count in committer_counts.items():
+            author_rows.append(
+                {
+                    "version": version,
+                    "release_date": release_by_version[version]["release_date"],
+                    "committer": committer,
+                    "committer_url": committer_url,
+                    "commit_count": count,
+                    "source_url": f"{GITHUB_COMPARE_API}/{base_tag}...{head_tag}",
+                }
+            )
+        eprint(f"committers {base_tag}...{head_tag}: {len(committer_counts)} committers, {total_commits} commits")
+    return summary_rows, author_rows
+
+
 def create_text_table(conn, name, rows):
     conn.execute(f"DROP TABLE IF EXISTS {name}")
     if not rows:
@@ -549,11 +717,19 @@ def build_database(data, fetched):
         ("gutenberg_first_response", "missing", "GitHub issue comments/timeline events", "Existing issue export has comment counts but not first comment timestamps."),
         ("gutenberg_reopened_rate", "missing", "GitHub timeline events", "Existing issue export has current state and close date, not reopen transitions."),
         ("core_first_response", "missing", "Trac comments/change history with comment bodies", "Existing Core event export covers status transitions, not first non-reporter response."),
-        ("core_committers_per_release", "missing", "WordPress git commit history mapped to releases", "Core credits are now included, but credited contributors are not the same as committers."),
         ("five_for_the_future", "missing", "Five for the Future public data export", "Needs a dedicated source pull."),
         ("support_forums", "missing", "WordPress.org support forum topic/resolution data", "Needs a dedicated source pull."),
         ("meetups", "missing", "Meetup or WordPress events source", "WordCamp data is included; broader Meetup chapter activity is not."),
     ]
+    if not fetched.get("core_release_committers"):
+        gaps.append(
+            (
+                "core_committers_per_release",
+                "missing",
+                "WordPress git commit history mapped to releases",
+                "Core credits are included, but credited contributors are not the same as committers.",
+            )
+        )
     conn.executemany("INSERT INTO source_gaps VALUES (?,?,?,?)", gaps)
     conn.commit()
     conn.close()
@@ -836,9 +1012,13 @@ def source_status_rows(fetched):
         ("WordCamp Central", "covered" if fetched.get("wordcamps") else "missing", "Historical WordCamp event records"),
         ("Make/Core posts", "covered" if fetched.get("make_core_posts") else "missing", "Post counts and author IDs"),
         ("Core release credits", "covered" if fetched.get("core_release_credits") else "missing", "WordPress.org credits API props by major release"),
+        ("Core committers per release", "covered" if fetched.get("core_release_committers") else "missing", "GitHub tag-to-tag compare ranges by major release"),
         ("Newly created sites", "missing", "Needs BuiltWith cohort/trend data or HTTP Archive cohort queries"),
         ("First response time", "missing", "Needs comments/timeline data for Core and Gutenberg"),
-        ("Core committers per release", "missing", "Needs git commit history mapped to release windows"),
+        ("Gutenberg reopen rate", "missing", "Needs GitHub issue timeline events"),
+        ("Five for the Future", "missing", "Needs a public data export or dedicated scrape"),
+        ("Support forums", "missing", "Needs WordPress.org forum topic and resolution data"),
+        ("Meetup activity", "missing", "WordCamp records are covered; broader Meetup chapter activity still needs a source"),
     ]
     return rows
 
@@ -857,6 +1037,7 @@ def build_report(data, fetched):
     wordcamps = fetched.get("wordcamps", [])
     make_posts = fetched.get("make_core_posts", [])
     release_credits = fetched.get("core_release_credits", [])
+    release_committers = fetched.get("core_release_committers", [])
     directory = {row["metric"]: row for row in fetched.get("directory_snapshots", [])}
 
     core_latest = current_latest(core_q)
@@ -901,6 +1082,8 @@ def build_report(data, fetched):
     release_credit_points = [(row["release_date"], num(row.get("props_count"))) for row in release_credits]
     release_noteworthy_points = [(row["release_date"], num(row.get("noteworthy_count"))) for row in release_credits]
     latest_release_credit = max(release_credits, key=lambda row: row.get("release_date", "")) if release_credits else {}
+    release_committer_points = [(row["release_date"], num(row.get("committer_count"))) for row in release_committers]
+    latest_release_committer = max(release_committers, key=lambda row: row.get("release_date", "")) if release_committers else {}
 
     classification_by_source_cat = defaultdict(int)
     for row in classifications:
@@ -1107,6 +1290,17 @@ p {{ margin:0 0 12px; }}
         {stat_card("Props on latest release", compact(num(latest_release_credit.get("props_count"))), "WordPress.org credits API", "good")}
       </div>
     </div>
+    <div class="grid-2">
+      {svg_line_chart("Core committers by release", "Unique git committers in wordpress-develop tag-to-tag release ranges.", [
+          {"label": "Committers", "color": COLORS["prs"], "points": release_committer_points},
+      ])}
+      <div class="card">
+        <h3>Commit windows</h3>
+        <p>This uses exact GitHub compare ranges between release tags, so it is narrower than credits and closer to commit access/activity.</p>
+        {stat_card("Latest release committers", compact(num(latest_release_committer.get("committer_count"))), latest_release_committer.get("version", ""), "good")}
+        {stat_card("Latest release commits", compact(num(latest_release_committer.get("commit_count"))), f"{latest_release_committer.get('base_tag', '')} to {latest_release_committer.get('head_tag', '')}", "soft")}
+      </div>
+    </div>
   </section>
 
   <section id="load" class="section">
@@ -1160,7 +1354,7 @@ p {{ margin:0 0 12px; }}
       {stat_card("Plugin directory", compact(plugin_count), "current WordPress.org API result", "good")}
       {stat_card("Theme directory", compact(theme_count), "current WordPress.org API result", "good")}
       {stat_card("WordCamp records", compact(len(wordcamps)), "WordCamp Central records fetched", "good")}
-      {stat_card("Release credits", compact(len(release_credits)), "major releases with credits", "good")}
+      {stat_card("Release committers", compact(len(release_committers)), "major release windows", "good")}
     </div>
   </section>
 
@@ -1198,6 +1392,9 @@ def main():
     fetched["wordcamps"] = fetch_wordcamps(args.skip_network)
     fetched["make_core_posts"] = fetch_make_core_posts(args.skip_network)
     fetched["core_releases"], fetched["core_release_credits"] = fetch_core_release_credits(args.skip_network)
+    fetched["core_release_committers"], fetched["core_release_committer_counts"] = fetch_core_release_committers(
+        fetched["core_releases"], args.skip_network
+    )
 
     build_database(data, fetched)
     build_report(data, fetched)

@@ -421,6 +421,55 @@ p { margin:0 0 12px; }
     
       </div>
     </div>
+    <div class="grid-2">
+      <svg class="chart" viewBox="0 0 980 330" role="img" aria-label="Core committers by release">
+<text x="72" y="28" class="chart-title">Core committers by release</text>
+<text x="72" y="50" class="chart-note">Unique git committers in wordpress-develop tag-to-tag release ranges.</text>
+<line x1="72" y1="272.0" x2="938" y2="272.0" class="grid" />
+<text x="60" y="276.0" class="axis" text-anchor="end">0</text>
+<line x1="72" y1="230.8" x2="938" y2="230.8" class="grid" />
+<text x="60" y="234.8" class="axis" text-anchor="end">10</text>
+<line x1="72" y1="189.6" x2="938" y2="189.6" class="grid" />
+<text x="60" y="193.6" class="axis" text-anchor="end">20</text>
+<line x1="72" y1="148.4" x2="938" y2="148.4" class="grid" />
+<text x="60" y="152.4" class="axis" text-anchor="end">30</text>
+<line x1="72" y1="107.2" x2="938" y2="107.2" class="grid" />
+<text x="60" y="111.2" class="axis" text-anchor="end">40</text>
+<line x1="72" y1="66.0" x2="938" y2="66.0" class="grid" />
+<text x="60" y="70.0" class="axis" text-anchor="end">50</text>
+<text x="72.0" y="308" class="axis" text-anchor="middle">2011-Q3</text>
+<text x="256.5" y="308" class="axis" text-anchor="middle">2014-Q3</text>
+<text x="387.9" y="308" class="axis" text-anchor="middle">2016-Q4</text>
+<text x="602.1" y="308" class="axis" text-anchor="middle">2020-Q3</text>
+<text x="755.0" y="308" class="axis" text-anchor="middle">2023-Q1</text>
+<text x="938.0" y="308" class="axis" text-anchor="middle">2026-Q2</text>
+<line x1="72" y1="272" x2="938" y2="272" class="axis-line" />
+<line x1="72" y1="66" x2="72" y2="272" class="axis-line" />
+<circle cx="72" cy="322" r="5" fill="#7c3aed" />
+<text x="82" y="326" class="legend">Committers</text>
+<path d="M72.0,218.4 L97.7,226.7 L127.0,218.4 L155.8,222.6 L193.0,206.1 L206.3,197.8 L214.2,206.1 L234.1,202.0 L256.5,202.0 L273.3,177.2 L293.4,173.1 L312.0,160.8 L329.9,164.9 L349.9,99.0 L370.0,148.4 L387.9,107.2 L417.2,78.4 L442.8,119.6 L504.2,131.9 L516.5,94.8 L528.4,160.8 L558.5,140.2 L580.9,173.1 L602.1,156.6 L621.0,164.9 L635.5,156.6 L656.7,173.1 L686.8,115.4 L705.8,181.4 L731.6,140.2 L755.0,136.0 L776.1,131.9 L790.6,127.8 L814.0,140.2 L830.7,127.8 L849.7,94.8 L874.3,136.0 L911.1,111.3 L938.0,131.9" fill="none" stroke="#7c3aed" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="938.0" cy="131.9" r="4" fill="#7c3aed" />
+<text x="868.0" y="123.9" class="end-label" fill="#7c3aed">34</text>
+</svg>
+      <div class="card">
+        <h3>Commit windows</h3>
+        <p>This uses exact GitHub compare ranges between release tags, so it is narrower than credits and closer to commit access/activity.</p>
+        
+    <div class="stat good">
+      <div class="stat-label">Latest release committers</div>
+      <div class="stat-value">34</div>
+      <div class="stat-note">7.0</div>
+    </div>
+    
+        
+    <div class="stat soft">
+      <div class="stat-label">Latest release commits</div>
+      <div class="stat-value">811</div>
+      <div class="stat-note">6.9.0 to 7.0.0</div>
+    </div>
+    
+      </div>
+    </div>
   </section>
 
   <section id="load" class="section">
@@ -782,9 +831,9 @@ p { margin:0 0 12px; }
     
       
     <div class="stat good">
-      <div class="stat-label">Release credits</div>
+      <div class="stat-label">Release committers</div>
       <div class="stat-value">39</div>
-      <div class="stat-note">major releases with credits</div>
+      <div class="stat-note">major release windows</div>
     </div>
     
     </div>
@@ -794,12 +843,12 @@ p { margin:0 0 12px; }
     <h2>Source Coverage</h2>
     <p class="callout">The SQLite database stores imported source tables, fetched ecosystem/adoption records, file hashes, and explicit source gaps. Download: <a href="community_health.sqlite.gz">community_health.sqlite.gz</a>.</p>
     <div class="status-grid">
-      <div class="status covered"><span class="pill">covered</span><b>Core Trac tickets</b><span>64k tickets, status history, types, components, reporters</span></div><div class="status covered"><span class="pill">covered</span><b>Gutenberg GitHub issues</b><span>32k issues with labels, state, authors, close dates</span></div><div class="status covered"><span class="pill">covered</span><b>wordpress-develop PRs</b><span>12k PRs with authors, dates, Trac links</span></div><div class="status covered"><span class="pill">covered</span><b>Ticket category classification</b><span>Bug, feature request, enhancement, task, and other categories</span></div><div class="status covered"><span class="pill">covered</span><b>W3Techs adoption</b><span>All-site usage and CMS market-share yearly trends</span></div><div class="status covered"><span class="pill">covered</span><b>HTTP Archive/Web Almanac</b><span>2025 CMS adoption snapshot and high-traffic context</span></div><div class="status covered"><span class="pill">covered</span><b>WordPress.org plugin/theme directories</b><span>Current plugin and theme counts</span></div><div class="status covered"><span class="pill">covered</span><b>WordCamp Central</b><span>Historical WordCamp event records</span></div><div class="status covered"><span class="pill">covered</span><b>Make/Core posts</b><span>Post counts and author IDs</span></div><div class="status covered"><span class="pill">covered</span><b>Core release credits</b><span>WordPress.org credits API props by major release</span></div><div class="status missing"><span class="pill">missing</span><b>Newly created sites</b><span>Needs BuiltWith cohort/trend data or HTTP Archive cohort queries</span></div><div class="status missing"><span class="pill">missing</span><b>First response time</b><span>Needs comments/timeline data for Core and Gutenberg</span></div><div class="status missing"><span class="pill">missing</span><b>Core committers per release</b><span>Needs git commit history mapped to release windows</span></div>
+      <div class="status covered"><span class="pill">covered</span><b>Core Trac tickets</b><span>64k tickets, status history, types, components, reporters</span></div><div class="status covered"><span class="pill">covered</span><b>Gutenberg GitHub issues</b><span>32k issues with labels, state, authors, close dates</span></div><div class="status covered"><span class="pill">covered</span><b>wordpress-develop PRs</b><span>12k PRs with authors, dates, Trac links</span></div><div class="status covered"><span class="pill">covered</span><b>Ticket category classification</b><span>Bug, feature request, enhancement, task, and other categories</span></div><div class="status covered"><span class="pill">covered</span><b>W3Techs adoption</b><span>All-site usage and CMS market-share yearly trends</span></div><div class="status covered"><span class="pill">covered</span><b>HTTP Archive/Web Almanac</b><span>2025 CMS adoption snapshot and high-traffic context</span></div><div class="status covered"><span class="pill">covered</span><b>WordPress.org plugin/theme directories</b><span>Current plugin and theme counts</span></div><div class="status covered"><span class="pill">covered</span><b>WordCamp Central</b><span>Historical WordCamp event records</span></div><div class="status covered"><span class="pill">covered</span><b>Make/Core posts</b><span>Post counts and author IDs</span></div><div class="status covered"><span class="pill">covered</span><b>Core release credits</b><span>WordPress.org credits API props by major release</span></div><div class="status covered"><span class="pill">covered</span><b>Core committers per release</b><span>GitHub tag-to-tag compare ranges by major release</span></div><div class="status missing"><span class="pill">missing</span><b>Newly created sites</b><span>Needs BuiltWith cohort/trend data or HTTP Archive cohort queries</span></div><div class="status missing"><span class="pill">missing</span><b>First response time</b><span>Needs comments/timeline data for Core and Gutenberg</span></div><div class="status missing"><span class="pill">missing</span><b>Gutenberg reopen rate</b><span>Needs GitHub issue timeline events</span></div><div class="status missing"><span class="pill">missing</span><b>Five for the Future</b><span>Needs a public data export or dedicated scrape</span></div><div class="status missing"><span class="pill">missing</span><b>Support forums</b><span>Needs WordPress.org forum topic and resolution data</span></div><div class="status missing"><span class="pill">missing</span><b>Meetup activity</b><span>WordCamp records are covered; broader Meetup chapter activity still needs a source</span></div>
     </div>
   </section>
 
   <section class="footer">
-    <p>Generated 2026-06-13 20:07 UTC from local Core/Gutenberg exports and public sources.</p>
+    <p>Generated 2026-06-13 20:26 UTC from local Core/Gutenberg exports and public sources.</p>
     <p>Sources: <a href="https://w3techs.com/technologies/history_overview/content_management/all/y">W3Techs usage trend</a>, <a href="https://w3techs.com/technologies/history_overview/content_management/ms/y">W3Techs CMS market-share trend</a>, <a href="https://almanac.httparchive.org/en/2025/cms">HTTP Archive Web Almanac CMS 2025</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="https://make.wordpress.org/core/wp-json/wp/v2/posts">Make/Core REST API</a>, <a href="https://wordpress.org/download/releases/">WordPress release archive</a>, and <a href="https://api.wordpress.org/core/credits/1.1/">Core credits API</a>.</p>
   </section>
 </main>

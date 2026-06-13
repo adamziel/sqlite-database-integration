@@ -48,6 +48,9 @@ SOURCE_FILES = {
     "classification_trend": CLASS_ROOT / "classification_trend_quarterly.csv",
     "classification_summary_core": CLASS_ROOT / "classification_summary_core.csv",
     "classification_summary_gutenberg": CLASS_ROOT / "classification_summary_gutenberg.csv",
+    "support_forum_topics": ROOT / "support_forum_topics.jsonl",
+    "support_forum_view_snapshots": ROOT / "support_forum_view_snapshots.csv",
+    "support_forum_forum_summary": ROOT / "support_forum_forum_summary.csv",
 }
 
 W3TECHS_USAGE_URL = "https://w3techs.com/technologies/history_overview/content_management/all/y"
@@ -875,8 +878,25 @@ def build_database(data, fetched):
     )
     gaps = [
         ("new_site_share", "missing", "BuiltWith paid trends or HTTP Archive cohort queries", "Current report uses all-site and CMS-share trends, not newly created site cohorts."),
-        ("support_forums", "missing", "WordPress.org support forum topic/resolution data", "Needs a dedicated source pull."),
     ]
+    if data.get("support_forum_topics"):
+        gaps.append(
+            (
+                "support_forum_history",
+                "partial",
+                "Historical WordPress.org support forum topic/reply export",
+                "Current report includes public support queue snapshots, not long-term forum activity trends.",
+            )
+        )
+    else:
+        gaps.append(
+            (
+                "support_forums",
+                "missing",
+                "WordPress.org support forum topic/resolution data",
+                "Needs a dedicated source pull.",
+            )
+        )
     if not data.get("core_response_quarterly"):
         gaps.append(
             (
@@ -1090,7 +1110,7 @@ def stat_card(label, value, note="", tone="neutral"):
       <div class="stat-value">{html.escape(str(value))}</div>
       <div class="stat-note">{html.escape(note)}</div>
     </div>
-    """
+    """.strip()
 
 
 def signal_card(title, verdict, detail, tone="neutral"):
@@ -1100,7 +1120,7 @@ def signal_card(title, verdict, detail, tone="neutral"):
       <strong>{html.escape(verdict)}</strong>
       <p>{html.escape(detail)}</p>
     </article>
-    """
+    """.strip()
 
 
 def horizontal_metric(label, value, max_value, color):
@@ -1278,7 +1298,11 @@ def source_status_rows(fetched):
         ("Core reopen rate", "covered" if fetched.get("core_reopen_quarterly") else "missing", "Quarterly Core Trac reopened status-change events"),
         ("Five for the Future", "covered" if fetched.get("fttf_pledges") else "missing", "Current pledge organizations, hours, and listed profiles"),
         ("Newly created sites", "missing", "Needs BuiltWith cohort/trend data or HTTP Archive cohort queries"),
-        ("Support forums", "missing", "Needs WordPress.org forum topic and resolution data"),
+        (
+            "Support forums",
+            "partial" if SOURCE_FILES["support_forum_topics"].exists() else "missing",
+            "Current WordPress.org support queue snapshot; historical trend still needs a fuller export",
+        ),
     ]
     return rows
 
@@ -1306,6 +1330,9 @@ def build_report(data, fetched):
     fttf_snapshots = fetched.get("fttf_snapshots", [])
     fttf_pledges = fetched.get("fttf_pledges", [])
     directory = {row["metric"]: row for row in fetched.get("directory_snapshots", [])}
+    support_topics = data["support_forum_topics"]
+    support_views = data["support_forum_view_snapshots"]
+    support_forums = data["support_forum_forum_summary"]
 
     core_latest = current_latest(core_q)
     gut_latest = current_latest(gut_q)
@@ -1375,6 +1402,17 @@ def build_report(data, fetched):
     event_month_points = count_by_month(wp_events, "event_date")
     meetup_month_points = count_by_month(wp_events, "event_date", "meetup")
     wordcamp_month_points = count_by_month(wp_events, "event_date", "wordcamp")
+    support_view_by_name = {row.get("view"): row for row in support_views}
+    support_topic_count = len(support_topics)
+    support_resolved_count = sum(1 for row in support_topics if row.get("is_resolved") == "1")
+    support_unresolved_count = sum(1 for row in support_topics if row.get("is_unresolved") == "1")
+    support_no_reply_count = sum(1 for row in support_topics if row.get("has_no_replies") == "1")
+    support_recent_count = num(support_view_by_name.get("all_topics", {}).get("unique_topics"))
+    support_oldest = min([row.get("last_activity_at") for row in support_topics if row.get("last_activity_at")] or [""])
+    support_latest = max([row.get("last_activity_at") for row in support_topics if row.get("last_activity_at")] or [""])
+    support_queue_max = max(support_resolved_count, support_unresolved_count, support_no_reply_count, support_recent_count, 1)
+    top_support_forums = sorted(support_forums, key=lambda row: num(row.get("topics")), reverse=True)[:8]
+    max_support_forum_topics = max([num(row.get("topics")) for row in top_support_forums] or [1])
 
     classification_by_source_cat = defaultdict(int)
     for row in classifications:
@@ -1494,6 +1532,7 @@ p {{ margin:0 0 12px; }}
 .status span {{ color:var(--muted); font-size:13px; }}
 .pill {{ display:inline-block; border-radius:999px; padding:2px 8px; font-size:12px; font-weight:800; margin-bottom:7px; }}
 .covered .pill {{ background:#dcfce7; color:#166534; }}
+.partial .pill {{ background:#fef3c7; color:#92400e; }}
 .missing .pill {{ background:#fee2e2; color:#991b1b; }}
 .footer {{ color:var(--muted); font-size:13px; margin-top:32px; border-top:1px solid var(--line); padding-top:18px; }}
 @media (max-width:900px) {{
@@ -1599,6 +1638,27 @@ p {{ margin:0 0 12px; }}
         {horizontal_count_metric("WordCamps", num(wp_event_snapshot.get("wordcamp_count")), max(1, num(wp_event_snapshot.get("event_count"))), COLORS["community"], "")}
         {horizontal_count_metric("In-person or location-listed", num(wp_event_snapshot.get("in_person_count")), max(1, num(wp_event_snapshot.get("event_count"))), COLORS["core"], "")}
         {horizontal_count_metric("Online", num(wp_event_snapshot.get("online_count")), max(1, num(wp_event_snapshot.get("event_count"))), COLORS["prs"], "")}
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Support forum queue snapshot</h3>
+        <p>Current public WordPress.org support views. This is a live queue snapshot, not a historical forum trend.</p>
+        <div class="stats">
+          {stat_card("Queue topics", compact(support_topic_count), f"{support_oldest[:10]} to {support_latest[:10]}", "soft")}
+          {stat_card("Unresolved", compact(support_unresolved_count), "current unresolved view", "watch")}
+          {stat_card("Resolved", compact(support_resolved_count), "current resolved view", "good")}
+          {stat_card("No replies", compact(support_no_reply_count), "deduplicated zero-reply topics", "watch")}
+        </div>
+        {horizontal_count_metric("Recent topics view", support_recent_count, support_queue_max, COLORS["core"], "")}
+        {horizontal_count_metric("Unresolved queue", support_unresolved_count, support_queue_max, COLORS["orange"], "")}
+        {horizontal_count_metric("Resolved queue", support_resolved_count, support_queue_max, COLORS["green"], "")}
+        {horizontal_count_metric("No-reply topics", support_no_reply_count, support_queue_max, COLORS["red"], "")}
+      </div>
+      <div class="card">
+        <h3>Where support load sits</h3>
+        <p>Deduplicated topics across the current public queue views, grouped by forum.</p>
+        {''.join(horizontal_count_metric(str(row.get("forum_name", "")), num(row.get("topics")), max_support_forum_topics, COLORS["community"], "") for row in top_support_forums)}
       </div>
     </div>
     <div class="grid-2">
@@ -1736,7 +1796,7 @@ p {{ margin:0 0 12px; }}
 
   <section class="footer">
     <p>Generated {dt.datetime.now(dt.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')} from local Core/Gutenberg exports and public sources.</p>
-    <p>Sources: <a href="{W3TECHS_USAGE_URL}">W3Techs usage trend</a>, <a href="{W3TECHS_MARKET_SHARE_URL}">W3Techs CMS market-share trend</a>, <a href="{HTTP_ARCHIVE_CMS_URL}">HTTP Archive Web Almanac CMS 2025</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="{EVENTS_WORDPRESS_URL}">WordPress Events</a>, <a href="https://make.wordpress.org/core/wp-json/wp/v2/posts">Make/Core REST API</a>, <a href="https://github.com/WordPress/gutenberg/issues">Gutenberg GitHub issues</a>, <a href="{FTTF_PLEDGES_URL}">Five for the Future pledges</a>, <a href="{RELEASE_ARCHIVE_URL}">WordPress release archive</a>, and <a href="{CREDITS_API}">Core credits API</a>.</p>
+    <p>Sources: <a href="{W3TECHS_USAGE_URL}">W3Techs usage trend</a>, <a href="{W3TECHS_MARKET_SHARE_URL}">W3Techs CMS market-share trend</a>, <a href="{HTTP_ARCHIVE_CMS_URL}">HTTP Archive Web Almanac CMS 2025</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="{EVENTS_WORDPRESS_URL}">WordPress Events</a>, <a href="https://make.wordpress.org/core/wp-json/wp/v2/posts">Make/Core REST API</a>, <a href="https://wordpress.org/support/view/all-topics/">WordPress.org support forums</a>, <a href="https://github.com/WordPress/gutenberg/issues">Gutenberg GitHub issues</a>, <a href="{FTTF_PLEDGES_URL}">Five for the Future pledges</a>, <a href="{RELEASE_ARCHIVE_URL}">WordPress release archive</a>, and <a href="{CREDITS_API}">Core credits API</a>.</p>
   </section>
 </main>
 </body>

@@ -69,6 +69,7 @@ p { margin:0 0 12px; }
 .status span { color:var(--muted); font-size:13px; }
 .pill { display:inline-block; border-radius:999px; padding:2px 8px; font-size:12px; font-weight:800; margin-bottom:7px; }
 .covered .pill { background:#dcfce7; color:#166534; }
+.partial .pill { background:#fef3c7; color:#92400e; }
 .missing .pill { background:#fee2e2; color:#991b1b; }
 .footer { color:var(--muted); font-size:13px; margin-top:32px; border-top:1px solid var(--line); padding-top:18px; }
 @media (max-width:900px) {
@@ -92,65 +93,49 @@ p { margin:0 0 12px; }
   </nav>
 
   <section class="answer-grid">
-    
     <article class="signal watch">
       <h3>Adoption</h3>
       <strong>Dominant, softer recently</strong>
       <p>W3Techs has WordPress at 41.5% of all sites and 59.3% of CMS sites, down 2.1 and 2.7 points since Jan 2025.</p>
     </article>
-    
-    
     <article class="signal slower">
       <h3>Participation</h3>
       <strong>Fewer new reporters</strong>
       <p>Core first-time reporters averaged 226.4 per quarter in 2021-2023 and 149.8 since 2024. Gutenberg moved from 114.5 to 79.6.</p>
     </article>
-    
-    
     <article class="signal soft">
       <h3>Project load</h3>
       <strong>Closer to balanced</strong>
       <p>Since 2024, Core closures slightly exceed new tickets on average. Gutenberg is close to flat, with the latest sampled quarter closing 582 against 426 new issues.</p>
     </article>
-    
-    
     <article class="signal good">
       <h3>Code review</h3>
       <strong>PR flow is higher</strong>
       <p>wordpress-develop PR creation averaged 413.8 per quarter in 2021-2023 and 632.5 since 2024.</p>
     </article>
-    
   </section>
 
   <section class="stats">
-    
     <div class="stat soft">
       <div class="stat-label">Core open tickets</div>
       <div class="stat-value">8,223</div>
       <div class="stat-note">latest quarter 2026-Q2</div>
     </div>
-    
-    
     <div class="stat soft">
       <div class="stat-label">Gutenberg open issues</div>
       <div class="stat-value">5,570</div>
       <div class="stat-note">latest quarter 2026-Q2</div>
     </div>
-    
-    
     <div class="stat watch">
       <div class="stat-label">Open Core stale share</div>
       <div class="stat-value">75.0%</div>
       <div class="stat-note">6,166 of 8,223 open tickets</div>
     </div>
-    
-    
     <div class="stat watch">
       <div class="stat-label">Open Gutenberg stale share</div>
       <div class="stat-value">64.4%</div>
       <div class="stat-note">3,587 of 5,570 open issues</div>
     </div>
-    
   </section>
 
   <section id="participation" class="section">
@@ -405,34 +390,26 @@ p { margin:0 0 12px; }
         <h3>Upcoming event snapshot</h3>
         <p>Current events.wordpress.org map payload. This captures scheduled upcoming activity, not historical attendance.</p>
         <div class="stats">
-          
-    <div class="stat good">
+          <div class="stat good">
       <div class="stat-label">Upcoming events</div>
       <div class="stat-value">298</div>
       <div class="stat-note">2026-06-13 to 2027-05-26</div>
     </div>
-    
-          
-    <div class="stat good">
+          <div class="stat good">
       <div class="stat-label">Meetups</div>
       <div class="stat-value">278</div>
       <div class="stat-note">scheduled meetup events</div>
     </div>
-    
-          
-    <div class="stat good">
+          <div class="stat good">
       <div class="stat-label">Groups</div>
       <div class="stat-value">155</div>
       <div class="stat-note">unique meetup groups</div>
     </div>
-    
-          
-    <div class="stat soft">
+          <div class="stat soft">
       <div class="stat-label">Online</div>
       <div class="stat-value">77</div>
       <div class="stat-note">online events</div>
     </div>
-    
         </div>
       </div>
     </div>
@@ -488,6 +465,79 @@ p { margin:0 0 12px; }
       </div>
     </div>
     <div class="grid-2">
+      <div class="card">
+        <h3>Support forum queue snapshot</h3>
+        <p>Current public WordPress.org support views. This is a live queue snapshot, not a historical forum trend.</p>
+        <div class="stats">
+          <div class="stat soft">
+      <div class="stat-label">Queue topics</div>
+      <div class="stat-value">1,315</div>
+      <div class="stat-note">2025-12-13 to 2026-06-13</div>
+    </div>
+          <div class="stat watch">
+      <div class="stat-label">Unresolved</div>
+      <div class="stat-value">963</div>
+      <div class="stat-note">current unresolved view</div>
+    </div>
+          <div class="stat good">
+      <div class="stat-label">Resolved</div>
+      <div class="stat-value">340</div>
+      <div class="stat-note">current resolved view</div>
+    </div>
+          <div class="stat watch">
+      <div class="stat-label">No replies</div>
+      <div class="stat-value">11</div>
+      <div class="stat-note">deduplicated zero-reply topics</div>
+    </div>
+        </div>
+        <div class="hmetric">
+      <div class="hmetric-top"><span>Recent topics view</span><strong>253</strong></div>
+      <div class="bar"><span style="width:26.3%;background:#2563eb"></span></div>
+    </div>
+        <div class="hmetric">
+      <div class="hmetric-top"><span>Unresolved queue</span><strong>963</strong></div>
+      <div class="bar"><span style="width:100.0%;background:#ea580c"></span></div>
+    </div>
+        <div class="hmetric">
+      <div class="hmetric-top"><span>Resolved queue</span><strong>340</strong></div>
+      <div class="bar"><span style="width:35.3%;background:#16a34a"></span></div>
+    </div>
+        <div class="hmetric">
+      <div class="hmetric-top"><span>No-reply topics</span><strong>11</strong></div>
+      <div class="bar"><span style="width:2.0%;background:#dc2626"></span></div>
+    </div>
+      </div>
+      <div class="card">
+        <h3>Where support load sits</h3>
+        <p>Deduplicated topics across the current public queue views, grouped by forum.</p>
+        <div class="hmetric">
+      <div class="hmetric-top"><span>Fixing WordPress</span><strong>1,204</strong></div>
+      <div class="bar"><span style="width:100.0%;background:#ea580c"></span></div>
+    </div><div class="hmetric">
+      <div class="hmetric-top"><span>Everything else WordPress</span><strong>31</strong></div>
+      <div class="bar"><span style="width:2.6%;background:#ea580c"></span></div>
+    </div><div class="hmetric">
+      <div class="hmetric-top"><span>Developing with WordPress</span><strong>21</strong></div>
+      <div class="bar"><span style="width:2.0%;background:#ea580c"></span></div>
+    </div><div class="hmetric">
+      <div class="hmetric-top"><span>Requests and Feedback</span><strong>19</strong></div>
+      <div class="bar"><span style="width:2.0%;background:#ea580c"></span></div>
+    </div><div class="hmetric">
+      <div class="hmetric-top"><span>Alpha/Beta/RC</span><strong>9</strong></div>
+      <div class="bar"><span style="width:2.0%;background:#ea580c"></span></div>
+    </div><div class="hmetric">
+      <div class="hmetric-top"><span>Networking WordPress</span><strong>8</strong></div>
+      <div class="bar"><span style="width:2.0%;background:#ea580c"></span></div>
+    </div><div class="hmetric">
+      <div class="hmetric-top"><span>WordPress Mobile App</span><strong>7</strong></div>
+      <div class="bar"><span style="width:2.0%;background:#ea580c"></span></div>
+    </div><div class="hmetric">
+      <div class="hmetric-top"><span>Installing WordPress</span><strong>6</strong></div>
+      <div class="bar"><span style="width:2.0%;background:#ea580c"></span></div>
+    </div>
+      </div>
+    </div>
+    <div class="grid-2">
       <svg class="chart" viewBox="0 0 980 330" role="img" aria-label="Core credited contributors by release">
 <text x="72" y="28" class="chart-title">Core credited contributors by release</text>
 <text x="72" y="50" class="chart-note">WordPress.org credits API props count by major release. This is credited contributors, not unique committers.</text>
@@ -525,20 +575,16 @@ p { margin:0 0 12px; }
       <div class="card">
         <h3>Release credits</h3>
         <p>Credits are a broader community signal than commit access. They include people credited in release props, including non-committers.</p>
-        
-    <div class="stat soft">
+        <div class="stat soft">
       <div class="stat-label">Latest credited release</div>
       <div class="stat-value">7.0</div>
       <div class="stat-note">2026-05-20</div>
     </div>
-    
-        
-    <div class="stat good">
+        <div class="stat good">
       <div class="stat-label">Props on latest release</div>
       <div class="stat-value">756</div>
       <div class="stat-note">WordPress.org credits API</div>
     </div>
-    
       </div>
     </div>
     <div class="grid-2">
@@ -574,20 +620,16 @@ p { margin:0 0 12px; }
       <div class="card">
         <h3>Commit windows</h3>
         <p>This uses exact GitHub compare ranges between release tags, so it is narrower than credits and closer to commit access/activity.</p>
-        
-    <div class="stat good">
+        <div class="stat good">
       <div class="stat-label">Latest release committers</div>
       <div class="stat-value">34</div>
       <div class="stat-note">7.0</div>
     </div>
-    
-        
-    <div class="stat soft">
+        <div class="stat soft">
       <div class="stat-label">Latest release commits</div>
       <div class="stat-value">811</div>
       <div class="stat-note">6.9.0 to 7.0.0</div>
     </div>
-    
       </div>
     </div>
     <div class="grid-2">
@@ -595,34 +637,26 @@ p { margin:0 0 12px; }
         <h3>Five for the Future pledge snapshot</h3>
         <p>Current pledge listing from WordPress.org. This is a present-day ecosystem signal, not a historical trend.</p>
         <div class="stats">
-          
-    <div class="stat good">
+          <div class="stat good">
       <div class="stat-label">Pledges</div>
       <div class="stat-value">280</div>
       <div class="stat-note">organizations fetched</div>
     </div>
-    
-          
-    <div class="stat good">
+          <div class="stat good">
       <div class="stat-label">Pledged hours</div>
       <div class="stat-value">7,327</div>
       <div class="stat-note">hours per week</div>
     </div>
-    
-          
-    <div class="stat good">
+          <div class="stat good">
       <div class="stat-label">Listed profiles</div>
       <div class="stat-value">949</div>
       <div class="stat-note">unique contributor profiles</div>
     </div>
-    
-          
-    <div class="stat soft">
+          <div class="stat soft">
       <div class="stat-label">Pages fetched</div>
       <div class="stat-value">10</div>
       <div class="stat-note">pledge directory pages</div>
     </div>
-    
         </div>
       </div>
       <div class="card">
@@ -985,34 +1019,26 @@ p { margin:0 0 12px; }
     <h2>Market Position</h2>
     <p class="callout">The market signal is: WordPress is still far ahead, but its share has flattened and recently declined while hosted builders gained small, distributed share. This does not measure newly created sites yet.</p>
     <div class="stats">
-      
-    <div class="stat soft">
+      <div class="stat soft">
       <div class="stat-label">W3Techs all-site share</div>
       <div class="stat-value">41.5%</div>
       <div class="stat-note">2026-06-13</div>
     </div>
-    
-      
-    <div class="stat soft">
+      <div class="stat soft">
       <div class="stat-label">W3Techs CMS share</div>
       <div class="stat-value">59.3%</div>
       <div class="stat-note">2026-06-13</div>
     </div>
-    
-      
-    <div class="stat soft">
+      <div class="stat soft">
       <div class="stat-label">HTTP Archive mobile CMS share</div>
       <div class="stat-value">64.3%</div>
       <div class="stat-note">WordPress in 2025 Web Almanac</div>
     </div>
-    
-      
-    <div class="stat soft">
+      <div class="stat soft">
       <div class="stat-label">Top 10k CMS usage</div>
       <div class="stat-value">about 58%</div>
       <div class="stat-note">HTTP Archive 2025</div>
     </div>
-    
     </div>
     <div class="grid-2">
       <svg class="chart" viewBox="0 0 980 330" role="img" aria-label="Share of all websites">
@@ -1103,34 +1129,26 @@ p { margin:0 0 12px; }
 </svg>
     </div>
     <div class="stats">
-      
-    <div class="stat good">
+      <div class="stat good">
       <div class="stat-label">Plugin directory</div>
       <div class="stat-value">61.2k</div>
       <div class="stat-note">current WordPress.org API result</div>
     </div>
-    
-      
-    <div class="stat good">
+      <div class="stat good">
       <div class="stat-label">Theme directory</div>
       <div class="stat-value">8,341</div>
       <div class="stat-note">current WordPress.org API result</div>
     </div>
-    
-      
-    <div class="stat good">
+      <div class="stat good">
       <div class="stat-label">WordCamp records</div>
       <div class="stat-value">1,458</div>
       <div class="stat-note">WordCamp Central records fetched</div>
     </div>
-    
-      
-    <div class="stat good">
+      <div class="stat good">
       <div class="stat-label">Five for the Future</div>
       <div class="stat-value">280</div>
       <div class="stat-note">current pledges fetched</div>
     </div>
-    
     </div>
   </section>
 
@@ -1138,13 +1156,13 @@ p { margin:0 0 12px; }
     <h2>Source Coverage</h2>
     <p class="callout">The SQLite database stores imported source tables, fetched ecosystem/adoption records, file hashes, and explicit source gaps. Download: <a href="community_health.sqlite.gz">community_health.sqlite.gz</a>.</p>
     <div class="status-grid">
-      <div class="status covered"><span class="pill">covered</span><b>Core Trac tickets</b><span>64k tickets, status history, types, components, reporters</span></div><div class="status covered"><span class="pill">covered</span><b>Core first-response activity</b><span>Trac RSS first non-reporter activity for 2021-2026 tickets</span></div><div class="status covered"><span class="pill">covered</span><b>Gutenberg GitHub issues</b><span>32k issues with labels, state, authors, close dates</span></div><div class="status covered"><span class="pill">covered</span><b>Gutenberg response/reopen timelines</b><span>GitHub comment timestamps and reopened events</span></div><div class="status covered"><span class="pill">covered</span><b>wordpress-develop PRs</b><span>12k PRs with authors, dates, Trac links</span></div><div class="status covered"><span class="pill">covered</span><b>Ticket category classification</b><span>Bug, feature request, enhancement, task, and other categories</span></div><div class="status covered"><span class="pill">covered</span><b>W3Techs adoption</b><span>All-site usage and CMS market-share yearly trends</span></div><div class="status covered"><span class="pill">covered</span><b>HTTP Archive/Web Almanac</b><span>2025 CMS adoption snapshot and high-traffic context</span></div><div class="status covered"><span class="pill">covered</span><b>WordPress.org plugin/theme directories</b><span>Current plugin and theme counts</span></div><div class="status covered"><span class="pill">covered</span><b>WordCamp Central</b><span>Historical WordCamp event records</span></div><div class="status covered"><span class="pill">covered</span><b>WordPress Events</b><span>Current upcoming Meetup and WordCamp events</span></div><div class="status covered"><span class="pill">covered</span><b>Make/Core posts</b><span>Post counts and author IDs</span></div><div class="status covered"><span class="pill">covered</span><b>Core release credits</b><span>WordPress.org credits API props by major release</span></div><div class="status covered"><span class="pill">covered</span><b>Core committers per release</b><span>GitHub tag-to-tag compare ranges by major release</span></div><div class="status covered"><span class="pill">covered</span><b>Core reopen rate</b><span>Quarterly Core Trac reopened status-change events</span></div><div class="status covered"><span class="pill">covered</span><b>Five for the Future</b><span>Current pledge organizations, hours, and listed profiles</span></div><div class="status missing"><span class="pill">missing</span><b>Newly created sites</b><span>Needs BuiltWith cohort/trend data or HTTP Archive cohort queries</span></div><div class="status missing"><span class="pill">missing</span><b>Support forums</b><span>Needs WordPress.org forum topic and resolution data</span></div>
+      <div class="status covered"><span class="pill">covered</span><b>Core Trac tickets</b><span>64k tickets, status history, types, components, reporters</span></div><div class="status covered"><span class="pill">covered</span><b>Core first-response activity</b><span>Trac RSS first non-reporter activity for 2021-2026 tickets</span></div><div class="status covered"><span class="pill">covered</span><b>Gutenberg GitHub issues</b><span>32k issues with labels, state, authors, close dates</span></div><div class="status covered"><span class="pill">covered</span><b>Gutenberg response/reopen timelines</b><span>GitHub comment timestamps and reopened events</span></div><div class="status covered"><span class="pill">covered</span><b>wordpress-develop PRs</b><span>12k PRs with authors, dates, Trac links</span></div><div class="status covered"><span class="pill">covered</span><b>Ticket category classification</b><span>Bug, feature request, enhancement, task, and other categories</span></div><div class="status covered"><span class="pill">covered</span><b>W3Techs adoption</b><span>All-site usage and CMS market-share yearly trends</span></div><div class="status covered"><span class="pill">covered</span><b>HTTP Archive/Web Almanac</b><span>2025 CMS adoption snapshot and high-traffic context</span></div><div class="status covered"><span class="pill">covered</span><b>WordPress.org plugin/theme directories</b><span>Current plugin and theme counts</span></div><div class="status covered"><span class="pill">covered</span><b>WordCamp Central</b><span>Historical WordCamp event records</span></div><div class="status covered"><span class="pill">covered</span><b>WordPress Events</b><span>Current upcoming Meetup and WordCamp events</span></div><div class="status covered"><span class="pill">covered</span><b>Make/Core posts</b><span>Post counts and author IDs</span></div><div class="status covered"><span class="pill">covered</span><b>Core release credits</b><span>WordPress.org credits API props by major release</span></div><div class="status covered"><span class="pill">covered</span><b>Core committers per release</b><span>GitHub tag-to-tag compare ranges by major release</span></div><div class="status covered"><span class="pill">covered</span><b>Core reopen rate</b><span>Quarterly Core Trac reopened status-change events</span></div><div class="status covered"><span class="pill">covered</span><b>Five for the Future</b><span>Current pledge organizations, hours, and listed profiles</span></div><div class="status missing"><span class="pill">missing</span><b>Newly created sites</b><span>Needs BuiltWith cohort/trend data or HTTP Archive cohort queries</span></div><div class="status partial"><span class="pill">partial</span><b>Support forums</b><span>Current WordPress.org support queue snapshot; historical trend still needs a fuller export</span></div>
     </div>
   </section>
 
   <section class="footer">
-    <p>Generated 2026-06-13 22:39 UTC from local Core/Gutenberg exports and public sources.</p>
-    <p>Sources: <a href="https://w3techs.com/technologies/history_overview/content_management/all/y">W3Techs usage trend</a>, <a href="https://w3techs.com/technologies/history_overview/content_management/ms/y">W3Techs CMS market-share trend</a>, <a href="https://almanac.httparchive.org/en/2025/cms">HTTP Archive Web Almanac CMS 2025</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="https://events.wordpress.org/">WordPress Events</a>, <a href="https://make.wordpress.org/core/wp-json/wp/v2/posts">Make/Core REST API</a>, <a href="https://github.com/WordPress/gutenberg/issues">Gutenberg GitHub issues</a>, <a href="https://wordpress.org/five-for-the-future/pledges/">Five for the Future pledges</a>, <a href="https://wordpress.org/download/releases/">WordPress release archive</a>, and <a href="https://api.wordpress.org/core/credits/1.1/">Core credits API</a>.</p>
+    <p>Generated 2026-06-13 22:55 UTC from local Core/Gutenberg exports and public sources.</p>
+    <p>Sources: <a href="https://w3techs.com/technologies/history_overview/content_management/all/y">W3Techs usage trend</a>, <a href="https://w3techs.com/technologies/history_overview/content_management/ms/y">W3Techs CMS market-share trend</a>, <a href="https://almanac.httparchive.org/en/2025/cms">HTTP Archive Web Almanac CMS 2025</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="https://events.wordpress.org/">WordPress Events</a>, <a href="https://make.wordpress.org/core/wp-json/wp/v2/posts">Make/Core REST API</a>, <a href="https://wordpress.org/support/view/all-topics/">WordPress.org support forums</a>, <a href="https://github.com/WordPress/gutenberg/issues">Gutenberg GitHub issues</a>, <a href="https://wordpress.org/five-for-the-future/pledges/">Five for the Future pledges</a>, <a href="https://wordpress.org/download/releases/">WordPress release archive</a>, and <a href="https://api.wordpress.org/core/credits/1.1/">Core credits API</a>.</p>
   </section>
 </main>
 </body>

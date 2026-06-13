@@ -59,6 +59,8 @@ W3TECHS_MARKET_SHARE_URL = "https://w3techs.com/technologies/history_overview/co
 HTTP_ARCHIVE_CMS_URL = "https://almanac.httparchive.org/en/2025/cms"
 PLUGIN_API = "https://api.wordpress.org/plugins/info/1.2/?action=query_plugins&request[page]=1&request[per_page]=1"
 THEME_API = "https://api.wordpress.org/themes/info/1.2/?action=query_themes&request[page]=1&request[per_page]=1"
+PLUGIN_INFO_API = "https://api.wordpress.org/plugins/info/1.2/"
+THEME_INFO_API = "https://api.wordpress.org/themes/info/1.2/"
 WORDCAMP_API = "https://central.wordcamp.org/wp-json/wp/v2/wordcamps"
 EVENTS_WORDPRESS_URL = "https://events.wordpress.org/"
 MAKE_CORE_API = "https://make.wordpress.org/core/wp-json/wp/v2/posts"
@@ -421,6 +423,221 @@ def fetch_wordpress_directory_snapshots(skip_network=False):
         except Exception as exc:
             eprint(f"WordPress.org directory fetch failed for {name}: {exc}")
     return snapshots
+
+
+def live_snapshot_date():
+    return dt.datetime.now(dt.timezone.utc).date().isoformat()
+
+
+def parse_wporg_datetime(value):
+    raw = strip_html(value)
+    if not raw:
+        return None
+    parsed = parse_iso(raw)
+    if parsed:
+        return parsed
+    cleaned = re.sub(r"\s+GMT$", "", raw, flags=re.I).strip()
+    cleaned = re.sub(r"\s+", " ", cleaned).upper().replace(" PM", "PM").replace(" AM", "AM")
+    for fmt in ("%Y-%m-%d %I:%M%p", "%Y-%m-%d %H:%M:%S", "%Y-%m-%d"):
+        try:
+            parsed = dt.datetime.strptime(cleaned, fmt)
+            return parsed.replace(tzinfo=dt.timezone.utc)
+        except ValueError:
+            continue
+    return None
+
+
+def directory_query_url(api_base, action, browse, page, per_page):
+    params = [
+        ("action", action),
+        ("request[browse]", browse),
+        ("request[page]", page),
+        ("request[per_page]", per_page),
+        ("request[fields][description]", 0),
+        ("request[fields][sections]", 0),
+        ("request[fields][screenshots]", 0),
+        ("request[fields][tags]", 0),
+    ]
+    return f"{api_base}?{urllib.parse.urlencode(params)}"
+
+
+def fetch_directory_page(kind, browse, page, per_page=100):
+    if kind == "plugin":
+        url = directory_query_url(PLUGIN_INFO_API, "query_plugins", browse, page, per_page)
+        data, _headers = fetch_json(url)
+        return data.get("plugins", []), data.get("info", {}), url
+    url = directory_query_url(THEME_INFO_API, "query_themes", browse, page, per_page)
+    data, _headers = fetch_json(url)
+    return data.get("themes", []), data.get("info", {}), url
+
+
+def wporg_author_name(value):
+    if isinstance(value, dict):
+        for key in ("display_name", "name", "author", "user_nicename"):
+            if value.get(key):
+                return strip_html(value.get(key))
+        return ""
+    return strip_html(value)
+
+
+def wporg_author_profile(item):
+    author = item.get("author")
+    if isinstance(author, dict):
+        return str(author.get("profile") or author.get("url") or "")
+    return str(item.get("author_profile") or "")
+
+
+def normalize_plugin_item(item, browse, page, rank, source_url):
+    added = str(item.get("added") or "")
+    last_updated = str(item.get("last_updated") or "")
+    last_updated_at = parse_wporg_datetime(last_updated)
+    return {
+        "snapshot_date": live_snapshot_date(),
+        "browse": browse,
+        "page": page,
+        "rank": rank,
+        "slug": str(item.get("slug") or ""),
+        "name": strip_html(item.get("name")),
+        "author_name": wporg_author_name(item.get("author")),
+        "author_profile": wporg_author_profile(item),
+        "added": added,
+        "last_updated": last_updated,
+        "last_updated_date": last_updated_at.date().isoformat() if last_updated_at else "",
+        "active_installs": num(item.get("active_installs")),
+        "downloaded": num(item.get("downloaded")),
+        "rating": num(item.get("rating")),
+        "num_ratings": num(item.get("num_ratings")),
+        "requires": str(item.get("requires") or ""),
+        "requires_php": str(item.get("requires_php") or ""),
+        "tested": str(item.get("tested") or ""),
+        "version": str(item.get("version") or ""),
+        "plugin_url": f"https://wordpress.org/plugins/{item.get('slug')}/" if item.get("slug") else "",
+        "source_url": source_url,
+    }
+
+
+def normalize_theme_item(item, browse, page, rank, source_url):
+    return {
+        "snapshot_date": live_snapshot_date(),
+        "browse": browse,
+        "page": page,
+        "rank": rank,
+        "slug": str(item.get("slug") or ""),
+        "name": strip_html(item.get("name")),
+        "author_name": wporg_author_name(item.get("author")),
+        "author_profile": wporg_author_profile(item),
+        "rating": num(item.get("rating")),
+        "num_ratings": num(item.get("num_ratings")),
+        "requires": str(item.get("requires") or ""),
+        "requires_php": str(item.get("requires_php") or ""),
+        "version": str(item.get("version") or ""),
+        "is_commercial": str(item.get("is_commercial") or ""),
+        "is_community": str(item.get("is_community") or ""),
+        "theme_url": f"https://wordpress.org/themes/{item.get('slug')}/" if item.get("slug") else "",
+        "preview_url": str(item.get("preview_url") or ""),
+        "source_url": source_url,
+    }
+
+
+def fetch_directory_activity(skip_network=False):
+    if skip_network:
+        return [], [], []
+
+    today = dt.datetime.now(dt.timezone.utc).date()
+    cutoff_30 = today - dt.timedelta(days=30)
+    cutoff_90 = today - dt.timedelta(days=90)
+    stale_cutoff = today - dt.timedelta(days=730)
+    snapshot_date = live_snapshot_date()
+    plugin_rows = []
+    theme_rows = []
+    info_by_browse = {}
+    pages_fetched = defaultdict(int)
+    complete_90d = {"new": False, "updated": False}
+
+    plugin_limits = {"new": 50, "updated": 80, "popular": 10}
+    for browse, max_pages in plugin_limits.items():
+        for page in range(1, max_pages + 1):
+            try:
+                items, info, source_url = fetch_directory_page("plugin", browse, page)
+            except Exception as exc:
+                eprint(f"plugin directory activity fetch failed for {browse} page {page}: {exc}")
+                break
+            if page == 1:
+                info_by_browse[f"plugin_{browse}"] = info
+            if not items:
+                complete_90d[browse] = True
+                break
+            pages_fetched[f"plugin_{browse}"] = page
+            oldest_date = None
+            for offset, item in enumerate(items, start=1):
+                rank = (page - 1) * 100 + offset
+                row = normalize_plugin_item(item, browse, page, rank, source_url)
+                plugin_rows.append(row)
+                date_value = row["added"] if browse == "new" else row["last_updated_date"]
+                parsed = parse_iso(date_value)
+                if parsed and (oldest_date is None or parsed.date() < oldest_date):
+                    oldest_date = parsed.date()
+            if browse in {"new", "updated"} and oldest_date and oldest_date < cutoff_90:
+                complete_90d[browse] = True
+                break
+            time.sleep(0.04)
+
+    for browse in ("new", "updated", "popular"):
+        for page in range(1, 4):
+            try:
+                items, info, source_url = fetch_directory_page("theme", browse, page)
+            except Exception as exc:
+                eprint(f"theme directory activity fetch failed for {browse} page {page}: {exc}")
+                break
+            if page == 1:
+                info_by_browse[f"theme_{browse}"] = info
+            if not items:
+                break
+            pages_fetched[f"theme_{browse}"] = page
+            for offset, item in enumerate(items, start=1):
+                rank = (page - 1) * 100 + offset
+                theme_rows.append(normalize_theme_item(item, browse, page, rank, source_url))
+            time.sleep(0.04)
+
+    new_plugins = [row for row in plugin_rows if row.get("browse") == "new"]
+    updated_plugins = [row for row in plugin_rows if row.get("browse") == "updated"]
+    popular_plugins = [row for row in plugin_rows if row.get("browse") == "popular"]
+
+    def date_in_window(row, key, cutoff):
+        parsed = parse_iso(row.get(key))
+        return bool(parsed and parsed.date() >= cutoff)
+
+    stale_popular = [
+        row
+        for row in popular_plugins
+        if parse_iso(row.get("last_updated_date")) and parse_iso(row.get("last_updated_date")).date() < stale_cutoff
+    ]
+    snapshot = {
+        "snapshot_date": snapshot_date,
+        "plugin_new_results": num(info_by_browse.get("plugin_new", {}).get("results")),
+        "plugin_updated_results": num(info_by_browse.get("plugin_updated", {}).get("results")),
+        "plugin_popular_results": num(info_by_browse.get("plugin_popular", {}).get("results")),
+        "plugins_added_30d": sum(1 for row in new_plugins if date_in_window(row, "added", cutoff_30)),
+        "plugins_added_90d": sum(1 for row in new_plugins if date_in_window(row, "added", cutoff_90)),
+        "plugins_added_pages_fetched": pages_fetched.get("plugin_new", 0),
+        "plugins_added_complete_90d": int(complete_90d.get("new", False)),
+        "plugins_updated_30d": sum(1 for row in updated_plugins if date_in_window(row, "last_updated_date", cutoff_30)),
+        "plugins_updated_90d": sum(1 for row in updated_plugins if date_in_window(row, "last_updated_date", cutoff_90)),
+        "plugins_updated_pages_fetched": pages_fetched.get("plugin_updated", 0),
+        "plugins_updated_complete_90d": int(complete_90d.get("updated", False)),
+        "popular_plugin_sample_size": len(popular_plugins),
+        "popular_plugin_stale_2y": len(stale_popular),
+        "popular_plugin_stale_2y_active_installs": sum(num(row.get("active_installs")) for row in stale_popular),
+        "theme_new_results": num(info_by_browse.get("theme_new", {}).get("results")),
+        "theme_updated_results": num(info_by_browse.get("theme_updated", {}).get("results")),
+        "theme_popular_results": num(info_by_browse.get("theme_popular", {}).get("results")),
+        "theme_new_sample_size": sum(1 for row in theme_rows if row.get("browse") == "new"),
+        "theme_updated_sample_size": sum(1 for row in theme_rows if row.get("browse") == "updated"),
+        "theme_popular_sample_size": sum(1 for row in theme_rows if row.get("browse") == "popular"),
+        "source_url": PLUGIN_INFO_API,
+        "theme_source_url": THEME_INFO_API,
+    }
+    return [snapshot], plugin_rows, theme_rows
 
 
 def fetch_wordcamps(skip_network=False):
@@ -1220,6 +1437,15 @@ def build_database(data, fetched):
                 "Needs locale-level translation team and Core development translation status data.",
             )
         )
+    if not fetched.get("directory_activity_snapshots"):
+        gaps.append(
+            (
+                "plugin_theme_directory_activity",
+                "missing",
+                "WordPress.org plugin/theme directory browse APIs",
+                "Needs current new, updated, and popular directory samples.",
+            )
+        )
     if not fetched.get("make_core_dev_notes"):
         gaps.append(
             (
@@ -1579,6 +1805,7 @@ def source_status_rows(fetched):
         ("W3Techs adoption", "covered" if fetched.get("market_share") else "missing", "All-site usage and CMS market-share yearly trends"),
         ("HTTP Archive/Web Almanac", "covered", "2025 CMS adoption snapshot and high-traffic context"),
         ("WordPress.org plugin/theme directories", "covered" if fetched.get("directory_snapshots") else "missing", "Current plugin and theme counts"),
+        ("Plugin/theme directory activity", "covered" if fetched.get("directory_activity_snapshots") else "missing", "Current new, updated, and popular samples from WordPress.org directory APIs"),
         ("WordCamp Central", "covered" if fetched.get("wordcamps") else "missing", "Historical WordCamp event records"),
         ("WordPress Events", "covered" if fetched.get("wp_events") else "missing", "Current upcoming Meetup and WordCamp events"),
         ("Translate WordPress", "covered" if fetched.get("translation_locale_snapshot") else "missing", "Current locale team profile counts and Core dev translation status"),
@@ -1631,6 +1858,9 @@ def build_report(data, fetched):
     fttf_snapshots = fetched.get("fttf_snapshots", [])
     fttf_pledges = fetched.get("fttf_pledges", [])
     directory = {row["metric"]: row for row in fetched.get("directory_snapshots", [])}
+    directory_activity = fetched.get("directory_activity_snapshots", [])
+    plugin_activity_rows = fetched.get("plugin_directory_activity_sample", [])
+    theme_activity_rows = fetched.get("theme_directory_activity_sample", [])
     support_topics = data["support_forum_topics"]
     support_views = data["support_forum_view_snapshots"]
     support_forums = data["support_forum_forum_summary"]
@@ -1785,6 +2015,30 @@ def build_report(data, fetched):
 
     plugin_count = num(directory.get("plugin_directory_plugins", {}).get("value"))
     theme_count = num(directory.get("theme_directory_themes", {}).get("value"))
+    directory_activity_snapshot = directory_activity[0] if directory_activity else {}
+    plugins_added_complete = num(directory_activity_snapshot.get("plugins_added_complete_90d")) == 1
+    plugins_updated_complete = num(directory_activity_snapshot.get("plugins_updated_complete_90d")) == 1
+    plugins_added_90 = num(directory_activity_snapshot.get("plugins_added_90d"))
+    plugins_updated_90 = num(directory_activity_snapshot.get("plugins_updated_90d"))
+    plugins_added_30 = num(directory_activity_snapshot.get("plugins_added_30d"))
+    plugins_updated_30 = num(directory_activity_snapshot.get("plugins_updated_30d"))
+    plugins_added_90_label = f"{compact(plugins_added_90)}" if plugins_added_complete else f">= {compact(plugins_added_90)}"
+    plugins_updated_90_label = f"{compact(plugins_updated_90)}" if plugins_updated_complete else f">= {compact(plugins_updated_90)}"
+    plugin_activity_max = max(plugins_added_90, plugins_updated_90, 1)
+    popular_plugin_sample = max(1, num(directory_activity_snapshot.get("popular_plugin_sample_size")))
+    popular_plugin_stale = num(directory_activity_snapshot.get("popular_plugin_stale_2y"))
+    top_popular_plugins = sorted(
+        [row for row in plugin_activity_rows if row.get("browse") == "popular"],
+        key=lambda row: num(row.get("active_installs")),
+        reverse=True,
+    )[:8]
+    max_popular_plugin_installs = max([num(row.get("active_installs")) for row in top_popular_plugins] or [1])
+    top_popular_themes = sorted(
+        [row for row in theme_activity_rows if row.get("browse") == "popular"],
+        key=lambda row: num(row.get("num_ratings")),
+        reverse=True,
+    )[:8]
+    max_popular_theme_ratings = max([num(row.get("num_ratings")) for row in top_popular_themes] or [1])
 
     adoption_detail = "Still dominant"
     if usage_delta is not None and cms_delta is not None:
@@ -1852,7 +2106,8 @@ p {{ margin:0 0 12px; }}
 .axis-line {{ stroke:#b8c2d1; stroke-width:1; }}
 .hmetric {{ margin:11px 0; }}
 .hmetric-top {{ display:flex; justify-content:space-between; gap:12px; font-size:13px; }}
-.hmetric-top span {{ color:var(--muted); }}
+.hmetric-top span {{ color:var(--muted); min-width:0; padding-right:8px; }}
+.hmetric-top strong {{ flex:0 0 auto; text-align:right; white-space:nowrap; }}
 .bar {{ height:9px; border-radius:999px; background:#eef2f7; overflow:hidden; margin-top:5px; }}
 .bar span {{ display:block; height:100%; border-radius:999px; }}
 .callout {{ border-left:5px solid var(--blue); background:#f7fbff; padding:14px 16px; border-radius:8px; color:#334155; }}
@@ -2172,6 +2427,49 @@ p {{ margin:0 0 12px; }}
         {''.join(horizontal_count_metric(f"{tech} top 1M", num(row.get("top_1m")), max([num(r.get("top_1m")) for r in builtwith_new_sites] or [1]), COLORS.get(str(tech).lower(), COLORS["neutral"]), "") for tech, row in builtwith_by_tech.items())}
       </div>
     </div>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Plugin directory activity</h3>
+        <p>Current WordPress.org plugin directory browse samples. The 90-day counts show a prefix when the API sample hit the page cap before passing 90 days.</p>
+        <div class="stats">
+          {stat_card("Added 30 days", compact(plugins_added_30), "new plugin browse", "good")}
+          {stat_card("Added 90 days", plugins_added_90_label, f"{num(directory_activity_snapshot.get('plugins_added_pages_fetched'))} pages fetched", "good")}
+          {stat_card("Updated 30 days", compact(plugins_updated_30), "updated plugin browse", "soft")}
+          {stat_card("Updated 90 days", plugins_updated_90_label, f"{num(directory_activity_snapshot.get('plugins_updated_pages_fetched'))} pages fetched", "soft")}
+        </div>
+        {horizontal_count_metric("Plugins added in sampled 90 days", plugins_added_90, plugin_activity_max, COLORS["green"], "")}
+        {horizontal_count_metric("Plugins updated in sampled 90 days", plugins_updated_90, plugin_activity_max, COLORS["core"], "")}
+      </div>
+      <div class="card">
+        <h3>Popular plugin maintenance sample</h3>
+        <p>Top popular plugin pages from the WordPress.org API. Stale here means last updated more than two years before the snapshot date.</p>
+        <div class="stats">
+          {stat_card("Popular sample", compact(popular_plugin_sample), "plugins fetched", "soft")}
+          {stat_card("Stale 2y", compact(popular_plugin_stale), "popular plugins", "watch")}
+          {stat_card("Install reach", compact(num(directory_activity_snapshot.get("popular_plugin_stale_2y_active_installs"))), "active installs on stale sample", "watch")}
+          {stat_card("Snapshot", directory_activity_snapshot.get("snapshot_date", "n/a"), "WordPress.org API", "soft")}
+        </div>
+        {horizontal_count_metric("Stale share of popular sample", popular_plugin_stale, popular_plugin_sample, COLORS["orange"], "")}
+        {''.join(horizontal_count_metric(str(row.get("name", "")), num(row.get("active_installs")), max_popular_plugin_installs, COLORS["prs"], " installs") for row in top_popular_plugins[:5])}
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Theme directory browse sample</h3>
+        <p>The theme API exposes browse lists but not add/update dates in the sampled rows, so this is a current directory shape snapshot rather than a trend.</p>
+        <div class="stats">
+          {stat_card("New sample", compact(num(directory_activity_snapshot.get("theme_new_sample_size"))), f"{compact(num(directory_activity_snapshot.get('theme_new_results')))} total browse results", "good")}
+          {stat_card("Updated sample", compact(num(directory_activity_snapshot.get("theme_updated_sample_size"))), f"{compact(num(directory_activity_snapshot.get('theme_updated_results')))} total browse results", "soft")}
+          {stat_card("Popular sample", compact(num(directory_activity_snapshot.get("theme_popular_sample_size"))), f"{compact(num(directory_activity_snapshot.get('theme_popular_results')))} total browse results", "soft")}
+          {stat_card("Theme directory", compact(theme_count), "current WordPress.org API result", "good")}
+        </div>
+      </div>
+      <div class="card">
+        <h3>Popular themes by ratings</h3>
+        <p>Top sampled popular themes ranked by rating count in the current WordPress.org theme API response.</p>
+        {''.join(horizontal_count_metric(str(row.get("name", "")), num(row.get("num_ratings")), max_popular_theme_ratings, COLORS["community"], " ratings") for row in top_popular_themes)}
+      </div>
+    </div>
     <div class="stats">
       {stat_card("Plugin directory", compact(plugin_count), "current WordPress.org API result", "good")}
       {stat_card("Theme directory", compact(theme_count), "current WordPress.org API result", "good")}
@@ -2212,6 +2510,11 @@ def main():
     fetched["market_share"].extend(parse_w3techs_history(W3TECHS_USAGE_URL, "all_sites_usage", args.skip_network))
     fetched["market_share"].extend(parse_w3techs_history(W3TECHS_MARKET_SHARE_URL, "cms_market_share", args.skip_network))
     fetched["directory_snapshots"] = fetch_wordpress_directory_snapshots(args.skip_network)
+    (
+        fetched["directory_activity_snapshots"],
+        fetched["plugin_directory_activity_sample"],
+        fetched["theme_directory_activity_sample"],
+    ) = fetch_directory_activity(args.skip_network)
     fetched["wordcamps"] = fetch_wordcamps(args.skip_network)
     fetched["wp_event_snapshots"], fetched["wp_events"] = fetch_wordpress_events(args.skip_network)
     (

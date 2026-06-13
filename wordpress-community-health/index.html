@@ -60,7 +60,8 @@ p { margin:0 0 12px; }
 .axis-line { stroke:#b8c2d1; stroke-width:1; }
 .hmetric { margin:11px 0; }
 .hmetric-top { display:flex; justify-content:space-between; gap:12px; font-size:13px; }
-.hmetric-top span { color:var(--muted); }
+.hmetric-top span { color:var(--muted); min-width:0; padding-right:8px; }
+.hmetric-top strong { flex:0 0 auto; text-align:right; white-space:nowrap; }
 .bar { height:9px; border-radius:999px; background:#eef2f7; overflow:hidden; margin-top:5px; }
 .bar span { display:block; height:100%; border-radius:999px; }
 .callout { border-left:5px solid var(--blue); background:#f7fbff; padding:14px 16px; border-radius:8px; color:#334155; }
@@ -1361,6 +1362,145 @@ p { margin:0 0 12px; }
     </div>
       </div>
     </div>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Plugin directory activity</h3>
+        <p>Current WordPress.org plugin directory browse samples. The 90-day counts show a prefix when the API sample hit the page cap before passing 90 days.</p>
+        <div class="stats">
+          <div class="stat good">
+      <div class="stat-label">Added 30 days</div>
+      <div class="stat-value">1,954</div>
+      <div class="stat-note">new plugin browse</div>
+    </div>
+          <div class="stat good">
+      <div class="stat-label">Added 90 days</div>
+      <div class="stat-value">4,199</div>
+      <div class="stat-note">43 pages fetched</div>
+    </div>
+          <div class="stat soft">
+      <div class="stat-label">Updated 30 days</div>
+      <div class="stat-value">7,999</div>
+      <div class="stat-note">updated plugin browse</div>
+    </div>
+          <div class="stat soft">
+      <div class="stat-label">Updated 90 days</div>
+      <div class="stat-value">&gt;= 7,999</div>
+      <div class="stat-note">80 pages fetched</div>
+    </div>
+        </div>
+        <div class="hmetric">
+      <div class="hmetric-top"><span>Plugins added in sampled 90 days</span><strong>4,199</strong></div>
+      <div class="bar"><span style="width:52.5%;background:#16a34a"></span></div>
+    </div>
+        <div class="hmetric">
+      <div class="hmetric-top"><span>Plugins updated in sampled 90 days</span><strong>7,999</strong></div>
+      <div class="bar"><span style="width:100.0%;background:#2563eb"></span></div>
+    </div>
+      </div>
+      <div class="card">
+        <h3>Popular plugin maintenance sample</h3>
+        <p>Top popular plugin pages from the WordPress.org API. Stale here means last updated more than two years before the snapshot date.</p>
+        <div class="stats">
+          <div class="stat soft">
+      <div class="stat-label">Popular sample</div>
+      <div class="stat-value">1,000</div>
+      <div class="stat-note">plugins fetched</div>
+    </div>
+          <div class="stat watch">
+      <div class="stat-label">Stale 2y</div>
+      <div class="stat-value">41</div>
+      <div class="stat-note">popular plugins</div>
+    </div>
+          <div class="stat watch">
+      <div class="stat-label">Install reach</div>
+      <div class="stat-value">3.1M</div>
+      <div class="stat-note">active installs on stale sample</div>
+    </div>
+          <div class="stat soft">
+      <div class="stat-label">Snapshot</div>
+      <div class="stat-value">2026-06-13</div>
+      <div class="stat-note">WordPress.org API</div>
+    </div>
+        </div>
+        <div class="hmetric">
+      <div class="hmetric-top"><span>Stale share of popular sample</span><strong>41</strong></div>
+      <div class="bar"><span style="width:4.1%;background:#ea580c"></span></div>
+    </div>
+        <div class="hmetric">
+      <div class="hmetric-top"><span>Elementor Website Builder – more than just a page builder</span><strong>10.0M installs</strong></div>
+      <div class="bar"><span style="width:100.0%;background:#7c3aed"></span></div>
+    </div><div class="hmetric">
+      <div class="hmetric-top"><span>Yoast SEO – Advanced SEO with real-time guidance and built-in AI</span><strong>10.0M installs</strong></div>
+      <div class="bar"><span style="width:100.0%;background:#7c3aed"></span></div>
+    </div><div class="hmetric">
+      <div class="hmetric-top"><span>Contact Form 7</span><strong>10.0M installs</strong></div>
+      <div class="bar"><span style="width:100.0%;background:#7c3aed"></span></div>
+    </div><div class="hmetric">
+      <div class="hmetric-top"><span>Classic Editor</span><strong>9.0M installs</strong></div>
+      <div class="bar"><span style="width:90.0%;background:#7c3aed"></span></div>
+    </div><div class="hmetric">
+      <div class="hmetric-top"><span>LiteSpeed Cache</span><strong>7.0M installs</strong></div>
+      <div class="bar"><span style="width:70.0%;background:#7c3aed"></span></div>
+    </div>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Theme directory browse sample</h3>
+        <p>The theme API exposes browse lists but not add/update dates in the sampled rows, so this is a current directory shape snapshot rather than a trend.</p>
+        <div class="stats">
+          <div class="stat good">
+      <div class="stat-label">New sample</div>
+      <div class="stat-value">300</div>
+      <div class="stat-note">14.8k total browse results</div>
+    </div>
+          <div class="stat soft">
+      <div class="stat-label">Updated sample</div>
+      <div class="stat-value">300</div>
+      <div class="stat-note">14.8k total browse results</div>
+    </div>
+          <div class="stat soft">
+      <div class="stat-label">Popular sample</div>
+      <div class="stat-value">300</div>
+      <div class="stat-note">8,269 total browse results</div>
+    </div>
+          <div class="stat good">
+      <div class="stat-label">Theme directory</div>
+      <div class="stat-value">8,341</div>
+      <div class="stat-note">current WordPress.org API result</div>
+    </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Popular themes by ratings</h3>
+        <p>Top sampled popular themes ranked by rating count in the current WordPress.org theme API response.</p>
+        <div class="hmetric">
+      <div class="hmetric-top"><span>Astra</span><strong>6,474 ratings</strong></div>
+      <div class="bar"><span style="width:100.0%;background:#ea580c"></span></div>
+    </div><div class="hmetric">
+      <div class="hmetric-top"><span>OceanWP</span><strong>5,702 ratings</strong></div>
+      <div class="bar"><span style="width:88.1%;background:#ea580c"></span></div>
+    </div><div class="hmetric">
+      <div class="hmetric-top"><span>ColorMag</span><strong>1,565 ratings</strong></div>
+      <div class="bar"><span style="width:24.2%;background:#ea580c"></span></div>
+    </div><div class="hmetric">
+      <div class="hmetric-top"><span>GeneratePress</span><strong>1,426 ratings</strong></div>
+      <div class="bar"><span style="width:22.0%;background:#ea580c"></span></div>
+    </div><div class="hmetric">
+      <div class="hmetric-top"><span>Neve</span><strong>1,278 ratings</strong></div>
+      <div class="bar"><span style="width:19.7%;background:#ea580c"></span></div>
+    </div><div class="hmetric">
+      <div class="hmetric-top"><span>Customizr</span><strong>993 ratings</strong></div>
+      <div class="bar"><span style="width:15.3%;background:#ea580c"></span></div>
+    </div><div class="hmetric">
+      <div class="hmetric-top"><span>Blocksy</span><strong>867 ratings</strong></div>
+      <div class="bar"><span style="width:13.4%;background:#ea580c"></span></div>
+    </div><div class="hmetric">
+      <div class="hmetric-top"><span>Phlox</span><strong>861 ratings</strong></div>
+      <div class="bar"><span style="width:13.3%;background:#ea580c"></span></div>
+    </div>
+      </div>
+    </div>
     <div class="stats">
       <div class="stat good">
       <div class="stat-label">Plugin directory</div>
@@ -1389,12 +1529,12 @@ p { margin:0 0 12px; }
     <h2>Source Coverage</h2>
     <p class="callout">The SQLite database stores imported source tables, fetched ecosystem/adoption records, file hashes, and explicit source gaps. Download: <a href="community_health.sqlite.gz">community_health.sqlite.gz</a>.</p>
     <div class="status-grid">
-      <div class="status covered"><span class="pill">covered</span><b>Core Trac tickets</b><span>64k tickets, status history, types, components, reporters</span></div><div class="status covered"><span class="pill">covered</span><b>Core first-response activity</b><span>Trac RSS first non-reporter activity for 2021-2026 tickets</span></div><div class="status covered"><span class="pill">covered</span><b>Gutenberg GitHub issues</b><span>32k issues with labels, state, authors, close dates</span></div><div class="status covered"><span class="pill">covered</span><b>Gutenberg response/reopen timelines</b><span>GitHub comment timestamps and reopened events</span></div><div class="status covered"><span class="pill">covered</span><b>wordpress-develop PRs</b><span>12k PRs with authors, dates, Trac links</span></div><div class="status covered"><span class="pill">covered</span><b>Ticket category classification</b><span>Bug, feature request, enhancement, task, and other categories</span></div><div class="status covered"><span class="pill">covered</span><b>W3Techs adoption</b><span>All-site usage and CMS market-share yearly trends</span></div><div class="status covered"><span class="pill">covered</span><b>HTTP Archive/Web Almanac</b><span>2025 CMS adoption snapshot and high-traffic context</span></div><div class="status covered"><span class="pill">covered</span><b>WordPress.org plugin/theme directories</b><span>Current plugin and theme counts</span></div><div class="status covered"><span class="pill">covered</span><b>WordCamp Central</b><span>Historical WordCamp event records</span></div><div class="status covered"><span class="pill">covered</span><b>WordPress Events</b><span>Current upcoming Meetup and WordCamp events</span></div><div class="status covered"><span class="pill">covered</span><b>Translate WordPress</b><span>Current locale team profile counts and Core dev translation status</span></div><div class="status covered"><span class="pill">covered</span><b>Make/Core posts</b><span>Post counts and author IDs</span></div><div class="status covered"><span class="pill">covered</span><b>Make/Core dev notes</b><span>Dev-note tagged posts by quarter and release</span></div><div class="status covered"><span class="pill">covered</span><b>Core release credits</b><span>WordPress.org credits API props by major release</span></div><div class="status covered"><span class="pill">covered</span><b>Core committers per release</b><span>GitHub tag-to-tag compare ranges by major release</span></div><div class="status covered"><span class="pill">covered</span><b>Core reopen rate</b><span>Quarterly Core Trac reopened status-change events</span></div><div class="status covered"><span class="pill">covered</span><b>Five for the Future</b><span>Current pledge organizations, hours, and listed profiles</span></div><div class="status partial"><span class="pill">partial</span><b>Newly detected sites</b><span>Current BuiltWith Net New Pipeline snapshot; historical trend still needs paid BuiltWith or HTTP Archive cohort queries</span></div><div class="status partial"><span class="pill">partial</span><b>Support forums</b><span>Current WordPress.org support queue snapshot; historical trend still needs a fuller export</span></div>
+      <div class="status covered"><span class="pill">covered</span><b>Core Trac tickets</b><span>64k tickets, status history, types, components, reporters</span></div><div class="status covered"><span class="pill">covered</span><b>Core first-response activity</b><span>Trac RSS first non-reporter activity for 2021-2026 tickets</span></div><div class="status covered"><span class="pill">covered</span><b>Gutenberg GitHub issues</b><span>32k issues with labels, state, authors, close dates</span></div><div class="status covered"><span class="pill">covered</span><b>Gutenberg response/reopen timelines</b><span>GitHub comment timestamps and reopened events</span></div><div class="status covered"><span class="pill">covered</span><b>wordpress-develop PRs</b><span>12k PRs with authors, dates, Trac links</span></div><div class="status covered"><span class="pill">covered</span><b>Ticket category classification</b><span>Bug, feature request, enhancement, task, and other categories</span></div><div class="status covered"><span class="pill">covered</span><b>W3Techs adoption</b><span>All-site usage and CMS market-share yearly trends</span></div><div class="status covered"><span class="pill">covered</span><b>HTTP Archive/Web Almanac</b><span>2025 CMS adoption snapshot and high-traffic context</span></div><div class="status covered"><span class="pill">covered</span><b>WordPress.org plugin/theme directories</b><span>Current plugin and theme counts</span></div><div class="status covered"><span class="pill">covered</span><b>Plugin/theme directory activity</b><span>Current new, updated, and popular samples from WordPress.org directory APIs</span></div><div class="status covered"><span class="pill">covered</span><b>WordCamp Central</b><span>Historical WordCamp event records</span></div><div class="status covered"><span class="pill">covered</span><b>WordPress Events</b><span>Current upcoming Meetup and WordCamp events</span></div><div class="status covered"><span class="pill">covered</span><b>Translate WordPress</b><span>Current locale team profile counts and Core dev translation status</span></div><div class="status covered"><span class="pill">covered</span><b>Make/Core posts</b><span>Post counts and author IDs</span></div><div class="status covered"><span class="pill">covered</span><b>Make/Core dev notes</b><span>Dev-note tagged posts by quarter and release</span></div><div class="status covered"><span class="pill">covered</span><b>Core release credits</b><span>WordPress.org credits API props by major release</span></div><div class="status covered"><span class="pill">covered</span><b>Core committers per release</b><span>GitHub tag-to-tag compare ranges by major release</span></div><div class="status covered"><span class="pill">covered</span><b>Core reopen rate</b><span>Quarterly Core Trac reopened status-change events</span></div><div class="status covered"><span class="pill">covered</span><b>Five for the Future</b><span>Current pledge organizations, hours, and listed profiles</span></div><div class="status partial"><span class="pill">partial</span><b>Newly detected sites</b><span>Current BuiltWith Net New Pipeline snapshot; historical trend still needs paid BuiltWith or HTTP Archive cohort queries</span></div><div class="status partial"><span class="pill">partial</span><b>Support forums</b><span>Current WordPress.org support queue snapshot; historical trend still needs a fuller export</span></div>
     </div>
   </section>
 
   <section class="footer">
-    <p>Generated 2026-06-13 23:32 UTC from local Core/Gutenberg exports and public sources.</p>
+    <p>Generated 2026-06-13 23:47 UTC from local Core/Gutenberg exports and public sources.</p>
     <p>Sources: <a href="https://w3techs.com/technologies/history_overview/content_management/all/y">W3Techs usage trend</a>, <a href="https://w3techs.com/technologies/history_overview/content_management/ms/y">W3Techs CMS market-share trend</a>, <a href="https://almanac.httparchive.org/en/2025/cms">HTTP Archive Web Almanac CMS 2025</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="https://events.wordpress.org/">WordPress Events</a>, <a href="https://translate.wordpress.org/">Translate WordPress</a>, <a href="https://make.wordpress.org/core/wp-json/wp/v2/posts">Make/Core REST API</a>, <a href="https://wordpress.org/support/view/all-topics/">WordPress.org support forums</a>, <a href="https://trends.builtwith.com/cms/WordPress">BuiltWith technology pages</a>, <a href="https://github.com/WordPress/gutenberg/issues">Gutenberg GitHub issues</a>, <a href="https://wordpress.org/five-for-the-future/pledges/">Five for the Future pledges</a>, <a href="https://wordpress.org/download/releases/">WordPress release archive</a>, and <a href="https://api.wordpress.org/core/credits/1.1/">Core credits API</a>.</p>
   </section>
 </main>

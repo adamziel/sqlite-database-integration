@@ -41,6 +41,8 @@ SOURCE_FILES = {
     "gutenberg_quarterly": GUT_ROOT / "quarterly_metrics.csv",
     "gutenberg_issues": GUT_ROOT / "issues_inventory.csv",
     "gutenberg_issues_jsonl": GUT_ROOT / "raw" / "issues_inventory.jsonl",
+    "gutenberg_timeline_metrics": ROOT / "gutenberg_issue_timeline_metrics.jsonl",
+    "gutenberg_timeline_quarterly": ROOT / "gutenberg_timeline_quarterly.csv",
     "classification_trend": CLASS_ROOT / "classification_trend_quarterly.csv",
     "classification_summary_core": CLASS_ROOT / "classification_summary_core.csv",
     "classification_summary_gutenberg": CLASS_ROOT / "classification_summary_gutenberg.csv",
@@ -871,11 +873,16 @@ def build_database(data, fetched):
     )
     gaps = [
         ("new_site_share", "missing", "BuiltWith paid trends or HTTP Archive cohort queries", "Current report uses all-site and CMS-share trends, not newly created site cohorts."),
-        ("gutenberg_first_response", "missing", "GitHub issue comments/timeline events", "Existing issue export has comment counts but not first comment timestamps."),
-        ("gutenberg_reopened_rate", "missing", "GitHub timeline events", "Existing issue export has current state and close date, not reopen transitions."),
         ("core_first_response", "missing", "Trac comments/change history with comment bodies", "Existing Core event export covers status transitions, not first non-reporter response."),
         ("support_forums", "missing", "WordPress.org support forum topic/resolution data", "Needs a dedicated source pull."),
     ]
+    if not data.get("gutenberg_timeline_quarterly"):
+        gaps.extend(
+            [
+                ("gutenberg_first_response", "missing", "GitHub issue comments/timeline events", "Existing issue export has comment counts but not first comment timestamps."),
+                ("gutenberg_reopened_rate", "missing", "GitHub timeline events", "Existing issue export has current state and close date, not reopen transitions."),
+            ]
+        )
     if not fetched.get("wp_events"):
         gaps.append(
             (
@@ -1246,6 +1253,7 @@ def source_status_rows(fetched):
     rows = [
         ("Core Trac tickets", "covered", "64k tickets, status history, types, components, reporters"),
         ("Gutenberg GitHub issues", "covered", "32k issues with labels, state, authors, close dates"),
+        ("Gutenberg response/reopen timelines", "covered" if SOURCE_FILES["gutenberg_timeline_quarterly"].exists() else "missing", "GitHub comment timestamps and reopened events"),
         ("wordpress-develop PRs", "covered", "12k PRs with authors, dates, Trac links"),
         ("Ticket category classification", "covered", "Bug, feature request, enhancement, task, and other categories"),
         ("W3Techs adoption", "covered" if fetched.get("market_share") else "missing", "All-site usage and CMS market-share yearly trends"),
@@ -1259,8 +1267,7 @@ def source_status_rows(fetched):
         ("Core reopen rate", "covered" if fetched.get("core_reopen_quarterly") else "missing", "Quarterly Core Trac reopened status-change events"),
         ("Five for the Future", "covered" if fetched.get("fttf_pledges") else "missing", "Current pledge organizations, hours, and listed profiles"),
         ("Newly created sites", "missing", "Needs BuiltWith cohort/trend data or HTTP Archive cohort queries"),
-        ("First response time", "missing", "Needs comments/timeline data for Core and Gutenberg"),
-        ("Gutenberg reopen rate", "missing", "Needs GitHub issue timeline events"),
+        ("Core first response time", "missing", "Needs Trac comments/change history with comment bodies"),
         ("Support forums", "missing", "Needs WordPress.org forum topic and resolution data"),
     ]
     return rows
@@ -1273,6 +1280,7 @@ def build_report(data, fetched):
     core_events = data["core_events"]
     gut_issues = data["gutenberg_issues"]
     gut_jsonl = data["gutenberg_issues_jsonl"]
+    gut_timeline_q = data["gutenberg_timeline_quarterly"]
     github_q = data["github_pr_quarterly"]
     github_prs = data["github_prs"]
     classifications = data["classification_trend"]
@@ -1333,7 +1341,17 @@ def build_report(data, fetched):
     release_committer_points = [(row["release_date"], num(row.get("committer_count"))) for row in release_committers]
     latest_release_committer = max(release_committers, key=lambda row: row.get("release_date", "")) if release_committers else {}
     latest_core_reopen = max(core_reopen_q, key=lambda row: row.get("quarter", "")) if core_reopen_q else {}
-    core_reopen_rate_points = point_series(core_reopen_q, "quarter", "reopened_events_per_100_closed")
+    latest_gut_timeline = max(gut_timeline_q, key=lambda row: row.get("quarter", "")) if gut_timeline_q else {}
+    core_reopen_rate_points = point_series(core_reopen_q, "quarter", "reopened_events_per_100_closed", "2021-01-01")
+    gut_reopen_rate_points = point_series(gut_timeline_q, "quarter", "reopened_events_per_100_closed", "2021-01-01")
+    gut_first_response_points = point_series(gut_timeline_q, "quarter", "median_first_non_author_response_hours", "2021-01-01")
+    gut_maintainer_response_points = point_series(gut_timeline_q, "quarter", "median_first_maintainer_response_hours", "2021-01-01")
+    max_reopen_rate = max(
+        [value for _date, value in core_reopen_rate_points + gut_reopen_rate_points] or [1]
+    )
+    max_gut_response_hours = max(
+        [value for _date, value in gut_first_response_points + gut_maintainer_response_points] or [1]
+    )
     fttf_snapshot = fttf_snapshots[0] if fttf_snapshots else {}
     top_fttf_pledges = sorted(fttf_pledges, key=lambda row: float(row.get("hours_per_week") or 0), reverse=True)[:8]
     max_fttf_hours = max([float(row.get("hours_per_week") or 0) for row in top_fttf_pledges] or [0])
@@ -1634,9 +1652,23 @@ p {{ margin:0 0 12px; }}
           {"label": "Core", "color": COLORS["core"], "points": core_close_age},
           {"label": "Gutenberg", "color": COLORS["gutenberg"], "points": gut_close_age},
       ])}
-      {svg_line_chart("Core reopen pressure by quarter", "Reopened status-change events per 100 closed Core tickets. Lower means fewer tickets coming back after closure.", [
-          {"label": "Reopens per 100 closes", "color": COLORS["red"], "points": core_reopen_rate_points},
-      ], y_suffix="%")}
+      {svg_line_chart("Gutenberg first response by quarter", "Median hours from issue creation to first non-author comment and first maintainer comment.", [
+          {"label": "Any non-author response", "color": COLORS["gutenberg"], "points": gut_first_response_points},
+          {"label": "Maintainer response", "color": COLORS["prs"], "points": gut_maintainer_response_points},
+      ], y_suffix="h")}
+    </div>
+    <div class="grid-2">
+      {svg_line_chart("Reopen pressure by quarter", "Reopened events per 100 closed tickets or issues. Lower means fewer items coming back after closure.", [
+          {"label": "Core", "color": COLORS["core"], "points": core_reopen_rate_points},
+          {"label": "Gutenberg", "color": COLORS["red"], "points": gut_reopen_rate_points},
+      ], y_suffix="/100")}
+      <div class="card">
+        <h3>Gutenberg timeline coverage</h3>
+        <p>GitHub GraphQL comment and reopen timelines are now stored for the same 32,135 issues used in the existing Gutenberg inventory.</p>
+        {horizontal_count_metric("Issue timeline rows", len(data["gutenberg_timeline_metrics"]), len(gut_jsonl) or 1, COLORS["gutenberg"], "")}
+        {horizontal_count_metric("Latest median first response", float(latest_gut_timeline.get("median_first_non_author_response_hours") or 0), max_gut_response_hours, COLORS["gutenberg"], "h")}
+        {horizontal_count_metric("Latest maintainer response", float(latest_gut_timeline.get("median_first_maintainer_response_hours") or 0), max_gut_response_hours, COLORS["prs"], "h")}
+      </div>
     </div>
     <div class="card">
       <h3>Backlog and reopen readout</h3>
@@ -1649,8 +1681,8 @@ p {{ margin:0 0 12px; }}
         </div>
         <div>
           {horizontal_count_metric("Latest Core reopen events", num(latest_core_reopen.get("reopened_events")), max([num(row.get("reopened_events")) for row in core_reopen_q] or [1]), COLORS["red"], "")}
-          {horizontal_metric("Latest Core reopens per 100 closes", float(latest_core_reopen.get("reopened_events_per_100_closed") or 0), 100, COLORS["red"])}
-          <p class="stat-note">Gutenberg reopen rate needs GitHub timeline events, which are not in the current export.</p>
+          {horizontal_count_metric("Latest Core reopens per 100 closes", float(latest_core_reopen.get("reopened_events_per_100_closed") or 0), max_reopen_rate, COLORS["core"], " /100 closes")}
+          {horizontal_count_metric("Latest Gutenberg reopens per 100 closes", float(latest_gut_timeline.get("reopened_events_per_100_closed") or 0), max_reopen_rate, COLORS["red"], " /100 closes")}
         </div>
       </div>
     </div>
@@ -1688,7 +1720,7 @@ p {{ margin:0 0 12px; }}
 
   <section class="footer">
     <p>Generated {dt.datetime.now(dt.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')} from local Core/Gutenberg exports and public sources.</p>
-    <p>Sources: <a href="{W3TECHS_USAGE_URL}">W3Techs usage trend</a>, <a href="{W3TECHS_MARKET_SHARE_URL}">W3Techs CMS market-share trend</a>, <a href="{HTTP_ARCHIVE_CMS_URL}">HTTP Archive Web Almanac CMS 2025</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="{EVENTS_WORDPRESS_URL}">WordPress Events</a>, <a href="https://make.wordpress.org/core/wp-json/wp/v2/posts">Make/Core REST API</a>, <a href="{FTTF_PLEDGES_URL}">Five for the Future pledges</a>, <a href="{RELEASE_ARCHIVE_URL}">WordPress release archive</a>, and <a href="{CREDITS_API}">Core credits API</a>.</p>
+    <p>Sources: <a href="{W3TECHS_USAGE_URL}">W3Techs usage trend</a>, <a href="{W3TECHS_MARKET_SHARE_URL}">W3Techs CMS market-share trend</a>, <a href="{HTTP_ARCHIVE_CMS_URL}">HTTP Archive Web Almanac CMS 2025</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="{EVENTS_WORDPRESS_URL}">WordPress Events</a>, <a href="https://make.wordpress.org/core/wp-json/wp/v2/posts">Make/Core REST API</a>, <a href="https://github.com/WordPress/gutenberg/issues">Gutenberg GitHub issues</a>, <a href="{FTTF_PLEDGES_URL}">Five for the Future pledges</a>, <a href="{RELEASE_ARCHIVE_URL}">WordPress release archive</a>, and <a href="{CREDITS_API}">Core credits API</a>.</p>
   </section>
 </main>
 </body>

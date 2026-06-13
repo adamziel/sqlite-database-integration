@@ -63,6 +63,8 @@ WORDCAMP_API = "https://central.wordcamp.org/wp-json/wp/v2/wordcamps"
 EVENTS_WORDPRESS_URL = "https://events.wordpress.org/"
 MAKE_CORE_API = "https://make.wordpress.org/core/wp-json/wp/v2/posts"
 MAKE_CORE_TAGS_API = "https://make.wordpress.org/core/wp-json/wp/v2/tags"
+TRANSLATE_LOCALES_URL = "https://translate.wordpress.org/"
+TRANSLATE_CORE_DEV_URL = "https://translate.wordpress.org/projects/wp/dev/"
 FTTF_PLEDGES_URL = "https://wordpress.org/five-for-the-future/pledges/"
 RELEASE_ARCHIVE_URL = "https://wordpress.org/download/releases/"
 CREDITS_API = "https://api.wordpress.org/core/credits/1.1/"
@@ -334,6 +336,17 @@ def parse_percent(value):
     return float(value.rstrip("%"))
 
 
+def strip_html(value):
+    value = re.sub(r"<[^>]+>", " ", str(value or ""))
+    value = html.unescape(value)
+    return re.sub(r"\s+", " ", value).strip()
+
+
+def parse_count(value):
+    cleaned = re.sub(r"[^\d.-]", "", str(value or ""))
+    return num(cleaned)
+
+
 def parse_w3techs_hist_rows(body):
     match = re.search(r"<table class=hist>(.*?)</table>", body, re.S)
     if not match:
@@ -536,6 +549,105 @@ def fetch_make_core_posts(skip_network=False):
         page += 1
         time.sleep(0.05)
     return rows
+
+
+def parse_translate_locale_cards(body, source_url):
+    rows = []
+    for match in re.finditer(r'<div class="locale percent-(\d+)">(.*?)(?=<div class="locale percent-|\Z)', body, re.S):
+        percent = int(match.group(1))
+        block = match.group(2)
+        english_match = re.search(r'<li class="english"><a href="([^"]+)">(.*?)</a></li>', block, re.S)
+        native_match = re.search(r'<li class="native"><a href="[^"]+">(.*?)</a></li>', block, re.S)
+        code_match = re.search(r'<li class="code"><a href="[^"]+">(.*?)</a></li>', block, re.S)
+        contributor_match = re.search(r'<div class="contributors">.*?<br\s*/>\s*([\d,]+)\s*</a>', block, re.S)
+        if not english_match or not code_match:
+            continue
+        locale_path = english_match.group(1)
+        rows.append(
+            {
+                "snapshot_date": END.date().isoformat(),
+                "locale": strip_html(english_match.group(2)),
+                "native_name": strip_html(native_match.group(1)) if native_match else "",
+                "locale_code": strip_html(code_match.group(1)),
+                "contributors": parse_count(contributor_match.group(1)) if contributor_match else 0,
+                "percent_complete": percent,
+                "locale_url": urllib.parse.urljoin(source_url, locale_path),
+                "team_url": f"https://make.wordpress.org/polyglots/teams/?locale={strip_html(code_match.group(1))}",
+                "source_url": source_url,
+            }
+        )
+    return rows
+
+
+def parse_translate_core_dev_table(body, source_url):
+    match = re.search(r'<table class="gp-table translation-sets">(.*?)</table>', body, re.S)
+    if not match:
+        return []
+    table = match.group(1)
+    rows = []
+    for row_html in re.findall(r"<tr>(.*?)</tr>", table, re.S):
+        href_match = re.search(r'<a href="(/projects/wp/dev/([^/]+)/default/)">(.*?)</a>', row_html, re.S)
+        if not href_match:
+            continue
+        percent_match = re.search(r'<td class="stats percent">\s*([^<]+)\s*</td>', row_html, re.S)
+
+        def count_for(cls):
+            cls_match = re.search(rf'<td class="stats {cls}"[^>]*>.*?<a [^>]*>(.*?)</a>', row_html, re.S)
+            return parse_count(cls_match.group(1)) if cls_match else 0
+
+        rows.append(
+            {
+                "snapshot_date": END.date().isoformat(),
+                "locale": strip_html(href_match.group(3)),
+                "locale_code": href_match.group(2),
+                "percent_complete": parse_percent(strip_html(percent_match.group(1))) if percent_match else 0,
+                "translated": count_for("translated"),
+                "fuzzy": count_for("fuzzy"),
+                "untranslated": count_for("untranslated"),
+                "waiting": count_for("waiting"),
+                "locale_url": urllib.parse.urljoin(source_url, href_match.group(1)),
+                "source_url": source_url,
+            }
+        )
+    return rows
+
+
+def fetch_translation_snapshots(skip_network=False):
+    if skip_network:
+        return [], [], []
+    locale_rows = []
+    core_rows = []
+    try:
+        locale_body, _headers = fetch_text(TRANSLATE_LOCALES_URL)
+        locale_rows = parse_translate_locale_cards(locale_body, TRANSLATE_LOCALES_URL)
+    except Exception as exc:
+        eprint(f"translate locale fetch failed: {exc}")
+    try:
+        core_body, _headers = fetch_text(TRANSLATE_CORE_DEV_URL)
+        core_rows = parse_translate_core_dev_table(core_body, TRANSLATE_CORE_DEV_URL)
+    except Exception as exc:
+        eprint(f"translate Core dev fetch failed: {exc}")
+    snapshots = []
+    if locale_rows or core_rows:
+        snapshots.append(
+            {
+                "snapshot_date": END.date().isoformat(),
+                "locale_count": len(locale_rows),
+                "locale_contributor_profile_sum": sum(num(row.get("contributors")) for row in locale_rows),
+                "locales_90_plus": sum(1 for row in locale_rows if num(row.get("percent_complete")) >= 90),
+                "locales_50_to_89": sum(1 for row in locale_rows if 50 <= num(row.get("percent_complete")) < 90),
+                "locales_under_50": sum(1 for row in locale_rows if num(row.get("percent_complete")) < 50),
+                "core_dev_locale_count": len(core_rows),
+                "core_dev_100": sum(1 for row in core_rows if float(row.get("percent_complete") or 0) >= 100),
+                "core_dev_90_plus": sum(1 for row in core_rows if float(row.get("percent_complete") or 0) >= 90),
+                "core_dev_50_to_89": sum(1 for row in core_rows if 50 <= float(row.get("percent_complete") or 0) < 90),
+                "core_dev_under_50": sum(1 for row in core_rows if float(row.get("percent_complete") or 0) < 50),
+                "core_dev_waiting_strings": sum(num(row.get("waiting")) for row in core_rows),
+                "source_url": TRANSLATE_LOCALES_URL,
+                "core_dev_source_url": TRANSLATE_CORE_DEV_URL,
+            }
+        )
+    return snapshots, locale_rows, core_rows
 
 
 def fetch_make_core_dev_note_tags(skip_network=False):
@@ -1099,6 +1211,15 @@ def build_database(data, fetched):
                 "Core credits are included, but credited contributors are not the same as committers.",
             )
         )
+    if not fetched.get("translation_locale_snapshot"):
+        gaps.append(
+            (
+                "translation_contributors",
+                "missing",
+                "translate.wordpress.org locale and Core project status pages",
+                "Needs locale-level translation team and Core development translation status data.",
+            )
+        )
     if not fetched.get("make_core_dev_notes"):
         gaps.append(
             (
@@ -1460,6 +1581,7 @@ def source_status_rows(fetched):
         ("WordPress.org plugin/theme directories", "covered" if fetched.get("directory_snapshots") else "missing", "Current plugin and theme counts"),
         ("WordCamp Central", "covered" if fetched.get("wordcamps") else "missing", "Historical WordCamp event records"),
         ("WordPress Events", "covered" if fetched.get("wp_events") else "missing", "Current upcoming Meetup and WordCamp events"),
+        ("Translate WordPress", "covered" if fetched.get("translation_locale_snapshot") else "missing", "Current locale team profile counts and Core dev translation status"),
         ("Make/Core posts", "covered" if fetched.get("make_core_posts") else "missing", "Post counts and author IDs"),
         ("Make/Core dev notes", "covered" if fetched.get("make_core_dev_notes") else "missing", "Dev-note tagged posts by quarter and release"),
         ("Core release credits", "covered" if fetched.get("core_release_credits") else "missing", "WordPress.org credits API props by major release"),
@@ -1497,6 +1619,9 @@ def build_report(data, fetched):
     wp_event_snapshots = fetched.get("wp_event_snapshots", [])
     wp_events = fetched.get("wp_events", [])
     make_posts = fetched.get("make_core_posts", [])
+    translation_snapshots = fetched.get("translation_snapshots", [])
+    translation_locales = fetched.get("translation_locale_snapshot", [])
+    translation_core_dev = fetched.get("translation_core_dev_status", [])
     make_dev_notes = fetched.get("make_core_dev_notes", [])
     make_dev_note_quarterly = fetched.get("make_core_dev_note_quarterly", [])
     make_dev_note_releases = fetched.get("make_core_dev_note_releases", [])
@@ -1552,6 +1677,11 @@ def build_report(data, fetched):
     dev_note_quarter_points = point_series(make_dev_note_quarterly, "quarter", "dev_notes", "2008-01-01")
     dev_note_author_points = point_series(make_dev_note_quarterly, "quarter", "unique_authors", "2008-01-01")
     wordcamp_years = count_by_year(wordcamps, "start_date")
+    translation_snapshot = translation_snapshots[0] if translation_snapshots else {}
+    top_translation_locales = sorted(translation_locales, key=lambda row: num(row.get("contributors")), reverse=True)[:8]
+    max_translation_contributors = max([num(row.get("contributors")) for row in top_translation_locales] or [0])
+    translation_locale_count = max(1, num(translation_snapshot.get("locale_count")))
+    translation_core_count = max(1, num(translation_snapshot.get("core_dev_locale_count")))
     release_credit_points = [(row["release_date"], num(row.get("props_count"))) for row in release_credits]
     release_noteworthy_points = [(row["release_date"], num(row.get("noteworthy_count"))) for row in release_credits]
     latest_release_credit = max(release_credits, key=lambda row: row.get("release_date", "")) if release_credits else {}
@@ -1818,6 +1948,41 @@ p {{ margin:0 0 12px; }}
       ])}
     </div>
     <div class="grid-2">
+      <div class="card">
+        <h3>Translate WordPress snapshot</h3>
+        <p>Current translate.wordpress.org locale directory. Contributor counts are locale-team profile counts, not globally deduplicated people.</p>
+        <div class="stats">
+          {stat_card("Locales", compact(num(translation_snapshot.get("locale_count"))), "listed locale teams", "good")}
+          {stat_card("Profile counts", compact(num(translation_snapshot.get("locale_contributor_profile_sum"))), "sum across locale teams", "good")}
+          {stat_card("90%+ locales", compact(num(translation_snapshot.get("locales_90_plus"))), "locale directory completion", "good")}
+          {stat_card("Core dev 90%+", compact(num(translation_snapshot.get("core_dev_90_plus"))), "WordPress dev project", "soft")}
+        </div>
+        {horizontal_count_metric("Locale directory 90%+", num(translation_snapshot.get("locales_90_plus")), translation_locale_count, COLORS["green"], " locales")}
+        {horizontal_count_metric("Locale directory 50-89%", num(translation_snapshot.get("locales_50_to_89")), translation_locale_count, COLORS["orange"], " locales")}
+        {horizontal_count_metric("Locale directory under 50%", num(translation_snapshot.get("locales_under_50")), translation_locale_count, COLORS["red"], " locales")}
+      </div>
+      <div class="card">
+        <h3>Core dev translation status</h3>
+        <p>Current WordPress Core development project translation status by locale.</p>
+        {horizontal_count_metric("100% complete", num(translation_snapshot.get("core_dev_100")), translation_core_count, COLORS["green"], " locales")}
+        {horizontal_count_metric("90%+ complete", num(translation_snapshot.get("core_dev_90_plus")), translation_core_count, COLORS["core"], " locales")}
+        {horizontal_count_metric("50-89% complete", num(translation_snapshot.get("core_dev_50_to_89")), translation_core_count, COLORS["orange"], " locales")}
+        {horizontal_count_metric("Under 50%", num(translation_snapshot.get("core_dev_under_50")), translation_core_count, COLORS["red"], " locales")}
+        {stat_card("Waiting strings", compact(num(translation_snapshot.get("core_dev_waiting_strings"))), "all Core dev locales", "watch")}
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Largest locale teams</h3>
+        <p>Top locale teams by listed profile count in the current Translate WordPress directory.</p>
+        {''.join(horizontal_count_metric(str(row.get("locale", "")), num(row.get("contributors")), max_translation_contributors, COLORS["member"], " profiles") for row in top_translation_locales)}
+      </div>
+      <div class="card">
+        <h3>Translation readout</h3>
+        <p>Translation activity is broad and ongoing. The current snapshot shows many locale teams, but Core development coverage is uneven because every active development branch creates new strings.</p>
+      </div>
+    </div>
+    <div class="grid-2">
       {svg_line_chart("Upcoming WordPress events by month", "Current events.wordpress.org listing, including Meetups and WordCamps.", [
           {"label": "All events", "color": COLORS["core"], "points": event_month_points},
           {"label": "Meetups", "color": COLORS["gutenberg"], "points": meetup_month_points},
@@ -2025,7 +2190,7 @@ p {{ margin:0 0 12px; }}
 
   <section class="footer">
     <p>Generated {dt.datetime.now(dt.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')} from local Core/Gutenberg exports and public sources.</p>
-    <p>Sources: <a href="{W3TECHS_USAGE_URL}">W3Techs usage trend</a>, <a href="{W3TECHS_MARKET_SHARE_URL}">W3Techs CMS market-share trend</a>, <a href="{HTTP_ARCHIVE_CMS_URL}">HTTP Archive Web Almanac CMS 2025</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="{EVENTS_WORDPRESS_URL}">WordPress Events</a>, <a href="https://make.wordpress.org/core/wp-json/wp/v2/posts">Make/Core REST API</a>, <a href="https://wordpress.org/support/view/all-topics/">WordPress.org support forums</a>, <a href="https://trends.builtwith.com/cms/WordPress">BuiltWith technology pages</a>, <a href="https://github.com/WordPress/gutenberg/issues">Gutenberg GitHub issues</a>, <a href="{FTTF_PLEDGES_URL}">Five for the Future pledges</a>, <a href="{RELEASE_ARCHIVE_URL}">WordPress release archive</a>, and <a href="{CREDITS_API}">Core credits API</a>.</p>
+    <p>Sources: <a href="{W3TECHS_USAGE_URL}">W3Techs usage trend</a>, <a href="{W3TECHS_MARKET_SHARE_URL}">W3Techs CMS market-share trend</a>, <a href="{HTTP_ARCHIVE_CMS_URL}">HTTP Archive Web Almanac CMS 2025</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="{EVENTS_WORDPRESS_URL}">WordPress Events</a>, <a href="{TRANSLATE_LOCALES_URL}">Translate WordPress</a>, <a href="https://make.wordpress.org/core/wp-json/wp/v2/posts">Make/Core REST API</a>, <a href="https://wordpress.org/support/view/all-topics/">WordPress.org support forums</a>, <a href="https://trends.builtwith.com/cms/WordPress">BuiltWith technology pages</a>, <a href="https://github.com/WordPress/gutenberg/issues">Gutenberg GitHub issues</a>, <a href="{FTTF_PLEDGES_URL}">Five for the Future pledges</a>, <a href="{RELEASE_ARCHIVE_URL}">WordPress release archive</a>, and <a href="{CREDITS_API}">Core credits API</a>.</p>
   </section>
 </main>
 </body>
@@ -2049,6 +2214,11 @@ def main():
     fetched["directory_snapshots"] = fetch_wordpress_directory_snapshots(args.skip_network)
     fetched["wordcamps"] = fetch_wordcamps(args.skip_network)
     fetched["wp_event_snapshots"], fetched["wp_events"] = fetch_wordpress_events(args.skip_network)
+    (
+        fetched["translation_snapshots"],
+        fetched["translation_locale_snapshot"],
+        fetched["translation_core_dev_status"],
+    ) = fetch_translation_snapshots(args.skip_network)
     fetched["make_core_posts"] = fetch_make_core_posts(args.skip_network)
     fetched["make_core_dev_note_tags"] = fetch_make_core_dev_note_tags(args.skip_network)
     (

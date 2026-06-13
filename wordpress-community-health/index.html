@@ -405,6 +405,106 @@ p { margin:0 0 12px; }
 </svg>
     </div>
     <div class="grid-2">
+      <div class="card">
+        <h3>Translate WordPress snapshot</h3>
+        <p>Current translate.wordpress.org locale directory. Contributor counts are locale-team profile counts, not globally deduplicated people.</p>
+        <div class="stats">
+          <div class="stat good">
+      <div class="stat-label">Locales</div>
+      <div class="stat-value">202</div>
+      <div class="stat-note">listed locale teams</div>
+    </div>
+          <div class="stat good">
+      <div class="stat-label">Profile counts</div>
+      <div class="stat-value">83.6k</div>
+      <div class="stat-note">sum across locale teams</div>
+    </div>
+          <div class="stat good">
+      <div class="stat-label">90%+ locales</div>
+      <div class="stat-value">65</div>
+      <div class="stat-note">locale directory completion</div>
+    </div>
+          <div class="stat soft">
+      <div class="stat-label">Core dev 90%+</div>
+      <div class="stat-value">63</div>
+      <div class="stat-note">WordPress dev project</div>
+    </div>
+        </div>
+        <div class="hmetric">
+      <div class="hmetric-top"><span>Locale directory 90%+</span><strong>65 locales</strong></div>
+      <div class="bar"><span style="width:32.2%;background:#16a34a"></span></div>
+    </div>
+        <div class="hmetric">
+      <div class="hmetric-top"><span>Locale directory 50-89%</span><strong>39 locales</strong></div>
+      <div class="bar"><span style="width:19.3%;background:#ea580c"></span></div>
+    </div>
+        <div class="hmetric">
+      <div class="hmetric-top"><span>Locale directory under 50%</span><strong>98 locales</strong></div>
+      <div class="bar"><span style="width:48.5%;background:#dc2626"></span></div>
+    </div>
+      </div>
+      <div class="card">
+        <h3>Core dev translation status</h3>
+        <p>Current WordPress Core development project translation status by locale.</p>
+        <div class="hmetric">
+      <div class="hmetric-top"><span>100% complete</span><strong>38 locales</strong></div>
+      <div class="bar"><span style="width:18.8%;background:#16a34a"></span></div>
+    </div>
+        <div class="hmetric">
+      <div class="hmetric-top"><span>90%+ complete</span><strong>63 locales</strong></div>
+      <div class="bar"><span style="width:31.2%;background:#2563eb"></span></div>
+    </div>
+        <div class="hmetric">
+      <div class="hmetric-top"><span>50-89% complete</span><strong>38 locales</strong></div>
+      <div class="bar"><span style="width:18.8%;background:#ea580c"></span></div>
+    </div>
+        <div class="hmetric">
+      <div class="hmetric-top"><span>Under 50%</span><strong>101 locales</strong></div>
+      <div class="bar"><span style="width:50.0%;background:#dc2626"></span></div>
+    </div>
+        <div class="stat watch">
+      <div class="stat-label">Waiting strings</div>
+      <div class="stat-value">28.2k</div>
+      <div class="stat-note">all Core dev locales</div>
+    </div>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Largest locale teams</h3>
+        <p>Top locale teams by listed profile count in the current Translate WordPress directory.</p>
+        <div class="hmetric">
+      <div class="hmetric-top"><span>German</span><strong>7,654 profiles</strong></div>
+      <div class="bar"><span style="width:100.0%;background:#0891b2"></span></div>
+    </div><div class="hmetric">
+      <div class="hmetric-top"><span>Spanish (Spain)</span><strong>6,594 profiles</strong></div>
+      <div class="bar"><span style="width:86.2%;background:#0891b2"></span></div>
+    </div><div class="hmetric">
+      <div class="hmetric-top"><span>Russian</span><strong>4,941 profiles</strong></div>
+      <div class="bar"><span style="width:64.6%;background:#0891b2"></span></div>
+    </div><div class="hmetric">
+      <div class="hmetric-top"><span>Italian</span><strong>4,800 profiles</strong></div>
+      <div class="bar"><span style="width:62.7%;background:#0891b2"></span></div>
+    </div><div class="hmetric">
+      <div class="hmetric-top"><span>Dutch</span><strong>4,710 profiles</strong></div>
+      <div class="bar"><span style="width:61.5%;background:#0891b2"></span></div>
+    </div><div class="hmetric">
+      <div class="hmetric-top"><span>French (France)</span><strong>4,673 profiles</strong></div>
+      <div class="bar"><span style="width:61.1%;background:#0891b2"></span></div>
+    </div><div class="hmetric">
+      <div class="hmetric-top"><span>Portuguese (Brazil)</span><strong>2,628 profiles</strong></div>
+      <div class="bar"><span style="width:34.3%;background:#0891b2"></span></div>
+    </div><div class="hmetric">
+      <div class="hmetric-top"><span>Polish</span><strong>2,194 profiles</strong></div>
+      <div class="bar"><span style="width:28.7%;background:#0891b2"></span></div>
+    </div>
+      </div>
+      <div class="card">
+        <h3>Translation readout</h3>
+        <p>Translation activity is broad and ongoing. The current snapshot shows many locale teams, but Core development coverage is uneven because every active development branch creates new strings.</p>
+      </div>
+    </div>
+    <div class="grid-2">
       <svg class="chart" viewBox="0 0 980 330" role="img" aria-label="Upcoming WordPress events by month">
 <text x="72" y="28" class="chart-title">Upcoming WordPress events by month</text>
 <text x="72" y="50" class="chart-note">Current events.wordpress.org listing, including Meetups and WordCamps.</text>
@@ -1289,13 +1389,13 @@ p { margin:0 0 12px; }
     <h2>Source Coverage</h2>
     <p class="callout">The SQLite database stores imported source tables, fetched ecosystem/adoption records, file hashes, and explicit source gaps. Download: <a href="community_health.sqlite.gz">community_health.sqlite.gz</a>.</p>
     <div class="status-grid">
-      <div class="status covered"><span class="pill">covered</span><b>Core Trac tickets</b><span>64k tickets, status history, types, components, reporters</span></div><div class="status covered"><span class="pill">covered</span><b>Core first-response activity</b><span>Trac RSS first non-reporter activity for 2021-2026 tickets</span></div><div class="status covered"><span class="pill">covered</span><b>Gutenberg GitHub issues</b><span>32k issues with labels, state, authors, close dates</span></div><div class="status covered"><span class="pill">covered</span><b>Gutenberg response/reopen timelines</b><span>GitHub comment timestamps and reopened events</span></div><div class="status covered"><span class="pill">covered</span><b>wordpress-develop PRs</b><span>12k PRs with authors, dates, Trac links</span></div><div class="status covered"><span class="pill">covered</span><b>Ticket category classification</b><span>Bug, feature request, enhancement, task, and other categories</span></div><div class="status covered"><span class="pill">covered</span><b>W3Techs adoption</b><span>All-site usage and CMS market-share yearly trends</span></div><div class="status covered"><span class="pill">covered</span><b>HTTP Archive/Web Almanac</b><span>2025 CMS adoption snapshot and high-traffic context</span></div><div class="status covered"><span class="pill">covered</span><b>WordPress.org plugin/theme directories</b><span>Current plugin and theme counts</span></div><div class="status covered"><span class="pill">covered</span><b>WordCamp Central</b><span>Historical WordCamp event records</span></div><div class="status covered"><span class="pill">covered</span><b>WordPress Events</b><span>Current upcoming Meetup and WordCamp events</span></div><div class="status covered"><span class="pill">covered</span><b>Make/Core posts</b><span>Post counts and author IDs</span></div><div class="status covered"><span class="pill">covered</span><b>Make/Core dev notes</b><span>Dev-note tagged posts by quarter and release</span></div><div class="status covered"><span class="pill">covered</span><b>Core release credits</b><span>WordPress.org credits API props by major release</span></div><div class="status covered"><span class="pill">covered</span><b>Core committers per release</b><span>GitHub tag-to-tag compare ranges by major release</span></div><div class="status covered"><span class="pill">covered</span><b>Core reopen rate</b><span>Quarterly Core Trac reopened status-change events</span></div><div class="status covered"><span class="pill">covered</span><b>Five for the Future</b><span>Current pledge organizations, hours, and listed profiles</span></div><div class="status partial"><span class="pill">partial</span><b>Newly detected sites</b><span>Current BuiltWith Net New Pipeline snapshot; historical trend still needs paid BuiltWith or HTTP Archive cohort queries</span></div><div class="status partial"><span class="pill">partial</span><b>Support forums</b><span>Current WordPress.org support queue snapshot; historical trend still needs a fuller export</span></div>
+      <div class="status covered"><span class="pill">covered</span><b>Core Trac tickets</b><span>64k tickets, status history, types, components, reporters</span></div><div class="status covered"><span class="pill">covered</span><b>Core first-response activity</b><span>Trac RSS first non-reporter activity for 2021-2026 tickets</span></div><div class="status covered"><span class="pill">covered</span><b>Gutenberg GitHub issues</b><span>32k issues with labels, state, authors, close dates</span></div><div class="status covered"><span class="pill">covered</span><b>Gutenberg response/reopen timelines</b><span>GitHub comment timestamps and reopened events</span></div><div class="status covered"><span class="pill">covered</span><b>wordpress-develop PRs</b><span>12k PRs with authors, dates, Trac links</span></div><div class="status covered"><span class="pill">covered</span><b>Ticket category classification</b><span>Bug, feature request, enhancement, task, and other categories</span></div><div class="status covered"><span class="pill">covered</span><b>W3Techs adoption</b><span>All-site usage and CMS market-share yearly trends</span></div><div class="status covered"><span class="pill">covered</span><b>HTTP Archive/Web Almanac</b><span>2025 CMS adoption snapshot and high-traffic context</span></div><div class="status covered"><span class="pill">covered</span><b>WordPress.org plugin/theme directories</b><span>Current plugin and theme counts</span></div><div class="status covered"><span class="pill">covered</span><b>WordCamp Central</b><span>Historical WordCamp event records</span></div><div class="status covered"><span class="pill">covered</span><b>WordPress Events</b><span>Current upcoming Meetup and WordCamp events</span></div><div class="status covered"><span class="pill">covered</span><b>Translate WordPress</b><span>Current locale team profile counts and Core dev translation status</span></div><div class="status covered"><span class="pill">covered</span><b>Make/Core posts</b><span>Post counts and author IDs</span></div><div class="status covered"><span class="pill">covered</span><b>Make/Core dev notes</b><span>Dev-note tagged posts by quarter and release</span></div><div class="status covered"><span class="pill">covered</span><b>Core release credits</b><span>WordPress.org credits API props by major release</span></div><div class="status covered"><span class="pill">covered</span><b>Core committers per release</b><span>GitHub tag-to-tag compare ranges by major release</span></div><div class="status covered"><span class="pill">covered</span><b>Core reopen rate</b><span>Quarterly Core Trac reopened status-change events</span></div><div class="status covered"><span class="pill">covered</span><b>Five for the Future</b><span>Current pledge organizations, hours, and listed profiles</span></div><div class="status partial"><span class="pill">partial</span><b>Newly detected sites</b><span>Current BuiltWith Net New Pipeline snapshot; historical trend still needs paid BuiltWith or HTTP Archive cohort queries</span></div><div class="status partial"><span class="pill">partial</span><b>Support forums</b><span>Current WordPress.org support queue snapshot; historical trend still needs a fuller export</span></div>
     </div>
   </section>
 
   <section class="footer">
-    <p>Generated 2026-06-13 23:22 UTC from local Core/Gutenberg exports and public sources.</p>
-    <p>Sources: <a href="https://w3techs.com/technologies/history_overview/content_management/all/y">W3Techs usage trend</a>, <a href="https://w3techs.com/technologies/history_overview/content_management/ms/y">W3Techs CMS market-share trend</a>, <a href="https://almanac.httparchive.org/en/2025/cms">HTTP Archive Web Almanac CMS 2025</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="https://events.wordpress.org/">WordPress Events</a>, <a href="https://make.wordpress.org/core/wp-json/wp/v2/posts">Make/Core REST API</a>, <a href="https://wordpress.org/support/view/all-topics/">WordPress.org support forums</a>, <a href="https://trends.builtwith.com/cms/WordPress">BuiltWith technology pages</a>, <a href="https://github.com/WordPress/gutenberg/issues">Gutenberg GitHub issues</a>, <a href="https://wordpress.org/five-for-the-future/pledges/">Five for the Future pledges</a>, <a href="https://wordpress.org/download/releases/">WordPress release archive</a>, and <a href="https://api.wordpress.org/core/credits/1.1/">Core credits API</a>.</p>
+    <p>Generated 2026-06-13 23:32 UTC from local Core/Gutenberg exports and public sources.</p>
+    <p>Sources: <a href="https://w3techs.com/technologies/history_overview/content_management/all/y">W3Techs usage trend</a>, <a href="https://w3techs.com/technologies/history_overview/content_management/ms/y">W3Techs CMS market-share trend</a>, <a href="https://almanac.httparchive.org/en/2025/cms">HTTP Archive Web Almanac CMS 2025</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="https://events.wordpress.org/">WordPress Events</a>, <a href="https://translate.wordpress.org/">Translate WordPress</a>, <a href="https://make.wordpress.org/core/wp-json/wp/v2/posts">Make/Core REST API</a>, <a href="https://wordpress.org/support/view/all-topics/">WordPress.org support forums</a>, <a href="https://trends.builtwith.com/cms/WordPress">BuiltWith technology pages</a>, <a href="https://github.com/WordPress/gutenberg/issues">Gutenberg GitHub issues</a>, <a href="https://wordpress.org/five-for-the-future/pledges/">Five for the Future pledges</a>, <a href="https://wordpress.org/download/releases/">WordPress release archive</a>, and <a href="https://api.wordpress.org/core/credits/1.1/">Core credits API</a>.</p>
   </section>
 </main>
 </body>

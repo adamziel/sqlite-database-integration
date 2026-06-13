@@ -1,0 +1,1044 @@
+{
+  "worst_flow": [
+    "admin_order_read",
+    "checkout-heavy",
+    4,
+    26920.290677498997
+  ],
+  "ok_flows": 10911,
+  "attempted_flows": 11040,
+  "failed_flows": 129,
+  "failed_flow_rate": 0.011684782608695652,
+  "write_verification_failures": 0,
+  "lock_waits": 149,
+  "status_counts": {
+    "200": 18156,
+    "0": 129
+  },
+  "error_counts": {
+    "TimeoutError:timed out": 129
+  },
+  "semantic_error_counts": {},
+  "server_error_statuses": 0,
+  "server_error_rate": 0.0,
+  "client_timeout_statuses": 129,
+  "failures_by_flow": [
+    {
+      "flow": "admin_order_read",
+      "failures": 129
+    }
+  ],
+  "failure_cases": [
+    {
+      "case_id": "rep1_mysql84-hpos-fast_admin-orders_c4",
+      "workload": "admin-orders",
+      "concurrency": 4,
+      "ok_flows": 54,
+      "failed_flows": 8,
+      "failure_rate": 0.12903225806451613,
+      "status_counts": {
+        "0": 8,
+        "200": 99
+      },
+      "error_counts": {
+        "TimeoutError:timed out": 8
+      },
+      "failures_by_flow": {
+        "admin_order_read": 8
+      }
+    },
+    {
+      "case_id": "rep1_mysql84-hpos-fast_admin-orders_c16",
+      "workload": "admin-orders",
+      "concurrency": 16,
+      "ok_flows": 122,
+      "failed_flows": 32,
+      "failure_rate": 0.2077922077922078,
+      "status_counts": {
+        "0": 32,
+        "200": 224
+      },
+      "error_counts": {
+        "TimeoutError:timed out": 32
+      },
+      "failures_by_flow": {
+        "admin_order_read": 32
+      }
+    },
+    {
+      "case_id": "rep1_mysql84-hpos-fast_admin-orders_c32",
+      "workload": "admin-orders",
+      "concurrency": 32,
+      "ok_flows": 251,
+      "failed_flows": 58,
+      "failure_rate": 0.18770226537216828,
+      "status_counts": {
+        "0": 58,
+        "200": 407
+      },
+      "error_counts": {
+        "TimeoutError:timed out": 58
+      },
+      "failures_by_flow": {
+        "admin_order_read": 58
+      }
+    },
+    {
+      "case_id": "rep1_mysql84-hpos-fast_checkout-heavy_c4",
+      "workload": "checkout-heavy",
+      "concurrency": 4,
+      "ok_flows": 161,
+      "failed_flows": 4,
+      "failure_rate": 0.024242424242424242,
+      "status_counts": {
+        "0": 4,
+        "200": 570
+      },
+      "error_counts": {
+        "TimeoutError:timed out": 4
+      },
+      "failures_by_flow": {
+        "admin_order_read": 4
+      }
+    },
+    {
+      "case_id": "rep1_mysql84-hpos-fast_checkout-heavy_c16",
+      "workload": "checkout-heavy",
+      "concurrency": 16,
+      "ok_flows": 459,
+      "failed_flows": 18,
+      "failure_rate": 0.03773584905660377,
+      "status_counts": {
+        "0": 18,
+        "200": 1653
+      },
+      "error_counts": {
+        "TimeoutError:timed out": 18
+      },
+      "failures_by_flow": {
+        "admin_order_read": 18
+      }
+    },
+    {
+      "case_id": "rep1_mysql84-hpos-fast_checkout-heavy_c32",
+      "workload": "checkout-heavy",
+      "concurrency": 32,
+      "ok_flows": 568,
+      "failed_flows": 9,
+      "failure_rate": 0.01559792027729636,
+      "status_counts": {
+        "0": 9,
+        "200": 2004
+      },
+      "error_counts": {
+        "TimeoutError:timed out": 9
+      },
+      "failures_by_flow": {
+        "admin_order_read": 9
+      }
+    }
+  ],
+  "top_fingerprints": [
+    {
+      "fingerprint": "f0fbdbb1fb2dc459",
+      "count": 3,
+      "total_ms": 133406.25095367432,
+      "avg_ms": 44468.75031789144,
+      "p95_ms": 51076.514172554016,
+      "max_ms": 52146.543979644775,
+      "caller": "do_action('woocommerce_page_wc-orders')",
+      "sql": "SELECT wp_wc_orders.id FROM wp_wc_orders WHERE ?=? AND (wp_wc_orders.status IN ('?','?','?','?','?','?','?')) AND (wp_wc_orders.type = '?') AND ( ( `wp_wc_orders`.transaction_id LIKE '?' OR `wp_wc_orders`.billing_email LIKE '?' OR `wp_wc_orders`.id IN ( SELECT search_query_meta.order_id FROM wp_wc_orders_meta as search_query_meta WHERE search_query_meta.meta_key IN ( '?','?' ) AND search_query_meta.meta_value LIKE '?' GROUP BY search_query_meta.order_id ) OR wp_wc_orders.id in ( SELECT order_id FROM wp_woocommerce_order_items search_query_items WHERE search_query_items.order_item_name LIKE '?' ) ) ) GROUP BY wp_wc_orders.id ORDER BY wp_wc_orders.date_created_gmt DESC LIMIT ?, ?",
+      "total_ms_all_cases": 580041.1591529846
+    },
+    {
+      "fingerprint": "6d4590dfe544efbd",
+      "count": 2615,
+      "total_ms": 154146.4569568634,
+      "avg_ms": 58.94701986878142,
+      "p95_ms": 376.4843463897705,
+      "max_ms": 750.0300407409668,
+      "caller": "require('wp-blog-header.php')",
+      "sql": "SELECT option_value FROM wp_options WHERE option_name = '?' LIMIT ?",
+      "total_ms_all_cases": 578025.7670879364
+    },
+    {
+      "fingerprint": "380f7b4d876e6f78",
+      "count": 973,
+      "total_ms": 55285.96067428589,
+      "avg_ms": 56.82010346791972,
+      "p95_ms": 335.98790168762196,
+      "max_ms": 637.2718811035156,
+      "caller": "require('wp-blog-header.php')",
+      "sql": "SELECT option_name, option_value FROM wp_options WHERE option_name IN ('?','?')",
+      "total_ms_all_cases": 179458.81915092468
+    },
+    {
+      "fingerprint": "256a214104d5d67e",
+      "count": 138,
+      "total_ms": 14435.704231262207,
+      "avg_ms": 104.60655240045078,
+      "p95_ms": 501.74362659454346,
+      "max_ms": 625.0660419464111,
+      "caller": "require('wp-blog-header.php')",
+      "sql": "SELECT wp_posts.ID FROM wp_posts WHERE ?=? AND wp_posts.post_name IN ('?') AND ( ? = ? ) AND wp_posts.post_type = '?' AND ((wp_posts.post_status = '?')) GROUP BY wp_posts.ID ORDER BY wp_posts.post_date DESC LIMIT ?, ?",
+      "total_ms_all_cases": 81543.04265975952
+    },
+    {
+      "fingerprint": "620105ee6978b9da",
+      "count": 51,
+      "total_ms": 3463.8845920562744,
+      "avg_ms": 67.91930572659362,
+      "p95_ms": 209.01751518249512,
+      "max_ms": 308.3539009094238,
+      "caller": "require('wp-blog-header.php')",
+      "sql": "SELECT SQL_CALC_FOUND_ROWS wp_posts.ID FROM wp_posts WHERE ?=? AND ( wp_posts.ID NOT IN ( SELECT object_id FROM wp_term_relationships WHERE term_taxonomy_id IN (?) ) ) AND (((wp_posts.post_title LIKE '?') OR (wp_posts.post_excerpt LIKE '?') OR (wp_posts.post_content LIKE '?')) AND ((wp_posts.post_title LIKE '?') OR (wp_posts.post_excerpt LIKE '?') OR (wp_posts.post_content LIKE '?')) AND ((wp_posts.post_title LIKE '?') OR (wp_posts.post_excerpt LIKE '?') OR (wp_posts.post_content LIKE '?'))) AND (wp_posts.post_password = '?') AND ((wp_posts.post_type = '?' AND (wp_posts.post_status = '?'))) GROUP BY wp_posts.ID ORDER BY (CASE WHEN wp_posts.post_title LIKE '?' THEN ? WHEN wp_posts.post_title ",
+      "total_ms_all_cases": 78634.3400478363
+    },
+    {
+      "fingerprint": "c0dc82583efe0e24",
+      "count": 188,
+      "total_ms": 20501.225233078003,
+      "avg_ms": 109.04907038871278,
+      "p95_ms": 500.45177936553955,
+      "max_ms": 632.1909427642822,
+      "caller": "require('wp-blog-header.php')",
+      "sql": "SELECT t.term_id FROM wp_terms AS t INNER JOIN wp_term_taxonomy AS tt ON t.term_id = tt.term_id WHERE tt.taxonomy IN ('?') AND t.name IN ('?') LIMIT ?",
+      "total_ms_all_cases": 72546.20337486267
+    },
+    {
+      "fingerprint": "deb6b11949dce5d4",
+      "count": 112,
+      "total_ms": 14003.873109817505,
+      "avg_ms": 125.03458133765629,
+      "p95_ms": 548.1402158737184,
+      "max_ms": 801.239013671875,
+      "caller": "require('wp-blog-header.php')",
+      "sql": "SELECT wp_posts.ID FROM wp_posts WHERE ?=? AND wp_posts.post_type = '?' AND ((wp_posts.post_status = '?')) ORDER BY wp_posts.post_date DESC LIMIT ?, ?",
+      "total_ms_all_cases": 62709.19108390808
+    },
+    {
+      "fingerprint": "765ce672ab573865",
+      "count": 391,
+      "total_ms": 20322.73769378662,
+      "avg_ms": 51.976311237305936,
+      "p95_ms": 374.3104934692383,
+      "max_ms": 662.5509262084961,
+      "caller": "require('wp-blog-header.php')",
+      "sql": "SELECT * FROM wp_posts WHERE ID = ? LIMIT ?",
+      "total_ms_all_cases": 60172.83749580383
+    },
+    {
+      "fingerprint": "53cffc1ea50d8152",
+      "count": 56,
+      "total_ms": 18195.99199295044,
+      "avg_ms": 324.92842844554355,
+      "p95_ms": 624.1629719734192,
+      "max_ms": 830.7640552520752,
+      "caller": "require('wp-admin/menu.php')",
+      "sql": "SELECT `status`, COUNT(*) AS `count` FROM wp_wc_orders WHERE `type` = '?' GROUP BY `status`",
+      "total_ms_all_cases": 59764.33348655701
+    },
+    {
+      "fingerprint": "9a1963f2044489b5",
+      "count": 100,
+      "total_ms": 8153.077125549316,
+      "avg_ms": 81.53077125549316,
+      "p95_ms": 499.5714068412781,
+      "max_ms": 545.166015625,
+      "caller": "require('wp-blog-header.php')",
+      "sql": "SELECT t.term_id FROM wp_terms AS t INNER JOIN wp_term_taxonomy AS tt ON t.term_id = tt.term_id WHERE tt.taxonomy IN ('?') AND t.name IN ('?', '?', '?') LIMIT ?",
+      "total_ms_all_cases": 30977.469444274902
+    },
+    {
+      "fingerprint": "422ef9b97c54fa6f",
+      "count": 221,
+      "total_ms": 11371.363401412964,
+      "avg_ms": 51.45413303806771,
+      "p95_ms": 281.21089935302734,
+      "max_ms": 656.7730903625488,
+      "caller": "require('wp-blog-header.php')",
+      "sql": "SELECT post_id, meta_key, meta_value FROM wp_postmeta WHERE post_id IN (?) ORDER BY meta_id ASC",
+      "total_ms_all_cases": 30579.959392547607
+    },
+    {
+      "fingerprint": "fbb84da02482fe00",
+      "count": 107,
+      "total_ms": 2779.528856277466,
+      "avg_ms": 25.97690519885482,
+      "p95_ms": 17.62495040893555,
+      "max_ms": 627.0160675048828,
+      "caller": "require('wp-blog-header.php')",
+      "sql": "SELECT SQL_CALC_FOUND_ROWS wp_posts.ID FROM wp_posts WHERE ?=? AND ( wp_posts.ID NOT IN ( SELECT object_id FROM wp_term_relationships WHERE term_taxonomy_id IN (?) ) ) AND ((wp_posts.post_type = '?' AND (wp_posts.post_status = '?'))) GROUP BY wp_posts.ID ORDER BY wp_posts.menu_order ASC, wp_posts.post_title ASC LIMIT ?, ?",
+      "total_ms_all_cases": 29462.53776550293
+    },
+    {
+      "fingerprint": "b31b59ea2cc6b4e4",
+      "count": 190,
+      "total_ms": 11859.744310379028,
+      "avg_ms": 62.419706896731725,
+      "p95_ms": 364.44785594940214,
+      "max_ms": 625.3330707550049,
+      "caller": "require('wp-blog-header.php')",
+      "sql": "SELECT id, order_id as object_id, meta_key, meta_value FROM wp_wc_orders_meta WHERE order_id in ( ? )",
+      "total_ms_all_cases": 28539.633989334106
+    },
+    {
+      "fingerprint": "adddeda67e6ad7b9",
+      "count": 276,
+      "total_ms": 9580.21330833435,
+      "avg_ms": 34.71091778382011,
+      "p95_ms": 163.7645959854126,
+      "max_ms": 538.4409427642822,
+      "caller": "require('wp-blog-header.php')",
+      "sql": "SELECT option_name, option_value FROM wp_options WHERE autoload IN ( '?', '?', '?', '?' )",
+      "total_ms_all_cases": 27486.085414886475
+    },
+    {
+      "fingerprint": "ecae67f736450ef6",
+      "count": 217,
+      "total_ms": 11556.461334228516,
+      "avg_ms": 53.25558218538487,
+      "p95_ms": 316.0399436950683,
+      "max_ms": 626.533031463623,
+      "caller": "require('wp-blog-header.php')",
+      "sql": "SELECT o.id as o_id, p.id as p_id, o.*, b.id as b_id, b.order_id as b_order_id, b.address_type as b_address_type, b.first_name as billing_first_name, b.last_name as billing_last_name, b.company as billing_company, b.address_1 as billing_address_1, b.address_2 as billing_address_2, b.city as billing_city, b.state as billing_state, b.postcode as billing_postcode, b.country as billing_country, b.email as billing_email, b.phone as billing_phone, s.id as s_id, s.order_id as s_order_id, s.address_type as s_address_type, s.first_name as shipping_first_name, s.last_name as shipping_last_name, s.company as shipping_company, s.address_1 as shipping_address_1, s.address_2 as shipping_address_2, s.city ",
+      "total_ms_all_cases": 24159.422636032104
+    }
+  ],
+  "top_callers": [
+    {
+      "caller": "require('wp-blog-header.php')",
+      "total_ms_all_cases": 1778067.8853988647
+    },
+    {
+      "caller": "do_action('woocommerce_page_wc-orders')",
+      "total_ms_all_cases": 608806.0965538025
+    },
+    {
+      "caller": "require('wp-admin/menu.php')",
+      "total_ms_all_cases": 69924.46255683899
+    },
+    {
+      "caller": "require_once('wp-load.php')",
+      "total_ms_all_cases": 14888.666152954102
+    },
+    {
+      "caller": "do_action('load-woocommerce_page_wc-orders')",
+      "total_ms_all_cases": 7544.310808181763
+    },
+    {
+      "caller": "require_once('wp-admin/admin-footer.php')",
+      "total_ms_all_cases": 7532.799005508423
+    },
+    {
+      "caller": "require_once('wp-admin/admin-header.php')",
+      "total_ms_all_cases": 5953.43017578125
+    },
+    {
+      "caller": "do_action('admin_init')",
+      "total_ms_all_cases": 3814.4068717956543
+    },
+    {
+      "caller": "require_once('wp-admin/admin.php')",
+      "total_ms_all_cases": 560.1556301116943
+    },
+    {
+      "caller": "set_current_screen",
+      "total_ms_all_cases": 554.3904304504395
+    },
+    {
+      "caller": "get_option",
+      "total_ms_all_cases": 68.41897964477539
+    },
+    {
+      "caller": "wp_signon",
+      "total_ms_all_cases": 13.61083984375
+    }
+  ],
+  "top_uris": [
+    {
+      "uri": "/wp-admin/admin.php?page=wc-orders&s=historical-order-1099922%40example.invalid",
+      "samples": 1,
+      "wall_avg_ms": 61977.917194366455,
+      "wall_p95_ms": 61977.917194366455,
+      "db_avg_ms": 193.6326026916504,
+      "db_p95_ms": 193.6326026916504,
+      "query_avg": 85.0,
+      "query_p95": 85.0,
+      "peak_mem_mb_max": 16.0,
+      "case_id": "rep1_mysql84-hpos-fast_admin-orders_c32",
+      "workload": "admin-orders",
+      "concurrency": 32
+    },
+    {
+      "uri": "/wp-admin/admin.php?page=wc-orders&s=historical-order-1095227%40example.invalid",
+      "samples": 1,
+      "wall_avg_ms": 61245.92399597168,
+      "wall_p95_ms": 61245.92399597168,
+      "db_avg_ms": 39.9019718170166,
+      "db_p95_ms": 39.9019718170166,
+      "query_avg": 85.0,
+      "query_p95": 85.0,
+      "peak_mem_mb_max": 18.0,
+      "case_id": "rep1_mysql84-hpos-fast_admin-orders_c32",
+      "workload": "admin-orders",
+      "concurrency": 32
+    },
+    {
+      "uri": "/wp-admin/admin.php?page=wc-orders&s=historical-order-1095779%40example.invalid",
+      "samples": 1,
+      "wall_avg_ms": 53540.24004936218,
+      "wall_p95_ms": 53540.24004936218,
+      "db_avg_ms": 53467.674255371094,
+      "db_p95_ms": 53467.674255371094,
+      "query_avg": 128.0,
+      "query_p95": 128.0,
+      "peak_mem_mb_max": 22.0,
+      "case_id": "rep1_mysql84-hpos-fast_admin-orders_c16",
+      "workload": "admin-orders",
+      "concurrency": 16
+    },
+    {
+      "uri": "/wp-admin/admin.php?page=wc-orders&s=historical-order-1096403%40example.invalid",
+      "samples": 1,
+      "wall_avg_ms": 52600.08192062378,
+      "wall_p95_ms": 52600.08192062378,
+      "db_avg_ms": 52489.858865737915,
+      "db_p95_ms": 52489.858865737915,
+      "query_avg": 128.0,
+      "query_p95": 128.0,
+      "peak_mem_mb_max": 22.0,
+      "case_id": "rep1_mysql84-hpos-fast_checkout-heavy_c16",
+      "workload": "checkout-heavy",
+      "concurrency": 16
+    },
+    {
+      "uri": "/wp-admin/admin.php?page=wc-orders&s=historical-order-1099314%40example.invalid",
+      "samples": 1,
+      "wall_avg_ms": 51684.19694900513,
+      "wall_p95_ms": 51684.19694900513,
+      "db_avg_ms": 51608.74605178833,
+      "db_p95_ms": 51608.74605178833,
+      "query_avg": 128.0,
+      "query_p95": 128.0,
+      "peak_mem_mb_max": 22.0,
+      "case_id": "rep1_mysql84-hpos-fast_admin-orders_c16",
+      "workload": "admin-orders",
+      "concurrency": 16
+    },
+    {
+      "uri": "/wp-admin/admin.php?page=wc-orders&s=historical-order-1099435%40example.invalid",
+      "samples": 1,
+      "wall_avg_ms": 41642.41099357605,
+      "wall_p95_ms": 41642.41099357605,
+      "db_avg_ms": 41573.22359085083,
+      "db_p95_ms": 41573.22359085083,
+      "query_avg": 128.0,
+      "query_p95": 128.0,
+      "peak_mem_mb_max": 22.0,
+      "case_id": "rep1_mysql84-hpos-fast_checkout-heavy_c16",
+      "workload": "checkout-heavy",
+      "concurrency": 16
+    },
+    {
+      "uri": "/wp-admin/admin.php?page=wc-orders&s=historical-order-1099521%40example.invalid",
+      "samples": 1,
+      "wall_avg_ms": 40498.395919799805,
+      "wall_p95_ms": 40498.395919799805,
+      "db_avg_ms": 40431.47325515747,
+      "db_p95_ms": 40431.47325515747,
+      "query_avg": 128.0,
+      "query_p95": 128.0,
+      "peak_mem_mb_max": 22.0,
+      "case_id": "rep1_mysql84-hpos-fast_checkout-heavy_c4",
+      "workload": "checkout-heavy",
+      "concurrency": 4
+    },
+    {
+      "uri": "/wp-admin/admin.php?page=wc-orders&s=historical-order-1097224%40example.invalid",
+      "samples": 1,
+      "wall_avg_ms": 32003.014087677002,
+      "wall_p95_ms": 32003.014087677002,
+      "db_avg_ms": 31904.536962509155,
+      "db_p95_ms": 31904.536962509155,
+      "query_avg": 128.0,
+      "query_p95": 128.0,
+      "peak_mem_mb_max": 22.0,
+      "case_id": "rep1_mysql84-hpos-fast_checkout-heavy_c4",
+      "workload": "checkout-heavy",
+      "concurrency": 4
+    },
+    {
+      "uri": "/wp-admin/admin.php?page=wc-orders&s=historical-order-1099507%40example.invalid",
+      "samples": 1,
+      "wall_avg_ms": 27975.7239818573,
+      "wall_p95_ms": 27975.7239818573,
+      "db_avg_ms": 27908.33353996277,
+      "db_p95_ms": 27908.33353996277,
+      "query_avg": 128.0,
+      "query_p95": 128.0,
+      "peak_mem_mb_max": 22.0,
+      "case_id": "rep1_mysql84-hpos-fast_checkout-heavy_c4",
+      "workload": "checkout-heavy",
+      "concurrency": 4
+    },
+    {
+      "uri": "/wp-admin/admin.php?page=wc-orders&s=historical-order-1099169%40example.invalid",
+      "samples": 1,
+      "wall_avg_ms": 26563.32302093506,
+      "wall_p95_ms": 26563.32302093506,
+      "db_avg_ms": 26489.715099334717,
+      "db_p95_ms": 26489.715099334717,
+      "query_avg": 128.0,
+      "query_p95": 128.0,
+      "peak_mem_mb_max": 22.0,
+      "case_id": "rep1_mysql84-hpos-fast_checkout-heavy_c4",
+      "workload": "checkout-heavy",
+      "concurrency": 4
+    },
+    {
+      "uri": "/?s=Benchmark+Product+46&post_type=product",
+      "samples": 9,
+      "wall_avg_ms": 1160.0734657711453,
+      "wall_p95_ms": 2112.873363494873,
+      "db_avg_ms": 92.3412905799018,
+      "db_p95_ms": 340.6177997589111,
+      "query_avg": 75.0,
+      "query_p95": 75.0,
+      "peak_mem_mb_max": 16.0,
+      "case_id": "rep1_mysql84-hpos-fast_storefront-mixed_c32",
+      "workload": "storefront-mixed",
+      "concurrency": 32
+    },
+    {
+      "uri": "/?s=Benchmark+Product+24&post_type=product",
+      "samples": 5,
+      "wall_avg_ms": 1315.2070045471191,
+      "wall_p95_ms": 2037.495231628418,
+      "db_avg_ms": 381.9394111633301,
+      "db_p95_ms": 742.1399116516113,
+      "query_avg": 75.0,
+      "query_p95": 75.0,
+      "peak_mem_mb_max": 16.0,
+      "case_id": "rep1_mysql84-hpos-fast_storefront-mixed_c32",
+      "workload": "storefront-mixed",
+      "concurrency": 32
+    },
+    {
+      "uri": "/wp-admin/admin.php?page=wc-orders&action=edit&id=1095958",
+      "samples": 1,
+      "wall_avg_ms": 1896.3699340820312,
+      "wall_p95_ms": 1896.3699340820312,
+      "db_avg_ms": 1235.1393699645996,
+      "db_p95_ms": 1235.1393699645996,
+      "query_avg": 143.0,
+      "query_p95": 143.0,
+      "peak_mem_mb_max": 22.0,
+      "case_id": "rep1_mysql84-hpos-fast_checkout-heavy_c32",
+      "workload": "checkout-heavy",
+      "concurrency": 32
+    },
+    {
+      "uri": "/?s=Benchmark+Product+30&post_type=product",
+      "samples": 2,
+      "wall_avg_ms": 1576.0105848312378,
+      "wall_p95_ms": 1889.9688363075256,
+      "db_avg_ms": 271.9416618347168,
+      "db_p95_ms": 503.4315347671509,
+      "query_avg": 75.0,
+      "query_p95": 75.0,
+      "peak_mem_mb_max": 16.0,
+      "case_id": "rep1_mysql84-hpos-fast_storefront-mixed_c32",
+      "workload": "storefront-mixed",
+      "concurrency": 32
+    },
+    {
+      "uri": "/?s=Benchmark+Product+37&post_type=product",
+      "samples": 5,
+      "wall_avg_ms": 1291.4550304412842,
+      "wall_p95_ms": 1889.2566680908203,
+      "db_avg_ms": 225.91543197631836,
+      "db_p95_ms": 719.8026657104491,
+      "query_avg": 75.0,
+      "query_p95": 75.0,
+      "peak_mem_mb_max": 16.0,
+      "case_id": "rep1_mysql84-hpos-fast_storefront-mixed_c32",
+      "workload": "storefront-mixed",
+      "concurrency": 32
+    },
+    {
+      "uri": "/?s=Benchmark+Product+7&post_type=product",
+      "samples": 5,
+      "wall_avg_ms": 1218.1910037994385,
+      "wall_p95_ms": 1871.9140529632568,
+      "db_avg_ms": 172.87850379943848,
+      "db_p95_ms": 609.3285083770751,
+      "query_avg": 75.0,
+      "query_p95": 75.0,
+      "peak_mem_mb_max": 16.0,
+      "case_id": "rep1_mysql84-hpos-fast_storefront-mixed_c32",
+      "workload": "storefront-mixed",
+      "concurrency": 32
+    },
+    {
+      "uri": "/?product=benchmark-product-823",
+      "samples": 1,
+      "wall_avg_ms": 1861.4089488983154,
+      "wall_p95_ms": 1861.4089488983154,
+      "db_avg_ms": 942.1560764312744,
+      "db_p95_ms": 942.1560764312744,
+      "query_avg": 86.0,
+      "query_p95": 86.0,
+      "peak_mem_mb_max": 14.0,
+      "case_id": "rep1_mysql84-hpos-fast_storefront-mixed_c32",
+      "workload": "storefront-mixed",
+      "concurrency": 32
+    },
+    {
+      "uri": "/?wc-ajax=checkout",
+      "samples": 390,
+      "wall_avg_ms": 1326.1889463815933,
+      "wall_p95_ms": 1854.0929555892944,
+      "db_avg_ms": 520.718361169864,
+      "db_p95_ms": 1037.1240973472597,
+      "query_avg": 269.37948717948717,
+      "query_p95": 287.0,
+      "peak_mem_mb_max": 18.0,
+      "case_id": "rep1_mysql84-hpos-fast_checkout-heavy_c32",
+      "workload": "checkout-heavy",
+      "concurrency": 32
+    },
+    {
+      "uri": "/?s=Benchmark+Product+38&post_type=product",
+      "samples": 4,
+      "wall_avg_ms": 1382.9125761985779,
+      "wall_p95_ms": 1779.3182015419006,
+      "db_avg_ms": 206.10731840133667,
+      "db_p95_ms": 471.4050054550171,
+      "query_avg": 75.0,
+      "query_p95": 75.0,
+      "peak_mem_mb_max": 16.0,
+      "case_id": "rep1_mysql84-hpos-fast_storefront-mixed_c32",
+      "workload": "storefront-mixed",
+      "concurrency": 32
+    },
+    {
+      "uri": "/?s=Benchmark+Product+42&post_type=product",
+      "samples": 6,
+      "wall_avg_ms": 1323.5596815745037,
+      "wall_p95_ms": 1771.860957145691,
+      "db_avg_ms": 308.94748369852704,
+      "db_p95_ms": 488.13116550445557,
+      "query_avg": 75.0,
+      "query_p95": 75.0,
+      "peak_mem_mb_max": 16.0,
+      "case_id": "rep1_mysql84-hpos-fast_storefront-mixed_c32",
+      "workload": "storefront-mixed",
+      "concurrency": 32
+    },
+    {
+      "uri": "/?product=benchmark-product-682",
+      "samples": 1,
+      "wall_avg_ms": 1766.667127609253,
+      "wall_p95_ms": 1766.667127609253,
+      "db_avg_ms": 537.9118919372559,
+      "db_p95_ms": 537.9118919372559,
+      "query_avg": 86.0,
+      "query_p95": 86.0,
+      "peak_mem_mb_max": 14.0,
+      "case_id": "rep1_mysql84-hpos-fast_checkout-heavy_c32",
+      "workload": "checkout-heavy",
+      "concurrency": 32
+    },
+    {
+      "uri": "/wp-admin/admin.php?page=wc-orders&action=edit&id=1099952",
+      "samples": 1,
+      "wall_avg_ms": 1721.039056777954,
+      "wall_p95_ms": 1721.039056777954,
+      "db_avg_ms": 946.51198387146,
+      "db_p95_ms": 946.51198387146,
+      "query_avg": 143.0,
+      "query_p95": 143.0,
+      "peak_mem_mb_max": 22.0,
+      "case_id": "rep1_mysql84-hpos-fast_checkout-heavy_c32",
+      "workload": "checkout-heavy",
+      "concurrency": 32
+    },
+    {
+      "uri": "/wp-admin/admin.php?page=wc-orders&status=wc-completed",
+      "samples": 12,
+      "wall_avg_ms": 958.4413965543112,
+      "wall_p95_ms": 1681.8716645240777,
+      "db_avg_ms": 712.1745149294535,
+      "db_p95_ms": 1380.3586125373836,
+      "query_avg": 146.0,
+      "query_p95": 146.0,
+      "peak_mem_mb_max": 22.0,
+      "case_id": "rep1_mysql84-hpos-fast_checkout-heavy_c32",
+      "workload": "checkout-heavy",
+      "concurrency": 32
+    },
+    {
+      "uri": "/?product=benchmark-product-542",
+      "samples": 1,
+      "wall_avg_ms": 1611.556053161621,
+      "wall_p95_ms": 1611.556053161621,
+      "db_avg_ms": 601.7470359802246,
+      "db_p95_ms": 601.7470359802246,
+      "query_avg": 86.0,
+      "query_p95": 86.0,
+      "peak_mem_mb_max": 14.0,
+      "case_id": "rep1_mysql84-hpos-fast_checkout-heavy_c32",
+      "workload": "checkout-heavy",
+      "concurrency": 32
+    },
+    {
+      "uri": "/wp-admin/admin.php?page=wc-orders",
+      "samples": 13,
+      "wall_avg_ms": 1183.1356928898738,
+      "wall_p95_ms": 1587.4990463256836,
+      "db_avg_ms": 870.6602316636306,
+      "db_p95_ms": 1192.1380043029785,
+      "query_avg": 126.0,
+      "query_p95": 126.0,
+      "peak_mem_mb_max": 22.0,
+      "case_id": "rep1_mysql84-hpos-fast_checkout-heavy_c32",
+      "workload": "checkout-heavy",
+      "concurrency": 32
+    }
+  ],
+  "mysql_digests": [
+    {
+      "digest": "SELECT `wp_wc_orders` . `id` FROM `wp_wc_orders` WHERE ? = ? AND ( `wp_wc_orders` . `status` IN (...) ) AND ( `wp_wc_orders` . `type` = ? ) AND ( ( `wp_wc_orders` . `transaction_id` LIKE ? OR `wp_wc_orders` . `billing_email` LIKE ? OR `wp_wc_orders` . `id` IN ( SELECT `search_query_meta` . `order_id` FROM `wp_wc_orders_meta` AS `search_query_meta` WHERE `search_query_meta` . `meta_key` IN (...) AND `search_query_meta` . `meta_value` LIKE ? GROUP BY `search_query_meta` . `order_id` ) OR `wp_wc_orders` . `id` IN ( SELECT `order_id` FROM `wp_woocommerce_order_items` `search_query_items` WHERE `search_query_items` . `order_item_name` LIKE ? ) ) ) GROUP BY `wp_wc_orders` . `id` ORDER BY `wp_wc_orders` . `date_created_gmt` DESC LIMIT ?, ...",
+      "count": 135,
+      "total_s": 7239.3006,
+      "rows_examined": 13660367,
+      "rows_sent": 135,
+      "tmp_disk": 0,
+      "no_index": 0,
+      "max_ms": 71258.955
+    },
+    {
+      "digest": "SELECT COUNT ( * ) FROM `wp_wc_orders` WHERE ? = ? AND ( `wp_wc_orders` . `status` IN (...) ) AND ( `wp_wc_orders` . `type` = ? ) AND ( ( `wp_wc_orders` . `transaction_id` LIKE ? OR `wp_wc_orders` . `billing_email` LIKE ? OR `wp_wc_orders` . `id` IN ( SELECT `search_query_meta` . `order_id` FROM `wp_wc_orders_meta` AS `search_query_meta` WHERE `search_query_meta` . `meta_key` IN (...) AND `search_query_meta` . `meta_value` LIKE ? GROUP BY `search_query_meta` . `order_id` ) OR `wp_wc_orders` . `id` IN ( SELECT `order_id` FROM `wp_woocommerce_order_items` `search_query_items` WHERE `search_query_items` . `order_item_name` LIKE ? ) ) )",
+      "count": 88,
+      "total_s": 48.2987,
+      "rows_examined": 8910945,
+      "rows_sent": 88,
+      "tmp_disk": 0,
+      "no_index": 88,
+      "max_ms": 2246.508
+    },
+    {
+      "digest": "SELECT `status` , COUNT ( * ) AS `count` FROM `wp_wc_orders` WHERE `type` = ? GROUP BY `status`",
+      "count": 492,
+      "total_s": 48.075700000000005,
+      "rows_examined": 49808309,
+      "rows_sent": 1086,
+      "tmp_disk": 0,
+      "no_index": 0,
+      "max_ms": 830.956
+    },
+    {
+      "digest": "SELECT `option_value` FROM `wp_options` WHERE `option_name` = ? LIMIT ?",
+      "count": 607959,
+      "total_s": 34.4648,
+      "rows_examined": 177038,
+      "rows_sent": 177038,
+      "tmp_disk": 0,
+      "no_index": 0,
+      "max_ms": 314.076
+    },
+    {
+      "digest": "SELECT SQL_CALC_FOUND_ROWS `wp_posts` . `ID` FROM `wp_posts` WHERE ? = ? AND ( `wp_posts` . `ID` NOT IN ( SELECT `object_id` FROM `wp_term_relationships` WHERE `term_taxonomy_id` IN (...) ) ) AND ( ( ( `wp_posts` . `post_title` LIKE ? ) OR ( `wp_posts` . `post_excerpt` LIKE ? ) OR ( `wp_posts` . `post_content` LIKE ? ) ) AND ( ( `wp_posts` . `post_title` LIKE ? ) OR ( `wp_posts` . `post_excerpt` LIKE ? ) OR ( `wp_posts` . `post_content` LIKE ? ) ) AND ( ( `wp_posts` . `post_title` LIKE ? ) OR ( `wp_posts` . `post_excerpt` LIKE ? ) OR ( `wp_posts` . `post_content` LIKE ? ) ) ) AND ( `wp_posts` . `post_password` = ? ) AND ( ( `wp_posts` . `post_type` = ? AND ( `wp_posts` . `post_status` = ? ) ) ) GROUP BY `wp_posts` . `ID` ORDER BY ( CASE WHEN `wp_posts` . `post_title` LIKE ? THEN ? WHEN `wp_posts` . `post_title` LIKE ? AND `wp_posts` . `post_title` LIKE ? AND `wp_posts` . `post_title` LIKE ? THEN ? WHEN `wp_posts` . `post_title` LIKE ? OR `wp_posts` . `post_title` LIKE ? OR `wp_posts` . `post_title` LIKE ? THEN ? WHEN `wp_posts` . `post_excerpt` LIKE ? THEN ? WHEN `wp_posts` . `post_content` LIKE ? THEN ? ELSE ? END ) , `wp_posts` .",
+      "count": 3466,
+      "total_s": 28.379300000000004,
+      "rows_examined": 5657851,
+      "rows_sent": 55456,
+      "tmp_disk": 0,
+      "no_index": 0,
+      "max_ms": 299.93
+    },
+    {
+      "digest": "SELECT `option_name` , `option_value` FROM `wp_options` WHERE `option_name` IN (...)",
+      "count": 203941,
+      "total_s": 19.012099999999997,
+      "rows_examined": 226418,
+      "rows_sent": 226414,
+      "tmp_disk": 0,
+      "no_index": 0,
+      "max_ms": 310.128
+    },
+    {
+      "digest": "SELECT `option_name` , `option_value` FROM `wp_options` WHERE `autoload` IN (...)",
+      "count": 19760,
+      "total_s": 12.927,
+      "rows_examined": 6434641,
+      "rows_sent": 5644418,
+      "tmp_disk": 0,
+      "no_index": 1759,
+      "max_ms": 207.886
+    },
+    {
+      "digest": "SELECT `id` , `order_id` AS `object_id` , `meta_key` , `meta_value` FROM `wp_wc_orders_meta` WHERE `order_id` IN (...)",
+      "count": 30137,
+      "total_s": 11.8424,
+      "rows_examined": 166964,
+      "rows_sent": 166968,
+      "tmp_disk": 0,
+      "no_index": 0,
+      "max_ms": 309.482
+    },
+    {
+      "digest": "SELECT SQL_CALC_FOUND_ROWS `wp_posts` . `ID` FROM `wp_posts` WHERE ? = ? AND ( `wp_posts` . `ID` NOT IN ( SELECT `object_id` FROM `wp_term_relationships` WHERE `term_taxonomy_id` IN (...) ) ) AND ( ( `wp_posts` . `post_type` = ? AND ( `wp_posts` . `post_status` = ? ) ) ) GROUP BY `wp_posts` . `ID` ORDER BY `wp_posts` . `menu_order` ASC , `wp_posts` . `post_title` ASC LIMIT ?, ...",
+      "count": 1464,
+      "total_s": 11.5598,
+      "rows_examined": 4392000,
+      "rows_sent": 23424,
+      "tmp_disk": 0,
+      "no_index": 0,
+      "max_ms": 60.013
+    },
+    {
+      "digest": "SELECT `post_id` , `meta_key` , `meta_value` FROM `wp_postmeta` WHERE `post_id` IN (...) ORDER BY `meta_id` ASC",
+      "count": 56317,
+      "total_s": 10.5001,
+      "rows_examined": 5759134,
+      "rows_sent": 3081634,
+      "tmp_disk": 0,
+      "no_index": 0,
+      "max_ms": 313.998
+    },
+    {
+      "digest": "INSERT INTO `wp_woocommerce_sessions` ( `session_key` , `session_value` , `session_expiry` ) VALUES (...) ON DUPLICATE KEY UPDATE `session_value` = VALUES ( `session_value` ) , `session_expiry` = VALUES ( `session_expiry` )",
+      "count": 8983,
+      "total_s": 10.0939,
+      "rows_examined": 0,
+      "rows_sent": 0,
+      "tmp_disk": 0,
+      "no_index": 0,
+      "max_ms": 245.818
+    },
+    {
+      "digest": "SELECT `o` . `id` AS `o_id` , `p` . `id` AS `p_id` , `o` . * , `b` . `id` AS `b_id` , `b` . `order_id` AS `b_order_id` , `b` . `address_type` AS `b_address_type` , `b` . `first_name` AS `billing_first_name` , `b` . `last_name` AS `billing_last_name` , `b` . `company` AS `billing_company` , `b` . `address_1` AS `billing_address_1` , `b` . `address_2` AS `billing_address_2` , `b` . `city` AS `billing_city` , `b` . `state` AS `billing_state` , `b` . `postcode` AS `billing_postcode` , `b` . `country` AS `billing_country` , `b` . `email` AS `billing_email` , `b` . `phone` AS `billing_phone` , `s` . `id` AS `s_id` , `s` . `order_id` AS `s_order_id` , `s` . `address_type` AS `s_address_type` , `s` . `first_name` AS `shipping_first_name` , `s` . `last_name` AS `shipping_last_name` , `s` . `company` AS `shipping_company` , `s` . `address_1` AS `shipping_address_1` , `s` . `address_2` AS `shipping_address_2` , `s` . `city` AS `shipping_city` , `s` . `state` AS",
+      "count": 30139,
+      "total_s": 9.209600000000002,
+      "rows_examined": 45807,
+      "rows_sent": 34491,
+      "tmp_disk": 0,
+      "no_index": 0,
+      "max_ms": 257.291
+    },
+    {
+      "digest": "SELECT * FROM `wp_posts` WHERE `ID` = ? LIMIT ?",
+      "count": 87641,
+      "total_s": 6.784800000000001,
+      "rows_examined": 82467,
+      "rows_sent": 82467,
+      "tmp_disk": 0,
+      "no_index": 0,
+      "max_ms": 224.41
+    },
+    {
+      "digest": "UPDATE `wp_options` SET `option_value` = ? , `autoload` = ? WHERE `option_name` = ?",
+      "count": 1739,
+      "total_s": 6.6116,
+      "rows_examined": 1739,
+      "rows_sent": 0,
+      "tmp_disk": 0,
+      "no_index": 0,
+      "max_ms": 108.826
+    },
+    {
+      "digest": "INSERT INTO `wp_wc_orders_meta` ( `order_id` , `meta_key` , `meta_value` ) VALUES (...)",
+      "count": 10562,
+      "total_s": 6.034800000000001,
+      "rows_examined": 0,
+      "rows_sent": 0,
+      "tmp_disk": 0,
+      "no_index": 0,
+      "max_ms": 217.043
+    },
+    {
+      "digest": "SELECT `p` . `ID` FROM `wp_posts` `p` WHERE `post_type` = ? AND `p` . `post_title` = ? AND `p` . `post_status` IN (...) ORDER BY `p` . `post_date_gmt` ASC LIMIT ?, ...",
+      "count": 61878,
+      "total_s": 5.8077000000000005,
+      "rows_examined": 0,
+      "rows_sent": 0,
+      "tmp_disk": 0,
+      "no_index": 0,
+      "max_ms": 109.429
+    },
+    {
+      "digest": "INSERT INTO `wp_wc_orders` ( `date_updated_gmt` , `id` , `type` ) VALUES (...) ON DUPLICATE KEY UPDATE `date_updated_gmt` = VALUES ( `date_updated_gmt` ) , `id` = VALUES ( `id` ) , `type` = VALUES ( `type` )",
+      "count": 11933,
+      "total_s": 5.052899999999999,
+      "rows_examined": 0,
+      "rows_sent": 0,
+      "tmp_disk": 0,
+      "no_index": 0,
+      "max_ms": 339.335
+    },
+    {
+      "digest": "INSERT INTO `wp_woocommerce_order_itemmeta` ( `order_item_id` , `meta_key` , `meta_value` ) VALUES (...)",
+      "count": 15651,
+      "total_s": 4.6690000000000005,
+      "rows_examined": 0,
+      "rows_sent": 0,
+      "tmp_disk": 0,
+      "no_index": 0,
+      "max_ms": 249.027
+    },
+    {
+      "digest": "SELECT `order_item_id` , `meta_key` , `meta_value` FROM `wp_woocommerce_order_itemmeta` WHERE `order_item_id` IN (...) ORDER BY `meta_id` ASC",
+      "count": 31747,
+      "total_s": 4.2912,
+      "rows_examined": 278426,
+      "rows_sent": 241704,
+      "tmp_disk": 0,
+      "no_index": 0,
+      "max_ms": 133.358
+    },
+    {
+      "digest": "SELECT `t` . `term_id` FROM `wp_terms` AS `t` INNER JOIN `wp_term_taxonomy` AS `tt` ON `t` . `term_id` = `tt` . `term_id` WHERE `tt` . `taxonomy` IN (...) AND `t` . `name` IN (...) LIMIT ?",
+      "count": 50979,
+      "total_s": 4.012099999999999,
+      "rows_examined": 0,
+      "rows_sent": 0,
+      "tmp_disk": 0,
+      "no_index": 0,
+      "max_ms": 125.304
+    },
+    {
+      "digest": "SELECT DISTINCTROW `t` . `term_id` , `tr` . `object_id` FROM `wp_terms` AS `t` INNER JOIN `wp_term_taxonomy` AS `tt` ON `t` . `term_id` = `tt` . `term_id` INNER JOIN `wp_term_relationships` AS `tr` ON `tr` . `term_taxonomy_id` = `tt` . `term_taxonomy_id` WHERE `tt` . `taxonomy` IN (...) AND `tr` . `object_id` IN (...) ORDER BY `t` . `name` ASC",
+      "count": 19234,
+      "total_s": 3.7135,
+      "rows_examined": 429056,
+      "rows_sent": 107264,
+      "tmp_disk": 0,
+      "no_index": 0,
+      "max_ms": 204.809
+    },
+    {
+      "digest": "UPDATE `wp_options` SET `option_value` = ? WHERE `option_name` = ?",
+      "count": 8303,
+      "total_s": 3.4087,
+      "rows_examined": 8303,
+      "rows_sent": 0,
+      "tmp_disk": 0,
+      "no_index": 0,
+      "max_ms": 253.712
+    },
+    {
+      "digest": "SELECT `wp_posts` . `ID` FROM `wp_posts` WHERE ? = ? AND `wp_posts` . `post_name` IN (...) AND ( ? = ? ) AND `wp_posts` . `post_type` = ? AND ( ( `wp_posts` . `post_status` = ? ) ) GROUP BY `wp_posts` . `ID` ORDER BY `wp_posts` . `post_date` DESC LIMIT ?, ...",
+      "count": 55701,
+      "total_s": 3.3668000000000005,
+      "rows_examined": 0,
+      "rows_sent": 0,
+      "tmp_disk": 0,
+      "no_index": 0,
+      "max_ms": 253.301
+    },
+    {
+      "digest": "DELETE FROM `wp_wc_orders_meta` WHERE `id` = ? AND `order_id` = ?",
+      "count": 2919,
+      "total_s": 3.1357999999999997,
+      "rows_examined": 2919,
+      "rows_sent": 0,
+      "tmp_disk": 0,
+      "no_index": 0,
+      "max_ms": 208.976
+    },
+    {
+      "digest": "INSERT INTO `wp_wc_order_operational_data` ( `new_order_email_sent` , `order_id` ) VALUES (...) ON DUPLICATE KEY UPDATE `new_order_email_sent` = VALUES ( `new_order_email_sent` ) , `order_id` = VALUES ( `order_id` )",
+      "count": 1274,
+      "total_s": 2.9061,
+      "rows_examined": 0,
+      "rows_sent": 0,
+      "tmp_disk": 0,
+      "no_index": 0,
+      "max_ms": 146.719
+    }
+  ],
+  "table_io": [
+    {
+      "table": "wp_wc_orders",
+      "total_s": 7369.543999999999
+    },
+    {
+      "table": "wp_wc_orders_meta",
+      "total_s": 6750.3989
+    },
+    {
+      "table": "wp_woocommerce_order_items",
+      "total_s": 297.72720000000004
+    },
+    {
+      "table": "wp_options",
+      "total_s": 34.384100000000004
+    },
+    {
+      "table": "wp_posts",
+      "total_s": 13.4728
+    },
+    {
+      "table": "wp_wc_order_operational_data",
+      "total_s": 7.8533
+    },
+    {
+      "table": "wp_woocommerce_sessions",
+      "total_s": 6.4936
+    },
+    {
+      "table": "wp_postmeta",
+      "total_s": 5.8283000000000005
+    },
+    {
+      "table": "wp_woocommerce_order_itemmeta",
+      "total_s": 5.122599999999999
+    },
+    {
+      "table": "wp_wc_order_addresses",
+      "total_s": 2.6201
+    },
+    {
+      "table": "wp_term_relationships",
+      "total_s": 0.9812
+    },
+    {
+      "table": "wp_usermeta",
+      "total_s": 0.6456999999999999
+    },
+    {
+      "table": "wp_actionscheduler_actions",
+      "total_s": 0.6273
+    },
+    {
+      "table": "wp_terms",
+      "total_s": 0.5534
+    },
+    {
+      "table": "wp_comments",
+      "total_s": 0.5474
+    },
+    {
+      "table": "wp_term_taxonomy",
+      "total_s": 0.5376
+    },
+    {
+      "table": "wp_wc_order_stats",
+      "total_s": 0.3608
+    },
+    {
+      "table": "wp_wc_tax_rate_classes",
+      "total_s": 0.26770000000000005
+    },
+    {
+      "table": "wp_users",
+      "total_s": 0.254
+    },
+    {
+      "table": "wp_wc_admin_notes",
+      "total_s": 0.2204
+    }
+  ]
+}

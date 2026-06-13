@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WooCommerce HPOS MySQL Large Store Profile</title>
+  <style>
+    :root {
+      --bg:#f6f8fb;
+      --panel:#ffffff;
+      --ink:#142033;
+      --muted:#5b6b7f;
+      --line:#d9e2ee;
+      --blue:#2563eb;
+      --red:#dc2626;
+      --purple:#7c3aed;
+      --teal:#0f766e;
+      --good:#dcfce7;
+      --warn:#fef3c7;
+      --bad:#fee2e2;
+    }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.48 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    main { max-width:1500px; margin:0 auto; padding:30px 24px 54px; }
+    h1 { margin:0 0 8px; font-size:34px; letter-spacing:0; }
+    h2 { margin:32px 0 12px; font-size:23px; letter-spacing:0; }
+    h3 { margin:18px 0 8px; font-size:17px; }
+    p, li { color:var(--muted); }
+    a { color:var(--blue); font-weight:700; text-decoration:none; }
+    a:hover { text-decoration:underline; }
+    .lede { max-width:980px; margin:0; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:12px; margin:20px 0; }
+    .stat, .panel, .chart { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px; }
+    .stat strong { display:block; font-size:25px; color:var(--ink); }
+    .stat span { color:var(--muted); }
+    .finding { border-color:#fecaca; background:#fff1f2; }
+    .note { border-color:#bfdbfe; background:#eff6ff; }
+    .chart { margin:14px 0; overflow-x:auto; }
+    .chart svg { width:100%; min-width:940px; height:auto; display:block; }
+    .chart-title { font-size:22px; font-weight:700; fill:var(--ink); }
+    .chart-subtitle, .bar-label, .bar-value, .tick, .axis-label, .point-label { fill:#334155; font-size:12px; }
+    .bar-value { font-weight:700; }
+    .axis { stroke:#94a3b8; stroke-width:1; }
+    table { width:100%; border-collapse:collapse; margin:10px 0 20px; background:var(--panel); }
+    th, td { border:1px solid var(--line); padding:8px 10px; text-align:right; vertical-align:top; }
+    th { background:#e8eef6; text-transform:uppercase; font-size:12px; color:#334155; }
+    td:first-child, th:first-child { text-align:left; }
+    tr:nth-child(even) td { background:#fbfcfe; }
+    td.good { background:var(--good); }
+    td.warn { background:var(--warn); }
+    td.bad { background:var(--bad); }
+    code { white-space:pre-wrap; word-break:break-word; background:#eef2f7; border-radius:4px; padding:2px 4px; }
+    .wide { overflow-x:auto; }
+    .cols { display:grid; grid-template-columns:repeat(auto-fit,minmax(420px,1fr)); gap:14px; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>WooCommerce HPOS MySQL Large Store Profile</h1>
+  <p class="lede">Deep local profiling of WooCommerce on MySQL 8.4 with HPOS enabled and fast-store settings. The fixture used 5,001,412,608 apparent schema bytes, 100,000 HPOS orders, 1,500 products, and 1,000 customers.</p>
+
+  <div class="grid">
+    <div class="stat"><strong>5,001,412,608</strong><span>MySQL schema bytes</span></div>
+    <div class="stat"><strong>100,000</strong><span>HPOS orders before load</span></div>
+    <div class="stat"><strong>19,628</strong><span>completed measured WP requests logged</span></div>
+    <div class="stat"><strong>1.2%</strong><span>benchmark flow timeout rate</span></div>
+    <div class="stat"><strong>0.0%</strong><span>HTTP 4xx/5xx response rate</span></div>
+    <div class="stat"><strong>149</strong><span>InnoDB row lock waits</span></div>
+  </div>
+
+  <section class="panel finding">
+    <h2>Executive Readout</h2>
+    <ul>
+      <li><strong>Slowest customer route:</strong> Customer: checkout AJAX order submit, p95 1.64s, average DB time 237ms, average 261.69 queries/request.</li>
+      <li><strong>Slowest admin route:</strong> Admin: HPOS order search, p95 61.98s, max 61.98s, average DB time 32.61s.</li>
+      <li><strong>Dominant query:</strong> HPOS order search ids, 7,239.30s cumulative MySQL time, 71.26s max, 13,660,367 rows examined.</li>
+      <li><strong>Failure semantics:</strong> 129 failed flows were client-side 30s timeouts, all on admin order reads. The benchmark client observed status counts {&quot;0&quot;: 129, &quot;200&quot;: 18156}; no HTTP 500 response was observed.</li>
+    </ul>
+  </section>
+
+  <h2>Charts</h2>
+  <div class="chart"><svg viewBox="0 0 1160 372" role="img" aria-label="Slowest Customer Routes"><text x="0" y="28" class="chart-title">Slowest Customer Routes</text><text x="0" y="50" class="chart-subtitle">p95 wall time from completed WordPress requests.</text><text x="0" y="84" class="bar-label">Customer: checkout AJAX order submit</text><rect x="310" y="66" width="734.0" height="22" rx="4" fill="#2563eb" /><text x="1053.0" y="82" class="bar-value">1.64s</text><text x="0" y="118" class="bar-label">Customer: shop archive</text><rect x="310" y="100" width="557.8" height="22" rx="4" fill="#2563eb" /><text x="876.8" y="116" class="bar-value">1.25s</text><text x="0" y="152" class="bar-label">Customer: product search</text><rect x="310" y="134" width="554.9" height="22" rx="4" fill="#2563eb" /><text x="873.9" y="150" class="bar-value">1.24s</text><text x="0" y="186" class="bar-label">Customer: add to cart</text><rect x="310" y="168" width="366.6" height="22" rx="4" fill="#2563eb" /><text x="685.6" y="184" class="bar-value">821ms</text><text x="0" y="220" class="bar-label">Customer: home/product page</text><rect x="310" y="202" width="365.1" height="22" rx="4" fill="#2563eb" /><text x="684.1" y="218" class="bar-value">818ms</text><text x="0" y="254" class="bar-label">Customer: cart page</text><rect x="310" y="236" width="317.5" height="22" rx="4" fill="#2563eb" /><text x="636.5" y="252" class="bar-value">711ms</text><text x="0" y="288" class="bar-label">Customer: checkout page</text><rect x="310" y="270" width="304.5" height="22" rx="4" fill="#2563eb" /><text x="623.5" y="286" class="bar-value">682ms</text><text x="0" y="322" class="bar-label">Customer: shop page</text><rect x="310" y="304" width="136.3" height="22" rx="4" fill="#2563eb" /><text x="455.3" y="320" class="bar-value">305ms</text></svg></div>
+  <div class="chart"><svg viewBox="0 0 1160 236" role="img" aria-label="Slowest Admin Routes"><text x="0" y="28" class="chart-title">Slowest Admin Routes</text><text x="0" y="50" class="chart-subtitle">p95 wall time. Log scale because order search dwarfs the other admin routes.</text><text x="0" y="84" class="bar-label">Admin: HPOS order search</text><rect x="310" y="66" width="734.0" height="22" rx="4" fill="#dc2626" /><text x="1053.0" y="82" class="bar-value">61.98s</text><text x="0" y="118" class="bar-label">Admin: edit order</text><rect x="310" y="100" width="476.1" height="22" rx="4" fill="#dc2626" /><text x="795.1" y="116" class="bar-value">1.28s</text><text x="0" y="152" class="bar-label">Admin: orders list</text><rect x="310" y="134" width="468.8" height="22" rx="4" fill="#dc2626" /><text x="787.8" y="150" class="bar-value">1.15s</text><text x="0" y="186" class="bar-label">Admin: orders list, filtered</text><rect x="310" y="168" width="461.5" height="22" rx="4" fill="#dc2626" /><text x="780.5" y="184" class="bar-value">1.03s</text></svg></div>
+  <div class="chart"><svg viewBox="0 0 1160 508" role="img" aria-label="Top MySQL Statement Digests"><text x="0" y="28" class="chart-title">Top MySQL Statement Digests</text><text x="0" y="50" class="chart-subtitle">Cumulative MySQL time across all load cells. Log scale.</text><text x="0" y="84" class="bar-label">HPOS order search ids</text><rect x="310" y="66" width="734.0" height="22" rx="4" fill="#7c3aed" /><text x="1053.0" y="82" class="bar-value">7,239.30s</text><text x="0" y="118" class="bar-label">HPOS order search count</text><rect x="310" y="100" width="321.9" height="22" rx="4" fill="#7c3aed" /><text x="640.9" y="116" class="bar-value">48.30s</text><text x="0" y="152" class="bar-label">Order status counts</text><rect x="310" y="134" width="321.5" height="22" rx="4" fill="#7c3aed" /><text x="640.5" y="150" class="bar-value">48.08s</text><text x="0" y="186" class="bar-label">Options point lookup</text><rect x="310" y="168" width="294.7" height="22" rx="4" fill="#7c3aed" /><text x="613.7" y="184" class="bar-value">34.46s</text><text x="0" y="220" class="bar-label">Product search query</text><rect x="310" y="202" width="279.2" height="22" rx="4" fill="#7c3aed" /><text x="598.2" y="218" class="bar-value">28.38s</text><text x="0" y="254" class="bar-label">SELECT `option_name` , `option_value` FROM `</text><rect x="310" y="236" width="247.5" height="22" rx="4" fill="#7c3aed" /><text x="566.5" y="252" class="bar-value">19.01s</text><text x="0" y="288" class="bar-label">SELECT `option_name` , `option_value` FROM `</text><rect x="310" y="270" width="217.5" height="22" rx="4" fill="#7c3aed" /><text x="536.5" y="286" class="bar-value">12.93s</text><text x="0" y="322" class="bar-label">Load HPOS order meta</text><rect x="310" y="304" width="210.8" height="22" rx="4" fill="#7c3aed" /><text x="529.8" y="320" class="bar-value">11.84s</text><text x="0" y="356" class="bar-label">Product search query</text><rect x="310" y="338" width="209.0" height="22" rx="4" fill="#7c3aed" /><text x="528.0" y="354" class="bar-value">11.56s</text><text x="0" y="390" class="bar-label">Load post meta</text><rect x="310" y="372" width="201.7" height="22" rx="4" fill="#7c3aed" /><text x="520.7" y="388" class="bar-value">10.50s</text><text x="0" y="424" class="bar-label">Woo session write/read</text><rect x="310" y="406" width="198.7" height="22" rx="4" fill="#7c3aed" /><text x="517.7" y="422" class="bar-value">10.09s</text><text x="0" y="458" class="bar-label">SELECT `o` . `id` AS `o_id` , `p` . `id` AS </text><rect x="310" y="440" width="191.9" height="22" rx="4" fill="#7c3aed" /><text x="510.9" y="456" class="bar-value">9.21s</text></svg></div>
+  <div class="chart"><svg viewBox="0 0 1160 440" role="img" aria-label="Top Table I/O Wait"><text x="0" y="28" class="chart-title">Top Table I/O Wait</text><text x="0" y="50" class="chart-subtitle">Cumulative Performance Schema table I/O wait.</text><text x="0" y="84" class="bar-label">wp_wc_orders</text><rect x="310" y="66" width="734.0" height="22" rx="4" fill="#0f766e" /><text x="1053.0" y="82" class="bar-value">7,369.54s</text><text x="0" y="118" class="bar-label">wp_wc_orders_meta</text><rect x="310" y="100" width="672.3" height="22" rx="4" fill="#0f766e" /><text x="991.3" y="116" class="bar-value">6,750.40s</text><text x="0" y="152" class="bar-label">wp_woocommerce_order_items</text><rect x="310" y="134" width="29.7" height="22" rx="4" fill="#0f766e" /><text x="348.7" y="150" class="bar-value">297.73s</text><text x="0" y="186" class="bar-label">wp_options</text><rect x="310" y="168" width="3.4" height="22" rx="4" fill="#0f766e" /><text x="322.4" y="184" class="bar-value">34.38s</text><text x="0" y="220" class="bar-label">wp_posts</text><rect x="310" y="202" width="2.0" height="22" rx="4" fill="#0f766e" /><text x="321.0" y="218" class="bar-value">13.47s</text><text x="0" y="254" class="bar-label">wp_wc_order_operational_data</text><rect x="310" y="236" width="2.0" height="22" rx="4" fill="#0f766e" /><text x="321.0" y="252" class="bar-value">7.85s</text><text x="0" y="288" class="bar-label">wp_woocommerce_sessions</text><rect x="310" y="270" width="2.0" height="22" rx="4" fill="#0f766e" /><text x="321.0" y="286" class="bar-value">6.49s</text><text x="0" y="322" class="bar-label">wp_postmeta</text><rect x="310" y="304" width="2.0" height="22" rx="4" fill="#0f766e" /><text x="321.0" y="320" class="bar-value">5.83s</text><text x="0" y="356" class="bar-label">wp_woocommerce_order_itemmeta</text><rect x="310" y="338" width="2.0" height="22" rx="4" fill="#0f766e" /><text x="321.0" y="354" class="bar-value">5.12s</text><text x="0" y="390" class="bar-label">wp_wc_order_addresses</text><rect x="310" y="372" width="2.0" height="22" rx="4" fill="#0f766e" /><text x="321.0" y="388" class="bar-value">2.62s</text></svg></div>
+  <div class="chart"><svg viewBox="0 0 940 520" role="img" aria-label="Route latency versus DB time"><text x="0" y="28" class="chart-title">Route p95 Wall Time vs Average DB Time</text><text x="0" y="50" class="chart-subtitle">Log scales. Admin route points are red; customer route points are blue.</text><line x1="82" y1="450" x2="910" y2="450" class="axis" /><line x1="82" y1="64" x2="82" y2="450" class="axis" /><text x="410.0" y="502" class="axis-label">p95 wall time</text><text x="8" y="260.0" class="axis-label" transform="rotate(-90 8,260.0)">average DB time</text><circle cx="910.0" cy="64.0" r="7" fill="#dc2626" opacity="0.82"><title>Admin: HPOS order search: p95 61.98s, avg DB 32.61s</title></circle><text x="920.0" y="56.0" class="point-label">HPOS order search</text><circle cx="619.1" cy="235.0" r="7" fill="#dc2626" opacity="0.82"><title>Admin: edit order: p95 1.28s, avg DB 325ms</title></circle><circle cx="610.9" cy="239.1" r="7" fill="#dc2626" opacity="0.82"><title>Admin: orders list: p95 1.15s, avg DB 292ms</title></circle><circle cx="602.6" cy="240.8" r="7" fill="#dc2626" opacity="0.82"><title>Admin: orders list, filtered: p95 1.03s, avg DB 278ms</title></circle><circle cx="637.7" cy="246.7" r="7" fill="#2563eb" opacity="0.82"><title>Customer: checkout AJAX order submit: p95 1.64s, avg DB 237ms</title></circle><text x="647.7" y="238.7" class="point-label">checkout AJAX order submit</text><circle cx="617.1" cy="291.6" r="7" fill="#2563eb" opacity="0.82"><title>Customer: shop archive: p95 1.25s, avg DB 70ms</title></circle><circle cx="616.7" cy="290.9" r="7" fill="#2563eb" opacity="0.82"><title>Customer: product search: p95 1.24s, avg DB 71ms</title></circle><text x="626.7" y="282.9" class="point-label">product search</text><circle cx="585.7" cy="283.6" r="7" fill="#2563eb" opacity="0.82"><title>Customer: add to cart: p95 821ms, avg DB 87ms</title></circle><circle cx="585.4" cy="287.7" r="7" fill="#2563eb" opacity="0.82"><title>Customer: home/product page: p95 818ms, avg DB 78ms</title></circle><circle cx="574.9" cy="289.7" r="7" fill="#2563eb" opacity="0.82"><title>Customer: cart page: p95 711ms, avg DB 74ms</title></circle><circle cx="571.8" cy="289.7" r="7" fill="#2563eb" opacity="0.82"><title>Customer: checkout page: p95 682ms, avg DB 74ms</title></circle><circle cx="511.6" cy="333.1" r="7" fill="#2563eb" opacity="0.82"><title>Customer: shop page: p95 305ms, avg DB 22ms</title></circle><line x1="428.3" y1="450" x2="428.3" y2="456" class="axis" /><text x="414.3" y="474" class="tick">100ms</text><line x1="600.4" y1="450" x2="600.4" y2="456" class="axis" /><text x="586.4" y="474" class="tick">1.00s</text><line x1="773.1" y1="450" x2="773.1" y2="456" class="axis" /><text x="759.1" y="474" class="tick">10.00s</text><line x1="907.6" y1="450" x2="907.6" y2="456" class="axis" /><text x="893.6" y="474" class="tick">60.00s</text><line x1="76" y1="360.9" x2="82" y2="360.9" class="axis" /><text x="14" y="364.9" class="tick">10ms</text><line x1="76" y1="278.6" x2="82" y2="278.6" class="axis" /><text x="14" y="282.6" class="tick">100ms</text><line x1="76" y1="193.4" x2="82" y2="193.4" class="axis" /><text x="14" y="197.4" class="tick">1.00s</text><line x1="76" y1="107.9" x2="82" y2="107.9" class="axis" /><text x="14" y="111.9" class="tick">10.00s</text><line x1="76" y1="67.1" x2="82" y2="67.1" class="axis" /><text x="14" y="71.1" class="tick">30.00s</text></svg></div>
+
+  <section class="panel note">
+    <h2>How The Test Was Conducted</h2>
+    <ol>
+      <li>Started a fresh local MySQL 8.4 instance with Performance Schema and slow query logging enabled.</li>
+      <li>Installed WordPress 7.0 and WooCommerce 10.8.1.</li>
+      <li>Enabled HPOS as the authoritative order store, disabled HPOS compatibility sync, disabled WP-Cron, disabled WooCommerce nonessential admin/task-list features, enabled guest checkout, and used relaxed MySQL durability settings for speed.</li>
+      <li>Generated products, customers, 100,000 historical HPOS orders, order items, order addresses, and order stats, then inserted high-entropy HPOS order meta until the schema directory reached the 5GB target.</li>
+      <li>Ran catalog, storefront/cart/checkout, admin-order, and checkout-heavy mixes at 4, 16, 32 concurrent requests for 45s per cell after warm-up.</li>
+    </ol>
+  </section>
+
+  <h2>Slowest Customer Routes</h2>
+  <div class="wide"><table>
+    <thead><tr><th>Route</th><th>Requests</th><th>Avg wall</th><th>p95 wall</th><th>Max wall</th><th>Avg DB</th><th>Avg queries</th></tr></thead>
+    <tbody><tr>
+<td>Customer: checkout AJAX order submit</td>
+<td>1,739</td>
+<td class="warn">737ms</td>
+<td class="warn">1.64s</td>
+<td class="warn">2.27s</td>
+<td>237ms</td>
+<td>261.69</td>
+</tr>
+<tr>
+<td>Customer: shop archive</td>
+<td>1,464</td>
+<td class="warn">490ms</td>
+<td class="warn">1.25s</td>
+<td class="warn">2.27s</td>
+<td>70ms</td>
+<td>76.00</td>
+</tr>
+<tr>
+<td>Customer: product search</td>
+<td>3,466</td>
+<td class="warn">509ms</td>
+<td class="warn">1.24s</td>
+<td class="warn">2.33s</td>
+<td>71ms</td>
+<td>75.00</td>
+</tr>
+<tr>
+<td>Customer: add to cart</td>
+<td>2,753</td>
+<td class="good">230ms</td>
+<td class="warn">821ms</td>
+<td class="good">1.56s</td>
+<td>87ms</td>
+<td>69.00</td>
+</tr>
+<tr>
+<td>Customer: home/product page</td>
+<td>3,879</td>
+<td class="good">233ms</td>
+<td class="warn">818ms</td>
+<td class="good">1.86s</td>
+<td>78ms</td>
+<td>76.44</td>
+</tr>
+<tr>
+<td>Customer: cart page</td>
+<td>1,014</td>
+<td class="good">184ms</td>
+<td class="good">711ms</td>
+<td class="good">1.56s</td>
+<td>74ms</td>
+<td>70.00</td>
+</tr>
+<tr>
+<td>Customer: checkout page</td>
+<td>3,478</td>
+<td class="good">170ms</td>
+<td class="good">682ms</td>
+<td class="good">1.32s</td>
+<td>74ms</td>
+<td>75.50</td>
+</tr>
+<tr>
+<td>Customer: shop page</td>
+<td>1,464</td>
+<td class="good">61ms</td>
+<td class="good">305ms</td>
+<td class="good">815ms</td>
+<td>22ms</td>
+<td>42.00</td>
+</tr></tbody>
+  </table></div>
+
+  <h2>Slowest Admin Routes</h2>
+  <div class="wide"><table>
+    <thead><tr><th>Route</th><th>Requests</th><th>Avg wall</th><th>p95 wall</th><th>Max wall</th><th>Avg DB</th><th>Avg queries</th></tr></thead>
+    <tbody><tr>
+<td>Admin: HPOS order search</td>
+<td>10</td>
+<td class="bad">44.97s</td>
+<td class="bad">61.98s</td>
+<td class="bad">61.98s</td>
+<td>32.61s</td>
+<td>119.40</td>
+</tr>
+<tr>
+<td>Admin: edit order</td>
+<td>132</td>
+<td class="warn">480ms</td>
+<td class="warn">1.28s</td>
+<td class="good">1.90s</td>
+<td>325ms</td>
+<td>142.96</td>
+</tr>
+<tr>
+<td>Admin: orders list</td>
+<td>121</td>
+<td class="warn">449ms</td>
+<td class="warn">1.15s</td>
+<td class="good">1.69s</td>
+<td>292ms</td>
+<td>126.00</td>
+</tr>
+<tr>
+<td>Admin: orders list, filtered</td>
+<td>108</td>
+<td class="warn">439ms</td>
+<td class="warn">1.03s</td>
+<td class="warn">2.15s</td>
+<td>278ms</td>
+<td>146.00</td>
+</tr></tbody>
+  </table></div>
+
+  <h2>Query Hotspots</h2>
+  <div class="wide"><table>
+    <thead><tr><th>Query group</th><th>Count</th><th>Total MySQL time</th><th>Max</th><th>Rows examined</th><th>Digest sample</th></tr></thead>
+    <tbody><tr>
+<td>HPOS order search ids</td>
+<td>135</td>
+<td class="bad">7,239.30s</td>
+<td>71.26s</td>
+<td>13,660,367</td>
+<td><code>SELECT `wp_wc_orders` . `id` FROM `wp_wc_orders` WHERE ? = ? AND ( `wp_wc_orders` . `status` IN (...) ) AND ( `wp_wc_orders` . `type` = ? ) AND ( ( `wp_wc_orders` . `transaction_id` LIKE ? OR `wp_wc_orders` . `billing_email` LIKE ? OR `wp_wc_orders` . `id` IN ( SELECT `search_query_meta` . `order_id` FROM `wp_wc_orders_meta` AS `search_query_meta` WHERE `search_query_meta` . `meta_key` IN (...) AND `search_query_meta` . `meta_value` LIKE ? GROUP BY `search_query_meta` . `order_id` ) OR `wp_wc_orders` . `id` IN ( SE</code></td>
+</tr>
+<tr>
+<td>HPOS order search count</td>
+<td>88</td>
+<td class="warn">48.30s</td>
+<td>2.25s</td>
+<td>8,910,945</td>
+<td><code>SELECT COUNT ( * ) FROM `wp_wc_orders` WHERE ? = ? AND ( `wp_wc_orders` . `status` IN (...) ) AND ( `wp_wc_orders` . `type` = ? ) AND ( ( `wp_wc_orders` . `transaction_id` LIKE ? OR `wp_wc_orders` . `billing_email` LIKE ? OR `wp_wc_orders` . `id` IN ( SELECT `search_query_meta` . `order_id` FROM `wp_wc_orders_meta` AS `search_query_meta` WHERE `search_query_meta` . `meta_key` IN (...) AND `search_query_meta` . `meta_value` LIKE ? GROUP BY `search_query_meta` . `order_id` ) OR `wp_wc_orders` . `id` IN ( SELECT `orde</code></td>
+</tr>
+<tr>
+<td>Order status counts</td>
+<td>492</td>
+<td class="warn">48.08s</td>
+<td>831ms</td>
+<td>49,808,309</td>
+<td><code>SELECT `status` , COUNT ( * ) AS `count` FROM `wp_wc_orders` WHERE `type` = ? GROUP BY `status`</code></td>
+</tr>
+<tr>
+<td>Options point lookup</td>
+<td>607,959</td>
+<td class="warn">34.46s</td>
+<td>314ms</td>
+<td>177,038</td>
+<td><code>SELECT `option_value` FROM `wp_options` WHERE `option_name` = ? LIMIT ?</code></td>
+</tr>
+<tr>
+<td>Product search query</td>
+<td>3,466</td>
+<td class="warn">28.38s</td>
+<td>300ms</td>
+<td>5,657,851</td>
+<td><code>SELECT SQL_CALC_FOUND_ROWS `wp_posts` . `ID` FROM `wp_posts` WHERE ? = ? AND ( `wp_posts` . `ID` NOT IN ( SELECT `object_id` FROM `wp_term_relationships` WHERE `term_taxonomy_id` IN (...) ) ) AND ( ( ( `wp_posts` . `post_title` LIKE ? ) OR ( `wp_posts` . `post_excerpt` LIKE ? ) OR ( `wp_posts` . `post_content` LIKE ? ) ) AND ( ( `wp_posts` . `post_title` LIKE ? ) OR ( `wp_posts` . `post_excerpt` LIKE ? ) OR ( `wp_posts` . `post_content` LIKE ? ) ) AND ( ( `wp_posts` . `post_title` LIKE ? ) OR ( `wp_posts` . `post_e</code></td>
+</tr>
+<tr>
+<td>SELECT `option_name` , `option_value` FROM `wp_options` WHERE `option_name` IN (</td>
+<td>203,941</td>
+<td class="warn">19.01s</td>
+<td>310ms</td>
+<td>226,418</td>
+<td><code>SELECT `option_name` , `option_value` FROM `wp_options` WHERE `option_name` IN (...)</code></td>
+</tr>
+<tr>
+<td>SELECT `option_name` , `option_value` FROM `wp_options` WHERE `autoload` IN (...</td>
+<td>19,760</td>
+<td class="warn">12.93s</td>
+<td>208ms</td>
+<td>6,434,641</td>
+<td><code>SELECT `option_name` , `option_value` FROM `wp_options` WHERE `autoload` IN (...)</code></td>
+</tr>
+<tr>
+<td>Load HPOS order meta</td>
+<td>30,137</td>
+<td class="warn">11.84s</td>
+<td>309ms</td>
+<td>166,964</td>
+<td><code>SELECT `id` , `order_id` AS `object_id` , `meta_key` , `meta_value` FROM `wp_wc_orders_meta` WHERE `order_id` IN (...)</code></td>
+</tr>
+<tr>
+<td>Product search query</td>
+<td>1,464</td>
+<td class="warn">11.56s</td>
+<td>60ms</td>
+<td>4,392,000</td>
+<td><code>SELECT SQL_CALC_FOUND_ROWS `wp_posts` . `ID` FROM `wp_posts` WHERE ? = ? AND ( `wp_posts` . `ID` NOT IN ( SELECT `object_id` FROM `wp_term_relationships` WHERE `term_taxonomy_id` IN (...) ) ) AND ( ( `wp_posts` . `post_type` = ? AND ( `wp_posts` . `post_status` = ? ) ) ) GROUP BY `wp_posts` . `ID` ORDER BY `wp_posts` . `menu_order` ASC , `wp_posts` . `post_title` ASC LIMIT ?, ...</code></td>
+</tr>
+<tr>
+<td>Load post meta</td>
+<td>56,317</td>
+<td class="warn">10.50s</td>
+<td>314ms</td>
+<td>5,759,134</td>
+<td><code>SELECT `post_id` , `meta_key` , `meta_value` FROM `wp_postmeta` WHERE `post_id` IN (...) ORDER BY `meta_id` ASC</code></td>
+</tr>
+<tr>
+<td>Woo session write/read</td>
+<td>8,983</td>
+<td class="warn">10.09s</td>
+<td>246ms</td>
+<td>0</td>
+<td><code>INSERT INTO `wp_woocommerce_sessions` ( `session_key` , `session_value` , `session_expiry` ) VALUES (...) ON DUPLICATE KEY UPDATE `session_value` = VALUES ( `session_value` ) , `session_expiry` = VALUES ( `session_expiry` )</code></td>
+</tr>
+<tr>
+<td>SELECT `o` . `id` AS `o_id` , `p` . `id` AS `p_id` , `o` . * , `b` . `id` AS `b_</td>
+<td>30,139</td>
+<td class="good">9.21s</td>
+<td>257ms</td>
+<td>45,807</td>
+<td><code>SELECT `o` . `id` AS `o_id` , `p` . `id` AS `p_id` , `o` . * , `b` . `id` AS `b_id` , `b` . `order_id` AS `b_order_id` , `b` . `address_type` AS `b_address_type` , `b` . `first_name` AS `billing_first_name` , `b` . `last_name` AS `billing_last_name` , `b` . `company` AS `billing_company` , `b` . `address_1` AS `billing_address_1` , `b` . `address_2` AS `billing_address_2` , `b` . `city` AS `billing_city` , `b` . `state` AS `billing_state` , `b` . `postcode` AS `billing_postcode` , `b` . `country` AS `billing_countr</code></td>
+</tr>
+<tr>
+<td>SELECT * FROM `wp_posts` WHERE `ID` = ? LIMIT ?</td>
+<td>87,641</td>
+<td class="good">6.78s</td>
+<td>224ms</td>
+<td>82,467</td>
+<td><code>SELECT * FROM `wp_posts` WHERE `ID` = ? LIMIT ?</code></td>
+</tr>
+<tr>
+<td>UPDATE `wp_options` SET `option_value` = ? , `autoload` = ? WHERE `option_name` </td>
+<td>1,739</td>
+<td class="good">6.61s</td>
+<td>109ms</td>
+<td>1,739</td>
+<td><code>UPDATE `wp_options` SET `option_value` = ? , `autoload` = ? WHERE `option_name` = ?</code></td>
+</tr>
+<tr>
+<td>INSERT INTO `wp_wc_orders_meta` ( `order_id` , `meta_key` , `meta_value` ) VALUE</td>
+<td>10,562</td>
+<td class="good">6.03s</td>
+<td>217ms</td>
+<td>0</td>
+<td><code>INSERT INTO `wp_wc_orders_meta` ( `order_id` , `meta_key` , `meta_value` ) VALUES (...)</code></td>
+</tr>
+<tr>
+<td>SELECT `p` . `ID` FROM `wp_posts` `p` WHERE `post_type` = ? AND `p` . `post_titl</td>
+<td>61,878</td>
+<td class="good">5.81s</td>
+<td>109ms</td>
+<td>0</td>
+<td><code>SELECT `p` . `ID` FROM `wp_posts` `p` WHERE `post_type` = ? AND `p` . `post_title` = ? AND `p` . `post_status` IN (...) ORDER BY `p` . `post_date_gmt` ASC LIMIT ?, ...</code></td>
+</tr>
+<tr>
+<td>INSERT INTO `wp_wc_orders` ( `date_updated_gmt` , `id` , `type` ) VALUES (...) O</td>
+<td>11,933</td>
+<td class="good">5.05s</td>
+<td>339ms</td>
+<td>0</td>
+<td><code>INSERT INTO `wp_wc_orders` ( `date_updated_gmt` , `id` , `type` ) VALUES (...) ON DUPLICATE KEY UPDATE `date_updated_gmt` = VALUES ( `date_updated_gmt` ) , `id` = VALUES ( `id` ) , `type` = VALUES ( `type` )</code></td>
+</tr>
+<tr>
+<td>INSERT INTO `wp_woocommerce_order_itemmeta` ( `order_item_id` , `meta_key` , `me</td>
+<td>15,651</td>
+<td class="good">4.67s</td>
+<td>249ms</td>
+<td>0</td>
+<td><code>INSERT INTO `wp_woocommerce_order_itemmeta` ( `order_item_id` , `meta_key` , `meta_value` ) VALUES (...)</code></td>
+</tr></tbody>
+  </table></div>
+
+  <h2>What Would Make It Faster</h2>
+  <div class="cols">
+    <section class="panel">
+      <h3>Order Admin Search</h3>
+      <ul>
+        <li>Avoid the broad HPOS order search query that ORs across transaction ID, billing email, HPOS meta, and order item name with <code>LIKE</code>.</li>
+        <li>Dispatch by search shape: numeric order IDs should become direct ID lookups; email-like values should use exact or prefix email lookups; transaction IDs should use exact or prefix lookups.</li>
+        <li>Move fuzzy order search to a dedicated search index table or external search service. Keep bounded, indexed columns for order number, billing email, transaction ID, customer names, and selected searchable meta.</li>
+        <li>Put minimum-length, debounce, and cancellation behavior in the admin UI so broad searches do not leave long PHP/MySQL requests running.</li>
+      </ul>
+    </section>
+    <section class="panel">
+      <h3>Order Counts And Admin Lists</h3>
+      <ul>
+        <li>Cache or maintain order status counts instead of repeatedly counting the whole HPOS order table for admin menu/list badges.</li>
+        <li>Keep default order list queries bounded by indexed date/status columns and avoid joining or scanning order meta unless the active filter requires it.</li>
+        <li>Consider archival or partitioning strategies for old order/meta rows on very large stores, especially when admin workflows rarely need the entire history inline.</li>
+      </ul>
+    </section>
+    <section class="panel">
+      <h3>Checkout And Customer Routes</h3>
+      <ul>
+        <li>Checkout AJAX averaged about 261.69 queries/request for the slowest customer route; reduce repeated option, session, postmeta, and order-meta work on checkout submission.</li>
+        <li>Use a persistent object cache in production. This run intentionally had no persistent object cache, which makes repeated options and metadata loads visible.</li>
+        <li>Offload emails, Action Scheduler work, analytics, and nonessential post-checkout work out of the request path.</li>
+      </ul>
+    </section>
+    <section class="panel">
+      <h3>MySQL And Data Shape</h3>
+      <ul>
+        <li>The test used a 1.5GB InnoDB buffer pool against a 5GB schema; a production store should size the buffer pool closer to the hot working set.</li>
+        <li>Keep arbitrary HPOS order meta from becoming the search surface. Large unbounded <code>meta_value</code> rows make useful indexes difficult and amplify I/O.</li>
+        <li>After fixing the query shape, rerun without profiling overhead such as <code>SAVEQUERIES</code>, slow-query logging, and Performance Schema consumers to confirm production impact.</li>
+      </ul>
+    </section>
+  </div>
+
+  <h2>Artifacts</h2>
+  <p>Data files: <a href="route-summary.csv">route-summary.csv</a>, <a href="query-digests.csv">query-digests.csv</a>, <a href="table-io.csv">table-io.csv</a>, <a href="aggregate.csv">aggregate.csv</a>, <a href="results.csv">results.csv</a>, <a href="manifest.json">manifest.json</a>, <a href="findings.json">findings.json</a>.</p>
+  <p>Source run: <code>/Users/admin/wordpress-sqlite-benchmark-runner/artifacts/woocommerce-hpos-mysql-profile/runs/20260613T010902Z</code>.</p>
+</main>
+</body>
+</html>

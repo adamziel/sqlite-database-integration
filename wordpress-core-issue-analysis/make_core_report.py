@@ -1368,15 +1368,15 @@ def render_view_panel(slug, view, active=False):
             ("closed", "PRs closed", LINE_COLORS["pr_closed"]),
             ("linked_to_trac", "Linked to Trac", LINE_COLORS["first"]),
         ]
-        gh_note = "wordpress-develop PRs are code review, while Trac remains the authoritative issue tracker."
-        gh_aria = "WordPress develop GitHub PR activity"
+        gh_note = "Quarterly wordpress-develop PR activity. Trac remains the authoritative issue tracker."
+        gh_aria = "WordPress develop GitHub PR activity by quarter"
     else:
         gh_series = [
             ("created", "Linked PRs opened", LINE_COLORS["prs"]),
             ("closed", "Linked PRs closed", LINE_COLORS["pr_closed"]),
         ]
-        gh_note = f"Only wordpress-develop PRs that reference {noun.lower()} are shown."
-        gh_aria = f"WordPress develop GitHub PR activity for {noun}"
+        gh_note = f"Quarterly wordpress-develop PRs that reference {noun.lower()}."
+        gh_aria = f"WordPress develop GitHub PR activity by quarter for {noun}"
 
     return f"""
   <section class="view-panel{active_class}" data-view-panel="{esc(slug)}"{hidden}>
@@ -1407,7 +1407,7 @@ def render_view_panel(slug, view, active=False):
     </section>
 
     <section class="chart-band">
-      {line_chart_svg(gh_rows, gh_series, "GitHub code-review activity", gh_note, gh_aria)}
+      {line_chart_svg(gh_rows, gh_series, "GitHub code-review activity by quarter", gh_note, gh_aria)}
     </section>
 
     <section class="discussion">

@@ -53,6 +53,7 @@ PLUGIN_API = "https://api.wordpress.org/plugins/info/1.2/?action=query_plugins&r
 THEME_API = "https://api.wordpress.org/themes/info/1.2/?action=query_themes&request[page]=1&request[per_page]=1"
 WORDCAMP_API = "https://central.wordcamp.org/wp-json/wp/v2/wordcamps"
 MAKE_CORE_API = "https://make.wordpress.org/core/wp-json/wp/v2/posts"
+FTTF_PLEDGES_URL = "https://wordpress.org/five-for-the-future/pledges/"
 RELEASE_ARCHIVE_URL = "https://wordpress.org/download/releases/"
 CREDITS_API = "https://api.wordpress.org/core/credits/1.1/"
 GITHUB_COMPARE_API = "https://api.github.com/repos/WordPress/wordpress-develop/compare"
@@ -468,6 +469,105 @@ def fetch_make_core_posts(skip_network=False):
     return rows
 
 
+def parse_fttf_pledges_markdown(body, source_url):
+    pledges = []
+    contributors = []
+    total_match = re.search(r"^(\d[\d,]*)\s+pledges\b", body, re.M)
+    listed_total = num(total_match.group(1).replace(",", "")) if total_match else 0
+    headings = list(
+        re.finditer(
+            r"##\s+.*?\[([^\]]+)\]\((https://wordpress\.org/five-for-the-future/pledge/[^)]+)\)",
+            body,
+        )
+    )
+    for index, match in enumerate(headings):
+        name = re.sub(r"\s+", " ", match.group(1)).strip()
+        url = match.group(2)
+        slug = url.rstrip("/").split("/")[-1]
+        block = body[match.end() : headings[index + 1].start() if index + 1 < len(headings) else len(body)]
+        hours_match = re.search(r"pledges\s+([\d,.]+)\s+hours?\s+per week", block)
+        hours = float(hours_match.group(1).replace(",", "")) if hours_match else 0.0
+        profile_matches = re.findall(
+            r"\[\s*⌊?([^\]⌉]+)⌉?\s*\]\(https://profiles\.wordpress\.org/([^/)]+)/\)",
+            block,
+        )
+        plus_matches = [num(value) for value in re.findall(r"^\s*-\s+\+(\d+)\s*$", block, re.M)]
+        hidden_count = sum(plus_matches)
+        pledges.append(
+            {
+                "name": name,
+                "slug": slug,
+                "url": url,
+                "hours_per_week": hours,
+                "listed_contributors": len(profile_matches),
+                "hidden_contributors": hidden_count,
+                "known_or_hidden_contributors": len(profile_matches) + hidden_count,
+                "source_url": source_url,
+                "listed_total": listed_total,
+            }
+        )
+        for contributor_name, contributor_slug in profile_matches:
+            contributors.append(
+                {
+                    "pledge_slug": slug,
+                    "pledge_name": name,
+                    "contributor_name": re.sub(r"\s+", " ", contributor_name).strip(),
+                    "contributor_slug": contributor_slug,
+                    "profile_url": f"https://profiles.wordpress.org/{contributor_slug}/",
+                    "source_url": source_url,
+                }
+            )
+    return listed_total, pledges, contributors
+
+
+def fetch_five_for_the_future_pledges(skip_network=False):
+    if skip_network:
+        return [], [], []
+    all_pledges = {}
+    all_contributors = {}
+    snapshots = []
+    listed_total = 0
+    page = 1
+    while True:
+        source_url = FTTF_PLEDGES_URL if page == 1 else f"{FTTF_PLEDGES_URL}page/{page}/"
+        url = source_url + "?output_format=md"
+        try:
+            body, _headers = fetch_text(url)
+        except urllib.error.HTTPError as exc:
+            if exc.code == 404:
+                break
+            raise
+        if "This page doesn’t exist" in body or "This page doesn't exist" in body:
+            break
+        page_total, pledges, contributors = parse_fttf_pledges_markdown(body, source_url)
+        if not pledges:
+            break
+        listed_total = page_total or listed_total
+        for pledge in pledges:
+            all_pledges[pledge["slug"]] = pledge
+        for contributor in contributors:
+            all_contributors[(contributor["pledge_slug"], contributor["contributor_slug"])] = contributor
+        page += 1
+        time.sleep(0.05)
+        if listed_total and len(all_pledges) >= listed_total:
+            break
+    pledge_rows = sorted(all_pledges.values(), key=lambda row: (-float(row["hours_per_week"]), row["name"].lower()))
+    contributor_rows = sorted(all_contributors.values(), key=lambda row: (row["pledge_name"].lower(), row["contributor_slug"]))
+    if pledge_rows:
+        snapshots.append(
+            {
+                "snapshot_date": END.date().isoformat(),
+                "pledges_listed_on_site": listed_total or len(pledge_rows),
+                "pledges_fetched": len(pledge_rows),
+                "pledged_hours_per_week": round(sum(float(row["hours_per_week"]) for row in pledge_rows), 2),
+                "listed_contributor_profiles": len({row["contributor_slug"] for row in contributor_rows}),
+                "pledge_pages_fetched": page - 1,
+                "source_url": FTTF_PLEDGES_URL,
+            }
+        )
+    return snapshots, pledge_rows, contributor_rows
+
+
 def parse_release_archive_markdown(body):
     releases = {}
     row_re = re.compile(r"^\|\s*(?:\[)?(\d+\.\d+)(?:\]\([^)]+\))?\s*\|\s*([A-Z][a-z]+ \d{1,2}, \d{4})\s*\|", re.M)
@@ -717,10 +817,18 @@ def build_database(data, fetched):
         ("gutenberg_first_response", "missing", "GitHub issue comments/timeline events", "Existing issue export has comment counts but not first comment timestamps."),
         ("gutenberg_reopened_rate", "missing", "GitHub timeline events", "Existing issue export has current state and close date, not reopen transitions."),
         ("core_first_response", "missing", "Trac comments/change history with comment bodies", "Existing Core event export covers status transitions, not first non-reporter response."),
-        ("five_for_the_future", "missing", "Five for the Future public data export", "Needs a dedicated source pull."),
         ("support_forums", "missing", "WordPress.org support forum topic/resolution data", "Needs a dedicated source pull."),
         ("meetups", "missing", "Meetup or WordPress events source", "WordCamp data is included; broader Meetup chapter activity is not."),
     ]
+    if not fetched.get("fttf_pledges"):
+        gaps.append(
+            (
+                "five_for_the_future",
+                "missing",
+                "Five for the Future public pledge listing",
+                "Needs a successful pledge listing fetch.",
+            )
+        )
     if not fetched.get("core_release_committers"):
         gaps.append(
             (
@@ -877,6 +985,17 @@ def horizontal_metric(label, value, max_value, color):
     """
 
 
+def horizontal_count_metric(label, value, max_value, color, suffix=""):
+    width = 100 if max_value <= 0 else max(2, min(100, value / max_value * 100))
+    value_label = f"{compact(value)}{suffix}"
+    return f"""
+    <div class="hmetric">
+      <div class="hmetric-top"><span>{html.escape(label)}</span><strong>{html.escape(value_label)}</strong></div>
+      <div class="bar"><span style="width:{width:.1f}%;background:{color}"></span></div>
+    </div>
+    """
+
+
 def average(rows, col, start=None, end=None):
     vals = []
     for row in rows:
@@ -1013,10 +1132,10 @@ def source_status_rows(fetched):
         ("Make/Core posts", "covered" if fetched.get("make_core_posts") else "missing", "Post counts and author IDs"),
         ("Core release credits", "covered" if fetched.get("core_release_credits") else "missing", "WordPress.org credits API props by major release"),
         ("Core committers per release", "covered" if fetched.get("core_release_committers") else "missing", "GitHub tag-to-tag compare ranges by major release"),
+        ("Five for the Future", "covered" if fetched.get("fttf_pledges") else "missing", "Current pledge organizations, hours, and listed profiles"),
         ("Newly created sites", "missing", "Needs BuiltWith cohort/trend data or HTTP Archive cohort queries"),
         ("First response time", "missing", "Needs comments/timeline data for Core and Gutenberg"),
         ("Gutenberg reopen rate", "missing", "Needs GitHub issue timeline events"),
-        ("Five for the Future", "missing", "Needs a public data export or dedicated scrape"),
         ("Support forums", "missing", "Needs WordPress.org forum topic and resolution data"),
         ("Meetup activity", "missing", "WordCamp records are covered; broader Meetup chapter activity still needs a source"),
     ]
@@ -1038,6 +1157,8 @@ def build_report(data, fetched):
     make_posts = fetched.get("make_core_posts", [])
     release_credits = fetched.get("core_release_credits", [])
     release_committers = fetched.get("core_release_committers", [])
+    fttf_snapshots = fetched.get("fttf_snapshots", [])
+    fttf_pledges = fetched.get("fttf_pledges", [])
     directory = {row["metric"]: row for row in fetched.get("directory_snapshots", [])}
 
     core_latest = current_latest(core_q)
@@ -1084,6 +1205,9 @@ def build_report(data, fetched):
     latest_release_credit = max(release_credits, key=lambda row: row.get("release_date", "")) if release_credits else {}
     release_committer_points = [(row["release_date"], num(row.get("committer_count"))) for row in release_committers]
     latest_release_committer = max(release_committers, key=lambda row: row.get("release_date", "")) if release_committers else {}
+    fttf_snapshot = fttf_snapshots[0] if fttf_snapshots else {}
+    top_fttf_pledges = sorted(fttf_pledges, key=lambda row: float(row.get("hours_per_week") or 0), reverse=True)[:8]
+    max_fttf_hours = max([float(row.get("hours_per_week") or 0) for row in top_fttf_pledges] or [0])
 
     classification_by_source_cat = defaultdict(int)
     for row in classifications:
@@ -1301,6 +1425,23 @@ p {{ margin:0 0 12px; }}
         {stat_card("Latest release commits", compact(num(latest_release_committer.get("commit_count"))), f"{latest_release_committer.get('base_tag', '')} to {latest_release_committer.get('head_tag', '')}", "soft")}
       </div>
     </div>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Five for the Future pledge snapshot</h3>
+        <p>Current pledge listing from WordPress.org. This is a present-day ecosystem signal, not a historical trend.</p>
+        <div class="stats">
+          {stat_card("Pledges", compact(num(fttf_snapshot.get("pledges_fetched"))), "organizations fetched", "good")}
+          {stat_card("Pledged hours", compact(num(fttf_snapshot.get("pledged_hours_per_week"))), "hours per week", "good")}
+          {stat_card("Listed profiles", compact(num(fttf_snapshot.get("listed_contributor_profiles"))), "unique contributor profiles", "good")}
+          {stat_card("Pages fetched", compact(num(fttf_snapshot.get("pledge_pages_fetched"))), "pledge directory pages", "soft")}
+        </div>
+      </div>
+      <div class="card">
+        <h3>Largest current pledges</h3>
+        <p>Top listed organizations by pledged hours per week.</p>
+        {''.join(horizontal_count_metric(str(row.get("name", "")), float(row.get("hours_per_week") or 0), max_fttf_hours, COLORS["community"], "h/wk") for row in top_fttf_pledges)}
+      </div>
+    </div>
   </section>
 
   <section id="load" class="section">
@@ -1354,7 +1495,7 @@ p {{ margin:0 0 12px; }}
       {stat_card("Plugin directory", compact(plugin_count), "current WordPress.org API result", "good")}
       {stat_card("Theme directory", compact(theme_count), "current WordPress.org API result", "good")}
       {stat_card("WordCamp records", compact(len(wordcamps)), "WordCamp Central records fetched", "good")}
-      {stat_card("Release committers", compact(len(release_committers)), "major release windows", "good")}
+      {stat_card("Five for the Future", compact(num(fttf_snapshot.get("pledges_fetched"))), "current pledges fetched", "good")}
     </div>
   </section>
 
@@ -1368,7 +1509,7 @@ p {{ margin:0 0 12px; }}
 
   <section class="footer">
     <p>Generated {dt.datetime.now(dt.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')} from local Core/Gutenberg exports and public sources.</p>
-    <p>Sources: <a href="{W3TECHS_USAGE_URL}">W3Techs usage trend</a>, <a href="{W3TECHS_MARKET_SHARE_URL}">W3Techs CMS market-share trend</a>, <a href="{HTTP_ARCHIVE_CMS_URL}">HTTP Archive Web Almanac CMS 2025</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="https://make.wordpress.org/core/wp-json/wp/v2/posts">Make/Core REST API</a>, <a href="{RELEASE_ARCHIVE_URL}">WordPress release archive</a>, and <a href="{CREDITS_API}">Core credits API</a>.</p>
+    <p>Sources: <a href="{W3TECHS_USAGE_URL}">W3Techs usage trend</a>, <a href="{W3TECHS_MARKET_SHARE_URL}">W3Techs CMS market-share trend</a>, <a href="{HTTP_ARCHIVE_CMS_URL}">HTTP Archive Web Almanac CMS 2025</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="https://make.wordpress.org/core/wp-json/wp/v2/posts">Make/Core REST API</a>, <a href="{FTTF_PLEDGES_URL}">Five for the Future pledges</a>, <a href="{RELEASE_ARCHIVE_URL}">WordPress release archive</a>, and <a href="{CREDITS_API}">Core credits API</a>.</p>
   </section>
 </main>
 </body>
@@ -1391,6 +1532,9 @@ def main():
     fetched["directory_snapshots"] = fetch_wordpress_directory_snapshots(args.skip_network)
     fetched["wordcamps"] = fetch_wordcamps(args.skip_network)
     fetched["make_core_posts"] = fetch_make_core_posts(args.skip_network)
+    fetched["fttf_snapshots"], fetched["fttf_pledges"], fetched["fttf_contributors"] = fetch_five_for_the_future_pledges(
+        args.skip_network
+    )
     fetched["core_releases"], fetched["core_release_credits"] = fetch_core_release_credits(args.skip_network)
     fetched["core_release_committers"], fetched["core_release_committer_counts"] = fetch_core_release_committers(
         fetched["core_releases"], args.skip_network

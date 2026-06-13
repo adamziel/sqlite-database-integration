@@ -52,6 +52,7 @@ HTTP_ARCHIVE_CMS_URL = "https://almanac.httparchive.org/en/2025/cms"
 PLUGIN_API = "https://api.wordpress.org/plugins/info/1.2/?action=query_plugins&request[page]=1&request[per_page]=1"
 THEME_API = "https://api.wordpress.org/themes/info/1.2/?action=query_themes&request[page]=1&request[per_page]=1"
 WORDCAMP_API = "https://central.wordcamp.org/wp-json/wp/v2/wordcamps"
+EVENTS_WORDPRESS_URL = "https://events.wordpress.org/"
 MAKE_CORE_API = "https://make.wordpress.org/core/wp-json/wp/v2/posts"
 FTTF_PLEDGES_URL = "https://wordpress.org/five-for-the-future/pledges/"
 RELEASE_ARCHIVE_URL = "https://wordpress.org/download/releases/"
@@ -432,6 +433,62 @@ def fetch_wordcamps(skip_network=False):
         page += 1
         time.sleep(0.05)
     return rows
+
+
+def fetch_wordpress_events(skip_network=False):
+    if skip_network:
+        return [], []
+    try:
+        body, _headers = fetch_text(EVENTS_WORDPRESS_URL)
+    except Exception as exc:
+        eprint(f"events.wordpress.org fetch failed: {exc}")
+        return [], []
+    match = re.search(
+        r'wporgGoogleMap\["all-upcoming-map"\]\s*=\s*(\{.*?\});\s*\n//# sourceURL=wporg-google-map-view-script-js-before',
+        body,
+        re.S,
+    )
+    if not match:
+        eprint("events.wordpress.org payload not found")
+        return [], []
+    data = json.loads(match.group(1))
+    event_rows = []
+    for event in data.get("markers", []):
+        timestamp = num(event.get("timestamp"))
+        event_date = dt.datetime.fromtimestamp(timestamp, tz=dt.timezone.utc).date().isoformat() if timestamp else ""
+        event_rows.append(
+            {
+                "id": str(event.get("id", "")),
+                "type": str(event.get("type", "")),
+                "title": str(event.get("title", "")),
+                "url": str(event.get("url", "")),
+                "meetup": str(event.get("meetup", "")),
+                "location": str(event.get("location", "")),
+                "latitude": str(event.get("latitude", "")),
+                "longitude": str(event.get("longitude", "")),
+                "tz_offset": str(event.get("tz_offset", "")),
+                "timestamp": timestamp,
+                "event_date": event_date,
+                "source_url": EVENTS_WORDPRESS_URL,
+            }
+        )
+    if not event_rows:
+        return [], []
+    event_types = Counter(row["type"] for row in event_rows)
+    timestamps = [num(row.get("timestamp")) for row in event_rows if num(row.get("timestamp"))]
+    snapshot = {
+        "snapshot_date": END.date().isoformat(),
+        "event_count": len(event_rows),
+        "meetup_count": event_types.get("meetup", 0),
+        "wordcamp_count": event_types.get("wordcamp", 0),
+        "unique_meetup_groups": len({row["meetup"] for row in event_rows if row["meetup"]}),
+        "online_count": sum(1 for row in event_rows if row.get("location") == "online"),
+        "in_person_count": sum(1 for row in event_rows if row.get("location") != "online"),
+        "first_event_date": dt.datetime.fromtimestamp(min(timestamps), tz=dt.timezone.utc).date().isoformat() if timestamps else "",
+        "last_event_date": dt.datetime.fromtimestamp(max(timestamps), tz=dt.timezone.utc).date().isoformat() if timestamps else "",
+        "source_url": EVENTS_WORDPRESS_URL,
+    }
+    return [snapshot], sorted(event_rows, key=lambda row: (row["event_date"], row["title"]))
 
 
 def fetch_make_core_posts(skip_network=False):
@@ -818,8 +875,16 @@ def build_database(data, fetched):
         ("gutenberg_reopened_rate", "missing", "GitHub timeline events", "Existing issue export has current state and close date, not reopen transitions."),
         ("core_first_response", "missing", "Trac comments/change history with comment bodies", "Existing Core event export covers status transitions, not first non-reporter response."),
         ("support_forums", "missing", "WordPress.org support forum topic/resolution data", "Needs a dedicated source pull."),
-        ("meetups", "missing", "Meetup or WordPress events source", "WordCamp data is included; broader Meetup chapter activity is not."),
     ]
+    if not fetched.get("wp_events"):
+        gaps.append(
+            (
+                "meetups",
+                "missing",
+                "Meetup or WordPress events source",
+                "WordCamp data is included; broader Meetup chapter activity is not.",
+            )
+        )
     if not fetched.get("fttf_pledges"):
         gaps.append(
             (
@@ -925,6 +990,19 @@ def svg_line_chart(title, note, series_list, height=330, y_suffix="", start_zero
         yy = y(tick_value)
         pieces.append(f'<line x1="{left}" y1="{yy:.1f}" x2="{width-right}" y2="{yy:.1f}" class="grid" />')
         pieces.append(f'<text x="{left-12}" y="{yy+4:.1f}" class="axis" text-anchor="end">{compact(tick_value)}{y_suffix}</text>')
+    is_yearly = all((parse_iso(d) and parse_iso(d).month == 1 and parse_iso(d).day == 1) for d in dates)
+    is_quarterly = all((parse_iso(d) and parse_iso(d).month in {1, 4, 7, 10} and parse_iso(d).day == 1) for d in dates)
+
+    def axis_label(date_value):
+        parsed = parse_iso(date_value)
+        if not parsed:
+            return str(date_value)
+        if is_yearly:
+            return str(parsed.year)
+        if is_quarterly:
+            return quarter_label(date_value)
+        return parsed.strftime("%b '%y")
+
     x_ticks = dates if len(dates) <= 6 else [dates[round(i * (len(dates) - 1) / 5)] for i in range(6)]
     seen = set()
     for date_value in x_ticks:
@@ -932,7 +1010,7 @@ def svg_line_chart(title, note, series_list, height=330, y_suffix="", start_zero
             continue
         seen.add(date_value)
         xx = x(date_value)
-        pieces.append(f'<text x="{xx:.1f}" y="{height-22}" class="axis" text-anchor="middle">{html.escape(quarter_label(date_value) if "-01-01" not in date_value or len(dates) > 20 else date_value[:4])}</text>')
+        pieces.append(f'<text x="{xx:.1f}" y="{height-22}" class="axis" text-anchor="middle">{html.escape(axis_label(date_value))}</text>')
     pieces.append(f'<line x1="{left}" y1="{top+plot_h}" x2="{width-right}" y2="{top+plot_h}" class="axis-line" />')
     pieces.append(f'<line x1="{left}" y1="{top}" x2="{left}" y2="{top+plot_h}" class="axis-line" />')
     legend_x = left
@@ -1108,6 +1186,18 @@ def count_by_year(rows, date_key, distinct_key=None):
     return [(y, value) for y, value in sorted(buckets.items())]
 
 
+def count_by_month(rows, date_key, type_filter=None):
+    buckets = defaultdict(int)
+    for row in rows:
+        if type_filter and row.get("type") != type_filter:
+            continue
+        parsed = parse_iso(row.get(date_key))
+        if not parsed:
+            continue
+        buckets[f"{parsed.year:04d}-{parsed.month:02d}-01"] += 1
+    return sorted((key, value) for key, value in buckets.items())
+
+
 def current_latest(rows, date_col="quarter"):
     return max(rows, key=lambda row: row.get(date_col, "")) if rows else {}
 
@@ -1129,6 +1219,7 @@ def source_status_rows(fetched):
         ("HTTP Archive/Web Almanac", "covered", "2025 CMS adoption snapshot and high-traffic context"),
         ("WordPress.org plugin/theme directories", "covered" if fetched.get("directory_snapshots") else "missing", "Current plugin and theme counts"),
         ("WordCamp Central", "covered" if fetched.get("wordcamps") else "missing", "Historical WordCamp event records"),
+        ("WordPress Events", "covered" if fetched.get("wp_events") else "missing", "Current upcoming Meetup and WordCamp events"),
         ("Make/Core posts", "covered" if fetched.get("make_core_posts") else "missing", "Post counts and author IDs"),
         ("Core release credits", "covered" if fetched.get("core_release_credits") else "missing", "WordPress.org credits API props by major release"),
         ("Core committers per release", "covered" if fetched.get("core_release_committers") else "missing", "GitHub tag-to-tag compare ranges by major release"),
@@ -1137,7 +1228,6 @@ def source_status_rows(fetched):
         ("First response time", "missing", "Needs comments/timeline data for Core and Gutenberg"),
         ("Gutenberg reopen rate", "missing", "Needs GitHub issue timeline events"),
         ("Support forums", "missing", "Needs WordPress.org forum topic and resolution data"),
-        ("Meetup activity", "missing", "WordCamp records are covered; broader Meetup chapter activity still needs a source"),
     ]
     return rows
 
@@ -1154,6 +1244,8 @@ def build_report(data, fetched):
     classifications = data["classification_trend"]
     market_rows = fetched.get("market_share", [])
     wordcamps = fetched.get("wordcamps", [])
+    wp_event_snapshots = fetched.get("wp_event_snapshots", [])
+    wp_events = fetched.get("wp_events", [])
     make_posts = fetched.get("make_core_posts", [])
     release_credits = fetched.get("core_release_credits", [])
     release_committers = fetched.get("core_release_committers", [])
@@ -1208,6 +1300,13 @@ def build_report(data, fetched):
     fttf_snapshot = fttf_snapshots[0] if fttf_snapshots else {}
     top_fttf_pledges = sorted(fttf_pledges, key=lambda row: float(row.get("hours_per_week") or 0), reverse=True)[:8]
     max_fttf_hours = max([float(row.get("hours_per_week") or 0) for row in top_fttf_pledges] or [0])
+    wp_event_snapshot = wp_event_snapshots[0] if wp_event_snapshots else {}
+    event_group_counts = Counter(row.get("meetup") for row in wp_events if row.get("meetup"))
+    top_event_groups = event_group_counts.most_common(8)
+    max_event_group_count = max([count for _group, count in top_event_groups] or [0])
+    event_month_points = count_by_month(wp_events, "event_date")
+    meetup_month_points = count_by_month(wp_events, "event_date", "meetup")
+    wordcamp_month_points = count_by_month(wp_events, "event_date", "wordcamp")
 
     classification_by_source_cat = defaultdict(int)
     for row in classifications:
@@ -1403,6 +1502,38 @@ p {{ margin:0 0 12px; }}
       ])}
     </div>
     <div class="grid-2">
+      {svg_line_chart("Upcoming WordPress events by month", "Current events.wordpress.org listing, including Meetups and WordCamps.", [
+          {"label": "All events", "color": COLORS["core"], "points": event_month_points},
+          {"label": "Meetups", "color": COLORS["gutenberg"], "points": meetup_month_points},
+          {"label": "WordCamps", "color": COLORS["community"], "points": wordcamp_month_points},
+      ])}
+      <div class="card">
+        <h3>Upcoming event snapshot</h3>
+        <p>Current events.wordpress.org map payload. This captures scheduled upcoming activity, not historical attendance.</p>
+        <div class="stats">
+          {stat_card("Upcoming events", compact(num(wp_event_snapshot.get("event_count"))), f"{wp_event_snapshot.get('first_event_date', '')} to {wp_event_snapshot.get('last_event_date', '')}", "good")}
+          {stat_card("Meetups", compact(num(wp_event_snapshot.get("meetup_count"))), "scheduled meetup events", "good")}
+          {stat_card("Groups", compact(num(wp_event_snapshot.get("unique_meetup_groups"))), "unique meetup groups", "good")}
+          {stat_card("Online", compact(num(wp_event_snapshot.get("online_count"))), "online events", "soft")}
+        </div>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Most active upcoming Meetup groups</h3>
+        <p>Groups with the most scheduled upcoming events in the current Events listing.</p>
+        {''.join(horizontal_count_metric(group, count, max_event_group_count, COLORS["gutenberg"], " events") for group, count in top_event_groups)}
+      </div>
+      <div class="card">
+        <h3>Event mix</h3>
+        <p>Meetups dominate the upcoming event calendar; WordCamps remain visible as larger scheduled events.</p>
+        {horizontal_count_metric("Meetups", num(wp_event_snapshot.get("meetup_count")), max(1, num(wp_event_snapshot.get("event_count"))), COLORS["gutenberg"], "")}
+        {horizontal_count_metric("WordCamps", num(wp_event_snapshot.get("wordcamp_count")), max(1, num(wp_event_snapshot.get("event_count"))), COLORS["community"], "")}
+        {horizontal_count_metric("In-person or location-listed", num(wp_event_snapshot.get("in_person_count")), max(1, num(wp_event_snapshot.get("event_count"))), COLORS["core"], "")}
+        {horizontal_count_metric("Online", num(wp_event_snapshot.get("online_count")), max(1, num(wp_event_snapshot.get("event_count"))), COLORS["prs"], "")}
+      </div>
+    </div>
+    <div class="grid-2">
       {svg_line_chart("Core credited contributors by release", "WordPress.org credits API props count by major release. This is credited contributors, not unique committers.", [
           {"label": "Props", "color": COLORS["core"], "points": release_credit_points},
           {"label": "Noteworthy contributors", "color": COLORS["community"], "points": release_noteworthy_points},
@@ -1509,7 +1640,7 @@ p {{ margin:0 0 12px; }}
 
   <section class="footer">
     <p>Generated {dt.datetime.now(dt.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')} from local Core/Gutenberg exports and public sources.</p>
-    <p>Sources: <a href="{W3TECHS_USAGE_URL}">W3Techs usage trend</a>, <a href="{W3TECHS_MARKET_SHARE_URL}">W3Techs CMS market-share trend</a>, <a href="{HTTP_ARCHIVE_CMS_URL}">HTTP Archive Web Almanac CMS 2025</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="https://make.wordpress.org/core/wp-json/wp/v2/posts">Make/Core REST API</a>, <a href="{FTTF_PLEDGES_URL}">Five for the Future pledges</a>, <a href="{RELEASE_ARCHIVE_URL}">WordPress release archive</a>, and <a href="{CREDITS_API}">Core credits API</a>.</p>
+    <p>Sources: <a href="{W3TECHS_USAGE_URL}">W3Techs usage trend</a>, <a href="{W3TECHS_MARKET_SHARE_URL}">W3Techs CMS market-share trend</a>, <a href="{HTTP_ARCHIVE_CMS_URL}">HTTP Archive Web Almanac CMS 2025</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="{EVENTS_WORDPRESS_URL}">WordPress Events</a>, <a href="https://make.wordpress.org/core/wp-json/wp/v2/posts">Make/Core REST API</a>, <a href="{FTTF_PLEDGES_URL}">Five for the Future pledges</a>, <a href="{RELEASE_ARCHIVE_URL}">WordPress release archive</a>, and <a href="{CREDITS_API}">Core credits API</a>.</p>
   </section>
 </main>
 </body>
@@ -1531,6 +1662,7 @@ def main():
     fetched["market_share"].extend(parse_w3techs_history(W3TECHS_MARKET_SHARE_URL, "cms_market_share", args.skip_network))
     fetched["directory_snapshots"] = fetch_wordpress_directory_snapshots(args.skip_network)
     fetched["wordcamps"] = fetch_wordcamps(args.skip_network)
+    fetched["wp_event_snapshots"], fetched["wp_events"] = fetch_wordpress_events(args.skip_network)
     fetched["make_core_posts"] = fetch_make_core_posts(args.skip_network)
     fetched["fttf_snapshots"], fetched["fttf_pledges"], fetched["fttf_contributors"] = fetch_five_for_the_future_pledges(
         args.skip_network

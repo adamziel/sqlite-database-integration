@@ -52,6 +52,8 @@ PLUGIN_API = "https://api.wordpress.org/plugins/info/1.2/?action=query_plugins&r
 THEME_API = "https://api.wordpress.org/themes/info/1.2/?action=query_themes&request[page]=1&request[per_page]=1"
 WORDCAMP_API = "https://central.wordcamp.org/wp-json/wp/v2/wordcamps"
 MAKE_CORE_API = "https://make.wordpress.org/core/wp-json/wp/v2/posts"
+RELEASE_ARCHIVE_URL = "https://wordpress.org/download/releases/"
+CREDITS_API = "https://api.wordpress.org/core/credits/1.1/"
 
 COLORS = {
     "core": "#2563eb",
@@ -406,6 +408,88 @@ def fetch_make_core_posts(skip_network=False):
     return rows
 
 
+def parse_release_archive_markdown(body):
+    releases = {}
+    row_re = re.compile(r"^\|\s*(?:\[)?(\d+\.\d+)(?:\]\([^)]+\))?\s*\|\s*([A-Z][a-z]+ \d{1,2}, \d{4})\s*\|", re.M)
+    for version, date_label in row_re.findall(body):
+        try:
+            release_date = dt.datetime.strptime(date_label, "%B %d, %Y").date().isoformat()
+        except ValueError:
+            continue
+        releases[version] = {
+            "version": version,
+            "release_date": release_date,
+            "source_url": RELEASE_ARCHIVE_URL,
+        }
+    return sorted(releases.values(), key=lambda row: tuple(int(part) for part in row["version"].split(".")))
+
+
+def parse_release_archive_html(body):
+    releases = {}
+    row_re = re.compile(
+        r'<th class="wp-block-wporg-release-tables__cell-version"[^>]*>\s*(?:<a [^>]+>)?(\d+\.\d+)(?:</a>)?\s*</th>\s*'
+        r'<td class="wp-block-wporg-release-tables__cell-date">([^<]+)</td>',
+        re.S,
+    )
+    for version, date_label in row_re.findall(body):
+        try:
+            release_date = dt.datetime.strptime(html.unescape(date_label).strip(), "%B %d, %Y").date().isoformat()
+        except ValueError:
+            continue
+        releases[version] = {
+            "version": version,
+            "release_date": release_date,
+            "source_url": RELEASE_ARCHIVE_URL,
+        }
+    return sorted(releases.values(), key=lambda row: tuple(int(part) for part in row["version"].split(".")))
+
+
+def fetch_core_release_credits(skip_network=False):
+    if skip_network:
+        return [], []
+    try:
+        body, _headers = fetch_text(RELEASE_ARCHIVE_URL)
+    except Exception as exc:
+        eprint(f"release archive fetch failed: {exc}")
+        return [], []
+    releases = parse_release_archive_html(body) or parse_release_archive_markdown(body)
+    credit_rows = []
+    for release in releases:
+        version = release["version"]
+        params = urllib.parse.urlencode({"version": version, "locale": "en_US"})
+        source_url = f"{CREDITS_API}?{params}"
+        try:
+            data, _headers = fetch_json(source_url)
+        except urllib.error.HTTPError as exc:
+            if exc.code in (400, 404):
+                continue
+            eprint(f"credits fetch failed for {version}: HTTP {exc.code}")
+            continue
+        except Exception as exc:
+            eprint(f"credits fetch failed for {version}: {exc}")
+            continue
+        groups = data.get("groups", {})
+        props = groups.get("props", {}).get("data") or {}
+        noteworthy = groups.get("core-developers", {}).get("data") or {}
+        contributing = groups.get("contributing-developers", {}).get("data") or {}
+        props_users = set(props.keys()) if isinstance(props, dict) else set()
+        noteworthy_users = set(noteworthy.keys()) if isinstance(noteworthy, dict) else set()
+        contributing_users = set(contributing.keys()) if isinstance(contributing, dict) else set()
+        credit_rows.append(
+            {
+                "version": version,
+                "release_date": release["release_date"],
+                "props_count": len(props_users),
+                "noteworthy_count": len(noteworthy_users),
+                "contributing_developers_count": len(contributing_users),
+                "credited_people_count": len(props_users | noteworthy_users | contributing_users),
+                "source_url": source_url,
+            }
+        )
+        time.sleep(0.05)
+    return releases, credit_rows
+
+
 def create_text_table(conn, name, rows):
     conn.execute(f"DROP TABLE IF EXISTS {name}")
     if not rows:
@@ -465,7 +549,7 @@ def build_database(data, fetched):
         ("gutenberg_first_response", "missing", "GitHub issue comments/timeline events", "Existing issue export has comment counts but not first comment timestamps."),
         ("gutenberg_reopened_rate", "missing", "GitHub timeline events", "Existing issue export has current state and close date, not reopen transitions."),
         ("core_first_response", "missing", "Trac comments/change history with comment bodies", "Existing Core event export covers status transitions, not first non-reporter response."),
-        ("core_props_per_release", "missing", "WordPress.org release credits/props data", "Not in the current local exports."),
+        ("core_committers_per_release", "missing", "WordPress git commit history mapped to releases", "Core credits are now included, but credited contributors are not the same as committers."),
         ("five_for_the_future", "missing", "Five for the Future public data export", "Needs a dedicated source pull."),
         ("support_forums", "missing", "WordPress.org support forum topic/resolution data", "Needs a dedicated source pull."),
         ("meetups", "missing", "Meetup or WordPress events source", "WordCamp data is included; broader Meetup chapter activity is not."),
@@ -751,9 +835,10 @@ def source_status_rows(fetched):
         ("WordPress.org plugin/theme directories", "covered" if fetched.get("directory_snapshots") else "missing", "Current plugin and theme counts"),
         ("WordCamp Central", "covered" if fetched.get("wordcamps") else "missing", "Historical WordCamp event records"),
         ("Make/Core posts", "covered" if fetched.get("make_core_posts") else "missing", "Post counts and author IDs"),
+        ("Core release credits", "covered" if fetched.get("core_release_credits") else "missing", "WordPress.org credits API props by major release"),
         ("Newly created sites", "missing", "Needs BuiltWith cohort/trend data or HTTP Archive cohort queries"),
         ("First response time", "missing", "Needs comments/timeline data for Core and Gutenberg"),
-        ("Core props per release", "missing", "Needs release credits/props data"),
+        ("Core committers per release", "missing", "Needs git commit history mapped to release windows"),
     ]
     return rows
 
@@ -771,6 +856,7 @@ def build_report(data, fetched):
     market_rows = fetched.get("market_share", [])
     wordcamps = fetched.get("wordcamps", [])
     make_posts = fetched.get("make_core_posts", [])
+    release_credits = fetched.get("core_release_credits", [])
     directory = {row["metric"]: row for row in fetched.get("directory_snapshots", [])}
 
     core_latest = current_latest(core_q)
@@ -812,6 +898,9 @@ def build_report(data, fetched):
     core_make_posts = count_by_quarter(make_posts, "date")
     core_make_authors = count_by_quarter(make_posts, "date", distinct_key="author")
     wordcamp_years = count_by_year(wordcamps, "start_date")
+    release_credit_points = [(row["release_date"], num(row.get("props_count"))) for row in release_credits]
+    release_noteworthy_points = [(row["release_date"], num(row.get("noteworthy_count"))) for row in release_credits]
+    latest_release_credit = max(release_credits, key=lambda row: row.get("release_date", "")) if release_credits else {}
 
     classification_by_source_cat = defaultdict(int)
     for row in classifications:
@@ -1006,6 +1095,18 @@ p {{ margin:0 0 12px; }}
           {"label": "WordCamps", "color": COLORS["gutenberg"], "points": wordcamp_years},
       ])}
     </div>
+    <div class="grid-2">
+      {svg_line_chart("Core credited contributors by release", "WordPress.org credits API props count by major release. This is credited contributors, not unique committers.", [
+          {"label": "Props", "color": COLORS["core"], "points": release_credit_points},
+          {"label": "Noteworthy contributors", "color": COLORS["community"], "points": release_noteworthy_points},
+      ])}
+      <div class="card">
+        <h3>Release credits</h3>
+        <p>Credits are a broader community signal than commit access. They include people credited in release props, including non-committers.</p>
+        {stat_card("Latest credited release", latest_release_credit.get("version", "n/a"), latest_release_credit.get("release_date", ""), "soft")}
+        {stat_card("Props on latest release", compact(num(latest_release_credit.get("props_count"))), "WordPress.org credits API", "good")}
+      </div>
+    </div>
   </section>
 
   <section id="load" class="section">
@@ -1059,7 +1160,7 @@ p {{ margin:0 0 12px; }}
       {stat_card("Plugin directory", compact(plugin_count), "current WordPress.org API result", "good")}
       {stat_card("Theme directory", compact(theme_count), "current WordPress.org API result", "good")}
       {stat_card("WordCamp records", compact(len(wordcamps)), "WordCamp Central records fetched", "good")}
-      {stat_card("Make/Core posts", compact(len(make_posts)), "posts fetched from WP REST API", "good")}
+      {stat_card("Release credits", compact(len(release_credits)), "major releases with credits", "good")}
     </div>
   </section>
 
@@ -1073,7 +1174,7 @@ p {{ margin:0 0 12px; }}
 
   <section class="footer">
     <p>Generated {dt.datetime.now(dt.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')} from local Core/Gutenberg exports and public sources.</p>
-    <p>Sources: <a href="{W3TECHS_USAGE_URL}">W3Techs usage trend</a>, <a href="{W3TECHS_MARKET_SHARE_URL}">W3Techs CMS market-share trend</a>, <a href="{HTTP_ARCHIVE_CMS_URL}">HTTP Archive Web Almanac CMS 2025</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="https://make.wordpress.org/core/wp-json/wp/v2/posts">Make/Core REST API</a>.</p>
+    <p>Sources: <a href="{W3TECHS_USAGE_URL}">W3Techs usage trend</a>, <a href="{W3TECHS_MARKET_SHARE_URL}">W3Techs CMS market-share trend</a>, <a href="{HTTP_ARCHIVE_CMS_URL}">HTTP Archive Web Almanac CMS 2025</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="https://make.wordpress.org/core/wp-json/wp/v2/posts">Make/Core REST API</a>, <a href="{RELEASE_ARCHIVE_URL}">WordPress release archive</a>, and <a href="{CREDITS_API}">Core credits API</a>.</p>
   </section>
 </main>
 </body>
@@ -1096,6 +1197,7 @@ def main():
     fetched["directory_snapshots"] = fetch_wordpress_directory_snapshots(args.skip_network)
     fetched["wordcamps"] = fetch_wordcamps(args.skip_network)
     fetched["make_core_posts"] = fetch_make_core_posts(args.skip_network)
+    fetched["core_releases"], fetched["core_release_credits"] = fetch_core_release_credits(args.skip_network)
 
     build_database(data, fetched)
     build_report(data, fetched)

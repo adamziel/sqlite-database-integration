@@ -62,6 +62,7 @@ THEME_API = "https://api.wordpress.org/themes/info/1.2/?action=query_themes&requ
 WORDCAMP_API = "https://central.wordcamp.org/wp-json/wp/v2/wordcamps"
 EVENTS_WORDPRESS_URL = "https://events.wordpress.org/"
 MAKE_CORE_API = "https://make.wordpress.org/core/wp-json/wp/v2/posts"
+MAKE_CORE_TAGS_API = "https://make.wordpress.org/core/wp-json/wp/v2/tags"
 FTTF_PLEDGES_URL = "https://wordpress.org/five-for-the-future/pledges/"
 RELEASE_ARCHIVE_URL = "https://wordpress.org/download/releases/"
 CREDITS_API = "https://api.wordpress.org/core/credits/1.1/"
@@ -506,7 +507,7 @@ def fetch_make_core_posts(skip_network=False):
     rows = []
     page = 1
     total_pages = None
-    fields = "id,date,author,link,title"
+    fields = "id,date,modified,author,link,title,categories,tags"
     while True:
         params = urllib.parse.urlencode({"per_page": 100, "page": page, "_fields": fields})
         try:
@@ -525,6 +526,8 @@ def fetch_make_core_posts(skip_network=False):
                     "author": str(item.get("author", "")),
                     "link": str(item.get("link", "")),
                     "title": html.unescape((item.get("title") or {}).get("rendered", "")),
+                    "categories": json.dumps(item.get("categories") or []),
+                    "tags": json.dumps(item.get("tags") or []),
                     "raw_json": json.dumps(item, ensure_ascii=True, sort_keys=True),
                 }
             )
@@ -533,6 +536,144 @@ def fetch_make_core_posts(skip_network=False):
         page += 1
         time.sleep(0.05)
     return rows
+
+
+def fetch_make_core_dev_note_tags(skip_network=False):
+    if skip_network:
+        return []
+    rows_by_id = {}
+    page = 1
+    total_pages = None
+    fields = "id,count,name,slug,link"
+    while True:
+        params = urllib.parse.urlencode({"per_page": 100, "page": page, "search": "dev-notes", "_fields": fields})
+        try:
+            data, headers = fetch_json(f"{MAKE_CORE_TAGS_API}?{params}")
+        except urllib.error.HTTPError as exc:
+            if exc.code == 400 and page > 1:
+                break
+            raise
+        if total_pages is None:
+            total_pages = int(headers.get("X-WP-TotalPages", "1") or 1)
+        for item in data:
+            slug = str(item.get("slug") or "")
+            if not re.match(r"^dev-notes(?:[-0-9]|$)", slug):
+                continue
+            rows_by_id[str(item.get("id", ""))] = {
+                "id": str(item.get("id", "")),
+                "slug": slug,
+                "name": html.unescape(str(item.get("name") or "")),
+                "count": str(item.get("count", "")),
+                "link": str(item.get("link", "")),
+                "source_url": MAKE_CORE_TAGS_API,
+            }
+        if page >= total_pages:
+            break
+        page += 1
+        time.sleep(0.05)
+    return sorted(rows_by_id.values(), key=lambda row: row["slug"])
+
+
+def json_int_list(value):
+    if isinstance(value, list):
+        items = value
+    else:
+        try:
+            items = json.loads(value or "[]")
+        except (TypeError, ValueError, json.JSONDecodeError):
+            items = []
+    parsed = []
+    for item in items:
+        try:
+            parsed.append(int(item))
+        except (TypeError, ValueError):
+            continue
+    return parsed
+
+
+def dev_note_release_from_slug(slug):
+    match = re.search(r"dev-notes-?(\d+)[-.](\d+)", str(slug or ""))
+    if not match:
+        return ""
+    return f"{int(match.group(1))}.{int(match.group(2))}"
+
+
+def derive_make_core_dev_notes(make_posts, dev_note_tags):
+    tag_by_id = {str(row.get("id")): row for row in dev_note_tags}
+    dev_note_tag_ids = {str(row.get("id")) for row in dev_note_tags}
+    note_rows = []
+    quarterly = defaultdict(lambda: {"dev_notes": 0, "authors": set(), "release_tagged": 0})
+    releases = defaultdict(lambda: {"dev_notes": 0, "authors": set(), "first_post_date": "", "last_post_date": ""})
+
+    for post in make_posts:
+        post_tag_ids = {str(item) for item in json_int_list(post.get("tags"))}
+        matched_tag_ids = sorted(post_tag_ids & dev_note_tag_ids)
+        if not matched_tag_ids:
+            continue
+        matched_tags = [tag_by_id[tag_id] for tag_id in matched_tag_ids if tag_id in tag_by_id]
+        release_versions = sorted(
+            {
+                dev_note_release_from_slug(tag.get("slug"))
+                for tag in matched_tags
+                if dev_note_release_from_slug(tag.get("slug"))
+            },
+            key=version_tuple,
+        )
+        primary_release = release_versions[-1] if release_versions else ""
+        q = quarter_start(post.get("date"))
+        if q:
+            quarterly[q]["dev_notes"] += 1
+            if post.get("author"):
+                quarterly[q]["authors"].add(str(post.get("author")))
+            if primary_release:
+                quarterly[q]["release_tagged"] += 1
+        if primary_release:
+            release = releases[primary_release]
+            release["dev_notes"] += 1
+            if post.get("author"):
+                release["authors"].add(str(post.get("author")))
+            post_date = str(post.get("date") or "")
+            if post_date:
+                if not release["first_post_date"] or post_date < release["first_post_date"]:
+                    release["first_post_date"] = post_date
+                if not release["last_post_date"] or post_date > release["last_post_date"]:
+                    release["last_post_date"] = post_date
+        note_rows.append(
+            {
+                "id": str(post.get("id", "")),
+                "date": str(post.get("date", "")),
+                "author": str(post.get("author", "")),
+                "title": str(post.get("title", "")),
+                "link": str(post.get("link", "")),
+                "tag_ids": ",".join(matched_tag_ids),
+                "tag_slugs": ",".join(sorted(tag.get("slug", "") for tag in matched_tags)),
+                "release_versions": ",".join(release_versions),
+                "primary_release_version": primary_release,
+                "source_url": MAKE_CORE_API,
+            }
+        )
+
+    quarterly_rows = [
+        {
+            "quarter": quarter,
+            "dev_notes": values["dev_notes"],
+            "unique_authors": len(values["authors"]),
+            "release_tagged_dev_notes": values["release_tagged"],
+        }
+        for quarter, values in sorted(quarterly.items())
+    ]
+    release_rows = [
+        {
+            "version": version,
+            "dev_notes": values["dev_notes"],
+            "unique_authors": len(values["authors"]),
+            "first_post_date": values["first_post_date"],
+            "last_post_date": values["last_post_date"],
+        }
+        for version, values in sorted(releases.items(), key=lambda item: version_tuple(item[0]))
+    ]
+    note_rows.sort(key=lambda row: (row["date"], row["id"]))
+    return note_rows, quarterly_rows, release_rows
 
 
 def parse_fttf_pledges_markdown(body, source_url):
@@ -958,6 +1099,15 @@ def build_database(data, fetched):
                 "Core credits are included, but credited contributors are not the same as committers.",
             )
         )
+    if not fetched.get("make_core_dev_notes"):
+        gaps.append(
+            (
+                "dev_note_volume",
+                "missing",
+                "Make/Core REST API post tags",
+                "Dev note volume needs Make/Core post tag IDs and dev-notes tag metadata.",
+            )
+        )
     conn.executemany("INSERT INTO source_gaps VALUES (?,?,?,?)", gaps)
     conn.commit()
     conn.close()
@@ -1311,6 +1461,7 @@ def source_status_rows(fetched):
         ("WordCamp Central", "covered" if fetched.get("wordcamps") else "missing", "Historical WordCamp event records"),
         ("WordPress Events", "covered" if fetched.get("wp_events") else "missing", "Current upcoming Meetup and WordCamp events"),
         ("Make/Core posts", "covered" if fetched.get("make_core_posts") else "missing", "Post counts and author IDs"),
+        ("Make/Core dev notes", "covered" if fetched.get("make_core_dev_notes") else "missing", "Dev-note tagged posts by quarter and release"),
         ("Core release credits", "covered" if fetched.get("core_release_credits") else "missing", "WordPress.org credits API props by major release"),
         ("Core committers per release", "covered" if fetched.get("core_release_committers") else "missing", "GitHub tag-to-tag compare ranges by major release"),
         ("Core reopen rate", "covered" if fetched.get("core_reopen_quarterly") else "missing", "Quarterly Core Trac reopened status-change events"),
@@ -1346,6 +1497,9 @@ def build_report(data, fetched):
     wp_event_snapshots = fetched.get("wp_event_snapshots", [])
     wp_events = fetched.get("wp_events", [])
     make_posts = fetched.get("make_core_posts", [])
+    make_dev_notes = fetched.get("make_core_dev_notes", [])
+    make_dev_note_quarterly = fetched.get("make_core_dev_note_quarterly", [])
+    make_dev_note_releases = fetched.get("make_core_dev_note_releases", [])
     release_credits = fetched.get("core_release_credits", [])
     release_committers = fetched.get("core_release_committers", [])
     core_reopen_q = fetched.get("core_reopen_quarterly", [])
@@ -1395,12 +1549,24 @@ def build_report(data, fetched):
     community_points = point_series(gut_q, "quarter", "community_created", "2021-01-01")
     core_make_posts = count_by_quarter(make_posts, "date")
     core_make_authors = count_by_quarter(make_posts, "date", distinct_key="author")
+    dev_note_quarter_points = point_series(make_dev_note_quarterly, "quarter", "dev_notes", "2008-01-01")
+    dev_note_author_points = point_series(make_dev_note_quarterly, "quarter", "unique_authors", "2008-01-01")
     wordcamp_years = count_by_year(wordcamps, "start_date")
     release_credit_points = [(row["release_date"], num(row.get("props_count"))) for row in release_credits]
     release_noteworthy_points = [(row["release_date"], num(row.get("noteworthy_count"))) for row in release_credits]
     latest_release_credit = max(release_credits, key=lambda row: row.get("release_date", "")) if release_credits else {}
     release_committer_points = [(row["release_date"], num(row.get("committer_count"))) for row in release_committers]
     latest_release_committer = max(release_committers, key=lambda row: row.get("release_date", "")) if release_committers else {}
+    release_dates = {str(row.get("version")): str(row.get("release_date")) for row in fetched.get("core_releases", [])}
+    dev_note_release_points = [
+        (release_dates.get(str(row.get("version")), str(row.get("last_post_date", ""))[:10]), num(row.get("dev_notes")))
+        for row in make_dev_note_releases
+        if release_dates.get(str(row.get("version"))) or row.get("last_post_date")
+    ]
+    latest_dev_note_release = max(
+        make_dev_note_releases,
+        key=lambda row: release_dates.get(str(row.get("version")), str(row.get("last_post_date", ""))),
+    ) if make_dev_note_releases else {}
     latest_core_reopen = max(core_reopen_q, key=lambda row: row.get("quarter", "")) if core_reopen_q else {}
     latest_core_response = max(core_response_q, key=lambda row: row.get("quarter", "")) if core_response_q else {}
     latest_gut_timeline = max(gut_timeline_q, key=lambda row: row.get("quarter", "")) if gut_timeline_q else {}
@@ -1643,6 +1809,15 @@ p {{ margin:0 0 12px; }}
       ])}
     </div>
     <div class="grid-2">
+      {svg_line_chart("Make/Core dev notes by quarter", "Developer-note tagged Make/Core posts and unique author IDs per quarter.", [
+          {"label": "Dev notes", "color": COLORS["purple"], "points": dev_note_quarter_points},
+          {"label": "Authors", "color": COLORS["community"], "points": dev_note_author_points},
+      ])}
+      {svg_line_chart("Dev notes by release", "Developer-note tagged posts grouped by explicit release tag, plotted on release date when available.", [
+          {"label": "Dev notes", "color": COLORS["purple"], "points": dev_note_release_points},
+      ])}
+    </div>
+    <div class="grid-2">
       {svg_line_chart("Upcoming WordPress events by month", "Current events.wordpress.org listing, including Meetups and WordCamps.", [
           {"label": "All events", "color": COLORS["core"], "points": event_month_points},
           {"label": "Meetups", "color": COLORS["gutenberg"], "points": meetup_month_points},
@@ -1705,6 +1880,8 @@ p {{ margin:0 0 12px; }}
         <p>Credits are a broader community signal than commit access. They include people credited in release props, including non-committers.</p>
         {stat_card("Latest credited release", latest_release_credit.get("version", "n/a"), latest_release_credit.get("release_date", ""), "soft")}
         {stat_card("Props on latest release", compact(num(latest_release_credit.get("props_count"))), "WordPress.org credits API", "good")}
+        {stat_card("Latest dev-note release", latest_dev_note_release.get("version", "n/a"), "explicit Make/Core dev-notes tag", "soft")}
+        {stat_card("Dev notes", compact(num(latest_dev_note_release.get("dev_notes"))), "for that release tag", "good")}
       </div>
     </div>
     <div class="grid-2">
@@ -1873,6 +2050,12 @@ def main():
     fetched["wordcamps"] = fetch_wordcamps(args.skip_network)
     fetched["wp_event_snapshots"], fetched["wp_events"] = fetch_wordpress_events(args.skip_network)
     fetched["make_core_posts"] = fetch_make_core_posts(args.skip_network)
+    fetched["make_core_dev_note_tags"] = fetch_make_core_dev_note_tags(args.skip_network)
+    (
+        fetched["make_core_dev_notes"],
+        fetched["make_core_dev_note_quarterly"],
+        fetched["make_core_dev_note_releases"],
+    ) = derive_make_core_dev_notes(fetched["make_core_posts"], fetched["make_core_dev_note_tags"])
     fetched["fttf_snapshots"], fetched["fttf_pledges"], fetched["fttf_contributors"] = fetch_five_for_the_future_pledges(
         args.skip_network
     )

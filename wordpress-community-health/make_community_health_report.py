@@ -3656,6 +3656,22 @@ def build_report(data, fetched):
     support_month_no_reply_points = point_series(support_monthly, "month", "no_replies")
     support_age_ordered = sorted(support_age_buckets, key=lambda row: num(row.get("bucket_order")))
     support_age_max = max([num(row.get("topics")) for row in support_age_ordered] or [1])
+    support_unresolved_age_max = max([num(row.get("unresolved")) for row in support_age_ordered] or [1])
+    support_unresolved_31_plus = sum(
+        num(row.get("unresolved"))
+        for row in support_age_ordered
+        if row.get("age_bucket") in {"31-90 days", "91-180 days", "181+ days"}
+    )
+    support_unresolved_91_plus = sum(
+        num(row.get("unresolved"))
+        for row in support_age_ordered
+        if row.get("age_bucket") in {"91-180 days", "181+ days"}
+    )
+    support_unresolved_share = (
+        support_unresolved_count / support_topic_count * 100
+        if support_topic_count
+        else 0
+    )
     builtwith_by_tech = {row.get("technology"): row for row in builtwith_new_sites}
     builtwith_new_rows = [row for row in builtwith_new_sites if num(row.get("new_last_3_months")) > 0]
     builtwith_max_90 = max([num(row.get("new_last_3_months")) for row in builtwith_new_rows] or [1])
@@ -4283,9 +4299,15 @@ p {{ margin:0 0 12px; }}
           {"label": "No replies", "color": COLORS["red"], "points": support_month_no_reply_points},
       ])}
       <div class="card">
-        <h3>Support queue age</h3>
-        <p>How old the current queue is, measured from each topic's last activity date at collection time.</p>
-        {''.join(horizontal_count_metric(str(row.get("age_bucket", "")), num(row.get("topics")), support_age_max, COLORS["orange"] if num(row.get("unresolved")) else COLORS["green"], " topics") for row in support_age_ordered)}
+        <h3>Unresolved support age</h3>
+        <p>How old the unresolved queue is, measured from each topic's last activity date at collection time.</p>
+        <div class="stats">
+          {stat_card("Unresolved share", pct(support_unresolved_share), "of deduplicated queue topics", "watch")}
+          {stat_card("31+ days", compact(support_unresolved_31_plus), "unresolved topics", "watch")}
+          {stat_card("91+ days", compact(support_unresolved_91_plus), "unresolved topics", "watch")}
+          {stat_card("No replies", compact(support_no_reply_count), "current zero-reply topics", "watch")}
+        </div>
+        {''.join(horizontal_count_metric(f"{row.get('age_bucket', '')} unresolved", num(row.get("unresolved")), support_unresolved_age_max, COLORS["orange"] if num(row.get("unresolved")) else COLORS["neutral"], " topics") for row in support_age_ordered)}
       </div>
     </div>
     <div class="grid-2">

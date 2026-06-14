@@ -218,6 +218,22 @@ def main():
         wiki_attention = attention_signal(conn, "wikimedia_wordpress_pageviews")
         stack_attention = attention_signal(conn, "stack_overflow_wordpress_questions")
         hn_attention = attention_signal(conn, "hn_wordpress_woocommerce_hiring_rate")
+        support_snapshot_rows = rows(conn, "SELECT * FROM support_forum_snapshot_summary")
+        support_snapshot = support_snapshot_rows[0] if support_snapshot_rows else {}
+        support_older_unresolved = num(
+            value(
+                conn,
+                """
+                SELECT SUM(CAST(unresolved AS REAL))
+                FROM support_forum_age_buckets
+                WHERE age_bucket IN ('91-180 days','181+ days')
+                """,
+                default=0,
+            )
+        )
+        major_support_threads = num(value(conn, "SELECT SUM(CAST(support_threads AS REAL)) FROM major_plugin_install_snapshot", default=0))
+        major_support_resolved = num(value(conn, "SELECT SUM(CAST(support_threads_resolved AS REAL)) FROM major_plugin_install_snapshot", default=0))
+        major_support_resolved_pct = major_support_resolved / major_support_threads * 100 if major_support_threads else 0
 
         core_created_recent = average(conn, "core_quarterly", "created", "2024-01-01")
         core_closed_recent = average(conn, "core_quarterly", "closed", "2024-01-01")
@@ -484,6 +500,17 @@ def main():
       {ladder_row("softer", "Developer help", change_pct_label(stack_attention), "Stack Overflow WordPress-tag questions versus the latest pre-2024 quarter.")}
       {ladder_row("watch", "Hiring proxy", change_pct_label(hn_attention), "HN WP/Woo hiring mention rate versus parsed pre-2024 history.")}
       {ladder_row("softer", "Direct search/jobs", "Not yet", "Needs Google Trends or similar plus a broad hiring-platform export.")}
+    </div>
+  </section>
+
+  <section class="evidence-ladder">
+    <h2>Support Evidence Ladder</h2>
+    <p>Use this to distinguish the current support queue shape from the still-missing long-term forum history.</p>
+    <div class="ladder-grid">
+      {ladder_row("watch", "Current queue", compact(support_snapshot.get("topics")), f"{pct(support_snapshot.get('resolved_share_pct'))} resolved, {pct(support_snapshot.get('unresolved_share_pct'))} unresolved in the sampled queue.")}
+      {ladder_row("watch", "Older unresolved", compact(support_older_unresolved), "Unresolved topics with last activity 91+ days ago.")}
+      {ladder_row("soft", "Plugin support", compact(major_support_threads), f"{pct(major_support_resolved_pct)} resolved across tracked major-plugin support threads.")}
+      {ladder_row("softer", "Long history", "Not yet", "Needs a full topic/reply export or recurring all/resolved/unresolved snapshots.")}
     </div>
   </section>
 

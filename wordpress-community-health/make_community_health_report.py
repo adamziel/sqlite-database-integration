@@ -8220,6 +8220,16 @@ p {{ margin:0 0 12px; }}
         {ladder_row("softer", "Direct search/jobs", "Not yet", "Needs Google Trends or similar plus a broad hiring-platform export.")}
       </div>
     </div>
+    <div class="evidence-ladder">
+      <h3>Support evidence ladder</h3>
+      <p>Support data is strongest for the current queue shape and major-plugin support load. It is weaker for long-term trend claims until a full support-forum history or recurring snapshots are added.</p>
+      <div class="ladder-grid">
+        {ladder_row("watch", "Current queue", compact(support_topic_count), f"{pct(support_resolved_share)} resolved, {pct(support_unresolved_share)} unresolved in the sampled support queue.")}
+        {ladder_row("watch", "Older unresolved", compact(support_unresolved_91_plus), "Unresolved topics with last activity 91+ days ago.")}
+        {ladder_row("soft", "Plugin support", compact(total_major_plugin_support_threads), f"{pct(total_major_plugin_support_resolved_pct)} resolved across tracked major-plugin support threads.")}
+        {ladder_row("softer", "Long history", "Not yet", "Needs a full topic/reply export or recurring all/resolved/unresolved snapshots.")}
+      </div>
+    </div>
   </section>
 
   <section id="decision-matrix" class="section">

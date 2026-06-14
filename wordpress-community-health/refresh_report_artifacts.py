@@ -29,6 +29,11 @@ HTML_ARTIFACTS = {
         "Goal audit",
         "Partial-source gaps stored in SQLite",
     ],
+    "source_gap_plan.html": [
+        "WordPress report source gap plan",
+        "Collection order",
+        "new_site_cohort_quarterly",
+    ],
     "decision_brief.html": [
         "Decision Questions",
         "WordPress is still the default CMS",
@@ -206,6 +211,7 @@ def main():
 
     if not ns.validate_only:
         run_step([sys.executable, "make_goal_audit.py"])
+        run_step([sys.executable, "make_source_gap_plan.py"])
         run_step([sys.executable, "make_data_inventory.py"])
 
     after = integrity_check()

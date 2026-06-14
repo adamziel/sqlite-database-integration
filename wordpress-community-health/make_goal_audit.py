@@ -143,7 +143,7 @@ def render():
             "Refreshable source metadata",
             "Enough metadata to refresh without rediscovering the model.",
             "Covered",
-            '<a href="data_inventory.html">data_inventory.html</a> lists table counts, local source hashes, and partial-source gaps. <a href="refresh_runbook.html">refresh_runbook.html</a> records the refresh path.',
+            '<a href="data_inventory.html">data_inventory.html</a> lists table counts, local source hashes, and partial-source gaps. <a href="source_gap_plan.html">source_gap_plan.html</a> turns those gaps into a collection order. <a href="refresh_runbook.html">refresh_runbook.html</a> records the refresh path.',
         ),
         audit_row(
             "Short visual decision readout",
@@ -294,7 +294,7 @@ HTML_TEMPLATE = """<!doctype html>
     </div>
     <div class="section">
       <h2>Useful Entry Points</h2>
-      <p>Use the full report for charts, the decision brief for sharing, and the data inventory when checking source coverage.</p>
+      <p>Use the full report for charts, the decision brief for sharing, the data inventory when checking source coverage, and the source gap plan when choosing the next import.</p>
       <div class="links">
         <a href="index.html#decision-questions">Decision Questions</a>
         <a href="index.html#goal-map">Goal Coverage Map</a>
@@ -302,6 +302,7 @@ HTML_TEMPLATE = """<!doctype html>
         <a href="decision_brief.html">Decision brief</a>
         <a href="progress_summary.html">Progress summary</a>
         <a href="data_inventory.html">Data inventory</a>
+        <a href="source_gap_plan.html">Source gap plan</a>
         <a href="refresh_runbook.html">Refresh runbook</a>
       </div>
     </div>

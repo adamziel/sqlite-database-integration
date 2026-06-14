@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WordPress Report Source Gap Plan</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172033;
+      --muted: #637083;
+      --line: #d9e1ea;
+      --paper: #f6f8fb;
+      --panel: #ffffff;
+      --blue: #2563eb;
+      --green: #159957;
+      --amber: #b7791f;
+      --red: #c2413b;
+      --violet: #7c3aed;
+      --gray: #64748b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    main { max-width: 1180px; margin: 0 auto; padding: 36px 22px 48px; }
+    h1 { margin: 0 0 8px; font-size: clamp(32px, 4vw, 52px); line-height: 1.05; letter-spacing: 0; }
+    h2 { margin: 0 0 4px; font-size: 23px; line-height: 1.15; letter-spacing: 0; }
+    h3 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+    p { margin: 0; }
+    a { color: var(--blue); }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; overflow-wrap: anywhere; }
+    .lede { max-width: 920px; color: var(--muted); font-size: 18px; margin-bottom: 18px; }
+    .nav { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 22px; }
+    .nav a {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 7px 11px;
+      background: #fbfdff;
+      color: var(--muted);
+      font-size: 13px;
+      text-decoration: none;
+    }
+    .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin: 22px 0; }
+    .metric, .section, .gap-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
+    }
+    .metric { padding: 16px; }
+    .metric strong { display: block; font-size: 31px; line-height: 1; margin: 5px 0 7px; }
+    .metric span, .note { color: var(--muted); font-size: 14px; }
+    .section { padding: 18px; margin-top: 14px; }
+    .section h2 { margin-bottom: 8px; }
+    .gap-stack { display: grid; gap: 14px; }
+    .gap-card { padding: 18px; border-top: 5px solid var(--gray); }
+    .gap-card.blue { border-top-color: var(--blue); }
+    .gap-card.green { border-top-color: var(--green); }
+    .gap-card.amber { border-top-color: var(--amber); }
+    .gap-card.red { border-top-color: var(--red); }
+    .gap-card.violet { border-top-color: var(--violet); }
+    .gap-head { display: grid; grid-template-columns: 46px minmax(0, 1fr); gap: 12px; align-items: start; margin-bottom: 16px; }
+    .gap-head p { color: var(--muted); font-size: 15px; }
+    .order {
+      width: 42px;
+      height: 42px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 50%;
+      background: #eef4ff;
+      color: var(--blue);
+      font-weight: 850;
+      font-size: 19px;
+    }
+    .gap-card.green .order { background: #e8f8ef; color: var(--green); }
+    .gap-card.amber .order { background: #fff5da; color: var(--amber); }
+    .gap-card.red .order { background: #fff0ef; color: var(--red); }
+    .gap-card.violet .order { background: #f2edff; color: var(--violet); }
+    .gap-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .gap-grid > div {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fbfdff;
+      min-width: 0;
+    }
+    .gap-grid p { color: #2b3547; font-size: 14px; overflow-wrap: anywhere; }
+    .targets { display: flex; flex-wrap: wrap; gap: 6px; }
+    .targets code { background: #eef2f7; border-radius: 5px; padding: 3px 6px; }
+    .success {
+      display: flex;
+      gap: 8px;
+      align-items: baseline;
+      border-top: 1px solid var(--line);
+      margin-top: 14px;
+      padding-top: 12px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .success b { color: var(--ink); }
+    .timeline { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
+    .timeline-item {
+      border: 1px solid var(--line);
+      border-bottom: 4px solid var(--gray);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fbfdff;
+      min-width: 0;
+    }
+    .timeline-item.blue { border-bottom-color: var(--blue); }
+    .timeline-item.green { border-bottom-color: var(--green); }
+    .timeline-item.amber { border-bottom-color: var(--amber); }
+    .timeline-item.red { border-bottom-color: var(--red); }
+    .timeline-item.violet { border-bottom-color: var(--violet); }
+    .timeline-item > span { display: block; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 5px; }
+    .timeline-item strong { display: block; margin-bottom: 4px; }
+    .timeline-item p { color: var(--muted); font-size: 13px; }
+    .callout {
+      background: #eef4ff;
+      border: 1px solid #cfe0ff;
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin: 18px 0 0;
+      color: #244067;
+    }
+    @media (max-width: 980px) {
+      .metrics, .gap-grid, .timeline { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 640px) {
+      main { padding: 24px 14px 36px; }
+      .metrics, .gap-grid, .timeline { grid-template-columns: 1fr; }
+      .success { display: block; }
+      .success span { display: block; margin-top: 3px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>WordPress report source gap plan</h1>
+    <p class="lede">A visual collection plan for the partial-source areas already stored in <code>source_gaps</code>. This page does not change the current report status; it makes the next data pulls explicit and refreshable.</p>
+    <nav class="nav">
+      <a href="index.html#scorecard">Report scorecard</a>
+      <a href="index.html#goal-map">Coverage map</a>
+      <a href="progress_summary.html">Progress summary</a>
+      <a href="decision_brief.html">Decision brief</a>
+      <a href="goal_audit.html">Goal audit</a>
+      <a href="data_inventory.html">Data inventory</a>
+      <a href="refresh_runbook.html">Refresh runbook</a>
+      <a href="community_health.sqlite.gz">SQLite download</a>
+    </nav>
+
+    <section class="metrics" aria-label="Source gap summary">
+      <div class="metric"><h3>Partial signals</h3><strong>5</strong><span>Stored in <code>source_gaps</code>.</span></div>
+      <div class="metric"><h3>Database tables</h3><strong>82</strong><span>Existing report tables remain intact.</span></div>
+      <div class="metric"><h3>Integrity</h3><strong>ok</strong><span>SQLite integrity check.</span></div>
+      <div class="metric"><h3>Next mode</h3><strong>1 at a time</strong><span>Import, validate, then publish each source family.</span></div>
+    </section>
+
+    <section class="section">
+      <h2>Collection order</h2>
+      <p class="note">Start with new-site history because it most directly answers whether people still choose WordPress for new builds. Search interest and job demand are next because they broaden the demand picture beyond tickets.</p>
+      <div class="timeline">
+        <div class="timeline-item blue">
+          <span>1</span>
+          <div>
+            <strong>New-site choice history</strong>
+            <p>Quarterly WordPress, Shopify, Wix, Squarespace, and Webflow rows across multiple years.</p>
+          </div>
+        </div>
+
+        <div class="timeline-item green">
+          <span>2</span>
+          <div>
+            <strong>Search interest</strong>
+            <p>Normalized quarterly search series for WordPress and peer builders.</p>
+          </div>
+        </div>
+
+        <div class="timeline-item amber">
+          <span>3</span>
+          <div>
+            <strong>Job demand</strong>
+            <p>Quarterly WordPress, PHP, CMS, Shopify, Wix, Squarespace, and Webflow demand rows.</p>
+          </div>
+        </div>
+
+        <div class="timeline-item red">
+          <span>4</span>
+          <div>
+            <strong>Support history</strong>
+            <p>Quarterly topics opened, resolved, unresolved, unanswered, and response-age rows.</p>
+          </div>
+        </div>
+
+        <div class="timeline-item violet">
+          <span>5</span>
+          <div>
+            <strong>Developer interest</strong>
+            <p>Quarterly developer-attention rows that are not only help-question volume.</p>
+          </div>
+        </div></div>
+    </section>
+
+    <section class="gap-stack" aria-label="Source gap cards">
+
+      <article class="gap-card blue">
+        <div class="gap-head">
+          <span class="order">1</span>
+          <div>
+            <h2>New-site choice history</h2>
+            <p>Separates installed presence from whether new site builders are choosing WordPress now.</p>
+          </div>
+        </div>
+        <div class="gap-grid">
+          <div>
+            <h3>Current coverage</h3>
+            <p>Current report includes BuiltWith current Net New Pipeline, HTTP Archive monthly origin counts, derived tracked-share history, rank-tier detected-origin adoption, and a compact new-site choice summary; not a multi-year newly created site cohort.</p>
+          </div>
+          <div>
+            <h3>Best next source</h3>
+            <p>BuiltWith historical trends or HTTP Archive cohort queries</p>
+          </div>
+          <div>
+            <h3>Collection step</h3>
+            <p>Add a paid BuiltWith historical trend export or an HTTP Archive first-seen-origin cohort query.</p>
+          </div>
+          <div>
+            <h3>Target tables</h3>
+            <p class="targets"><code>new_site_cohort_quarterly</code> <code>builder_new_site_share_quarterly</code></p>
+          </div>
+        </div>
+        <div class="success">
+          <b>Done when</b>
+          <span>Quarterly WordPress, Shopify, Wix, Squarespace, and Webflow rows across multiple years.</span>
+        </div>
+      </article>
+
+      <article class="gap-card green">
+        <div class="gap-head">
+          <span class="order">2</span>
+          <div>
+            <h2>Search interest</h2>
+            <p>Turns the current Wikimedia public-attention proxy into a direct broad-interest signal.</p>
+          </div>
+        </div>
+        <div class="gap-grid">
+          <div>
+            <h3>Current coverage</h3>
+            <p>Wikimedia Pageviews API quarterly article-view trends and a compact attention/demand summary are included as public-interest proxies; true search-query interest still needs Google Trends or another search provider.</p>
+          </div>
+          <div>
+            <h3>Best next source</h3>
+            <p>Google Trends or another search-interest provider</p>
+          </div>
+          <div>
+            <h3>Collection step</h3>
+            <p>Import Google Trends or an equivalent search-interest export for WordPress, WordPress developer, Shopify, Wix, Squarespace, and Webflow.</p>
+          </div>
+          <div>
+            <h3>Target tables</h3>
+            <p class="targets"><code>search_interest_quarterly</code></p>
+          </div>
+        </div>
+        <div class="success">
+          <b>Done when</b>
+          <span>Normalized quarterly search series for WordPress and peer builders.</span>
+        </div>
+      </article>
+
+      <article class="gap-card amber">
+        <div class="gap-head">
+          <span class="order">3</span>
+          <div>
+            <h2>Job demand</h2>
+            <p>Separates WordPress-specific demand from narrower HN and jobs.wordpress.net proxies.</p>
+          </div>
+        </div>
+        <div class="gap-grid">
+          <div>
+            <h3>Current coverage</h3>
+            <p>HN Who is hiring WordPress/WooCommerce, PHP, and agency/studio mention counts, WordPress Jobs board open-listing snapshots, and a compact proxy-direction summary are included; broader job-board demand still needs a labor-market source.</p>
+          </div>
+          <div>
+            <h3>Best next source</h3>
+            <p>Hacker News monthly Who is hiring? threads plus hiring-platform exports</p>
+          </div>
+          <div>
+            <h3>Collection step</h3>
+            <p>Import a labor-market export such as Lightcast, Indeed/Hiring Lab, LinkedIn, or a comparable source.</p>
+          </div>
+          <div>
+            <h3>Target tables</h3>
+            <p class="targets"><code>job_demand_quarterly</code></p>
+          </div>
+        </div>
+        <div class="success">
+          <b>Done when</b>
+          <span>Quarterly WordPress, PHP, CMS, Shopify, Wix, Squarespace, and Webflow demand rows.</span>
+        </div>
+      </article>
+
+      <article class="gap-card red">
+        <div class="gap-head">
+          <span class="order">4</span>
+          <div>
+            <h2>Support history</h2>
+            <p>Turns the live queue snapshot into a trend that can be compared with ticket load.</p>
+          </div>
+        </div>
+        <div class="gap-grid">
+          <div>
+            <h3>Current coverage</h3>
+            <p>Current report includes public support queue snapshots, resolved/unresolved/no-reply summaries, last-activity buckets, forum-level unanswered summaries, and major-plugin support-thread totals; not a full long-term topic/reply history.</p>
+          </div>
+          <div>
+            <h3>Best next source</h3>
+            <p>Historical WordPress.org support forum topic/reply export</p>
+          </div>
+          <div>
+            <h3>Collection step</h3>
+            <p>Add a WordPress.org support topic/reply historical export or recurring snapshots of all, unresolved, resolved, and no-reply views.</p>
+          </div>
+          <div>
+            <h3>Target tables</h3>
+            <p class="targets"><code>support_forum_history_quarterly</code></p>
+          </div>
+        </div>
+        <div class="success">
+          <b>Done when</b>
+          <span>Quarterly topics opened, resolved, unresolved, unanswered, and response-age rows.</span>
+        </div>
+      </article>
+
+      <article class="gap-card violet">
+        <div class="gap-head">
+          <span class="order">5</span>
+          <div>
+            <h2>Developer interest</h2>
+            <p>Distinguishes fewer public help questions from actual developer adoption or migration.</p>
+          </div>
+        </div>
+        <div class="gap-grid">
+          <div>
+            <h3>Current coverage</h3>
+            <p>Quarterly Stack Overflow tag volume, Wikimedia pageviews, and a compact attention/demand summary are included as public attention proxies; they do not measure general search-query interest.</p>
+          </div>
+          <div>
+            <h3>Best next source</h3>
+            <p>Stack Exchange API question totals by Stack Overflow tag plus Wikimedia Pageviews API</p>
+          </div>
+          <div>
+            <h3>Collection step</h3>
+            <p>Keep Stack Overflow and Wikimedia, then add developer-community sources such as GitHub activity or package/dependency ecosystem trends if available.</p>
+          </div>
+          <div>
+            <h3>Target tables</h3>
+            <p class="targets"><code>developer_interest_quarterly</code></p>
+          </div>
+        </div>
+        <div class="success">
+          <b>Done when</b>
+          <span>Quarterly developer-attention rows that are not only help-question volume.</span>
+        </div>
+      </article>
+    </section>
+
+    <section class="section">
+      <h2>Refresh workflow</h2>
+      <p class="note">After each import, update the relevant generated summary table, rerun the report artifacts, and keep the gap marked partial until the new source materially improves the signal.</p>
+      <p class="callout">Use <a href="refresh_runbook.html">refresh_runbook.html</a> for the command order and <a href="data_inventory.html">data_inventory.html</a> to confirm the new table count, row count, source hash, and gap status.</p>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WordPress Report Refresh Runbook</title>
+  <style>
+    :root { --ink:#172033; --muted:#637083; --line:#d9e1ea; --paper:#f6f8fb; --panel:#fff; --blue:#2563eb; --green:#159957; --amber:#b7791f; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    main { max-width:1040px; margin:0 auto; padding:36px 20px 48px; }
+    h1 { margin:0 0 8px; font-size:clamp(32px,4vw,48px); line-height:1.05; letter-spacing:0; }
+    h2 { margin:26px 0 12px; font-size:22px; }
+    p { margin:0 0 12px; color:var(--muted); }
+    a { color:var(--blue); }
+    .grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin:20px 0; }
+    .card, section { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:18px; }
+    .card b { display:block; font-size:22px; margin-bottom:4px; }
+    .tag { display:inline-block; border-radius:999px; padding:4px 9px; background:#eef4ff; color:var(--blue); font-size:12px; font-weight:750; text-transform:uppercase; letter-spacing:.06em; }
+    table { width:100%; border-collapse:collapse; table-layout:fixed; margin-top:8px; font-size:14px; }
+    th, td { text-align:left; border-bottom:1px solid var(--line); padding:9px 8px; vertical-align:top; overflow-wrap:anywhere; }
+    th { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.06em; }
+    code { background:#eef2f7; border-radius:5px; padding:2px 5px; }
+    .steps { counter-reset:item; display:grid; gap:10px; margin-top:8px; }
+    .step { border-left:4px solid var(--blue); padding:10px 12px; background:#fbfdff; border-radius:8px; }
+    .warn { border-left-color:var(--amber); }
+    @media (max-width:820px) { main { padding:24px 14px 36px; } .grid { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+<main>
+  <span class="tag">WordPress Community & Adoption Health</span>
+  <h1>Refresh runbook</h1>
+  <p>This page records the safest next steps for refreshing the WordPress relevance report. It is intentionally operational: what to run, what to import next, and how to avoid another low-disk failure.</p>
+
+  <div class="grid">
+    <div class="card"><b>Current DB</b><p><code>community_health.sqlite</code>, rebuilt from local exports plus cached public sources.</p></div>
+    <div class="card"><b>Published report</b><p><a href="index.html">wordpress-community-health/index.html</a> on GitHub Pages.</p></div>
+    <div class="card"><b>Disk rule</b><p>Free at least 500 MB before pulling a new source or rebuilding the compressed DB export.</p></div>
+  </div>
+
+  <section>
+    <h2>Safe Refresh Order</h2>
+    <div class="steps">
+      <div class="step warn"><b>1. Check space first.</b><br><code>df -h /Users/admin</code>. Stop if free space is under 500 MB.</div>
+      <div class="step"><b>2. Validate the current DB.</b><br><code>sqlite3 community_health.sqlite "PRAGMA integrity_check; PRAGMA journal_mode;"</code>. Expected: <code>ok</code> and <code>delete</code>.</div>
+      <div class="step"><b>3. Refresh one source family at a time.</b><br>Import or fetch a single partial signal, verify row counts, then regenerate with <code>--skip-network</code>.</div>
+      <div class="step"><b>4. Rebuild artifacts.</b><br><code>python3 make_community_health_report.py --skip-network</code>, then gzip the DB only after the HTML succeeds.</div>
+      <div class="step"><b>5. Publish Pages artifacts.</b><br>Copy <code>final_report.html</code>, <code>make_community_health_report.py</code>, and <code>community_health.sqlite.gz</code> into the Pages workspace, commit, push, and verify the public URL.</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Next Source Imports</h2>
+    <table>
+      <thead><tr><th>Priority</th><th>Signal</th><th>Source</th><th>Target table</th><th>Success check</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>New-site share history</td><td>Paid BuiltWith trends export or HTTP Archive cohort query by first-seen month.</td><td><code>new_site_share_quarterly</code></td><td>Quarterly WordPress, Shopify, Wix, Squarespace, Webflow rows across multiple years.</td></tr>
+        <tr><td>2</td><td>Search interest</td><td>Google Trends CSV export for WordPress, WordPress developer, WordPress alternatives, and peer builders.</td><td><code>search_interest_quarterly</code></td><td>Quarterly normalized search series replacing the Wikimedia-only proxy.</td></tr>
+        <tr><td>3</td><td>Broad job demand</td><td>Lightcast, Indeed/Hiring Lab, LinkedIn, or equivalent labor-market export.</td><td><code>job_demand_quarterly</code></td><td>WordPress and peer demand by quarter, not just HN or jobs.wordpress.net snapshots.</td></tr>
+        <tr><td>4</td><td>Support history</td><td>WordPress.org support forum export or recurring snapshots of all, unresolved, resolved, and no-reply views.</td><td><code>support_forum_quarterly</code></td><td>Historical topics opened/resolved/unanswered trend instead of current queue only.</td></tr>
+        <tr><td>5</td><td>Developer interest</td><td>Keep Stack Overflow and add GitHub/package ecosystem trends if available.</td><td><code>developer_interest_quarterly</code></td><td>Developer attention signal that is not only help-question volume.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Do Not Re-Discover</h2>
+    <p>The existing SQLite database already stores <code>source_files</code>, <code>source_gaps</code>, imported ticket exports, generated category summaries, public-source snapshots, and the derived HTTP Archive tracked-share table. Add new sources as separate tables and update <code>source_gaps</code> only when the new evidence materially improves a partial signal.</p>
+  </section>
+</main>
+</body>
+</html>

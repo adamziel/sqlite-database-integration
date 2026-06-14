@@ -6,15 +6,19 @@ from pathlib import Path
 
 ROOT = Path("/Users/admin/wordpress_community_health")
 DB_PATH = ROOT / "community_health.sqlite"
-OUT = ROOT / "support_load.html"
+OUT = ROOT / "search_interest.html"
 
 COLORS = {
+    "wordpress": "#2563eb",
+    "woocommerce": "#7c3aed",
+    "shopify": "#159957",
+    "wix": "#b7791f",
+    "webflow": "#0f766e",
+    "squarespace": "#64748b",
     "blue": "#2563eb",
     "green": "#159957",
     "amber": "#b7791f",
     "violet": "#7c3aed",
-    "red": "#c2410c",
-    "teal": "#0f766e",
     "ink": "#172033",
 }
 
@@ -58,17 +62,26 @@ def latest(rows_, key):
     return max(rows_, key=lambda row: row.get(key, ""), default={})
 
 
+def quarter_label(value):
+    value = str(value or "")
+    if len(value) < 7:
+        return value
+    month = value[5:7]
+    q = {"01": "Q1", "04": "Q2", "07": "Q3", "10": "Q4"}.get(month, "")
+    return f"{value[:4]} {q}".strip()
+
+
 def nav_html():
     return "\n".join(
         [
             '    <nav class="nav">',
-            '      <a href="index.html#participation">Participation</a>',
-            '      <a href="ecosystem_activity.html">Ecosystem activity</a>',
-            '      <a href="project_load.html">Project load</a>',
+            '      <a href="index.html#market">Market Position</a>',
             '      <a href="market_position.html">Market position</a>',
-            '      <a href="search_interest.html">Search interest</a>',
             '      <a href="developer_interest.html">Developer interest</a>',
             '      <a href="job_demand.html">Job demand</a>',
+            '      <a href="support_load.html">Support load</a>',
+            '      <a href="project_load.html">Project load</a>',
+            '      <a href="ecosystem_activity.html">Ecosystem activity</a>',
             '      <a href="contributor_depth.html">Contributor depth</a>',
             '      <a href="progress_summary.html">Progress summary</a>',
             '      <a href="decision_brief.html">Decision brief</a>',
@@ -103,19 +116,19 @@ def signal_row(title, text, value, color="blue"):
 def bar_row(label, value, max_value, color=COLORS["blue"], suffix=""):
     value = num(value)
     width = 0 if max_value <= 0 else max(2, min(100, value / max_value * 100))
-    shown = f"{compact(value)}{suffix}"
     return f"""
         <div class="barline">
-          <div class="bar-label"><span>{esc(label)}</span><strong>{esc(shown)}</strong></div>
+          <div class="bar-label"><span>{esc(label)}</span><strong>{esc(compact(value))}{esc(suffix)}</strong></div>
           <div class="bar"><span style="width:{width:.1f}%;background:{esc(color)}"></span></div>
         </div>"""
 
 
-def point_series(rows_, key, value_key, label_key="label"):
-    return [
-        (row.get(label_key) or str(row.get(key, ""))[:7], num(row.get(value_key)))
+def point_series(rows_, key, value_key, label_transform=quarter_label, limit=None):
+    points = [
+        (label_transform(row.get(key, "")), num(row.get(value_key)))
         for row in sorted(rows_, key=lambda item: item.get(key, ""))
     ]
+    return points[-limit:] if limit else points
 
 
 def multi_line_chart(title, note, series, value_decimals=0):
@@ -190,128 +203,132 @@ def main():
     conn.row_factory = sqlite3.Row
     try:
         integrity = one(conn, "PRAGMA integrity_check")
-        snapshot = latest(rows(conn, "SELECT * FROM support_forum_snapshot_summary"), "snapshot_at")
-        monthly = rows(conn, "SELECT * FROM support_forum_activity_monthly ORDER BY month")
-        age_buckets = rows(conn, "SELECT * FROM support_forum_age_buckets ORDER BY CAST(bucket_order AS INTEGER)")
-        forums = rows(
-            conn,
-            """
-            SELECT forum_name, topics, unresolved, unresolved_share_pct, resolved_share_pct, no_replies
-            FROM support_forum_unanswered_by_forum
-            ORDER BY CAST(unresolved AS REAL) DESC
-            LIMIT 8
-            """,
-        )
-        plugin_rows = rows(
-            conn,
-            """
-            SELECT slug, name, active_installs, support_threads, support_threads_resolved,
-                   (CAST(support_threads AS REAL) - CAST(support_threads_resolved AS REAL)) AS unresolved_threads,
-                   CASE WHEN CAST(support_threads AS REAL) > 0
-                        THEN ROUND(CAST(support_threads_resolved AS REAL) / CAST(support_threads AS REAL) * 100, 1)
-                        ELSE 0 END AS resolved_pct
-            FROM major_plugin_install_snapshot
-            ORDER BY unresolved_threads DESC
-            LIMIT 8
-            """,
-        )
-        gap = rows(conn, "SELECT * FROM source_gaps WHERE signal='support_forum_history'")
+        wiki = rows(conn, "SELECT * FROM wikimedia_pageviews_quarterly ORDER BY quarter, technology")
+        stack = rows(conn, "SELECT * FROM stack_overflow_tag_quarterly ORDER BY quarter, technology")
+        attention = rows(conn, "SELECT * FROM attention_demand_summary WHERE signal IN ('wikimedia_wordpress_pageviews','stack_overflow_wordpress_questions')")
+        gap = rows(conn, "SELECT * FROM source_gaps WHERE signal='search_interest'")
     finally:
         conn.close()
 
+    tech_order = ["WordPress", "Shopify", "Wix", "Squarespace", "Webflow", "WooCommerce"]
+    attention_by_signal = {row.get("signal"): row for row in attention}
+    wiki_summary = attention_by_signal.get("wikimedia_wordpress_pageviews", {})
+    so_summary = attention_by_signal.get("stack_overflow_wordpress_questions", {})
+    latest_wiki_by_tech = {
+        tech: latest([row for row in wiki if row.get("technology") == tech], "quarter")
+        for tech in tech_order
+    }
+    latest_stack_by_tech = {
+        tech: latest([row for row in stack if row.get("technology") == tech], "quarter")
+        for tech in tech_order
+    }
+
+    latest_wp_wiki = latest_wiki_by_tech.get("WordPress", {})
+    latest_shopify_wiki = latest_wiki_by_tech.get("Shopify", {})
+    latest_wp_stack = latest_stack_by_tech.get("WordPress", {})
+    wiki_ratio = num(latest_wp_wiki.get("views")) / num(latest_shopify_wiki.get("views"), 1)
+    latest_total_views = sum(num(row.get("views")) for row in latest_wiki_by_tech.values())
+    wp_latest_share = num(latest_wp_wiki.get("views")) / latest_total_views * 100 if latest_total_views else 0
+    latest_total_questions = sum(num(row.get("question_count")) for row in latest_stack_by_tech.values())
+    wp_question_share = num(latest_wp_stack.get("question_count")) / latest_total_questions * 100 if latest_total_questions else 0
+
     metrics = "".join(
         [
-            metric_card("Topics sampled", compact(snapshot.get("topics")), f"{snapshot.get('snapshot_at', '')[:10]} support queue snapshot", "blue"),
-            metric_card("Unresolved", compact(snapshot.get("unresolved")), f"{pct(snapshot.get('unresolved_share_pct'))} of sampled topics", "amber"),
-            metric_card("Resolved", compact(snapshot.get("resolved")), f"{pct(snapshot.get('resolved_share_pct'))} of sampled topics", "green"),
-            metric_card("Participants", compact(snapshot.get("participants")), f"{compact(snapshot.get('unique_starters'))} unique topic starters", "violet"),
-            metric_card("No replies", compact(snapshot.get("no_replies")), f"{pct(snapshot.get('no_reply_share_pct'))} of sampled topics", "green"),
+            metric_card(
+                "Wikipedia WordPress views",
+                compact(latest_wp_wiki.get("views")),
+                f"{quarter_label(latest_wp_wiki.get('quarter'))}; {pct(wiki_summary.get('change_pct'))} vs {wiki_summary.get('baseline_period', 'baseline')}",
+                "blue",
+            ),
+            metric_card(
+                "Tracked attention share",
+                pct(wp_latest_share),
+                "of latest tracked Wikimedia pageviews",
+                "green",
+            ),
+            metric_card(
+                "WordPress vs Shopify",
+                f"{wiki_ratio:.1f}x",
+                "latest Wikimedia pageviews",
+                "green",
+            ),
+            metric_card(
+                "Stack Overflow WP",
+                compact(latest_wp_stack.get("question_count")),
+                f"{quarter_label(latest_wp_stack.get('quarter'))}; {pct(so_summary.get('change_pct'))} vs {so_summary.get('baseline_period', 'baseline')}",
+                "amber",
+            ),
+            metric_card(
+                "SO tracked share",
+                pct(wp_question_share),
+                "of latest tracked Stack Overflow questions",
+                "violet",
+            ),
         ]
     )
 
-    month_chart = multi_line_chart(
-        "Support queue by last activity month",
-        "Current support topics grouped by the month of last activity. This is a snapshot distribution, not all topics opened in the month.",
+    wiki_chart = multi_line_chart(
+        "Public attention proxy",
+        "Quarterly English Wikipedia article pageviews. This is a stable public-interest signal, not search-query volume.",
         [
-            {"name": "Topics", "color": COLORS["blue"], "points": point_series(monthly, "month", "topics")},
-            {"name": "Unresolved", "color": COLORS["amber"], "points": point_series(monthly, "month", "unresolved")},
-            {"name": "Resolved", "color": COLORS["green"], "points": point_series(monthly, "month", "resolved")},
-            {"name": "Replies", "color": COLORS["violet"], "points": point_series(monthly, "month", "replies")},
+            {
+                "name": tech,
+                "color": COLORS.get(tech.lower(), COLORS["blue"]),
+                "points": point_series([row for row in wiki if row.get("technology") == tech], "quarter", "views"),
+            }
+            for tech in tech_order
+        ],
+    )
+    stack_chart = multi_line_chart(
+        "Developer-help proxy",
+        "Quarterly Stack Overflow tag questions. This shows visible help-seeking, not all developer interest.",
+        [
+            {
+                "name": tech,
+                "color": COLORS.get(tech.lower(), COLORS["blue"]),
+                "points": point_series([row for row in stack if row.get("technology") == tech], "quarter", "question_count"),
+            }
+            for tech in tech_order
         ],
     )
 
-    max_age_topics = max([num(row.get("topics")) for row in age_buckets] or [1])
-    max_forum_unresolved = max([num(row.get("unresolved")) for row in forums] or [1])
-    max_plugin_unresolved = max([num(row.get("unresolved_threads")) for row in plugin_rows] or [1])
-
-    age_rows = "".join(
-        bar_row(
-            f"{row.get('age_bucket')} unresolved",
-            row.get("unresolved"),
-            max_age_topics,
-            COLORS["amber"],
-        )
-        + bar_row(
-            f"{row.get('age_bucket')} resolved",
-            row.get("resolved"),
-            max_age_topics,
-            COLORS["green"],
-        )
-        for row in age_buckets
+    max_views = max([num(row.get("views")) for row in latest_wiki_by_tech.values()] or [1])
+    max_questions = max([num(row.get("question_count")) for row in latest_stack_by_tech.values()] or [1])
+    wiki_bars = "".join(
+        bar_row(tech, latest_wiki_by_tech[tech].get("views"), max_views, COLORS.get(tech.lower(), COLORS["blue"]))
+        for tech in tech_order
     )
-    forum_rows = "".join(
-        bar_row(
-            str(row.get("forum_name", "")),
-            row.get("unresolved"),
-            max_forum_unresolved,
-            COLORS["amber"],
-            f" of {compact(row.get('topics'))}",
-        )
-        for row in forums
-    )
-    plugin_rows_html = "".join(
-        bar_row(
-            str(row.get("name", "")),
-            row.get("unresolved_threads"),
-            max_plugin_unresolved,
-            COLORS["red"] if num(row.get("resolved_pct")) < 50 else COLORS["violet"],
-            f" unresolved, {pct(row.get('resolved_pct'))} resolved",
-        )
-        for row in plugin_rows
+    stack_bars = "".join(
+        bar_row(tech, latest_stack_by_tech[tech].get("question_count"), max_questions, COLORS.get(tech.lower(), COLORS["blue"]))
+        for tech in tech_order
     )
 
-    oldest = snapshot.get("oldest_last_activity_at", "")[:10]
-    latest_activity = snapshot.get("latest_last_activity_at", "")[:10]
-    largest_forum = forums[0] if forums else {}
-    stale_90 = sum(num(row.get("topics")) for row in age_buckets if row.get("age_bucket") in ("91-180 days", "181+ days"))
-    stale_90_share = stale_90 / num(snapshot.get("topics"), 1) * 100 if num(snapshot.get("topics")) else 0
-    gap_note = gap[0].get("note") if gap else "The support-forum source is a current snapshot, not a full history."
-
+    gap_note = gap[0].get("note") if gap else "True search-query interest still needs a search-interest provider."
     readout = "".join(
         [
             signal_row(
-                "Current queue is visible",
-                "The sampled WordPress.org support queue has enough rows to show where open help load sits now.",
-                compact(snapshot.get("topics")),
-                "blue",
-            ),
-            signal_row(
-                "Open load is concentrated",
-                f"{largest_forum.get('forum_name', 'Top forum')} holds the largest unresolved count in the current sample.",
-                compact(largest_forum.get("unresolved")),
-                "amber",
-            ),
-            signal_row(
-                "Older active topics remain present",
-                "Topics with last activity more than 90 days ago are still present in the sampled queue.",
-                pct(stale_90_share),
-                "amber",
-            ),
-            signal_row(
-                "No-reply count is low in this snapshot",
-                "The current sampled queue has few topics with no visible replies.",
-                compact(snapshot.get("no_replies")),
+                "Public attention still leads the tracked set",
+                "WordPress has the highest latest Wikimedia pageview count among the tracked CMS and builder terms.",
+                pct(wp_latest_share),
                 "green",
+            ),
+            signal_row(
+                "Public attention is softer than pre-2024",
+                "The WordPress Wikipedia pageview proxy is lower than the stored pre-2024 comparison quarter.",
+                pct(wiki_summary.get("change_pct")),
+                "amber",
+            ),
+            signal_row(
+                "Developer-help questions moved much lower",
+                "Stack Overflow WordPress-tag questions are far below the stored pre-2024 comparison quarter.",
+                pct(so_summary.get("change_pct")),
+                "amber",
+            ),
+            signal_row(
+                "This is not Google Trends",
+                "Use this page as public-attention and developer-help context, not as true search-query volume.",
+                "proxy",
+                "violet",
             ),
         ]
     )
@@ -321,7 +338,7 @@ def main():
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>WordPress Support Load</title>
+  <title>WordPress Search Interest</title>
   <style>
     :root {{
       color-scheme: light;
@@ -362,6 +379,7 @@ def main():
     .signal-row {{ display:flex; justify-content:space-between; gap:14px; align-items:center; border-left:5px solid var(--blue); background:#fbfdff; border-radius:8px; padding:12px; }}
     .signal-row.green {{ border-left-color:var(--green); }}
     .signal-row.amber {{ border-left-color:var(--amber); }}
+    .signal-row.violet {{ border-left-color:var(--violet); }}
     .signal-row strong {{ display:block; line-height:1.2; }}
     .signal-row span {{ display:block; color:var(--muted); font-size:14px; margin-top:3px; }}
     .signal-row b {{ white-space:nowrap; font-size:19px; }}
@@ -383,11 +401,11 @@ def main():
 </head>
 <body>
 <main>
-  <h1>WordPress support load</h1>
-  <p class="lede">A compact view of current WordPress.org support queues already stored in SQLite: sampled topics, unresolved and resolved counts, last-activity age buckets, forum-level open load, and major-plugin support counts.</p>
+  <h1>WordPress search interest</h1>
+  <p class="lede">A compact proxy readout for search and public attention using data already stored in SQLite: Wikimedia article pageviews and Stack Overflow tag-question volume for WordPress and peer site-builder terms.</p>
 {nav_html()}
 
-  <section class="metrics" aria-label="Support summary">
+  <section class="metrics" aria-label="Search interest summary">
 {metrics}
   </section>
 
@@ -400,37 +418,31 @@ def main():
     </article>
     <article class="section">
       <h2>How to read this</h2>
-      <p>This page uses a current WordPress.org support snapshot. It is useful for where support load sits now, but it is not a full historical forum export. The last-activity range in the sample is {esc(oldest)} to {esc(latest_activity)}.</p>
+      <p>This page is a public-attention proxy. Wikimedia pageviews and Stack Overflow questions are stable public sources, but they do not replace Google Trends or another search-interest provider.</p>
       <p class="callout">{esc(gap_note)}</p>
     </article>
   </section>
 
   <section class="charts">
-{month_chart}
+{wiki_chart}
+{stack_chart}
     <article class="chart-card">
-      <h2>Open load by age</h2>
-      <p>Current topics grouped by age since last visible activity.</p>
+      <h2>Latest Wikimedia peer comparison</h2>
+      <p>Latest quarter pageviews across the tracked public-interest terms.</p>
       <div class="bar-stack">
-{age_rows}
+{wiki_bars}
       </div>
     </article>
     <article class="chart-card">
-      <h2>Unresolved by forum</h2>
-      <p>Forum-level view of where unresolved support topics sit in the sampled queue.</p>
+      <h2>Latest Stack Overflow peer comparison</h2>
+      <p>Latest quarter questions across the tracked developer-help tags.</p>
       <div class="bar-stack">
-{forum_rows}
-      </div>
-    </article>
-    <article class="chart-card">
-      <h2>Major-plugin support load</h2>
-      <p>Current WordPress.org plugin API support-thread counts for the tracked major-plugin list.</p>
-      <div class="bar-stack">
-{plugin_rows_html}
+{stack_bars}
       </div>
     </article>
   </section>
 
-  <p class="footer-note">Rows come from <code>support_forum_snapshot_summary</code>, <code>support_forum_activity_monthly</code>, <code>support_forum_age_buckets</code>, <code>support_forum_unanswered_by_forum</code>, <code>support_forum_topics</code>, and <code>major_plugin_install_snapshot</code>. Integrity check: <code>{esc(integrity)}</code>.</p>
+  <p class="footer-note">Rows come from <code>wikimedia_pageviews_quarterly</code>, <code>stack_overflow_tag_quarterly</code>, and <code>attention_demand_summary</code>. Integrity check: <code>{esc(integrity)}</code>.</p>
 </main>
 </body>
 </html>

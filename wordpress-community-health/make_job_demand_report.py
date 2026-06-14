@@ -73,6 +73,7 @@ def nav_html():
             '    <nav class="nav">',
             '      <a href="index.html#market">Market Position</a>',
             '      <a href="market_position.html">Market position</a>',
+            '      <a href="search_interest.html">Search interest</a>',
             '      <a href="developer_interest.html">Developer interest</a>',
             '      <a href="support_load.html">Support load</a>',
             '      <a href="project_load.html">Project load</a>',

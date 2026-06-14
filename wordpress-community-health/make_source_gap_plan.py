@@ -102,6 +102,7 @@ def nav_html():
             '      <a href="decision_brief.html">Decision brief</a>',
             '      <a href="project_load.html">Project load</a>',
             '      <a href="market_position.html">Market position</a>',
+            '      <a href="search_interest.html">Search interest</a>',
             '      <a href="developer_interest.html">Developer interest</a>',
             '      <a href="job_demand.html">Job demand</a>',
             '      <a href="support_load.html">Support load</a>',

@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WordPress Search Interest</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink:#172033; --muted:#637083; --line:#d9e1ea; --paper:#f6f8fb; --panel:#fff;
+      --blue:#2563eb; --green:#159957; --amber:#b7791f; --violet:#7c3aed; --red:#c2410c;
+    }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    main { max-width:1220px; margin:0 auto; padding:34px 20px 48px; }
+    h1 { margin:0 0 8px; font-size:clamp(34px,4vw,56px); line-height:1.04; letter-spacing:0; }
+    h2 { margin:0 0 8px; font-size:22px; }
+    h3 { margin:0 0 7px; font-size:13px; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); }
+    p { margin:0; color:var(--muted); }
+    a { color:var(--blue); }
+    code { font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:13px; overflow-wrap:anywhere; }
+    .lede { max-width:900px; font-size:18px; margin-bottom:20px; }
+    .nav { display:flex; flex-wrap:wrap; gap:8px; margin:18px 0 22px; }
+    .nav a { border:1px solid var(--line); border-radius:999px; padding:7px 11px; background:#fbfdff; text-decoration:none; font-weight:700; font-size:13px; }
+    .metrics { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; margin:22px 0; }
+    .metric, .section, .chart-card { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px; }
+    .metric { border-top:5px solid var(--blue); min-height:148px; }
+    .metric.green { border-top-color:var(--green); }
+    .metric.amber { border-top-color:var(--amber); }
+    .metric.violet { border-top-color:var(--violet); }
+    .metric strong { display:block; font-size:32px; line-height:1; margin:6px 0 8px; }
+    .metric p { font-size:14px; }
+    .grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; align-items:start; }
+    .charts { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px; }
+    .chart-card p, .section p { font-size:14px; margin-bottom:10px; }
+    svg { display:block; width:100%; height:auto; overflow:visible; }
+    .gridline { stroke:#e6edf5; stroke-width:1; }
+    .axis { fill:#64748b; font-size:12px; }
+    .legend { display:flex; flex-wrap:wrap; gap:8px 13px; margin-top:8px; font-size:13px; color:var(--muted); }
+    .legend span { display:inline-flex; align-items:center; gap:6px; }
+    .legend i { width:10px; height:10px; border-radius:50%; display:inline-block; }
+    .legend b { color:var(--ink); }
+    .signals, .bar-stack { display:grid; gap:9px; }
+    .signal-row { display:flex; justify-content:space-between; gap:14px; align-items:center; border-left:5px solid var(--blue); background:#fbfdff; border-radius:8px; padding:12px; }
+    .signal-row.green { border-left-color:var(--green); }
+    .signal-row.amber { border-left-color:var(--amber); }
+    .signal-row.violet { border-left-color:var(--violet); }
+    .signal-row strong { display:block; line-height:1.2; }
+    .signal-row span { display:block; color:var(--muted); font-size:14px; margin-top:3px; }
+    .signal-row b { white-space:nowrap; font-size:19px; }
+    .bar-label { display:flex; justify-content:space-between; gap:10px; font-size:13px; margin-bottom:4px; }
+    .bar-label span { overflow-wrap:anywhere; }
+    .bar-label strong { white-space:nowrap; }
+    .bar { height:9px; border-radius:999px; background:#e7edf5; overflow:hidden; }
+    .bar span { display:block; height:100%; border-radius:inherit; }
+    .callout { margin-top:14px; padding:14px; border:1px solid var(--line); border-left:5px solid var(--amber); border-radius:8px; background:#fffaf0; color:#7c4a03; }
+    .footer-note { margin-top:18px; font-size:13px; }
+    @media (max-width:960px) {
+      main { padding:24px 14px 36px; }
+      .metrics, .grid, .charts { grid-template-columns:1fr; }
+      .metric { min-height:auto; }
+      .signal-row { align-items:flex-start; flex-direction:column; }
+      .signal-row b, .bar-label strong { white-space:normal; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <h1>WordPress search interest</h1>
+  <p class="lede">A compact proxy readout for search and public attention using data already stored in SQLite: Wikimedia article pageviews and Stack Overflow tag-question volume for WordPress and peer site-builder terms.</p>
+    <nav class="nav">
+      <a href="index.html#market">Market Position</a>
+      <a href="market_position.html">Market position</a>
+      <a href="developer_interest.html">Developer interest</a>
+      <a href="job_demand.html">Job demand</a>
+      <a href="support_load.html">Support load</a>
+      <a href="project_load.html">Project load</a>
+      <a href="ecosystem_activity.html">Ecosystem activity</a>
+      <a href="contributor_depth.html">Contributor depth</a>
+      <a href="progress_summary.html">Progress summary</a>
+      <a href="decision_brief.html">Decision brief</a>
+      <a href="goal_audit.html">Goal audit</a>
+      <a href="data_inventory.html">Data inventory</a>
+      <a href="source_gap_plan.html">Source gap plan</a>
+    </nav>
+
+  <section class="metrics" aria-label="Search interest summary">
+
+      <article class="metric blue">
+        <h3>Wikipedia WordPress views</h3>
+        <strong>210.2k</strong>
+        <p>2026 Q2; -17.1% vs 2023-Q4</p>
+      </article>
+      <article class="metric green">
+        <h3>Tracked attention share</h3>
+        <strong>45.6%</strong>
+        <p>of latest tracked Wikimedia pageviews</p>
+      </article>
+      <article class="metric green">
+        <h3>WordPress vs Shopify</h3>
+        <strong>1.9x</strong>
+        <p>latest Wikimedia pageviews</p>
+      </article>
+      <article class="metric amber">
+        <h3>Stack Overflow WP</h3>
+        <strong>37</strong>
+        <p>2026 Q2; -96.3% vs 2023-Q4</p>
+      </article>
+      <article class="metric violet">
+        <h3>SO tracked share</h3>
+        <strong>74.0%</strong>
+        <p>of latest tracked Stack Overflow questions</p>
+      </article>
+  </section>
+
+  <section class="grid">
+    <article class="section">
+      <h2>Decision lanes</h2>
+      <div class="signals">
+
+        <div class="signal-row green">
+          <div>
+            <strong>Public attention still leads the tracked set</strong>
+            <span>WordPress has the highest latest Wikimedia pageview count among the tracked CMS and builder terms.</span>
+          </div>
+          <b>45.6%</b>
+        </div>
+        <div class="signal-row amber">
+          <div>
+            <strong>Public attention is softer than pre-2024</strong>
+            <span>The WordPress Wikipedia pageview proxy is lower than the stored pre-2024 comparison quarter.</span>
+          </div>
+          <b>-17.1%</b>
+        </div>
+        <div class="signal-row amber">
+          <div>
+            <strong>Developer-help questions moved much lower</strong>
+            <span>Stack Overflow WordPress-tag questions are far below the stored pre-2024 comparison quarter.</span>
+          </div>
+          <b>-96.3%</b>
+        </div>
+        <div class="signal-row violet">
+          <div>
+            <strong>This is not Google Trends</strong>
+            <span>Use this page as public-attention and developer-help context, not as true search-query volume.</span>
+          </div>
+          <b>proxy</b>
+        </div>
+      </div>
+    </article>
+    <article class="section">
+      <h2>How to read this</h2>
+      <p>This page is a public-attention proxy. Wikimedia pageviews and Stack Overflow questions are stable public sources, but they do not replace Google Trends or another search-interest provider.</p>
+      <p class="callout">Wikimedia Pageviews API quarterly article-view trends, Stack Overflow tag-volume context, a compact attention/demand summary, and a search-interest companion view are included as public-interest proxies; true search-query interest still needs Google Trends or another search provider.</p>
+    </article>
+  </section>
+
+  <section class="charts">
+<article class="chart-card">
+<h2>Public attention proxy</h2>
+<p>Quarterly English Wikipedia article pageviews. This is a stable public-interest signal, not search-query volume.</p>
+<svg viewBox="0 0 760 300" role="img" aria-label="Public attention proxy">
+<line x1="58" x2="734" y1="252.0" y2="252.0" class="gridline" />
+<text x="48" y="256.0" class="axis" text-anchor="end">0</text>
+<line x1="58" x2="734" y1="147.0" y2="147.0" class="gridline" />
+<text x="48" y="151.0" class="axis" text-anchor="end">596.6k</text>
+<line x1="58" x2="734" y1="42.0" y2="42.0" class="gridline" />
+<text x="48" y="46.0" class="axis" text-anchor="end">1.2M</text>
+<path d="M58.0,212.7 L73.7,212.1 L89.4,208.1 L105.2,209.1 L120.9,213.3 L136.6,212.7 L152.3,208.4 L168.0,210.9 L183.8,206.6 L199.5,208.3 L215.2,206.6 L230.9,216.2 L246.7,214.2 L262.4,213.4 L278.1,210.2 L293.8,214.2 L309.5,199.6 L325.3,201.8 L341.0,207.6 L356.7,197.4 L372.4,192.3 L388.1,191.0 L403.9,199.7 L419.6,207.0 L435.3,196.9 L451.0,193.7 L466.7,197.4 L482.5,197.8 L498.2,178.4 L513.9,166.8 L529.6,204.7 L545.3,191.0 L561.1,204.0 L576.8,207.4 L592.5,205.0 L608.2,210.3 L624.0,207.4 L639.7,200.7 L655.4,204.7 L671.1,218.9 L686.8,220.3 L702.6,220.8 L718.3,218.8 L734.0,215.0" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="734.0" cy="215.0" r="4" fill="#2563eb" />
+<path d="M58.0,244.1 L73.7,243.1 L89.4,242.1 L105.2,242.3 L120.9,242.1 L136.6,240.8 L152.3,235.5 L168.0,233.5 L183.8,232.7 L199.5,228.9 L215.2,228.3 L230.9,230.7 L246.7,230.4 L262.4,233.1 L278.1,230.2 L293.8,229.0 L309.5,221.4 L325.3,205.4 L341.0,216.1 L356.7,195.6 L372.4,205.7 L388.1,199.0 L403.9,213.1 L419.6,222.8 L435.3,214.9 L451.0,214.7 L466.7,217.5 L482.5,217.7 L498.2,214.1 L513.9,208.8 L529.6,209.5 L545.3,186.2 L561.1,176.1 L576.8,182.3 L592.5,64.5 L608.2,200.3 L624.0,211.8 L639.7,210.4 L655.4,214.4 L671.1,225.1 L686.8,227.6 L702.6,228.5 L718.3,228.6 L734.0,232.6" fill="none" stroke="#159957" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="734.0" cy="232.6" r="4" fill="#159957" />
+<path d="M58.0,245.8 L73.7,245.7 L89.4,244.4 L105.2,243.6 L120.9,244.6 L136.6,244.5 L152.3,242.3 L168.0,244.4 L183.8,243.8 L199.5,242.8 L215.2,241.0 L230.9,241.1 L246.7,240.7 L262.4,241.8 L278.1,239.9 L293.8,241.6 L309.5,240.8 L325.3,240.5 L341.0,238.5 L356.7,233.7 L372.4,234.5 L388.1,234.9 L403.9,231.8 L419.6,238.1 L435.3,220.5 L451.0,217.1 L466.7,217.3 L482.5,218.2 L498.2,218.7 L513.9,223.2 L529.6,224.5 L545.3,228.8 L561.1,225.2 L576.8,226.0 L592.5,213.5 L608.2,232.7 L624.0,235.8 L639.7,236.1 L655.4,236.4 L671.1,238.9 L686.8,236.9 L702.6,228.4 L718.3,230.3 L734.0,236.7" fill="none" stroke="#b7791f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="734.0" cy="236.7" r="4" fill="#b7791f" />
+<path d="M58.0,247.7 L73.7,247.5 L89.4,245.5 L105.2,247.1 L120.9,247.8 L136.6,247.2 L152.3,245.7 L168.0,246.7 L183.8,246.8 L199.5,244.3 L215.2,244.1 L230.9,241.9 L246.7,238.9 L262.4,240.4 L278.1,242.8 L293.8,246.4 L309.5,245.3 L325.3,245.5 L341.0,243.6 L356.7,240.4 L372.4,243.6 L388.1,242.8 L403.9,242.6 L419.6,242.4 L435.3,239.8 L451.0,242.3 L466.7,241.5 L482.5,244.1 L498.2,243.9 L513.9,244.1 L529.6,242.6 L545.3,241.5 L561.1,237.9 L576.8,236.9 L592.5,202.3 L608.2,238.6 L624.0,243.7 L639.7,244.1 L655.4,243.0 L671.1,246.3 L686.8,246.3 L702.6,246.8 L718.3,245.4 L734.0,247.9" fill="none" stroke="#64748b" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="734.0" cy="247.9" r="4" fill="#64748b" />
+<path d="M58.0,251.2 L73.7,251.3 L89.4,251.2 L105.2,251.2 L120.9,251.3 L136.6,251.3 L152.3,251.2 L168.0,251.1 L183.8,251.1 L199.5,251.1 L215.2,251.0 L230.9,251.0 L246.7,250.9 L262.4,250.9 L278.1,250.8 L293.8,250.8 L309.5,250.2 L325.3,250.0 L341.0,249.4 L356.7,248.4 L372.4,248.4 L388.1,249.2 L403.9,248.3 L419.6,249.4 L435.3,247.3 L451.0,247.9 L466.7,246.9 L482.5,247.4 L498.2,245.7 L513.9,246.5 L529.6,246.0 L545.3,247.0 L561.1,247.4 L576.8,245.7 L592.5,234.8 L608.2,245.7 L624.0,246.6 L639.7,247.3 L655.4,247.7 L671.1,248.6 L686.8,248.7 L702.6,248.8 L718.3,248.4 L734.0,249.1" fill="none" stroke="#0f766e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="734.0" cy="249.1" r="4" fill="#0f766e" />
+<path d="M58.0,249.2 L73.7,248.1 L89.4,247.6 L105.2,248.0 L120.9,248.6 L136.6,249.1 L152.3,248.7 L168.0,248.8 L183.8,248.9 L199.5,248.4 L215.2,247.1 L230.9,248.2 L246.7,248.4 L262.4,248.5 L278.1,248.2 L293.8,248.3 L309.5,247.6 L325.3,247.2 L341.0,246.2 L356.7,245.2 L372.4,244.5 L388.1,245.8 L403.9,245.3 L419.6,246.5 L435.3,245.4 L451.0,246.1 L466.7,245.7 L482.5,245.6 L498.2,245.0 L513.9,246.3 L529.6,246.2 L545.3,247.2 L561.1,247.3 L576.8,247.0 L592.5,246.7 L608.2,247.7 L624.0,248.2 L639.7,248.3 L655.4,248.6 L671.1,249.1 L686.8,249.2 L702.6,247.9 L718.3,248.6 L734.0,249.6" fill="none" stroke="#7c3aed" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="734.0" cy="249.6" r="4" fill="#7c3aed" />
+<text x="58" y="284" class="axis">2015 Q3</text>
+<text x="734" y="284" class="axis" text-anchor="end">2026 Q2</text>
+</svg>
+<div class="legend">
+<span><i style="background:#2563eb"></i>WordPress <b>210.2k</b></span>
+<span><i style="background:#159957"></i>Shopify <b>110.0k</b></span>
+<span><i style="background:#b7791f"></i>Wix <b>86.7k</b></span>
+<span><i style="background:#64748b"></i>Squarespace <b>23.4k</b></span>
+<span><i style="background:#0f766e"></i>Webflow <b>16.6k</b></span>
+<span><i style="background:#7c3aed"></i>WooCommerce <b>13.5k</b></span>
+</div>
+</article>
+<article class="chart-card">
+<h2>Developer-help proxy</h2>
+<p>Quarterly Stack Overflow tag questions. This shows visible help-seeking, not all developer interest.</p>
+<svg viewBox="0 0 760 300" role="img" aria-label="Developer-help proxy">
+<line x1="58" x2="734" y1="252.0" y2="252.0" class="gridline" />
+<text x="48" y="256.0" class="axis" text-anchor="end">0</text>
+<line x1="58" x2="734" y1="147.0" y2="147.0" class="gridline" />
+<text x="48" y="151.0" class="axis" text-anchor="end">3,125</text>
+<line x1="58" x2="734" y1="42.0" y2="42.0" class="gridline" />
+<text x="48" y="46.0" class="axis" text-anchor="end">6,251</text>
+<path d="M58.0,232.4 L68.4,228.0 L78.8,216.2 L89.2,219.7 L99.6,207.4 L110.0,204.3 L120.4,203.0 L130.8,201.0 L141.2,177.1 L151.6,171.0 L162.0,158.4 L172.4,140.4 L182.8,130.5 L193.2,135.3 L203.6,114.7 L214.0,99.9 L224.4,68.9 L234.8,91.2 L245.2,82.9 L255.6,107.2 L266.0,87.2 L276.4,82.7 L286.8,83.8 L297.2,92.0 L307.6,81.9 L318.0,81.4 L328.4,87.1 L338.8,88.2 L349.2,64.5 L359.6,69.9 L370.0,75.8 L380.4,90.3 L390.8,98.6 L401.2,101.8 L411.6,100.1 L422.0,116.1 L432.4,117.1 L442.8,130.1 L453.2,142.1 L463.6,144.7 L474.0,138.4 L484.4,125.0 L494.8,140.4 L505.2,150.0 L515.6,138.2 L526.0,155.5 L536.4,162.5 L546.8,177.4 L557.2,186.7 L567.6,176.3 L578.0,176.4 L588.4,184.7 L598.8,196.3 L609.2,208.6 L619.6,206.8 L630.0,218.3 L640.4,217.0 L650.8,226.5 L661.2,232.7 L671.6,238.1 L682.0,243.1 L692.4,246.4 L702.8,248.4 L713.2,249.1 L723.6,250.2 L734.0,250.8" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="734.0" cy="250.8" r="4" fill="#2563eb" />
+<path d="M58.0,252.0 L68.4,252.0 L78.8,252.0 L89.2,252.0 L99.6,251.9 L110.0,251.8 L120.4,251.7 L130.8,251.7 L141.2,251.6 L151.6,250.1 L162.0,246.3 L172.4,246.4 L182.8,249.4 L193.2,250.1 L203.6,250.4 L214.0,250.0 L224.4,249.0 L234.8,249.5 L245.2,249.0 L255.6,248.2 L266.0,248.2 L276.4,248.1 L286.8,248.0 L297.2,247.0 L307.6,246.6 L318.0,246.1 L328.4,245.2 L338.8,246.2 L349.2,246.4 L359.6,245.3 L370.0,246.6 L380.4,246.1 L390.8,245.5 L401.2,244.4 L411.6,246.0 L422.0,244.2 L432.4,244.7 L442.8,245.1 L453.2,244.8 L463.6,245.6 L474.0,244.9 L484.4,242.8 L494.8,243.8 L505.2,243.9 L515.6,241.5 L526.0,242.5 L536.4,244.3 L546.8,244.2 L557.2,244.9 L567.6,243.0 L578.0,242.6 L588.4,243.8 L598.8,243.5 L609.2,246.4 L619.6,246.2 L630.0,247.5 L640.4,248.3 L650.8,249.4 L661.2,249.9 L671.6,250.4 L682.0,250.5 L692.4,251.4 L702.8,251.4 L713.2,251.5 L723.6,251.8 L734.0,251.8" fill="none" stroke="#159957" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="734.0" cy="251.8" r="4" fill="#159957" />
+<path d="M58.0,247.0 L68.4,247.0 L78.8,246.3 L89.2,246.5 L99.6,246.1 L110.0,245.0 L120.4,245.0 L130.8,245.8 L141.2,244.8 L151.6,243.7 L162.0,242.4 L172.4,244.0 L182.8,241.3 L193.2,238.6 L203.6,240.4 L214.0,243.4 L224.4,240.7 L234.8,241.8 L245.2,242.2 L255.6,240.7 L266.0,243.4 L276.4,243.4 L286.8,243.7 L297.2,244.8 L307.6,244.4 L318.0,243.2 L328.4,244.2 L338.8,245.9 L349.2,244.9 L359.6,245.1 L370.0,244.9 L380.4,246.6 L390.8,245.5 L401.2,247.2 L411.6,247.1 L422.0,248.7 L432.4,248.1 L442.8,248.6 L453.2,248.1 L463.6,249.4 L474.0,249.7 L484.4,250.1 L494.8,249.6 L505.2,250.0 L515.6,249.8 L526.0,250.0 L536.4,250.4 L546.8,249.5 L557.2,249.9 L567.6,249.6 L578.0,250.6 L588.4,250.3 L598.8,250.5 L609.2,250.6 L619.6,250.8 L630.0,250.8 L640.4,251.4 L650.8,251.5 L661.2,251.7 L671.6,251.8 L682.0,252.0" fill="none" stroke="#b7791f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="682.0" cy="252.0" r="4" fill="#b7791f" />
+<path d="M58.0,251.2 L68.4,251.4 L78.8,251.5 L89.2,251.8 L99.6,251.7 L110.0,251.6 L120.4,251.7 L130.8,251.6 L141.2,251.8 L151.6,251.7 L162.0,251.8 L172.4,251.7 L182.8,251.6 L193.2,251.7 L203.6,251.7 L214.0,251.8 L224.4,251.9 L234.8,251.9 L245.2,252.0 L255.6,251.9 L266.0,252.0 L276.4,252.0" fill="none" stroke="#64748b" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="276.4" cy="252.0" r="4" fill="#64748b" />
+<path d="M58.0,251.5 L68.4,251.6 L78.8,251.6 L89.2,251.6 L99.6,251.5 L110.0,251.6 L120.4,251.6 L130.8,251.4 L141.2,251.8 L151.6,251.5 L162.0,251.7 L172.4,251.9 L182.8,251.5 L193.2,251.8 L203.6,251.9 L214.0,251.9 L224.4,252.0 L234.8,251.9 L245.2,252.0 L255.6,252.0 L266.0,252.0 L276.4,252.0" fill="none" stroke="#0f766e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="276.4" cy="252.0" r="4" fill="#0f766e" />
+<path d="M58.0,252.0 L68.4,252.0 L78.8,252.0 L89.2,252.0 L99.6,252.0 L110.0,252.0 L120.4,252.0 L130.8,252.0 L141.2,252.0 L151.6,252.0 L162.0,250.6 L172.4,249.7 L182.8,248.5 L193.2,247.3 L203.6,245.7 L214.0,244.7 L224.4,238.8 L234.8,238.8 L245.2,238.3 L255.6,236.2 L266.0,235.0 L276.4,232.4 L286.8,231.0 L297.2,231.2 L307.6,230.8 L318.0,226.0 L328.4,227.8 L338.8,225.4 L349.2,222.0 L359.6,217.1 L370.0,217.2 L380.4,217.1 L390.8,216.3 L401.2,214.6 L411.6,214.5 L422.0,217.4 L432.4,216.7 L442.8,223.2 L453.2,225.5 L463.6,226.7 L474.0,221.8 L484.4,213.4 L494.8,215.0 L505.2,219.4 L515.6,210.5 L526.0,220.8 L536.4,225.4 L546.8,225.8 L557.2,231.5 L567.6,229.2 L578.0,229.7 L588.4,231.1 L598.8,237.6 L609.2,238.9 L619.6,235.9 L630.0,239.6 L640.4,238.0 L650.8,242.6 L661.2,244.1 L671.6,247.4 L682.0,248.5 L692.4,249.9 L702.8,250.9 L713.2,251.2 L723.6,251.5 L734.0,251.8" fill="none" stroke="#7c3aed" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="734.0" cy="251.8" r="4" fill="#7c3aed" />
+<text x="58" y="284" class="axis">2010 Q1</text>
+<text x="734" y="284" class="axis" text-anchor="end">2026 Q2</text>
+</svg>
+<div class="legend">
+<span><i style="background:#2563eb"></i>WordPress <b>37</b></span>
+<span><i style="background:#159957"></i>Shopify <b>6</b></span>
+<span><i style="background:#b7791f"></i>Wix <b>1</b></span>
+<span><i style="background:#64748b"></i>Squarespace <b>0</b></span>
+<span><i style="background:#0f766e"></i>Webflow <b>0</b></span>
+<span><i style="background:#7c3aed"></i>WooCommerce <b>6</b></span>
+</div>
+</article>
+    <article class="chart-card">
+      <h2>Latest Wikimedia peer comparison</h2>
+      <p>Latest quarter pageviews across the tracked public-interest terms.</p>
+      <div class="bar-stack">
+
+        <div class="barline">
+          <div class="bar-label"><span>WordPress</span><strong>210.2k</strong></div>
+          <div class="bar"><span style="width:100.0%;background:#2563eb"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>Shopify</span><strong>110.0k</strong></div>
+          <div class="bar"><span style="width:52.4%;background:#159957"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>Wix</span><strong>86.7k</strong></div>
+          <div class="bar"><span style="width:41.3%;background:#b7791f"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>Squarespace</span><strong>23.4k</strong></div>
+          <div class="bar"><span style="width:11.1%;background:#64748b"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>Webflow</span><strong>16.6k</strong></div>
+          <div class="bar"><span style="width:7.9%;background:#0f766e"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>WooCommerce</span><strong>13.5k</strong></div>
+          <div class="bar"><span style="width:6.4%;background:#7c3aed"></span></div>
+        </div>
+      </div>
+    </article>
+    <article class="chart-card">
+      <h2>Latest Stack Overflow peer comparison</h2>
+      <p>Latest quarter questions across the tracked developer-help tags.</p>
+      <div class="bar-stack">
+
+        <div class="barline">
+          <div class="bar-label"><span>WordPress</span><strong>37</strong></div>
+          <div class="bar"><span style="width:100.0%;background:#2563eb"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>Shopify</span><strong>6</strong></div>
+          <div class="bar"><span style="width:16.2%;background:#159957"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>Wix</span><strong>1</strong></div>
+          <div class="bar"><span style="width:2.7%;background:#b7791f"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>Squarespace</span><strong>0</strong></div>
+          <div class="bar"><span style="width:2.0%;background:#64748b"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>Webflow</span><strong>0</strong></div>
+          <div class="bar"><span style="width:2.0%;background:#0f766e"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>WooCommerce</span><strong>6</strong></div>
+          <div class="bar"><span style="width:16.2%;background:#7c3aed"></span></div>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <p class="footer-note">Rows come from <code>wikimedia_pageviews_quarterly</code>, <code>stack_overflow_tag_quarterly</code>, and <code>attention_demand_summary</code>. Integrity check: <code>ok</code>.</p>
+</main>
+</body>
+</html>

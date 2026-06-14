@@ -59,6 +59,11 @@ HTML_ARTIFACTS = {
         "HN hiring mention rates",
         "WordPress Jobs board snapshots",
     ],
+    "search_interest.html": [
+        "WordPress search interest",
+        "Public attention proxy",
+        "Latest Wikimedia peer comparison",
+    ],
     "support_load.html": [
         "WordPress support load",
         "Support queue by last activity month",
@@ -252,6 +257,7 @@ def main():
         run_step([sys.executable, "make_market_position_report.py"])
         run_step([sys.executable, "make_developer_interest_report.py"])
         run_step([sys.executable, "make_job_demand_report.py"])
+        run_step([sys.executable, "make_search_interest_report.py"])
         run_step([sys.executable, "make_support_load_report.py"])
         run_step([sys.executable, "make_source_gap_plan.py"])
         run_step([sys.executable, "make_data_inventory.py"])

@@ -3393,7 +3393,7 @@ def build_database(data, fetched):
                 "support_forum_history",
                 "partial",
                 "Historical WordPress.org support forum topic/reply export",
-                "Current report includes public support queue snapshots and last-activity buckets, not a full long-term topic/reply history.",
+                "Current report includes public support queue snapshots, last-activity buckets, and major-plugin support-thread totals; not a full long-term topic/reply history.",
             )
         )
     else:
@@ -4453,6 +4453,7 @@ def source_status_rows(fetched):
             "covered" if fetched.get("major_plugin_install_snapshot") and fetched.get("major_plugin_install_history") else "partial" if fetched.get("major_plugin_install_snapshot") else "missing",
             "Current fixed-slug plugin API snapshot plus annual Wayback snapshots of archived WordPress.org plugin active-install buckets",
         ),
+        ("Major plugin support snapshot", "covered" if fetched.get("major_plugin_install_snapshot") else "missing", "Current WordPress.org plugin API support-thread and resolved-thread counts for the fixed major-plugin list"),
         ("Major plugin download trend", "covered" if fetched.get("major_plugin_download_quarterly") else "missing", "WordPress.org daily plugin download stats for the fixed major-plugin list, aggregated quarterly"),
         ("WordCamp Central", "covered" if fetched.get("wordcamps") else "missing", "Historical WordCamp event records and anticipated-attendance fields where available"),
         ("WordPress Events", "covered" if fetched.get("wp_events") else "missing", "Current upcoming Meetup and WordCamp events"),
@@ -5168,6 +5169,35 @@ def build_report(data, fetched):
         updated_at = parse_iso(row.get("last_updated_date"))
         if updated_at and updated_at >= END - dt.timedelta(days=90):
             recently_updated_major_plugins += 1
+    major_plugin_support_rows = []
+    for row in major_plugin_rows:
+        support_threads = num(row.get("support_threads"))
+        support_resolved = num(row.get("support_threads_resolved"))
+        support_unresolved = max(0, support_threads - support_resolved)
+        enriched = dict(row)
+        enriched["support_unresolved"] = support_unresolved
+        enriched["support_resolved_pct"] = support_resolved / support_threads * 100 if support_threads else 0
+        major_plugin_support_rows.append(enriched)
+    top_support_plugins = sorted(
+        [row for row in major_plugin_support_rows if num(row.get("support_threads")) > 0],
+        key=lambda row: num(row.get("support_threads")),
+        reverse=True,
+    )[:8]
+    top_unresolved_plugins = sorted(
+        [row for row in major_plugin_support_rows if num(row.get("support_unresolved")) > 0],
+        key=lambda row: num(row.get("support_unresolved")),
+        reverse=True,
+    )[:8]
+    max_major_plugin_support_threads = max([num(row.get("support_threads")) for row in top_support_plugins] or [1])
+    max_major_plugin_unresolved = max([num(row.get("support_unresolved")) for row in top_unresolved_plugins] or [1])
+    total_major_plugin_support_threads = sum(num(row.get("support_threads")) for row in major_plugin_support_rows)
+    total_major_plugin_support_resolved = sum(num(row.get("support_threads_resolved")) for row in major_plugin_support_rows)
+    total_major_plugin_support_unresolved = max(0, total_major_plugin_support_threads - total_major_plugin_support_resolved)
+    total_major_plugin_support_resolved_pct = (
+        total_major_plugin_support_resolved / total_major_plugin_support_threads * 100
+        if total_major_plugin_support_threads
+        else 0
+    )
     plugin_name_by_slug = dict(MAJOR_PLUGIN_DISPLAY_NAMES)
     plugin_name_by_slug.update({
         str(row.get("slug") or ""): str(row.get("name") or row.get("slug") or "")
@@ -5967,6 +5997,24 @@ p {{ margin:0 0 12px; }}
           {stat_card("Latest sampled quarter", compact(latest_plugin_download_total), latest_plugin_download_quarter or "not fetched", "soft")}
           {stat_card("Days in latest quarter", compact(latest_plugin_download_days), "maximum per tracked plugin", "soft")}
         </div>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Major plugin support load</h3>
+        <p>Current WordPress.org plugin API support-thread counts for the fixed major-plugin list. This is a snapshot of visible support load, not a long-term forum trend.</p>
+        <div class="stats">
+          {stat_card("Support threads", compact(total_major_plugin_support_threads), "tracked major plugins", "soft")}
+          {stat_card("Unresolved", compact(total_major_plugin_support_unresolved), "support threads", "watch")}
+          {stat_card("Resolved share", pct(total_major_plugin_support_resolved_pct), "of support threads", "good" if total_major_plugin_support_resolved_pct >= 80 else "soft")}
+        </div>
+        {''.join(horizontal_count_metric(plugin_name_by_slug.get(str(row.get("slug") or ""), str(row.get("name", ""))), num(row.get("support_threads")), max_major_plugin_support_threads, COLORS["community"], " threads") for row in top_support_plugins)}
+      </div>
+      <div class="card">
+        <h3>Support resolution snapshot</h3>
+        <p>Resolved share for the highest-load tracked plugins. Unresolved counts highlight where current visible support queues are heavier.</p>
+        {''.join(horizontal_metric(plugin_name_by_slug.get(str(row.get("slug") or ""), str(row.get("name", ""))), float(row.get("support_resolved_pct") or 0), 100, COLORS["green"] if float(row.get("support_resolved_pct") or 0) >= 80 else COLORS["orange"]) for row in top_support_plugins[:6])}
+        {''.join(horizontal_count_metric(f"{plugin_name_by_slug.get(str(row.get('slug') or ''), str(row.get('name', '')))} unresolved", num(row.get("support_unresolved")), max_major_plugin_unresolved, COLORS["red"], " open") for row in top_unresolved_plugins[:4])}
       </div>
     </div>
     {svg_line_chart("Major plugin install-base history", "Annual Wayback snapshots plus the current WordPress.org API snapshot. Rounded active-install buckets, not exact counts.", major_plugin_install_history_series, show_end_labels=False)}

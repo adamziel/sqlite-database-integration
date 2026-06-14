@@ -58,6 +58,7 @@ SKIP_NETWORK_DB_FALLBACK_TABLES = [
     "market_share",
     "http_archive_adoption_monthly",
     "http_archive_rank_adoption_snapshot",
+    "http_archive_cwv_monthly",
     "wporg_ecosystem_stats_snapshot",
     "wikimedia_pageviews_monthly",
     "wikimedia_pageviews_quarterly",
@@ -859,6 +860,102 @@ def fetch_http_archive_rank_adoption_snapshot(skip_network=False):
     rows.sort(key=lambda row: (num(row["rank_order"]), row["technology"]))
     if rows:
         write_cached_http_archive_rank_adoption(rows)
+    return rows or fallback
+
+
+def http_archive_cwv_cache_path():
+    return CACHE / "http-archive-cwv-monthly.json"
+
+
+def read_cached_http_archive_cwv():
+    path = http_archive_cwv_cache_path()
+    if path.exists():
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            payload = {}
+        rows = payload.get("rows") if isinstance(payload, dict) else payload
+        if isinstance(rows, list):
+            return rows
+    return read_existing_table("http_archive_cwv_monthly")
+
+
+def write_cached_http_archive_cwv(rows, source_url):
+    CACHE.mkdir(parents=True, exist_ok=True)
+    http_archive_cwv_cache_path().write_text(
+        json.dumps(
+            {
+                "collected_at": dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z"),
+                "source_url": source_url,
+                "rows": rows,
+            },
+            indent=2,
+            sort_keys=True,
+        ),
+        encoding="utf-8",
+    )
+
+
+def http_archive_cwv_url(start="2020-01-01"):
+    technologies = ",".join(row["technology"] for row in HTTP_ARCHIVE_ADOPTION_TECHNOLOGIES)
+    params = {
+        "technology": technologies,
+        "geo": "ALL",
+        "rank": "ALL",
+        "start": start,
+    }
+    return f"{HTTP_ARCHIVE_API_BASE}/cwv?{urllib.parse.urlencode(params)}"
+
+
+def fetch_http_archive_cwv_monthly(skip_network=False):
+    fallback = read_cached_http_archive_cwv()
+    if skip_network and fallback:
+        return fallback
+    if skip_network:
+        return []
+    source_url = http_archive_cwv_url()
+    try:
+        payload, _headers = fetch_with_retries(fetch_json, source_url, "HTTP Archive CWV", attempts=3, delay=1.5)
+    except Exception as exc:
+        eprint(f"HTTP Archive CWV fetch failed: {exc}")
+        return fallback
+    rows = []
+    tech_lookup = {row["technology"]: row for row in HTTP_ARCHIVE_ADOPTION_TECHNOLOGIES}
+    for item in payload if isinstance(payload, list) else []:
+        technology = str(item.get("technology") or "")
+        date_value = str(item.get("date") or "")
+        if technology not in tech_lookup or not parse_iso(date_value):
+            continue
+        for metric in item.get("vitals") or []:
+            metric_name = str(metric.get("name") or "")
+            if not metric_name:
+                continue
+            desktop = metric.get("desktop") or {}
+            mobile = metric.get("mobile") or {}
+            desktop_tested = num(desktop.get("tested"))
+            desktop_good = num(desktop.get("good_number"))
+            mobile_tested = num(mobile.get("tested"))
+            mobile_good = num(mobile.get("good_number"))
+            rows.append(
+                {
+                    "date": date_value,
+                    "technology": technology,
+                    "metric": metric_name,
+                    "desktop_tested": desktop_tested,
+                    "desktop_good": desktop_good,
+                    "desktop_good_pct": round(desktop_good / desktop_tested * 100, 1) if desktop_tested else 0,
+                    "mobile_tested": mobile_tested,
+                    "mobile_good": mobile_good,
+                    "mobile_good_pct": round(mobile_good / mobile_tested * 100, 1) if mobile_tested else 0,
+                    "geo": "ALL",
+                    "rank": "ALL",
+                    "source_url": source_url,
+                    "source": "HTTP Archive Technology Report API Core Web Vitals endpoint",
+                }
+            )
+    rows.sort(key=lambda row: (row["date"], row["technology"], row["metric"]))
+    if rows:
+        write_cached_http_archive_cwv(rows, source_url)
     return rows or fallback
 
 
@@ -4636,6 +4733,7 @@ def source_status_rows(fetched):
         ("W3Techs adoption", "covered" if fetched.get("market_share") else "missing", "All-site usage and CMS market-share yearly trends"),
         ("HTTP Archive/Web Almanac", "covered", "2025 CMS adoption snapshot and high-traffic context"),
         ("HTTP Archive Technology Report API", "covered" if fetched.get("http_archive_adoption_monthly") else "missing", "Monthly and rank-tier detected-origin adoption for WordPress, Shopify, Wix, Squarespace, and Webflow"),
+        ("HTTP Archive Core Web Vitals", "covered" if fetched.get("http_archive_cwv_monthly") else "missing", "Monthly good Core Web Vitals rates by technology from the HTTP Archive Technology Report API"),
         ("BuiltWith ecommerce history", "covered" if fetched.get("builtwith_technology_history") else "missing", "Shopify and WooCommerce live-site counts by traffic tier"),
         ("BuiltWith traffic tiers", "covered" if fetched.get("builtwith_tier_share_snapshot") else "missing", "Current WordPress share by traffic tier across tracked CMS/builder technologies"),
         ("Stack Overflow tag volume", "covered" if fetched.get("stack_overflow_tag_quarterly") else "missing", "Quarterly public developer-attention proxy from Stack Exchange API tag totals"),
@@ -4698,6 +4796,7 @@ def build_report(data, fetched):
     market_rows = fetched.get("market_share", [])
     http_archive_adoption = fetched.get("http_archive_adoption_monthly", [])
     http_archive_rank_adoption = fetched.get("http_archive_rank_adoption_snapshot", [])
+    http_archive_cwv = fetched.get("http_archive_cwv_monthly", [])
     wporg_ecosystem_stats = fetched.get("wporg_ecosystem_stats_snapshot", [])
     stack_overflow_tags = fetched.get("stack_overflow_tag_quarterly", [])
     wikimedia_pageviews_q = fetched.get("wikimedia_pageviews_quarterly", [])
@@ -5151,6 +5250,42 @@ def build_report(data, fetched):
     http_peer_ratio = (
         num(http_wp_latest.get("mobile_origins")) / num(http_next_peer.get("mobile_origins"))
         if num(http_next_peer.get("mobile_origins"))
+        else 0
+    )
+    http_archive_cwv_series = [
+        {
+            "label": row["label"],
+            "color": row["color"],
+            "points": sorted(
+                (item["date"], float(item.get("mobile_good_pct") or 0))
+                for item in http_archive_cwv
+                if item.get("technology") == row["technology"] and item.get("metric") == "overall"
+            ),
+        }
+        for row in HTTP_ARCHIVE_ADOPTION_TECHNOLOGIES
+    ]
+    http_cwv_dates = sorted({row.get("date", "") for row in http_archive_cwv if row.get("date")})
+    http_cwv_latest_date = http_cwv_dates[-1] if http_cwv_dates else ""
+    http_cwv_latest_rows = {
+        technology: max(
+            [
+                row for row in http_archive_cwv
+                if row.get("technology") == technology and row.get("metric") == "overall"
+            ],
+            key=lambda row: row.get("date", ""),
+            default={},
+        )
+        for technology in [row["technology"] for row in HTTP_ARCHIVE_ADOPTION_TECHNOLOGIES]
+    }
+    http_cwv_wp_latest = http_cwv_latest_rows.get("WordPress", {})
+    http_cwv_best_peer = max(
+        [row for tech, row in http_cwv_latest_rows.items() if tech != "WordPress"],
+        key=lambda row: float(row.get("mobile_good_pct") or 0),
+        default={},
+    )
+    http_cwv_gap = (
+        float(http_cwv_wp_latest.get("mobile_good_pct") or 0) - float(http_cwv_best_peer.get("mobile_good_pct") or 0)
+        if http_cwv_wp_latest and http_cwv_best_peer
         else 0
     )
     http_rank_summary = []
@@ -6074,6 +6209,19 @@ p {{ margin:0 0 12px; }}
       </div>
     </div>
     <div class="grid-2">
+      {svg_line_chart("Good Core Web Vitals on mobile", "Monthly share of mobile origins passing Core Web Vitals in the HTTP Archive Technology Report API.", http_archive_cwv_series, y_suffix="%")}
+      <div class="card">
+        <h3>Experience-quality readout</h3>
+        <p>Core Web Vitals adds a field-quality view next to adoption. This measures the share of crawled origins with good mobile user-experience signals, not project ticket volume.</p>
+        <div class="stats">
+          {stat_card("WordPress good CWV", pct(float(http_cwv_wp_latest.get("mobile_good_pct") or 0)), http_cwv_latest_date or "not fetched", "soft" if http_cwv_wp_latest else "watch")}
+          {stat_card("Best tracked peer", pct(float(http_cwv_best_peer.get("mobile_good_pct") or 0)), http_cwv_best_peer.get("technology", "not fetched"), "soft" if http_cwv_best_peer else "watch")}
+          {stat_card("WP gap", f"{http_cwv_gap:+.1f} pts" if http_cwv_wp_latest and http_cwv_best_peer else "n/a", "vs best tracked peer", "watch" if http_cwv_gap < 0 else "soft")}
+          {stat_card("Monthly rows", compact(len(http_archive_cwv)), "CWV metric rows in SQLite", "good" if http_archive_cwv else "watch")}
+        </div>
+      </div>
+    </div>
+    <div class="grid-2">
       <div class="card">
         <h3>HTTP Archive top-site tiers</h3>
         <p>Latest mobile-crawl origin counts by HTTP Archive rank tier. The percentages are WordPress share among the five tracked technologies, not share of the entire tier.</p>
@@ -6423,6 +6571,7 @@ def main():
     fetched["market_share"].extend(parse_w3techs_history(W3TECHS_MARKET_SHARE_URL, "cms_market_share", args.skip_network))
     fetched["http_archive_adoption_monthly"] = fetch_http_archive_adoption_monthly(args.skip_network)
     fetched["http_archive_rank_adoption_snapshot"] = fetch_http_archive_rank_adoption_snapshot(args.skip_network)
+    fetched["http_archive_cwv_monthly"] = fetch_http_archive_cwv_monthly(args.skip_network)
     fetched["wporg_ecosystem_stats_snapshot"] = fetch_wporg_ecosystem_stats_snapshot(args.skip_network)
     fetched["builtwith_technology_snapshots"], fetched["builtwith_technology_history"] = fetch_builtwith_technology_signals(
         args.skip_network

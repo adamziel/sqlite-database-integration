@@ -73,9 +73,45 @@
     }
     .table-chip code, .table-chip span { display: block; }
     .table-chip span { color: var(--muted); font-size: 12px; margin-top: 2px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 14px; table-layout: fixed; }
-    th, td { text-align: left; border-bottom: 1px solid var(--line); padding: 9px 8px; vertical-align: top; overflow-wrap: anywhere; }
-    th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+    .evidence-grid, .family-grid, .source-grid, .gap-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .evidence-card, .family-card, .source-card, .gap-card {
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--blue);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fbfdff;
+      min-width: 0;
+    }
+    .family-card { border-left-color: var(--green); }
+    .source-card { border-left-color: var(--blue); }
+    .gap-card { border-left-color: var(--amber); }
+    .evidence-card strong, .family-card strong, .source-card strong, .gap-card strong {
+      display: block;
+      line-height: 1.25;
+      margin-bottom: 8px;
+    }
+    .evidence-card p, .family-card p, .source-card p, .gap-card p {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.4;
+      margin: 0;
+    }
+    .source-card p { margin-top: 8px; }
+    .gap-card b {
+      display: block;
+      color: var(--ink);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin: 11px 0 4px;
+    }
+    .meta { display: flex; justify-content: space-between; gap: 10px; color: var(--muted); font-size: 13px; margin-top: 5px; }
+    .meta b { color: var(--ink); }
     .status { display: inline-block; border-radius: 999px; padding: 3px 8px; font-size: 12px; font-weight: 800; background: #fef3c7; color: #92400e; }
     .section { margin-top: 14px; }
     @media (max-width: 860px) {
@@ -121,27 +157,69 @@
       <div class="card">
         <h2>Tracker and PR data</h2>
         <p class="note">The strongest evidence in the report: direct project workload and participation history.</p>
-        <table>
-          <thead><tr><th>Table</th><th>Rows</th><th>Use</th></tr></thead>
-          <tbody><tr><td><code>core_tickets</code></td><td>65.0k</td><td>Core Trac ticket rows.</td></tr>
-<tr><td><code>core_events</code></td><td>76.6k</td><td>Core Trac event rows.</td></tr>
-<tr><td><code>gutenberg_issues</code></td><td>32.1k</td><td>Gutenberg GitHub issue rows.</td></tr>
-<tr><td><code>github_prs</code></td><td>12.1k</td><td>wordpress-develop pull request rows.</td></tr>
-<tr><td><code>classification_trend</code></td><td>716</td><td>Quarterly classification rows.</td></tr></tbody>
-        </table>
+        <div class="evidence-grid">
+
+        <article class="evidence-card">
+          <strong><code>core_tickets</code></strong>
+          <div class="meta"><span>Rows</span><b>65.0k</b></div>
+          <p>Core Trac ticket rows.</p>
+        </article>
+
+        <article class="evidence-card">
+          <strong><code>core_events</code></strong>
+          <div class="meta"><span>Rows</span><b>76.6k</b></div>
+          <p>Core Trac event rows.</p>
+        </article>
+
+        <article class="evidence-card">
+          <strong><code>gutenberg_issues</code></strong>
+          <div class="meta"><span>Rows</span><b>32.1k</b></div>
+          <p>Gutenberg GitHub issue rows.</p>
+        </article>
+
+        <article class="evidence-card">
+          <strong><code>github_prs</code></strong>
+          <div class="meta"><span>Rows</span><b>12.1k</b></div>
+          <p>wordpress-develop pull request rows.</p>
+        </article>
+
+        <article class="evidence-card">
+          <strong><code>classification_trend</code></strong>
+          <div class="meta"><span>Rows</span><b>716</b></div>
+          <p>Quarterly classification rows.</p>
+        </article>
+        </div>
       </div>
       <div class="card">
         <h2>External signal families</h2>
         <p class="note">These tables keep ticket activity separate from ecosystem, adoption, and demand signals.</p>
-        <table>
-          <tbody>
-            <tr><td><code>market_share</code></td><td>W3Techs all-site and CMS-share trend rows.</td></tr>
-            <tr><td><code>http_archive_*</code></td><td>Origin counts, tracked-share trend, rank tiers, and Core Web Vitals.</td></tr>
-            <tr><td><code>builtwith_*</code></td><td>Current new-site proxy, tier snapshot, and ecommerce history.</td></tr>
-            <tr><td><code>make_core_*</code></td><td>Make/Core posts, comments, dev notes, authors, and release tags.</td></tr>
-            <tr><td><code>major_plugin_*</code></td><td>Major plugin installs, historical snapshots, support counts, and downloads.</td></tr>
-          </tbody>
-        </table>
+        <div class="family-grid">
+
+        <article class="family-card">
+          <strong><code>market_share</code></strong>
+          <p>W3Techs all-site and CMS-share trend rows.</p>
+        </article>
+
+        <article class="family-card">
+          <strong><code>http_archive_*</code></strong>
+          <p>Origin counts, tracked-share trend, rank tiers, and Core Web Vitals.</p>
+        </article>
+
+        <article class="family-card">
+          <strong><code>builtwith_*</code></strong>
+          <p>Current new-site proxy, tier snapshot, and ecommerce history.</p>
+        </article>
+
+        <article class="family-card">
+          <strong><code>make_core_*</code></strong>
+          <p>Make/Core posts, comments, dev notes, authors, and release tags.</p>
+        </article>
+
+        <article class="family-card">
+          <strong><code>major_plugin_*</code></strong>
+          <p>Major plugin installs, historical snapshots, support counts, and downloads.</p>
+        </article>
+        </div>
       </div>
     </section>
 
@@ -256,184 +334,192 @@
     <section class="section">
       <h2>Hashed local sources</h2>
       <p class="note">The database stores full SHA-256 values. This page shows shortened hashes to keep the inventory readable.</p>
-      <table>
-        <thead><tr><th>Table</th><th>Rows</th><th>SHA-256 prefix</th><th>Source path</th></tr></thead>
-        <tbody>
-          <tr>
-            <td><code>builtwith_new_site_snapshot</code></td>
-            <td>5</td>
-            <td><code>2ee9e5f3b9d5</code></td>
-            <td><code>/Users/admin/wordpress_community_health/builtwith_new_site_snapshot.csv</code></td>
-          </tr>
+      <div class="source-grid">
 
-          <tr>
-            <td><code>classification_summary_core</code></td>
-            <td>4</td>
-            <td><code>93a56754f3eb</code></td>
-            <td><code>/Users/admin/sqlite-database-integration-pages/wordpress-ticket-classification/classification_summary_core.csv</code></td>
-          </tr>
+        <article class="source-card">
+          <strong><code>builtwith_new_site_snapshot</code></strong>
+          <div class="meta"><span>Rows</span><b>5</b></div>
+          <div class="meta"><span>Hash prefix</span><code>2ee9e5f3b9d5</code></div>
+          <p><code>/Users/admin/wordpress_community_health/builtwith_new_site_snapshot.csv</code></p>
+        </article>
 
-          <tr>
-            <td><code>classification_summary_gutenberg</code></td>
-            <td>11</td>
-            <td><code>bf55ecc265ab</code></td>
-            <td><code>/Users/admin/sqlite-database-integration-pages/wordpress-ticket-classification/classification_summary_gutenberg.csv</code></td>
-          </tr>
+        <article class="source-card">
+          <strong><code>classification_summary_core</code></strong>
+          <div class="meta"><span>Rows</span><b>4</b></div>
+          <div class="meta"><span>Hash prefix</span><code>93a56754f3eb</code></div>
+          <p><code>/Users/admin/sqlite-database-integration-pages/wordpress-ticket-classification/classification_summary_core.csv</code></p>
+        </article>
 
-          <tr>
-            <td><code>classification_trend</code></td>
-            <td>716</td>
-            <td><code>0984ed9fe68d</code></td>
-            <td><code>/Users/admin/sqlite-database-integration-pages/wordpress-ticket-classification/classification_trend_quarterly.csv</code></td>
-          </tr>
+        <article class="source-card">
+          <strong><code>classification_summary_gutenberg</code></strong>
+          <div class="meta"><span>Rows</span><b>11</b></div>
+          <div class="meta"><span>Hash prefix</span><code>bf55ecc265ab</code></div>
+          <p><code>/Users/admin/sqlite-database-integration-pages/wordpress-ticket-classification/classification_summary_gutenberg.csv</code></p>
+        </article>
 
-          <tr>
-            <td><code>core_events</code></td>
-            <td>76.6k</td>
-            <td><code>8876306517a9</code></td>
-            <td><code>/Users/admin/wordpress_core_issue_analysis/raw/trac_ticket_events.csv</code></td>
-          </tr>
+        <article class="source-card">
+          <strong><code>classification_trend</code></strong>
+          <div class="meta"><span>Rows</span><b>716</b></div>
+          <div class="meta"><span>Hash prefix</span><code>0984ed9fe68d</code></div>
+          <p><code>/Users/admin/sqlite-database-integration-pages/wordpress-ticket-classification/classification_trend_quarterly.csv</code></p>
+        </article>
 
-          <tr>
-            <td><code>core_quarterly</code></td>
-            <td>94</td>
-            <td><code>8621dd71a95a</code></td>
-            <td><code>/Users/admin/wordpress_core_issue_analysis/quarterly_metrics.csv</code></td>
-          </tr>
+        <article class="source-card">
+          <strong><code>core_events</code></strong>
+          <div class="meta"><span>Rows</span><b>76.6k</b></div>
+          <div class="meta"><span>Hash prefix</span><code>8876306517a9</code></div>
+          <p><code>/Users/admin/wordpress_core_issue_analysis/raw/trac_ticket_events.csv</code></p>
+        </article>
 
-          <tr>
-            <td><code>core_response_metrics</code></td>
-            <td>13.1k</td>
-            <td><code>bae42ebffdfa</code></td>
-            <td><code>/Users/admin/wordpress_community_health/core_response_metrics.jsonl</code></td>
-          </tr>
+        <article class="source-card">
+          <strong><code>core_quarterly</code></strong>
+          <div class="meta"><span>Rows</span><b>94</b></div>
+          <div class="meta"><span>Hash prefix</span><code>8621dd71a95a</code></div>
+          <p><code>/Users/admin/wordpress_core_issue_analysis/quarterly_metrics.csv</code></p>
+        </article>
 
-          <tr>
-            <td><code>core_response_quarterly</code></td>
-            <td>22</td>
-            <td><code>c7684084b6b9</code></td>
-            <td><code>/Users/admin/wordpress_community_health/core_response_quarterly.csv</code></td>
-          </tr>
+        <article class="source-card">
+          <strong><code>core_response_metrics</code></strong>
+          <div class="meta"><span>Rows</span><b>13.1k</b></div>
+          <div class="meta"><span>Hash prefix</span><code>bae42ebffdfa</code></div>
+          <p><code>/Users/admin/wordpress_community_health/core_response_metrics.jsonl</code></p>
+        </article>
 
-          <tr>
-            <td><code>core_tickets</code></td>
-            <td>65.0k</td>
-            <td><code>c16d29ed7334</code></td>
-            <td><code>/Users/admin/wordpress_core_issue_analysis/raw/trac_tickets.csv</code></td>
-          </tr>
+        <article class="source-card">
+          <strong><code>core_response_quarterly</code></strong>
+          <div class="meta"><span>Rows</span><b>22</b></div>
+          <div class="meta"><span>Hash prefix</span><code>c7684084b6b9</code></div>
+          <p><code>/Users/admin/wordpress_community_health/core_response_quarterly.csv</code></p>
+        </article>
 
-          <tr>
-            <td><code>github_pr_quarterly</code></td>
-            <td>94</td>
-            <td><code>cbf81b574ff0</code></td>
-            <td><code>/Users/admin/wordpress_core_issue_analysis/github_pr_quarterly.csv</code></td>
-          </tr>
+        <article class="source-card">
+          <strong><code>core_tickets</code></strong>
+          <div class="meta"><span>Rows</span><b>65.0k</b></div>
+          <div class="meta"><span>Hash prefix</span><code>c16d29ed7334</code></div>
+          <p><code>/Users/admin/wordpress_core_issue_analysis/raw/trac_tickets.csv</code></p>
+        </article>
 
-          <tr>
-            <td><code>github_prs</code></td>
-            <td>12.1k</td>
-            <td><code>d8994070e068</code></td>
-            <td><code>/Users/admin/wordpress_core_issue_analysis/raw/github_wordpress_develop_prs.jsonl</code></td>
-          </tr>
+        <article class="source-card">
+          <strong><code>github_pr_quarterly</code></strong>
+          <div class="meta"><span>Rows</span><b>94</b></div>
+          <div class="meta"><span>Hash prefix</span><code>cbf81b574ff0</code></div>
+          <p><code>/Users/admin/wordpress_core_issue_analysis/github_pr_quarterly.csv</code></p>
+        </article>
 
-          <tr>
-            <td><code>gutenberg_issues</code></td>
-            <td>32.1k</td>
-            <td><code>30f3c5170c31</code></td>
-            <td><code>/Users/admin/gutenberg_issue_analysis/issues_inventory.csv</code></td>
-          </tr>
+        <article class="source-card">
+          <strong><code>github_prs</code></strong>
+          <div class="meta"><span>Rows</span><b>12.1k</b></div>
+          <div class="meta"><span>Hash prefix</span><code>d8994070e068</code></div>
+          <p><code>/Users/admin/wordpress_core_issue_analysis/raw/github_wordpress_develop_prs.jsonl</code></p>
+        </article>
 
-          <tr>
-            <td><code>gutenberg_issues_jsonl</code></td>
-            <td>32.1k</td>
-            <td><code>5e5403452e76</code></td>
-            <td><code>/Users/admin/gutenberg_issue_analysis/raw/issues_inventory.jsonl</code></td>
-          </tr>
+        <article class="source-card">
+          <strong><code>gutenberg_issues</code></strong>
+          <div class="meta"><span>Rows</span><b>32.1k</b></div>
+          <div class="meta"><span>Hash prefix</span><code>30f3c5170c31</code></div>
+          <p><code>/Users/admin/gutenberg_issue_analysis/issues_inventory.csv</code></p>
+        </article>
 
-          <tr>
-            <td><code>gutenberg_quarterly</code></td>
-            <td>21</td>
-            <td><code>810760643677</code></td>
-            <td><code>/Users/admin/gutenberg_issue_analysis/quarterly_metrics.csv</code></td>
-          </tr>
+        <article class="source-card">
+          <strong><code>gutenberg_issues_jsonl</code></strong>
+          <div class="meta"><span>Rows</span><b>32.1k</b></div>
+          <div class="meta"><span>Hash prefix</span><code>5e5403452e76</code></div>
+          <p><code>/Users/admin/gutenberg_issue_analysis/raw/issues_inventory.jsonl</code></p>
+        </article>
 
-          <tr>
-            <td><code>gutenberg_timeline_metrics</code></td>
-            <td>32.1k</td>
-            <td><code>8353b10b4e7c</code></td>
-            <td><code>/Users/admin/wordpress_community_health/gutenberg_issue_timeline_metrics.jsonl</code></td>
-          </tr>
+        <article class="source-card">
+          <strong><code>gutenberg_quarterly</code></strong>
+          <div class="meta"><span>Rows</span><b>21</b></div>
+          <div class="meta"><span>Hash prefix</span><code>810760643677</code></div>
+          <p><code>/Users/admin/gutenberg_issue_analysis/quarterly_metrics.csv</code></p>
+        </article>
 
-          <tr>
-            <td><code>gutenberg_timeline_quarterly</code></td>
-            <td>38</td>
-            <td><code>ba193efb87db</code></td>
-            <td><code>/Users/admin/wordpress_community_health/gutenberg_timeline_quarterly.csv</code></td>
-          </tr>
+        <article class="source-card">
+          <strong><code>gutenberg_timeline_metrics</code></strong>
+          <div class="meta"><span>Rows</span><b>32.1k</b></div>
+          <div class="meta"><span>Hash prefix</span><code>8353b10b4e7c</code></div>
+          <p><code>/Users/admin/wordpress_community_health/gutenberg_issue_timeline_metrics.jsonl</code></p>
+        </article>
 
-          <tr>
-            <td><code>support_forum_forum_summary</code></td>
-            <td>10</td>
-            <td><code>84973e52d2c8</code></td>
-            <td><code>/Users/admin/wordpress_community_health/support_forum_forum_summary.csv</code></td>
-          </tr>
+        <article class="source-card">
+          <strong><code>gutenberg_timeline_quarterly</code></strong>
+          <div class="meta"><span>Rows</span><b>38</b></div>
+          <div class="meta"><span>Hash prefix</span><code>ba193efb87db</code></div>
+          <p><code>/Users/admin/wordpress_community_health/gutenberg_timeline_quarterly.csv</code></p>
+        </article>
 
-          <tr>
-            <td><code>support_forum_topics</code></td>
-            <td>1,315</td>
-            <td><code>0307cf0110fe</code></td>
-            <td><code>/Users/admin/wordpress_community_health/support_forum_topics.jsonl</code></td>
-          </tr>
+        <article class="source-card">
+          <strong><code>support_forum_forum_summary</code></strong>
+          <div class="meta"><span>Rows</span><b>10</b></div>
+          <div class="meta"><span>Hash prefix</span><code>84973e52d2c8</code></div>
+          <p><code>/Users/admin/wordpress_community_health/support_forum_forum_summary.csv</code></p>
+        </article>
 
-          <tr>
-            <td><code>support_forum_view_snapshots</code></td>
-            <td>4</td>
-            <td><code>cf6bc9cc705e</code></td>
-            <td><code>/Users/admin/wordpress_community_health/support_forum_view_snapshots.csv</code></td>
-          </tr></tbody>
-      </table>
+        <article class="source-card">
+          <strong><code>support_forum_topics</code></strong>
+          <div class="meta"><span>Rows</span><b>1,315</b></div>
+          <div class="meta"><span>Hash prefix</span><code>0307cf0110fe</code></div>
+          <p><code>/Users/admin/wordpress_community_health/support_forum_topics.jsonl</code></p>
+        </article>
+
+        <article class="source-card">
+          <strong><code>support_forum_view_snapshots</code></strong>
+          <div class="meta"><span>Rows</span><b>4</b></div>
+          <div class="meta"><span>Hash prefix</span><code>cf6bc9cc705e</code></div>
+          <p><code>/Users/admin/wordpress_community_health/support_forum_view_snapshots.csv</code></p>
+        </article>
+      </div>
     </section>
 
     <section class="section">
       <h2>Partial-source gaps stored in SQLite</h2>
-      <table>
-        <thead><tr><th>Signal</th><th>Status</th><th>Best next source</th><th>Current note</th></tr></thead>
-        <tbody>
-          <tr>
-            <td><code>developer_interest_proxy</code></td>
-            <td><span class="status">partial</span></td>
-            <td>Stack Exchange API question totals, Wikimedia Pageviews API, npm package downloads, GitHub PR activity, and broader developer-community sources</td>
-            <td>Quarterly Stack Overflow tag volume, Wikimedia pageviews, npm @wordpress package downloads, wordpress-develop PR activity, and a compact attention/demand summary are included as public attention and contribution proxies; they do not measure general search-query interest.</td>
-          </tr>
+      <div class="gap-grid">
 
-          <tr>
-            <td><code>job_demand</code></td>
-            <td><span class="status">partial</span></td>
-            <td>Hacker News monthly Who is hiring? threads plus hiring-platform exports</td>
-            <td>HN Who is hiring WordPress/WooCommerce, PHP, and agency/studio mention counts, WordPress Jobs board open-listing snapshots, a compact proxy-direction summary, and a job-demand companion view are included; broader job-board demand still needs a labor-market source.</td>
-          </tr>
+        <article class="gap-card">
+          <span class="status">partial</span>
+          <strong>Developer Interest Proxy</strong>
+          <b>Best next source</b>
+          <p>Stack Exchange API question totals, Wikimedia Pageviews API, npm package downloads, GitHub PR activity, and broader developer-community sources</p>
+          <b>Current coverage</b>
+          <p>Quarterly Stack Overflow tag volume, Wikimedia pageviews, npm @wordpress package downloads, wordpress-develop PR activity, and a compact attention/demand summary are included as public attention and contribution proxies; they do not measure general search-query interest.</p>
+        </article>
 
-          <tr>
-            <td><code>new_site_share_history</code></td>
-            <td><span class="status">partial</span></td>
-            <td>BuiltWith historical trends or HTTP Archive cohort queries</td>
-            <td>Current report includes BuiltWith current Net New Pipeline, HTTP Archive monthly origin counts, derived tracked-share history, rank-tier detected-origin adoption, a compact new-site choice summary, and a dedicated new-site choice companion view; not a multi-year newly created site cohort.</td>
-          </tr>
+        <article class="gap-card">
+          <span class="status">partial</span>
+          <strong>Job Demand</strong>
+          <b>Best next source</b>
+          <p>Hacker News monthly Who is hiring? threads plus hiring-platform exports</p>
+          <b>Current coverage</b>
+          <p>HN Who is hiring WordPress/WooCommerce, PHP, and agency/studio mention counts, WordPress Jobs board open-listing snapshots, a compact proxy-direction summary, and a job-demand companion view are included; broader job-board demand still needs a labor-market source.</p>
+        </article>
 
-          <tr>
-            <td><code>search_interest</code></td>
-            <td><span class="status">partial</span></td>
-            <td>Google Trends or another search-interest provider</td>
-            <td>Wikimedia Pageviews API quarterly article-view trends, Stack Overflow tag-volume context, a compact attention/demand summary, and a search-interest companion view are included as public-interest proxies; true search-query interest still needs Google Trends or another search provider.</td>
-          </tr>
+        <article class="gap-card">
+          <span class="status">partial</span>
+          <strong>New Site Share History</strong>
+          <b>Best next source</b>
+          <p>BuiltWith historical trends or HTTP Archive cohort queries</p>
+          <b>Current coverage</b>
+          <p>Current report includes BuiltWith current Net New Pipeline, HTTP Archive monthly origin counts, derived tracked-share history, rank-tier detected-origin adoption, a compact new-site choice summary, and a dedicated new-site choice companion view; not a multi-year newly created site cohort.</p>
+        </article>
 
-          <tr>
-            <td><code>support_forum_history</code></td>
-            <td><span class="status">partial</span></td>
-            <td>Historical WordPress.org support forum topic/reply export</td>
-            <td>Current report includes public support queue snapshots, resolved/unresolved/no-reply summaries, last-activity buckets, forum-level unanswered summaries, a support-load companion view, and major-plugin support-thread totals; not a full long-term topic/reply history.</td>
-          </tr></tbody>
-      </table>
+        <article class="gap-card">
+          <span class="status">partial</span>
+          <strong>Search Interest</strong>
+          <b>Best next source</b>
+          <p>Google Trends or another search-interest provider</p>
+          <b>Current coverage</b>
+          <p>Wikimedia Pageviews API quarterly article-view trends, Stack Overflow tag-volume context, a compact attention/demand summary, and a search-interest companion view are included as public-interest proxies; true search-query interest still needs Google Trends or another search provider.</p>
+        </article>
+
+        <article class="gap-card">
+          <span class="status">partial</span>
+          <strong>Support Forum History</strong>
+          <b>Best next source</b>
+          <p>Historical WordPress.org support forum topic/reply export</p>
+          <b>Current coverage</b>
+          <p>Current report includes public support queue snapshots, resolved/unresolved/no-reply summaries, last-activity buckets, forum-level unanswered summaries, a support-load companion view, and major-plugin support-thread totals; not a full long-term topic/reply history.</p>
+        </article>
+      </div>
     </section>
   </main>
 </body>

@@ -97,6 +97,57 @@ def nav_html():
     )
 
 
+def source_cards(rows):
+    return "\n".join(
+        f"""
+        <article class="source-card">
+          <strong><code>{esc(row['table_name'])}</code></strong>
+          <div class="meta"><span>Rows</span><b>{compact(row['rows'])}</b></div>
+          <div class="meta"><span>Hash prefix</span><code>{esc(str(row['sha256'])[:12])}</code></div>
+          <p><code>{esc(row['path'])}</code></p>
+        </article>"""
+        for row in rows
+    )
+
+
+def gap_cards(rows):
+    return "\n".join(
+        f"""
+        <article class="gap-card">
+          <span class="status">{esc(row['status'])}</span>
+          <strong>{esc(row['signal'].replace('_', ' ').title())}</strong>
+          <b>Best next source</b>
+          <p>{esc(row['needed_source'])}</p>
+          <b>Current coverage</b>
+          <p>{esc(row['note'])}</p>
+        </article>"""
+        for row in rows
+    )
+
+
+def evidence_cards(items):
+    return "\n".join(
+        f"""
+        <article class="evidence-card">
+          <strong><code>{esc(name)}</code></strong>
+          <div class="meta"><span>Rows</span><b>{compact(count)}</b></div>
+          <p>{esc(note)}</p>
+        </article>"""
+        for name, count, note in items
+    )
+
+
+def family_cards(items):
+    return "\n".join(
+        f"""
+        <article class="family-card">
+          <strong><code>{esc(name)}</code></strong>
+          <p>{esc(note)}</p>
+        </article>"""
+        for name, note in items
+    )
+
+
 def render():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
@@ -110,26 +161,6 @@ def render():
     github_prs = table_count(conn, "github_prs")
     ticket_total = core_tickets + gutenberg_issues
 
-    source_rows = "\n".join(
-        f"""
-          <tr>
-            <td><code>{esc(row['table_name'])}</code></td>
-            <td>{compact(row['rows'])}</td>
-            <td><code>{esc(str(row['sha256'])[:12])}</code></td>
-            <td><code>{esc(row['path'])}</code></td>
-          </tr>"""
-        for row in sources
-    )
-    gap_rows = "\n".join(
-        f"""
-          <tr>
-            <td><code>{esc(row['signal'])}</code></td>
-            <td><span class="status">{esc(row['status'])}</span></td>
-            <td>{esc(row['needed_source'])}</td>
-            <td>{esc(row['note'])}</td>
-          </tr>"""
-        for row in gaps
-    )
     table_cards = "\n".join(
         f'<div class="table-chip"><code>{esc(name)}</code><span>{compact(count)} rows</span></div>'
         for name, count in tables
@@ -141,10 +172,13 @@ def render():
         ("github_prs", github_prs, "wordpress-develop pull request rows."),
         ("classification_trend", table_count(conn, "classification_trend"), "Quarterly classification rows."),
     ]
-    strongest_html = "\n".join(
-        f"<tr><td><code>{esc(name)}</code></td><td>{compact(count)}</td><td>{esc(note)}</td></tr>"
-        for name, count, note in strongest_rows
-    )
+    external_rows = [
+        ("market_share", "W3Techs all-site and CMS-share trend rows."),
+        ("http_archive_*", "Origin counts, tracked-share trend, rank tiers, and Core Web Vitals."),
+        ("builtwith_*", "Current new-site proxy, tier snapshot, and ecommerce history."),
+        ("make_core_*", "Make/Core posts, comments, dev notes, authors, and release tags."),
+        ("major_plugin_*", "Major plugin installs, historical snapshots, support counts, and downloads."),
+    ]
 
     html_doc = f"""<!doctype html>
 <html lang="en">
@@ -221,9 +255,45 @@ def render():
     }}
     .table-chip code, .table-chip span {{ display: block; }}
     .table-chip span {{ color: var(--muted); font-size: 12px; margin-top: 2px; }}
-    table {{ width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 14px; table-layout: fixed; }}
-    th, td {{ text-align: left; border-bottom: 1px solid var(--line); padding: 9px 8px; vertical-align: top; overflow-wrap: anywhere; }}
-    th {{ color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }}
+    .evidence-grid, .family-grid, .source-grid, .gap-grid {{
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }}
+    .evidence-card, .family-card, .source-card, .gap-card {{
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--blue);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fbfdff;
+      min-width: 0;
+    }}
+    .family-card {{ border-left-color: var(--green); }}
+    .source-card {{ border-left-color: var(--blue); }}
+    .gap-card {{ border-left-color: var(--amber); }}
+    .evidence-card strong, .family-card strong, .source-card strong, .gap-card strong {{
+      display: block;
+      line-height: 1.25;
+      margin-bottom: 8px;
+    }}
+    .evidence-card p, .family-card p, .source-card p, .gap-card p {{
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.4;
+      margin: 0;
+    }}
+    .source-card p {{ margin-top: 8px; }}
+    .gap-card b {{
+      display: block;
+      color: var(--ink);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin: 11px 0 4px;
+    }}
+    .meta {{ display: flex; justify-content: space-between; gap: 10px; color: var(--muted); font-size: 13px; margin-top: 5px; }}
+    .meta b {{ color: var(--ink); }}
     .status {{ display: inline-block; border-radius: 999px; padding: 3px 8px; font-size: 12px; font-weight: 800; background: #fef3c7; color: #92400e; }}
     .section {{ margin-top: 14px; }}
     @media (max-width: 860px) {{
@@ -251,23 +321,16 @@ def render():
       <div class="card">
         <h2>Tracker and PR data</h2>
         <p class="note">The strongest evidence in the report: direct project workload and participation history.</p>
-        <table>
-          <thead><tr><th>Table</th><th>Rows</th><th>Use</th></tr></thead>
-          <tbody>{strongest_html}</tbody>
-        </table>
+        <div class="evidence-grid">
+{evidence_cards(strongest_rows)}
+        </div>
       </div>
       <div class="card">
         <h2>External signal families</h2>
         <p class="note">These tables keep ticket activity separate from ecosystem, adoption, and demand signals.</p>
-        <table>
-          <tbody>
-            <tr><td><code>market_share</code></td><td>W3Techs all-site and CMS-share trend rows.</td></tr>
-            <tr><td><code>http_archive_*</code></td><td>Origin counts, tracked-share trend, rank tiers, and Core Web Vitals.</td></tr>
-            <tr><td><code>builtwith_*</code></td><td>Current new-site proxy, tier snapshot, and ecommerce history.</td></tr>
-            <tr><td><code>make_core_*</code></td><td>Make/Core posts, comments, dev notes, authors, and release tags.</td></tr>
-            <tr><td><code>major_plugin_*</code></td><td>Major plugin installs, historical snapshots, support counts, and downloads.</td></tr>
-          </tbody>
-        </table>
+        <div class="family-grid">
+{family_cards(external_rows)}
+        </div>
       </div>
     </section>
 
@@ -299,18 +362,16 @@ def render():
     <section class="section">
       <h2>Hashed local sources</h2>
       <p class="note">The database stores full SHA-256 values. This page shows shortened hashes to keep the inventory readable.</p>
-      <table>
-        <thead><tr><th>Table</th><th>Rows</th><th>SHA-256 prefix</th><th>Source path</th></tr></thead>
-        <tbody>{source_rows}</tbody>
-      </table>
+      <div class="source-grid">
+{source_cards(sources)}
+      </div>
     </section>
 
     <section class="section">
       <h2>Partial-source gaps stored in SQLite</h2>
-      <table>
-        <thead><tr><th>Signal</th><th>Status</th><th>Best next source</th><th>Current note</th></tr></thead>
-        <tbody>{gap_rows}</tbody>
-      </table>
+      <div class="gap-grid">
+{gap_cards(gaps)}
+      </div>
     </section>
   </main>
 </body>

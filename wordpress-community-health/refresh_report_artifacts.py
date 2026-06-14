@@ -7,6 +7,7 @@ import subprocess
 import sys
 from html.parser import HTMLParser
 from pathlib import Path
+from urllib.parse import unquote, urlparse
 
 
 ROOT = Path("/Users/admin/wordpress_community_health")
@@ -42,6 +43,24 @@ HTML_ARTIFACTS = {
     ],
 }
 
+LOCAL_PAGE_ALIASES = {
+    "index.html": "final_report.html",
+}
+
+
+class LinkParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.hrefs = []
+        self.ids = set()
+
+    def handle_starttag(self, tag, attrs):
+        attr_map = dict(attrs)
+        if "id" in attr_map:
+            self.ids.add(attr_map["id"])
+        if tag == "a" and "href" in attr_map:
+            self.hrefs.append(attr_map["href"])
+
 
 def free_mb(path):
     usage = shutil.disk_usage(path)
@@ -67,7 +86,8 @@ def validate_html_artifact(path, required_strings):
         print(f"missing HTML artifact: {path}", file=sys.stderr)
         return False
     text = path.read_text(encoding="utf-8")
-    HTMLParser().feed(text)
+    parser = LinkParser()
+    parser.feed(text)
     missing = [needle for needle in required_strings if needle not in text]
     if missing:
         print(f"{path.name} missing required text: {', '.join(missing)}", file=sys.stderr)
@@ -78,7 +98,48 @@ def validate_html_artifact(path, required_strings):
     if re.search(r"\brisk\b", text, flags=re.I):
         print(f"{path.name} contains avoided wording: risk", file=sys.stderr)
         return False
+    if not validate_local_links(path, parser.hrefs):
+        return False
     return True
+
+
+def resolve_local_target(current_path, href):
+    parsed = urlparse(href)
+    if parsed.scheme or parsed.netloc:
+        return None, parsed.fragment
+    if href.startswith("#"):
+        return current_path, unquote(parsed.fragment)
+    target = unquote(parsed.path)
+    if not target:
+        return current_path, unquote(parsed.fragment)
+    target = LOCAL_PAGE_ALIASES.get(target, target)
+    return ROOT / target, unquote(parsed.fragment)
+
+
+def html_ids(path):
+    parser = LinkParser()
+    parser.feed(path.read_text(encoding="utf-8"))
+    return parser.ids
+
+
+def validate_local_links(path, hrefs):
+    ok = True
+    id_cache = {}
+    for href in hrefs:
+        target, fragment = resolve_local_target(path, href)
+        if target is None:
+            continue
+        if not target.exists():
+            print(f"{path.name} links to missing local target: {href}", file=sys.stderr)
+            ok = False
+            continue
+        if fragment and target.suffix == ".html":
+            if target not in id_cache:
+                id_cache[target] = html_ids(target)
+            if fragment not in id_cache[target]:
+                print(f"{path.name} links to missing fragment {href}", file=sys.stderr)
+                ok = False
+    return ok
 
 
 def validate_artifacts():

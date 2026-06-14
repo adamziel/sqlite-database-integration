@@ -3670,7 +3670,8 @@ def build_database(data, fetched):
     if DB_PATH.exists():
         DB_PATH.unlink()
     conn = sqlite3.connect(DB_PATH)
-    conn.execute("PRAGMA journal_mode=WAL")
+    # The generated DB is rebuilt from source data; avoid a large persistent WAL on low-disk refreshes.
+    conn.execute("PRAGMA journal_mode=DELETE")
     conn.execute("PRAGMA synchronous=NORMAL")
     conn.execute(
         """

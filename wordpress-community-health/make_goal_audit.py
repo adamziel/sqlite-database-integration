@@ -154,7 +154,7 @@ def render():
             "Community outside tickets",
             "Props, committers, Make/Core, WordCamps, Meetups, plugins, themes, translations, Five for the Future, support, dev notes.",
             "Covered",
-            "The report includes release credits, committers, Make/Core posts/comments/dev notes, WordCamp records, Events/Meetups, Translate snapshots, Five for the Future, support answer summaries, plugin/theme directory activity, plugin and theme search breadth, Composer package snapshots, and a stale popular-plugin sample.",
+            "The report includes release credits, committers, Make/Core posts/comments/dev notes, WordCamp records, Events/Meetups, Translate snapshots, Five for the Future, support answer summaries, archived support-view estimates, plugin/theme directory activity, plugin and theme search breadth, Composer package snapshots, and a stale popular-plugin sample.",
         ),
         audit_row(
             "Popularity and likelihood to choose WordPress",
@@ -167,7 +167,7 @@ def render():
             "Quarterly preference",
             "Prefer quarterly time series where the data supports it.",
             "Covered",
-            "Core, Gutenberg, PR, classification, Make/Core, dev-note, support snapshot buckets, Stack Overflow, Wikimedia, HN hiring, plugin downloads, and many market/demand charts use quarterly or monthly-to-quarterly series where available.",
+            "Core, Gutenberg, PR, classification, Make/Core, dev-note, archived support-view estimates, support snapshot buckets, Stack Overflow, Wikimedia, HN hiring, plugin downloads, and many market/demand charts use quarterly or monthly-to-quarterly series where available.",
         ),
         audit_row(
             "Refreshable source metadata",

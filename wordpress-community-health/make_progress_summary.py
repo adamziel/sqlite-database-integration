@@ -102,8 +102,8 @@ GAP_SUMMARIES = {
     },
     "support_forum_history": {
         "title": "Support history",
-        "current": "Current support queues and unresolved snapshots are in.",
-        "next": "Add long-running topic and reply history.",
+        "current": "Current support queues plus quarterly Wayback support-view estimates are in.",
+        "next": "Add full topic and reply history if a stable export is available.",
     },
 }
 
@@ -195,6 +195,7 @@ def main():
         source_gaps = value(conn, "SELECT COUNT(*) FROM source_gaps")
         partial_gaps = value(conn, "SELECT COUNT(*) FROM source_gaps WHERE status='partial'")
         decision_rows = value(conn, "SELECT COUNT(*) FROM decision_question_evidence")
+        support_archive_rows = value(conn, "SELECT COUNT(*) FROM support_forum_archive_snapshots")
         npm_quarter = value(conn, "SELECT MAX(quarter) FROM npm_wordpress_downloads_quarterly", default="")
         npm_downloads = value(
             conn,
@@ -221,7 +222,7 @@ def main():
             link_card("Search interest", "Wikimedia pageviews, Stack Overflow questions, and autocomplete query-intent snapshots.", "search_interest.html", "amber"),
             link_card("Job demand", "HN hiring mentions, Remote OK and Remotive current jobs, WordPress Jobs snapshots, and jobs-board categories.", "job_demand.html", "amber"),
             link_card("Ecosystem activity", "Non-ticket community channels, plugin and theme breadth, and current ecosystem snapshots.", "ecosystem_activity.html", "green"),
-            link_card("Support load", "Current support queues, forum load, age buckets, and major-plugin support counts.", "support_load.html", "amber"),
+            link_card("Support load", "Current support queues, archive estimates, age buckets, and major-plugin support counts.", "support_load.html", "amber"),
             link_card("Decision brief", "SQLite-generated one-page summary for quick sharing and review.", "decision_brief.html", "amber"),
             link_card("Goal audit", "Maps goal.md requirements to report sections, evidence, and source gaps.", "goal_audit.html"),
             link_card("Data inventory", "SQLite tables, source hashes, and partial-source gaps.", "data_inventory.html"),
@@ -235,7 +236,7 @@ def main():
             timeline_item("Plan", "Wrote <code>goal.md</code>: a visual report on WordPress participation, project load, and market position."),
             timeline_item("Tickets", "Built quarterly Core Trac and Gutenberg GitHub metrics for new/closed flow, backlog, reporters, first-time reporters, newcomer return cohorts, bug/feature mix, response time, closure time, stale share, and contributor concentration."),
             timeline_item("Classification", "Loaded bug, feature request, documentation, support, and other classification outputs into the SQLite-backed pipeline."),
-            timeline_item("Ecosystem", "Added Core release credits and committers, Make/Core posts and comments, dev notes, WordCamps, events, translation snapshots, Five for the Future, support snapshots, plugin/theme directory samples, plugin and theme search breadth, major plugin stats, and enterprise case studies."),
+            timeline_item("Ecosystem", "Added Core release credits and committers, Make/Core posts and comments, dev notes, WordCamps, events, translation snapshots, Five for the Future, support snapshots, archived support-view estimates, plugin/theme directory samples, plugin and theme search breadth, major plugin stats, and enterprise case studies."),
             timeline_item("Adoption", "Added W3Techs, HTTP Archive, BuiltWith, WordPress.org runtime stats, Stack Overflow, Wikimedia, autocomplete query-intent snapshots, Packagist Composer package snapshots, GitHub topic-search breadth, Hacker News hiring threads, Remote OK and Remotive current jobs, WordPress Jobs snapshots, compact new-site summaries, and attention/demand proxy summaries."),
             timeline_item("Companions", 'Added focused pages for <a href="project_load.html">Project Load</a>, <a href="market_position.html">Market Position</a>, <a href="new_site_choice.html">New-site Choice</a>, <a href="search_interest.html">Search Interest</a>, <a href="developer_interest.html">Developer Interest</a>, <a href="job_demand.html">Job Demand</a>, <a href="support_load.html">Support Load</a>, <a href="contributor_depth.html">Contributor Depth</a>, <a href="ecosystem_activity.html">Ecosystem Activity</a>, and <a href="source_gap_plan.html">Source Gap Plan</a>.'),
             timeline_item("Decision brief", "Added <code>make_decision_brief.py</code> so installed share, current new-site proxy, closure ratios, first-time reporter retention, backlog age, contributor concentration, npm package downloads, and theme sample counts regenerate from SQLite."),
@@ -261,12 +262,12 @@ def main():
             ("Three report views", 'Participation, Project Load, and Market Position sections in <a href="index.html">index.html</a>.', "Covered"),
             ("Ticket-derived participation and load", "Quarterly Core Trac, Gutenberg, and wordpress-develop PR charts for flow, reporters, newcomer return cohorts, response, closure, reopen, stale share, and concentration.", "Covered"),
             ("Bug, feature request, and all-ticket views", "Separate Core and Gutenberg line charts plus open-backlog category summaries.", "Covered"),
-            ("Community outside tickets", "Release credits, committers, Make/Core, WordCamp, Events, Translate, Five for the Future, support snapshots and answer summaries, plugin/theme directory, plugin and theme search breadth, stale popular plugins, and enterprise case studies.", "Covered with snapshots"),
+            ("Community outside tickets", "Release credits, committers, Make/Core, WordCamp, Events, Translate, Five for the Future, support snapshots, archived support-view estimates, plugin/theme directory, plugin and theme search breadth, stale popular plugins, and enterprise case studies.", "Covered with snapshots"),
             ("Market position and adoption", "W3Techs installed share, HTTP Archive origin and tracked-share trends, BuiltWith pipeline/tier data, plugin install/download history, WooCommerce, and compact new-site plus attention/demand proxy summaries.", "Covered with proxies for new-site and demand history"),
             ("Decision questions", '<a href="index.html#decision-questions">Seven plain-English answer cards</a> plus the <a href="index.html#evidence-map">Evidence Map</a> backed by <code>decision_question_evidence</code>.', "Covered"),
             ("Short visual decision readout", "Relevance Scorecard, Evidence Map, Goal Coverage Map, generated Decision Brief, and final Decision Readout.", "Covered"),
             ("Refresh metadata", "SQLite source hashes, source_gaps, generated data inventory, generated decision brief, generated progress summary, generator scripts, cached public-source tables, and compressed DB export.", "Covered"),
-            ("Remaining ideal sources", "True multi-year new-site cohorts, Google Trends or equivalent, multi-year labor-market exports, fuller support-forum history, and another developer-community source if a stable public source is available.", "Partial by design"),
+            ("Remaining ideal sources", "True multi-year new-site cohorts, Google Trends or equivalent, multi-year labor-market exports, full support topic/reply history, and another developer-community source if a stable public source is available.", "Partial by design"),
         ]
     )
 
@@ -387,8 +388,9 @@ def main():
 {card("Database", compact(table_count), "tables", "SQLite stores imported ticket data, fetched ecosystem data, theme breadth, npm, Packagist, GitHub topic snapshots, job-board snapshots, source hashes, generated summaries, and known source gaps.", "green", 92)}
 {card("Ticket records", compact(ticket_total), "items", f"{compact(core_count)} Core Trac tickets plus {compact(gut_count)} Gutenberg GitHub issues are loaded for quarterly analysis.", "green", 96)}
 {card("Evidence Map", compact(decision_rows), "rows", "Decision-question evidence rows label each answer as direct, mixed, or proxy-backed.", "green", 72)}
+{card("Support archive", compact(support_archive_rows), "rows", "Quarterly Wayback support-view estimates add rough history beyond the current queue snapshot.", "green", 60)}
 {card("Package signal", compact(npm_downloads), quarter_label(npm_quarter), "Tracked @wordpress npm package downloads add developer/package activity beyond help-question volume.", "green", 78)}
-{card("Known gaps", compact(partial_gaps), f"of {compact(source_gaps)} partial", "Remaining ideal sources are true new-site history, search-provider data, broad hiring demand, longer support history, and another stable developer-community source.", "amber", 35)}
+{card("Known gaps", compact(partial_gaps), f"of {compact(source_gaps)} partial", "Remaining ideal sources are true new-site history, search-provider data, broad hiring demand, full support topic/reply history, and another stable developer-community source.", "amber", 35)}
     </section>
 
     <section class="linkcards" aria-label="Current public report links">
@@ -453,7 +455,7 @@ def main():
         <span class="pill">Next: true new-site history</span>
         <span class="pill">Next: search-interest data</span>
         <span class="pill">Next: broader hiring demand</span>
-        <span class="pill">Later: support history export</span>
+        <span class="pill">Later: full support topic/reply export</span>
         <a class="pill" href="decision_brief.html">Decision brief</a>
         <a class="pill" href="source_gap_plan.html">Source gap plan</a>
         <a class="pill" href="refresh_runbook.html">Refresh runbook</a>

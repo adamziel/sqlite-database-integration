@@ -22,7 +22,7 @@
     .lede { max-width:900px; font-size:18px; margin-bottom:20px; }
     .nav { display:flex; flex-wrap:wrap; gap:8px; margin:18px 0 22px; }
     .nav a { border:1px solid var(--line); border-radius:999px; padding:7px 11px; background:#fbfdff; text-decoration:none; font-weight:700; font-size:13px; }
-    .metrics { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; margin:22px 0; }
+    .metrics { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:12px; margin:22px 0; }
     .metric, .section, .chart-card { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px; }
     .metric { border-top:5px solid var(--blue); min-height:148px; }
     .metric.green { border-top-color:var(--green); }
@@ -66,7 +66,7 @@
 <body>
 <main>
   <h1>WordPress support load</h1>
-  <p class="lede">A compact view of current WordPress.org support queues already stored in SQLite: sampled topics, unresolved and resolved counts, last-activity age buckets, forum-level open load, and major-plugin support counts.</p>
+  <p class="lede">A compact view of WordPress.org support data already stored in SQLite: current sampled topics, archived quarterly support-view estimates, unresolved and resolved counts, last-activity age buckets, forum-level open load, and major-plugin support counts.</p>
     <nav class="nav">
       <a href="index.html#participation">Participation</a>
       <a href="ecosystem_activity.html">Ecosystem activity</a>
@@ -111,6 +111,11 @@
         <strong>11</strong>
         <p>0.8% of sampled topics</p>
       </article>
+      <article class="metric blue">
+        <h3>Archive quarters</h3>
+        <strong>33</strong>
+        <p>116 Wayback rows</p>
+      </article>
   </section>
 
   <section class="grid">
@@ -124,6 +129,13 @@
             <span>The sampled WordPress.org support queue has enough rows to show where open help load sits now.</span>
           </div>
           <b>1,315</b>
+        </div>
+        <div class="signal-row blue">
+          <div>
+            <strong>Archive adds direction</strong>
+            <span>Wayback snapshots now add quarterly support-view estimates from 2018 onward.</span>
+          </div>
+          <b>116</b>
         </div>
         <div class="signal-row amber">
           <div>
@@ -150,12 +162,37 @@
     </article>
     <article class="section">
       <h2>How to read this</h2>
-      <p>This page uses a current WordPress.org support snapshot. It is useful for where support load sits now, but it is not a full historical forum export. The last-activity range in the sample is 2025-12-13 to 2026-06-13.</p>
-      <p class="callout">Current report includes public support queue snapshots, resolved/unresolved/no-reply summaries, last-activity buckets, forum-level unanswered summaries, a support-load companion view, and major-plugin support-thread totals; not a full long-term topic/reply history.</p>
+      <p>This page uses a current WordPress.org support snapshot plus Wayback first-page snapshots. It is useful for where support load sits now and for rough archive direction, but it is not a full historical forum export. The last-activity range in the current sample is 2025-12-13 to 2026-06-13.</p>
+      <p class="callout">Current report includes public support queue snapshots, quarterly Internet Archive support-view estimates from 2018 onward, resolved/unresolved/no-reply summaries, last-activity buckets, forum-level unanswered summaries, a support-load companion view, and major-plugin support-thread totals; not a full long-term topic/reply history.</p>
     </article>
   </section>
 
   <section class="charts">
+<article class="chart-card">
+<h2>Archived support queue estimate</h2>
+<p>Quarterly Wayback first-page snapshots. Estimate equals pagination pages times first-page topic count; zero parses and one early all-topics outlier are excluded.</p>
+<svg viewBox="0 0 760 300" role="img" aria-label="Archived support queue estimate">
+<line x1="58" x2="734" y1="252.0" y2="252.0" class="gridline" />
+<text x="48" y="256.0" class="axis" text-anchor="end">0</text>
+<line x1="58" x2="734" y1="147.0" y2="147.0" class="gridline" />
+<text x="48" y="151.0" class="axis" text-anchor="end">6,098</text>
+<line x1="58" x2="734" y1="42.0" y2="42.0" class="gridline" />
+<text x="48" y="46.0" class="axis" text-anchor="end">12.2k</text>
+<path d="M58.0,68.6 L80.5,64.5 L103.1,72.2 L125.6,83.6 L148.1,87.2 L170.7,226.7 L193.2,226.7 L215.7,226.7 L238.3,226.7 L260.8,226.7 L283.3,226.7 L305.9,226.7 L328.4,226.7 L350.9,226.7 L373.5,226.7 L396.0,226.7 L418.5,226.7 L441.1,226.7 L463.6,226.7 L486.1,226.7 L508.7,226.7 L531.2,226.7 L553.7,226.7 L576.3,226.7 L598.8,226.7 L621.3,226.7 L643.9,226.7 L666.4,226.7 L688.9,226.7 L711.5,226.7 L734.0,230.3" fill="none" stroke="#b7791f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="734.0" cy="230.3" r="4" fill="#b7791f" />
+<path d="M58.0,196.5 L80.5,199.8 L103.1,211.7 L125.6,213.3 L148.1,210.2 L170.7,226.7 L193.2,226.7 L215.7,226.7 L238.3,226.7 L260.8,226.7 L283.3,226.7 L305.9,226.7 L328.4,226.7 L350.9,226.7 L373.5,226.7 L396.0,226.7 L418.5,226.7 L441.1,226.7 L463.6,226.7 L486.1,226.7 L508.7,226.7 L531.2,226.7 L553.7,226.7 L576.3,226.7 L598.8,226.7 L621.3,226.7 L643.9,226.7 L666.4,240.6" fill="none" stroke="#159957" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="666.4" cy="240.6" r="4" fill="#159957" />
+<path d="M58.0,251.8 L80.5,249.4 L103.1,251.8 L125.6,251.9 L148.1,251.5 L170.7,251.0 L193.2,251.0 L215.7,251.8 L238.3,251.9 L260.8,251.0 L283.3,250.5 L305.9,251.7 L328.4,251.0 L350.9,251.9 L373.5,251.9 L396.0,251.8 L418.5,251.8 L441.1,251.8 L463.6,251.7 L486.1,251.8 L508.7,251.5 L531.2,251.7 L553.7,251.9 L576.3,251.8 L598.8,251.9 L621.3,251.8 L643.9,251.8" fill="none" stroke="#c2410c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="643.9" cy="251.8" r="4" fill="#c2410c" />
+<text x="58" y="284" class="axis">2018-Q1</text>
+<text x="734" y="284" class="axis" text-anchor="end">2026-Q1</text>
+</svg>
+<div class="legend">
+<span><i style="background:#b7791f"></i>Unresolved <b>1,260</b></span>
+<span><i style="background:#159957"></i>Resolved <b>660</b></span>
+<span><i style="background:#c2410c"></i>No replies <b>11</b></span>
+</div>
+</article>
 <article class="chart-card">
 <h2>Support queue by last activity month</h2>
 <p>Current support topics grouped by the month of last activity. This is a snapshot distribution, not all topics opened in the month.</p>
@@ -319,7 +356,7 @@
     </article>
   </section>
 
-  <p class="footer-note">Rows come from <code>support_forum_snapshot_summary</code>, <code>support_forum_activity_monthly</code>, <code>support_forum_age_buckets</code>, <code>support_forum_unanswered_by_forum</code>, <code>support_forum_topics</code>, and <code>major_plugin_install_snapshot</code>. Integrity check: <code>ok</code>.</p>
+  <p class="footer-note">Rows come from <code>support_forum_snapshot_summary</code>, <code>support_forum_archive_snapshots</code>, <code>support_forum_activity_monthly</code>, <code>support_forum_age_buckets</code>, <code>support_forum_unanswered_by_forum</code>, <code>support_forum_topics</code>, and <code>major_plugin_install_snapshot</code>. Integrity check: <code>ok</code>.</p>
 </main>
 </body>
 </html>

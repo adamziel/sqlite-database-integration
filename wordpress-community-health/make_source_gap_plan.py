@@ -41,9 +41,9 @@ PLAN = {
         "label": "Support history",
         "order": "4",
         "color": "red",
-        "next_step": "Add a WordPress.org support topic/reply historical export or recurring snapshots of all, unresolved, resolved, and no-reply views.",
-        "target_tables": ["support_forum_history_quarterly"],
-        "success": "Quarterly topics opened, resolved, unresolved, unanswered, and response-age rows.",
+        "next_step": "Keep the Wayback support-view estimate refreshed, then add a fuller WordPress.org topic/reply export if one is available.",
+        "target_tables": ["support_forum_archive_snapshots", "support_forum_history_quarterly"],
+        "success": "Quarterly topics opened, resolved, unresolved, unanswered, reply counts, and response-age rows from a topic-level source.",
         "why": "Turns the live queue snapshot into a trend that can be compared with ticket load.",
     },
     "developer_interest_proxy": {

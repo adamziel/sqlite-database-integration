@@ -147,8 +147,8 @@
     </nav>
 
     <section class="grid metrics" aria-label="Database summary">
-      <div class="metric"><h3>Tables</h3><strong>101</strong><span>SQLite tables in the report database.</span></div>
-      <div class="metric"><h3>Local sources</h3><strong>19</strong><span>Imported files with SHA-256 hashes.</span></div>
+      <div class="metric"><h3>Tables</h3><strong>102</strong><span>SQLite tables in the report database.</span></div>
+      <div class="metric"><h3>Local sources</h3><strong>20</strong><span>Imported files with SHA-256 hashes.</span></div>
       <div class="metric"><h3>Tickets/issues</h3><strong>97.1k</strong><span>Core Trac tickets plus Gutenberg issues.</span></div>
       <div class="metric"><h3>Pull requests</h3><strong>12.1k</strong><span>wordpress-develop GitHub PR records.</span></div>
       <div class="metric"><h3>Integrity</h3><strong>ok</strong><span>SQLite integrity check result.</span></div>
@@ -364,11 +364,12 @@
 <div class="table-chip"><code>remotive_matching_jobs_snapshot</code><span>23 rows</span></div>
 <div class="table-chip"><code>search_query_intent_summary</code><span>7 rows</span></div>
 <div class="table-chip"><code>search_query_suggestions</code><span>70 rows</span></div>
-<div class="table-chip"><code>source_files</code><span>19 rows</span></div>
+<div class="table-chip"><code>source_files</code><span>20 rows</span></div>
 <div class="table-chip"><code>source_gaps</code><span>5 rows</span></div>
 <div class="table-chip"><code>stack_overflow_tag_quarterly</code><span>303 rows</span></div>
 <div class="table-chip"><code>support_forum_activity_monthly</code><span>7 rows</span></div>
 <div class="table-chip"><code>support_forum_age_buckets</code><span>6 rows</span></div>
+<div class="table-chip"><code>support_forum_archive_snapshots</code><span>135 rows</span></div>
 <div class="table-chip"><code>support_forum_forum_summary</code><span>10 rows</span></div>
 <div class="table-chip"><code>support_forum_snapshot_summary</code><span>1 rows</span></div>
 <div class="table-chip"><code>support_forum_topics</code><span>1,315 rows</span></div>
@@ -508,6 +509,13 @@
         </article>
 
         <article class="source-card">
+          <strong><code>support_forum_archive_snapshots</code></strong>
+          <div class="meta"><span>Rows</span><b>135</b></div>
+          <div class="meta"><span>Hash prefix</span><code>eb555b2c594c</code></div>
+          <p><code>/Users/admin/wordpress_community_health/support_forum_archive_snapshots.csv</code></p>
+        </article>
+
+        <article class="source-card">
           <strong><code>support_forum_forum_summary</code></strong>
           <div class="meta"><span>Rows</span><b>10</b></div>
           <div class="meta"><span>Hash prefix</span><code>84973e52d2c8</code></div>
@@ -576,7 +584,7 @@
           <b>Best next source</b>
           <p>Historical WordPress.org support forum topic/reply export</p>
           <b>Current coverage</b>
-          <p>Current report includes public support queue snapshots, resolved/unresolved/no-reply summaries, last-activity buckets, forum-level unanswered summaries, a support-load companion view, and major-plugin support-thread totals; not a full long-term topic/reply history.</p>
+          <p>Current report includes public support queue snapshots, quarterly Internet Archive support-view estimates from 2018 onward, resolved/unresolved/no-reply summaries, last-activity buckets, forum-level unanswered summaries, a support-load companion view, and major-plugin support-thread totals; not a full long-term topic/reply history.</p>
         </article>
       </div>
     </section>

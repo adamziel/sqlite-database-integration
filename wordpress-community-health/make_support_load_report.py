@@ -54,6 +54,10 @@ def rows(conn, sql, params=()):
     return [dict(row) for row in conn.execute(sql, params).fetchall()]
 
 
+def table_exists(conn, name):
+    return bool(one(conn, "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (name,)))
+
+
 def latest(rows_, key):
     return max(rows_, key=lambda row: row.get(key, ""), default={})
 
@@ -203,6 +207,20 @@ def main():
             LIMIT 8
             """,
         )
+        archive = (
+            rows(
+                conn,
+                """
+                SELECT *
+                FROM support_forum_archive_snapshots
+                WHERE CAST(estimated_total_topics AS REAL) > 0
+                  AND NOT (view='all_topics' AND CAST(estimated_total_topics AS REAL) > 100000)
+                ORDER BY quarter, view
+                """,
+            )
+            if table_exists(conn, "support_forum_archive_snapshots")
+            else []
+        )
         plugin_rows = rows(
             conn,
             """
@@ -227,6 +245,7 @@ def main():
             metric_card("Resolved", compact(snapshot.get("resolved")), f"{pct(snapshot.get('resolved_share_pct'))} of sampled topics", "green"),
             metric_card("Participants", compact(snapshot.get("participants")), f"{compact(snapshot.get('unique_starters'))} unique topic starters", "violet"),
             metric_card("No replies", compact(snapshot.get("no_replies")), f"{pct(snapshot.get('no_reply_share_pct'))} of sampled topics", "green"),
+            metric_card("Archive quarters", compact(len({row.get("quarter") for row in archive if row.get("quarter")})), f"{compact(len(archive))} Wayback rows", "blue"),
         ]
     )
 
@@ -238,6 +257,27 @@ def main():
             {"name": "Unresolved", "color": COLORS["amber"], "points": point_series(monthly, "month", "unresolved")},
             {"name": "Resolved", "color": COLORS["green"], "points": point_series(monthly, "month", "resolved")},
             {"name": "Replies", "color": COLORS["violet"], "points": point_series(monthly, "month", "replies")},
+        ],
+    )
+    archive_chart = multi_line_chart(
+        "Archived support queue estimate",
+        "Quarterly Wayback first-page snapshots. Estimate equals pagination pages times first-page topic count; zero parses and one early all-topics outlier are excluded.",
+        [
+            {
+                "name": "Unresolved",
+                "color": COLORS["amber"],
+                "points": point_series([row for row in archive if row.get("view") == "unresolved"], "quarter", "estimated_total_topics"),
+            },
+            {
+                "name": "Resolved",
+                "color": COLORS["green"],
+                "points": point_series([row for row in archive if row.get("view") == "resolved"], "quarter", "estimated_total_topics"),
+            },
+            {
+                "name": "No replies",
+                "color": COLORS["red"],
+                "points": point_series([row for row in archive if row.get("view") == "no_replies"], "quarter", "estimated_total_topics"),
+            },
         ],
     )
 
@@ -297,6 +337,12 @@ def main():
                 "blue",
             ),
             signal_row(
+                "Archive adds direction",
+                "Wayback snapshots now add quarterly support-view estimates from 2018 onward.",
+                compact(len(archive)),
+                "blue",
+            ),
+            signal_row(
                 "Open load is concentrated",
                 f"{largest_forum.get('forum_name', 'Top forum')} holds the largest unresolved count in the current sample.",
                 compact(largest_forum.get("unresolved")),
@@ -341,7 +387,7 @@ def main():
     .lede {{ max-width:900px; font-size:18px; margin-bottom:20px; }}
     .nav {{ display:flex; flex-wrap:wrap; gap:8px; margin:18px 0 22px; }}
     .nav a {{ border:1px solid var(--line); border-radius:999px; padding:7px 11px; background:#fbfdff; text-decoration:none; font-weight:700; font-size:13px; }}
-    .metrics {{ display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; margin:22px 0; }}
+    .metrics {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:12px; margin:22px 0; }}
     .metric, .section, .chart-card {{ background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px; }}
     .metric {{ border-top:5px solid var(--blue); min-height:148px; }}
     .metric.green {{ border-top-color:var(--green); }}
@@ -385,7 +431,7 @@ def main():
 <body>
 <main>
   <h1>WordPress support load</h1>
-  <p class="lede">A compact view of current WordPress.org support queues already stored in SQLite: sampled topics, unresolved and resolved counts, last-activity age buckets, forum-level open load, and major-plugin support counts.</p>
+  <p class="lede">A compact view of WordPress.org support data already stored in SQLite: current sampled topics, archived quarterly support-view estimates, unresolved and resolved counts, last-activity age buckets, forum-level open load, and major-plugin support counts.</p>
 {nav_html()}
 
   <section class="metrics" aria-label="Support summary">
@@ -401,12 +447,13 @@ def main():
     </article>
     <article class="section">
       <h2>How to read this</h2>
-      <p>This page uses a current WordPress.org support snapshot. It is useful for where support load sits now, but it is not a full historical forum export. The last-activity range in the sample is {esc(oldest)} to {esc(latest_activity)}.</p>
+      <p>This page uses a current WordPress.org support snapshot plus Wayback first-page snapshots. It is useful for where support load sits now and for rough archive direction, but it is not a full historical forum export. The last-activity range in the current sample is {esc(oldest)} to {esc(latest_activity)}.</p>
       <p class="callout">{esc(gap_note)}</p>
     </article>
   </section>
 
   <section class="charts">
+{archive_chart}
 {month_chart}
     <article class="chart-card">
       <h2>Open load by age</h2>
@@ -431,7 +478,7 @@ def main():
     </article>
   </section>
 
-  <p class="footer-note">Rows come from <code>support_forum_snapshot_summary</code>, <code>support_forum_activity_monthly</code>, <code>support_forum_age_buckets</code>, <code>support_forum_unanswered_by_forum</code>, <code>support_forum_topics</code>, and <code>major_plugin_install_snapshot</code>. Integrity check: <code>{esc(integrity)}</code>.</p>
+  <p class="footer-note">Rows come from <code>support_forum_snapshot_summary</code>, <code>support_forum_archive_snapshots</code>, <code>support_forum_activity_monthly</code>, <code>support_forum_age_buckets</code>, <code>support_forum_unanswered_by_forum</code>, <code>support_forum_topics</code>, and <code>major_plugin_install_snapshot</code>. Integrity check: <code>{esc(integrity)}</code>.</p>
 </main>
 </body>
 </html>

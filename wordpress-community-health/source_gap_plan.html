@@ -164,7 +164,7 @@
 
     <section class="metrics" aria-label="Source gap summary">
       <div class="metric"><h3>Partial signals</h3><strong>5</strong><span>Stored in <code>source_gaps</code>.</span></div>
-      <div class="metric"><h3>Database tables</h3><strong>101</strong><span>Existing report tables remain intact.</span></div>
+      <div class="metric"><h3>Database tables</h3><strong>102</strong><span>Existing report tables remain intact.</span></div>
       <div class="metric"><h3>Integrity</h3><strong>ok</strong><span>SQLite integrity check.</span></div>
       <div class="metric"><h3>Next mode</h3><strong>1 at a time</strong><span>Import, validate, then publish each source family.</span></div>
     </section>
@@ -201,7 +201,7 @@
           <span>4</span>
           <div>
             <strong>Support history</strong>
-            <p>Quarterly topics opened, resolved, unresolved, unanswered, and response-age rows.</p>
+            <p>Quarterly topics opened, resolved, unresolved, unanswered, reply counts, and response-age rows from a topic-level source.</p>
           </div>
         </div>
 
@@ -323,7 +323,7 @@
         <div class="gap-grid">
           <div>
             <h3>Current coverage</h3>
-            <p>Current report includes public support queue snapshots, resolved/unresolved/no-reply summaries, last-activity buckets, forum-level unanswered summaries, a support-load companion view, and major-plugin support-thread totals; not a full long-term topic/reply history.</p>
+            <p>Current report includes public support queue snapshots, quarterly Internet Archive support-view estimates from 2018 onward, resolved/unresolved/no-reply summaries, last-activity buckets, forum-level unanswered summaries, a support-load companion view, and major-plugin support-thread totals; not a full long-term topic/reply history.</p>
           </div>
           <div>
             <h3>Best next source</h3>
@@ -331,16 +331,16 @@
           </div>
           <div>
             <h3>Collection step</h3>
-            <p>Add a WordPress.org support topic/reply historical export or recurring snapshots of all, unresolved, resolved, and no-reply views.</p>
+            <p>Keep the Wayback support-view estimate refreshed, then add a fuller WordPress.org topic/reply export if one is available.</p>
           </div>
           <div>
             <h3>Target tables</h3>
-            <p class="targets"><code>support_forum_history_quarterly</code></p>
+            <p class="targets"><code>support_forum_archive_snapshots</code> <code>support_forum_history_quarterly</code></p>
           </div>
         </div>
         <div class="success">
           <b>Done when</b>
-          <span>Quarterly topics opened, resolved, unresolved, unanswered, and response-age rows.</span>
+          <span>Quarterly topics opened, resolved, unresolved, unanswered, reply counts, and response-age rows from a topic-level source.</span>
         </div>
       </article>
 

@@ -51,6 +51,7 @@ SOURCE_FILES = {
     "support_forum_topics": ROOT / "support_forum_topics.jsonl",
     "support_forum_view_snapshots": ROOT / "support_forum_view_snapshots.csv",
     "support_forum_forum_summary": ROOT / "support_forum_forum_summary.csv",
+    "support_forum_archive_snapshots": ROOT / "support_forum_archive_snapshots.csv",
     "builtwith_new_site_snapshot": ROOT / "builtwith_new_site_snapshot.csv",
 }
 
@@ -5293,7 +5294,7 @@ def build_database(data, fetched):
                 "support_forum_history",
                 "partial",
                 "Historical WordPress.org support forum topic/reply export",
-                "Current report includes public support queue snapshots, resolved/unresolved/no-reply summaries, last-activity buckets, forum-level unanswered summaries, a support-load companion view, and major-plugin support-thread totals; not a full long-term topic/reply history.",
+                "Current report includes public support queue snapshots, quarterly Internet Archive support-view estimates from 2018 onward, resolved/unresolved/no-reply summaries, last-activity buckets, forum-level unanswered summaries, a support-load companion view, and major-plugin support-thread totals; not a full long-term topic/reply history.",
             )
         )
     else:
@@ -6749,7 +6750,7 @@ def source_status_rows(fetched):
         (
             "Support forums",
             "partial" if SOURCE_FILES["support_forum_topics"].exists() else "missing",
-            "Current WordPress.org support queue snapshot with forum, status, last-activity, and age buckets; historical trend still needs a fuller export",
+            "Current WordPress.org support queue snapshot plus quarterly Wayback support-view estimates from 2018 onward; full topic/reply history still needs a fuller export",
         ),
         (
             "Support unanswered summary",
@@ -7037,6 +7038,7 @@ def build_report(data, fetched):
     support_topics = data["support_forum_topics"]
     support_views = data["support_forum_view_snapshots"]
     support_forums = data["support_forum_forum_summary"]
+    support_archive_snapshots = data.get("support_forum_archive_snapshots", [])
     support_monthly = fetched.get("support_forum_activity_monthly", [])
     support_age_buckets = fetched.get("support_forum_age_buckets", [])
     support_snapshot_summary = fetched.get("support_forum_snapshot_summary", [])
@@ -7289,6 +7291,47 @@ def build_report(data, fetched):
     support_month_unresolved_points = point_series(support_monthly, "month", "unresolved")
     support_month_resolved_points = point_series(support_monthly, "month", "resolved")
     support_month_no_reply_points = point_series(support_monthly, "month", "no_replies")
+    support_archive_positive = [
+        row
+        for row in support_archive_snapshots
+        if num(row.get("estimated_total_topics")) > 0
+        and row.get("view") in {"all_topics", "resolved", "unresolved", "no_replies"}
+        and not (row.get("view") == "all_topics" and num(row.get("estimated_total_topics")) > 100000)
+    ]
+    support_archive_quarter_count = len({row.get("quarter") for row in support_archive_positive if row.get("quarter")})
+    support_archive_view_count = len({row.get("view") for row in support_archive_positive if row.get("view")})
+    support_archive_series = [
+        {
+            "label": "Unresolved archive estimate",
+            "color": COLORS["orange"],
+            "points": point_series(
+                [row for row in support_archive_positive if row.get("view") == "unresolved"],
+                "quarter",
+                "estimated_total_topics",
+                "2018-01-01",
+            ),
+        },
+        {
+            "label": "Resolved archive estimate",
+            "color": COLORS["green"],
+            "points": point_series(
+                [row for row in support_archive_positive if row.get("view") == "resolved"],
+                "quarter",
+                "estimated_total_topics",
+                "2018-01-01",
+            ),
+        },
+        {
+            "label": "No-reply archive estimate",
+            "color": COLORS["red"],
+            "points": point_series(
+                [row for row in support_archive_positive if row.get("view") == "no_replies"],
+                "quarter",
+                "estimated_total_topics",
+                "2018-01-01",
+            ),
+        },
+    ]
     support_age_ordered = sorted(support_age_buckets, key=lambda row: num(row.get("bucket_order")))
     support_age_max = max([num(row.get("topics")) for row in support_age_ordered] or [1])
     support_unresolved_age_max = max([num(row.get("unresolved")) for row in support_age_ordered] or [1])
@@ -8784,7 +8827,7 @@ p {{ margin:0 0 12px; }}
     <div class="grid-2">
       <div class="card">
         <h3>Support forum queue snapshot</h3>
-        <p>Current public WordPress.org support views. This is a live queue snapshot, not a historical forum trend.</p>
+        <p>Current public WordPress.org support views plus a compact quarterly archive estimate for historical context.</p>
         <div class="stats">
           {stat_card("Queue topics", compact(support_topic_count), f"{support_oldest[:10]} to {support_latest[:10]}", "soft")}
           {stat_card("Unresolved", compact(support_unresolved_count), "current unresolved view", "watch")}
@@ -8793,6 +8836,7 @@ p {{ margin:0 0 12px; }}
           {stat_card("Resolved share", pct(support_resolved_share), "of deduplicated queue topics", "good")}
           {stat_card("No-reply share", pct(support_no_reply_share), "of deduplicated queue topics", "watch")}
           {stat_card("Views covered", compact(support_view_count), "all, unresolved, resolved, no replies", "soft")}
+          {stat_card("Archive quarters", compact(support_archive_quarter_count), f"{support_archive_view_count} support views", "soft" if support_archive_quarter_count else "watch")}
         </div>
         {horizontal_count_metric("Recent topics view", support_recent_count, support_queue_max, COLORS["core"], "")}
         {horizontal_count_metric("Unresolved queue", support_unresolved_count, support_queue_max, COLORS["orange"], "")}
@@ -8806,12 +8850,15 @@ p {{ margin:0 0 12px; }}
       </div>
     </div>
     <div class="grid-2">
+      {svg_line_chart("Archived support queue estimate", "Wayback support-view estimates; zero parses excluded.", support_archive_series)}
       {svg_line_chart("Support queue last-activity month", "Current public support queue snapshot, grouped by each topic's last activity month.", [
           {"label": "All queue topics", "color": COLORS["core"], "points": support_month_topic_points},
           {"label": "Unresolved", "color": COLORS["orange"], "points": support_month_unresolved_points},
           {"label": "Resolved", "color": COLORS["green"], "points": support_month_resolved_points},
           {"label": "No replies", "color": COLORS["red"], "points": support_month_no_reply_points},
       ])}
+    </div>
+    <div class="grid-2">
       <div class="card">
         <h3>Unresolved support age</h3>
         <p>How old the unresolved queue is, measured from each topic's last activity date at collection time.</p>
@@ -9469,9 +9516,9 @@ p {{ margin:0 0 12px; }}
         <div><p>Useful for public/developer attention, but not a replacement for Google Trends or a broad hiring-platform export.</p></div>
       </div>
       <div class="goal-row watch">
-        <div><strong>Support load</strong><p>Current WordPress.org support queues and major-plugin support counts.</p></div>
-        <div><span class="goal-status">Snapshot</span></div>
-        <div><p>Use for where support load sits now. A full historical forum export would make trend claims stronger.</p></div>
+        <div><strong>Support load</strong><p>Current WordPress.org support queues, archive estimates, and major-plugin support counts.</p></div>
+        <div><span class="goal-status">Current plus archive</span></div>
+        <div><p>Use for current queue shape and rough historical support-view direction. A full forum export would make topic-level trend claims stronger.</p></div>
       </div>
     </div>
   </section>

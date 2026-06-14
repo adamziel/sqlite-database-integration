@@ -17,6 +17,7 @@ HTML_ARTIFACTS = {
     "final_report.html": [
         "Decision Questions",
         "Goal Coverage Map",
+        "Archived support queue estimate",
         "Source Coverage",
         "Decision Readout",
     ],
@@ -80,6 +81,7 @@ HTML_ARTIFACTS = {
     ],
     "support_load.html": [
         "WordPress support load",
+        "Archived support queue estimate",
         "Support queue by last activity month",
         "Major-plugin support load",
     ],

@@ -94,7 +94,7 @@ def render():
             "HTML progress summary",
             "Summarize what has been done so far.",
             "Covered",
-            '<a href="progress_summary.html">progress_summary.html</a> summarizes the work, links current artifacts, and includes the latest Decision Questions update.',
+            '<a href="progress_summary.html">progress_summary.html</a> summarizes the work and links the current report, companion views, source inventory, and refresh docs.',
         ),
         audit_row(
             "Visual decision report",
@@ -303,6 +303,7 @@ HTML_TEMPLATE = """<!doctype html>
         <a href="progress_summary.html">Progress summary</a>
         <a href="project_load.html">Project load</a>
         <a href="market_position.html">Market position</a>
+        <a href="developer_interest.html">Developer interest</a>
         <a href="contributor_depth.html">Contributor depth</a>
         <a href="ecosystem_activity.html">Ecosystem activity</a>
         <a href="data_inventory.html">Data inventory</a>

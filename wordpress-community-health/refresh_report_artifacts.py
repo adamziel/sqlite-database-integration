@@ -49,6 +49,11 @@ HTML_ARTIFACTS = {
         "Decision lanes",
         "Current new-site proxy",
     ],
+    "developer_interest.html": [
+        "WordPress developer interest",
+        "Developer-help questions",
+        "GitHub code-review activity",
+    ],
     "project_load.html": [
         "WordPress project load",
         "Open backlog age",
@@ -235,6 +240,7 @@ def main():
         run_step([sys.executable, "make_contributor_depth_report.py"])
         run_step([sys.executable, "make_ecosystem_activity_report.py"])
         run_step([sys.executable, "make_market_position_report.py"])
+        run_step([sys.executable, "make_developer_interest_report.py"])
         run_step([sys.executable, "make_source_gap_plan.py"])
         run_step([sys.executable, "make_data_inventory.py"])
 

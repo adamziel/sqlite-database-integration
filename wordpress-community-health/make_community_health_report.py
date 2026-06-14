@@ -57,6 +57,7 @@ SOURCE_FILES = {
 SKIP_NETWORK_DB_FALLBACK_TABLES = [
     "market_share",
     "http_archive_adoption_monthly",
+    "http_archive_rank_adoption_snapshot",
     "wikimedia_pageviews_monthly",
     "wikimedia_pageviews_quarterly",
     "hn_hiring_wordpress_quarterly",
@@ -107,6 +108,13 @@ HTTP_ARCHIVE_ADOPTION_TECHNOLOGIES = [
     {"technology": "Wix", "label": "Wix", "color": "#f59e0b"},
     {"technology": "Squarespace", "label": "Squarespace", "color": "#64748b"},
     {"technology": "Webflow", "label": "Webflow", "color": "#0891b2"},
+]
+HTTP_ARCHIVE_RANKS = [
+    {"rank": "Top 1k", "rank_order": 1},
+    {"rank": "Top 10k", "rank_order": 2},
+    {"rank": "Top 100k", "rank_order": 3},
+    {"rank": "Top 1M", "rank_order": 4},
+    {"rank": "Top 10M", "rank_order": 5},
 ]
 BUILTWITH_TECHNOLOGIES = [
     {"technology": "Shopify", "category": "eCommerce", "source_url": "https://trends.builtwith.com/ecommerce/Shopify"},
@@ -756,6 +764,95 @@ def fetch_http_archive_adoption_monthly(skip_network=False):
     rows.sort(key=lambda row: (row["date"], row["technology"]))
     if rows:
         write_cached_http_archive_adoption(rows, source_url)
+    return rows or fallback
+
+
+def http_archive_rank_cache_path():
+    return CACHE / "http-archive-rank-adoption-snapshot.json"
+
+
+def read_cached_http_archive_rank_adoption():
+    path = http_archive_rank_cache_path()
+    if path.exists():
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            payload = {}
+        rows = payload.get("rows") if isinstance(payload, dict) else payload
+        if isinstance(rows, list):
+            return rows
+    return read_existing_table("http_archive_rank_adoption_snapshot")
+
+
+def write_cached_http_archive_rank_adoption(rows):
+    CACHE.mkdir(parents=True, exist_ok=True)
+    http_archive_rank_cache_path().write_text(
+        json.dumps(
+            {
+                "collected_at": dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z"),
+                "source_url": HTTP_ARCHIVE_TECH_REPORT_URL,
+                "rows": rows,
+            },
+            indent=2,
+            sort_keys=True,
+        ),
+        encoding="utf-8",
+    )
+
+
+def http_archive_rank_adoption_url(rank):
+    technologies = ",".join(row["technology"] for row in HTTP_ARCHIVE_ADOPTION_TECHNOLOGIES)
+    params = {
+        "technology": technologies,
+        "geo": "ALL",
+        "rank": rank,
+        "start": "latest",
+    }
+    return f"{HTTP_ARCHIVE_API_BASE}/adoption?{urllib.parse.urlencode(params)}"
+
+
+def fetch_http_archive_rank_adoption_snapshot(skip_network=False):
+    fallback = read_cached_http_archive_rank_adoption()
+    if skip_network and fallback:
+        return fallback
+    if skip_network:
+        return []
+    tech_lookup = {row["technology"]: row for row in HTTP_ARCHIVE_ADOPTION_TECHNOLOGIES}
+    rows = []
+    for rank_config in HTTP_ARCHIVE_RANKS:
+        rank = rank_config["rank"]
+        source_url = http_archive_rank_adoption_url(rank)
+        try:
+            payload, _headers = fetch_with_retries(fetch_json, source_url, f"HTTP Archive adoption {rank}", attempts=3, delay=1.5)
+        except Exception as exc:
+            eprint(f"HTTP Archive rank adoption fetch failed for {rank}: {exc}")
+            continue
+        for item in payload if isinstance(payload, list) else []:
+            technology = str(item.get("technology") or "")
+            adoption = item.get("adoption") or {}
+            date_value = str(item.get("date") or "")
+            if technology not in tech_lookup or not parse_iso(date_value):
+                continue
+            desktop = num(adoption.get("desktop"))
+            mobile = num(adoption.get("mobile"))
+            rows.append(
+                {
+                    "date": date_value,
+                    "rank": rank,
+                    "rank_order": rank_config["rank_order"],
+                    "technology": technology,
+                    "desktop_origins": desktop,
+                    "mobile_origins": mobile,
+                    "total_origins": desktop + mobile,
+                    "geo": "ALL",
+                    "source_url": source_url,
+                    "source": "HTTP Archive Technology Report API adoption endpoint",
+                }
+            )
+        time.sleep(0.2)
+    rows.sort(key=lambda row: (num(row["rank_order"]), row["technology"]))
+    if rows:
+        write_cached_http_archive_rank_adoption(rows)
     return rows or fallback
 
 
@@ -3375,7 +3472,7 @@ def build_database(data, fetched):
                 "new_site_share_history",
                 "partial",
                 "BuiltWith historical trends or HTTP Archive cohort queries",
-                "Current report includes BuiltWith current Net New Pipeline plus HTTP Archive monthly detected-origin adoption; not a multi-year newly created site trend.",
+                "Current report includes BuiltWith current Net New Pipeline plus HTTP Archive monthly and rank-tier detected-origin adoption; not a multi-year newly created site trend.",
             )
         )
     else:
@@ -4438,7 +4535,7 @@ def source_status_rows(fetched):
         ("Open backlog age buckets", "covered" if fetched.get("open_backlog_age_summary") else "missing", "Current open Core/Gutenberg backlog by last-activity age bucket"),
         ("W3Techs adoption", "covered" if fetched.get("market_share") else "missing", "All-site usage and CMS market-share yearly trends"),
         ("HTTP Archive/Web Almanac", "covered", "2025 CMS adoption snapshot and high-traffic context"),
-        ("HTTP Archive Technology Report API", "covered" if fetched.get("http_archive_adoption_monthly") else "missing", "Monthly detected-origin adoption for WordPress, Shopify, Wix, Squarespace, and Webflow"),
+        ("HTTP Archive Technology Report API", "covered" if fetched.get("http_archive_adoption_monthly") else "missing", "Monthly and rank-tier detected-origin adoption for WordPress, Shopify, Wix, Squarespace, and Webflow"),
         ("BuiltWith ecommerce history", "covered" if fetched.get("builtwith_technology_history") else "missing", "Shopify and WooCommerce live-site counts by traffic tier"),
         ("BuiltWith traffic tiers", "covered" if fetched.get("builtwith_tier_share_snapshot") else "missing", "Current WordPress share by traffic tier across tracked CMS/builder technologies"),
         ("Stack Overflow tag volume", "covered" if fetched.get("stack_overflow_tag_quarterly") else "missing", "Quarterly public developer-attention proxy from Stack Exchange API tag totals"),
@@ -4469,7 +4566,7 @@ def source_status_rows(fetched):
         (
             "Newly detected sites",
             "partial" if SOURCE_FILES["builtwith_new_site_snapshot"].exists() else "missing",
-            "Current BuiltWith Net New Pipeline snapshot plus HTTP Archive monthly detected-origin adoption; multi-year new-site creation still needs paid BuiltWith or cohort queries",
+            "Current BuiltWith Net New Pipeline snapshot plus HTTP Archive monthly and rank-tier detected-origin adoption; multi-year new-site creation still needs paid BuiltWith or cohort queries",
         ),
         (
             "Support forums",
@@ -4499,6 +4596,7 @@ def build_report(data, fetched):
     classifications = data["classification_trend"]
     market_rows = fetched.get("market_share", [])
     http_archive_adoption = fetched.get("http_archive_adoption_monthly", [])
+    http_archive_rank_adoption = fetched.get("http_archive_rank_adoption_snapshot", [])
     stack_overflow_tags = fetched.get("stack_overflow_tag_quarterly", [])
     wikimedia_pageviews_q = fetched.get("wikimedia_pageviews_quarterly", [])
     hn_hiring_q = fetched.get("hn_hiring_wordpress_quarterly", [])
@@ -4953,6 +5051,40 @@ def build_report(data, fetched):
         if num(http_next_peer.get("mobile_origins"))
         else 0
     )
+    http_rank_summary = []
+    for rank_config in HTTP_ARCHIVE_RANKS:
+        rank_rows = [
+            row for row in http_archive_rank_adoption
+            if row.get("rank") == rank_config["rank"]
+        ]
+        if not rank_rows:
+            continue
+        tracked_mobile = sum(num(row.get("mobile_origins")) for row in rank_rows)
+        wp_rank_row = next((row for row in rank_rows if row.get("technology") == "WordPress"), {})
+        peer_rank_row = max(
+            [row for row in rank_rows if row.get("technology") != "WordPress"],
+            key=lambda row: num(row.get("mobile_origins")),
+            default={},
+        )
+        wp_mobile = num(wp_rank_row.get("mobile_origins"))
+        peer_mobile = num(peer_rank_row.get("mobile_origins"))
+        http_rank_summary.append(
+            {
+                "rank": rank_config["rank"],
+                "rank_order": rank_config["rank_order"],
+                "date": wp_rank_row.get("date") or max([row.get("date", "") for row in rank_rows] or [""]),
+                "wp_mobile_origins": wp_mobile,
+                "tracked_mobile_origins": tracked_mobile,
+                "wp_tracked_share_pct": wp_mobile / tracked_mobile * 100 if tracked_mobile else 0,
+                "next_peer": peer_rank_row.get("technology", ""),
+                "next_peer_mobile_origins": peer_mobile,
+                "wp_peer_ratio": wp_mobile / peer_mobile if peer_mobile else 0,
+            }
+        )
+    http_rank_summary = sorted(http_rank_summary, key=lambda row: num(row.get("rank_order")))
+    http_rank_latest_date = max([row.get("date", "") for row in http_rank_summary if row.get("date")] or [""])
+    http_rank_max_wp = max([num(row.get("wp_mobile_origins")) for row in http_rank_summary] or [1])
+    http_rank_top1m = next((row for row in http_rank_summary if row.get("rank") == "Top 1M"), {})
     stack_overflow_tag_series = [
         {
             "label": tag_config["label"],
@@ -5818,6 +5950,24 @@ p {{ margin:0 0 12px; }}
       </div>
     </div>
     <div class="grid-2">
+      <div class="card">
+        <h3>HTTP Archive top-site tiers</h3>
+        <p>Latest mobile-crawl origin counts by HTTP Archive rank tier. The percentages are WordPress share among the five tracked technologies, not share of the entire tier.</p>
+        <div class="stats">
+          {stat_card("Snapshot", http_rank_latest_date or "not fetched", "HTTP Archive API", "soft")}
+          {stat_card("Top 1M WP origins", compact(num(http_rank_top1m.get("wp_mobile_origins"))), "mobile crawl", "good" if http_rank_top1m else "watch")}
+          {stat_card("Top 1M tracked share", pct(float(http_rank_top1m.get("wp_tracked_share_pct") or 0)), "among tracked technologies", "soft" if http_rank_top1m else "watch")}
+        </div>
+        {''.join(horizontal_count_metric(f"{row.get('rank')} WordPress", num(row.get("wp_mobile_origins")), http_rank_max_wp, COLORS["wordpress"], " origins") for row in http_rank_summary)}
+      </div>
+      <div class="card">
+        <h3>WordPress vs peers by tier</h3>
+        <p>Peer comparison within the tracked set: WordPress, Shopify, Wix, Squarespace, and Webflow. This shows whether WordPress remains ahead in higher-traffic tiers.</p>
+        {''.join(horizontal_metric(f"{row.get('rank')} tracked share", float(row.get("wp_tracked_share_pct") or 0), 100, COLORS["green"] if float(row.get("wp_tracked_share_pct") or 0) >= 70 else COLORS["core"]) for row in http_rank_summary)}
+        {''.join(horizontal_count_metric(f"{row.get('rank')} next peer: {row.get('next_peer')}", num(row.get("next_peer_mobile_origins")), max(1, num(row.get("wp_mobile_origins"))), COLORS["neutral"], " origins") for row in http_rank_summary[:4])}
+      </div>
+    </div>
+    <div class="grid-2">
       {svg_line_chart("Stack Overflow developer attention", "Quarterly Stack Overflow questions by tag from the Stack Exchange API. This is a developer-help signal, not general web search demand.", stack_overflow_tag_series)}
       <div class="card">
         <h3>Developer-interest readout</h3>
@@ -6125,6 +6275,7 @@ def main():
     fetched["market_share"].extend(parse_w3techs_history(W3TECHS_USAGE_URL, "all_sites_usage", args.skip_network))
     fetched["market_share"].extend(parse_w3techs_history(W3TECHS_MARKET_SHARE_URL, "cms_market_share", args.skip_network))
     fetched["http_archive_adoption_monthly"] = fetch_http_archive_adoption_monthly(args.skip_network)
+    fetched["http_archive_rank_adoption_snapshot"] = fetch_http_archive_rank_adoption_snapshot(args.skip_network)
     fetched["builtwith_technology_snapshots"], fetched["builtwith_technology_history"] = fetch_builtwith_technology_signals(
         args.skip_network
     )

@@ -166,6 +166,7 @@ def main():
         support = rows(conn, "SELECT * FROM support_forum_snapshot_summary")
         events = rows(conn, "SELECT * FROM wp_event_snapshots")
         plugin_maintenance = rows(conn, "SELECT * FROM plugin_maintenance_summary")
+        theme_sample = rows(conn, "SELECT * FROM theme_directory_activity_sample")
     finally:
         conn.close()
 
@@ -188,6 +189,10 @@ def main():
     directory_by_metric = {row.get("metric"): row for row in directory}
     plugin_count = directory_by_metric.get("plugin_directory_plugins", {}).get("value", 0)
     theme_count = directory_by_metric.get("theme_directory_themes", {}).get("value", 0)
+    theme_sample_size = len(theme_sample)
+    theme_commercial = sum(1 for row in theme_sample if str(row.get("is_commercial", "")).lower() == "true")
+    theme_community = sum(1 for row in theme_sample if str(row.get("is_community", "")).lower() == "true")
+    top_theme = max(theme_sample, key=lambda row: num(row.get("num_ratings")), default={})
 
     make_comment_points = [
         (row.get("quarter", "")[:4] + " Q" + str((int(row.get("quarter", "")[5:7] or 1) - 1) // 3 + 1), row.get("comments"))
@@ -211,7 +216,8 @@ def main():
             metric_card("Translation locales", compact(latest_translation.get("locale_count")), f"{compact(latest_translation.get('locale_contributor_profile_sum'))} contributor profiles", "blue"),
             metric_card("Five for the Future hours", compact(latest_fttf.get("pledged_hours_per_week")), f"{compact(latest_fttf.get('pledges_fetched'))} pledges fetched", "violet"),
             metric_card("Support topics sampled", compact(latest_support.get("topics")), f"{pct(latest_support.get('resolved_share_pct'))} resolved in current queue", "amber"),
-            metric_card("Plugin directory", compact(plugin_count), f"{compact(theme_count)} themes also listed", "green"),
+            metric_card("Plugin directory", compact(plugin_count), f"{compact(latest_directory_activity.get('plugins_added_30d'))} plugins added in 30 days", "green"),
+            metric_card("Theme directory", compact(theme_count), f"{compact(theme_sample_size)} sampled themes, {compact(theme_commercial)} commercial flags", "violet"),
         ]
     )
 
@@ -226,7 +232,8 @@ def main():
             signal_row("Pledged contribution", "Current Five for the Future public pledge listing", f"{compact(latest_fttf.get('pledged_hours_per_week'))} hrs/wk", "violet"),
             signal_row("Support queue", f"{compact(latest_support.get('participants'))} participants in current support snapshot", f"{pct(latest_support.get('unresolved_share_pct'))} unresolved", "amber"),
             signal_row("Plugin maintenance", f"Popular-plugin sample median update age is {num(latest_plugin_maintenance.get('median_days_since_update')):.0f} days", f"{compact(latest_plugin_maintenance.get('stale_2y_count'))} stale 2y", "green"),
-            signal_row("Directory activity", f"{compact(latest_directory_activity.get('plugins_added_30d'))} plugins added and {compact(latest_directory_activity.get('plugins_updated_30d'))} updated in 30 days", f"{compact(plugin_count)} plugins", "green"),
+            signal_row("Plugin directory activity", f"{compact(latest_directory_activity.get('plugins_added_30d'))} plugins added and {compact(latest_directory_activity.get('plugins_updated_30d'))} updated in 30 days", f"{compact(plugin_count)} plugins", "green"),
+            signal_row("Theme directory activity", f"{compact(theme_sample_size)} sampled themes across new, updated, and popular views; top rated-sample theme is {top_theme.get('name', 'n/a')}", f"{compact(theme_count)} themes", "violet"),
         ]
     )
 
@@ -345,7 +352,7 @@ def main():
         <div><strong>Some signals are snapshots.</strong><span>Events, support queues, plugin freshness, translation, and pledge counts are current-state views, while WordCamp, Make/Core, and release rows have historical shape.</span></div>
         <div><strong>Use this with tracker data.</strong><span>Fewer first-time reporters does not mean the whole ecosystem is inactive; it means tracker participation is softer than before.</span></div>
       </div>
-      <p class="footer-note">Rows come from existing SQLite tables including <code>wordcamp_yearly</code>, <code>make_core_comment_quarterly</code>, <code>make_core_dev_note_quarterly</code>, <code>core_release_credits</code>, <code>translation_snapshots</code>, <code>fttf_snapshots</code>, <code>support_forum_snapshot_summary</code>, and <code>directory_activity_snapshots</code>. Integrity check: <code>{esc(integrity)}</code>. Latest WordCamp row in the database is {esc(latest_wc_any.get("label", "n/a"))}; current and future years are partial.</p>
+      <p class="footer-note">Rows come from existing SQLite tables including <code>wordcamp_yearly</code>, <code>make_core_comment_quarterly</code>, <code>make_core_dev_note_quarterly</code>, <code>core_release_credits</code>, <code>translation_snapshots</code>, <code>fttf_snapshots</code>, <code>support_forum_snapshot_summary</code>, <code>directory_activity_snapshots</code>, and <code>theme_directory_activity_sample</code>. Integrity check: <code>{esc(integrity)}</code>. Latest WordCamp row in the database is {esc(latest_wc_any.get("label", "n/a"))}; current and future years are partial. Theme sample flags include {compact(theme_commercial)} commercial and {compact(theme_community)} community themes.</p>
     </section>
   </main>
 </body>

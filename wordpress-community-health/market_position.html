@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WordPress Market Position</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink:#172033;
+      --muted:#637083;
+      --line:#d9e1ea;
+      --paper:#f6f8fb;
+      --panel:#fff;
+      --blue:#2563eb;
+      --green:#159957;
+      --amber:#b7791f;
+      --violet:#7c3aed;
+    }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    main { max-width:1180px; margin:0 auto; padding:36px 22px 48px; }
+    h1 { margin:0 0 8px; font-size:clamp(32px,4vw,52px); line-height:1.05; letter-spacing:0; }
+    h2 { margin:0 0 12px; font-size:23px; line-height:1.15; letter-spacing:0; }
+    h3 { margin:0 0 8px; font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); }
+    p { margin:0; }
+    a { color:var(--blue); }
+    code { font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:13px; overflow-wrap:anywhere; }
+    .lede { max-width:920px; color:var(--muted); font-size:18px; margin-bottom:18px; }
+    .nav { display:flex; flex-wrap:wrap; gap:8px; margin:18px 0 22px; }
+    .nav a { border:1px solid var(--line); border-radius:999px; padding:7px 11px; background:#fbfdff; color:var(--muted); font-size:13px; text-decoration:none; }
+    .metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; margin:22px 0; }
+    .metric, .section, .signal-panel {
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:8px;
+      box-shadow:0 1px 2px rgba(15,23,42,.04);
+    }
+    .metric { padding:16px; border-top:5px solid var(--blue); }
+    .metric.green { border-top-color:var(--green); }
+    .metric.amber { border-top-color:var(--amber); }
+    .metric.violet { border-top-color:var(--violet); }
+    .metric strong { display:block; font-size:31px; line-height:1; margin:5px 0 7px; }
+    .metric p, .note { color:var(--muted); font-size:14px; }
+    .grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:14px; align-items:start; }
+    .section, .signal-panel { padding:18px; }
+    .signals { display:grid; gap:9px; }
+    .signal-row { display:flex; justify-content:space-between; gap:14px; align-items:center; border-left:5px solid var(--blue); background:#fbfdff; border-radius:8px; padding:12px; }
+    .signal-row.green { border-left-color:var(--green); }
+    .signal-row.amber { border-left-color:var(--amber); }
+    .signal-row.violet { border-left-color:var(--violet); }
+    .signal-row strong, .signal-row span { display:block; }
+    .signal-row span { color:var(--muted); font-size:13px; }
+    .signal-row b { font-size:20px; white-space:nowrap; }
+    .charts { display:grid; gap:12px; }
+    .spark { width:100%; height:auto; display:block; background:#fbfdff; border:1px solid var(--line); border-radius:8px; padding:4px; }
+    .spark-title { font-size:16px; font-weight:750; fill:var(--ink); }
+    .spark-end { font-size:13px; font-weight:800; fill:var(--ink); }
+    .axis { font-size:11px; fill:var(--muted); }
+    .spark-grid { stroke:#e8eef5; stroke-width:1; }
+    .bar-stack { display:grid; gap:10px; margin-top:12px; }
+    .bar-label { display:flex; justify-content:space-between; gap:8px; font-size:13px; margin-bottom:4px; }
+    .bar-label span { color:var(--muted); }
+    .bar-label strong { white-space:nowrap; }
+    .bar { height:9px; border-radius:999px; background:#e8eef5; overflow:hidden; }
+    .bar span { display:block; height:100%; border-radius:inherit; }
+    .readout { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-top:14px; }
+    .readout div { border:1px solid var(--line); border-radius:8px; padding:12px; background:#fbfdff; }
+    .readout strong { display:block; margin-bottom:5px; }
+    .readout span { color:var(--muted); font-size:14px; }
+    .footer-note { margin-top:14px; background:#eef4ff; border:1px solid #cfe0ff; border-radius:8px; padding:14px 16px; color:#244067; }
+    @media (max-width:980px) {
+      .metrics { grid-template-columns:1fr 1fr; }
+      .grid, .readout { grid-template-columns:1fr; }
+    }
+    @media (max-width:640px) {
+      main { padding:24px 14px 36px; }
+      .metrics { grid-template-columns:1fr; }
+      .signal-row { display:block; }
+      .signal-row b { display:block; margin-top:5px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>WordPress market position</h1>
+    <p class="lede">A compact readout of whether WordPress is still widely chosen: installed share, current newly found-site proxy, traffic-tier presence, demand proxies, plugin reach, and enterprise signal.</p>
+    <nav class="nav">
+      <a href="index.html#market">Market Position</a>
+      <a href="index.html#decision-questions">Decision Questions</a>
+      <a href="ecosystem_activity.html">Ecosystem activity</a>
+      <a href="contributor_depth.html">Contributor depth</a>
+      <a href="progress_summary.html">Progress summary</a>
+      <a href="decision_brief.html">Decision brief</a>
+      <a href="goal_audit.html">Goal audit</a>
+      <a href="data_inventory.html">Data inventory</a>
+      <a href="source_gap_plan.html">Source gap plan</a>
+      <a href="refresh_runbook.html">Refresh runbook</a>
+    </nav>
+
+    <section class="metrics" aria-label="Market position summary">
+
+      <article class="metric blue">
+        <h3>All-site share</h3>
+        <strong>41.5%</strong>
+        <p>W3Techs, -2.1 pts since Jan 2025</p>
+      </article>
+      <article class="metric blue">
+        <h3>CMS share</h3>
+        <strong>59.3%</strong>
+        <p>W3Techs, -2.7 pts since Jan 2025</p>
+      </article>
+      <article class="metric green">
+        <h3>90-day new-site proxy</h3>
+        <strong>67.4%</strong>
+        <p>BuiltWith tracked pipeline, 2.4M WordPress sites</p>
+      </article>
+      <article class="metric green">
+        <h3>HTTP tracked share</h3>
+        <strong>78.9%</strong>
+        <p>-10.8 pts since 2020-01-01</p>
+      </article>
+      <article class="metric violet">
+        <h3>Top 1M tracked share</h3>
+        <strong>77.3%</strong>
+        <p>BuiltWith current traffic-tier snapshot</p>
+      </article>
+      <article class="metric violet">
+        <h3>Long-tail tracked share</h3>
+        <strong>60.6%</strong>
+        <p>BuiltWith current outside-Top-1M snapshot</p>
+      </article>
+      <article class="metric amber">
+        <h3>Major plugin installs</h3>
+        <strong>90.0M</strong>
+        <p>Fixed major-plugin WordPress.org API sample</p>
+      </article>
+      <article class="metric amber">
+        <h3>Enterprise cases</h3>
+        <strong>44</strong>
+        <p>Current WordPress VIP case-study snapshot</p>
+      </article>
+    </section>
+
+    <section class="grid">
+      <div class="signal-panel">
+        <h2>Decision lanes</h2>
+        <p class="note">These lanes separate measured installed share from current new-site and demand proxies.</p>
+        <div class="signals">
+        <div class="signal-row blue">
+          <div>
+            <strong>Installed share</strong>
+            <span>W3Techs has WordPress at 41.5% of all sites and 59.3% of CMS sites.</span>
+          </div>
+          <b>Still first</b>
+        </div>
+        <div class="signal-row amber">
+          <div>
+            <strong>Recent direction</strong>
+            <span>All-site share moved -2.1 pts and CMS share moved -2.7 pts since Jan 2025.</span>
+          </div>
+          <b>Softer</b>
+        </div>
+        <div class="signal-row green">
+          <div>
+            <strong>Current new-site proxy</strong>
+            <span>BuiltWith 90-day tracked pipeline: WordPress to Shopify ratio is 3.34x.</span>
+          </div>
+          <b>67.4%</b>
+        </div>
+        <div class="signal-row green">
+          <div>
+            <strong>Recurring crawl share</strong>
+            <span>HTTP Archive tracked share latest month; peer set is WordPress, Shopify, Wix, Squarespace, and Webflow.</span>
+          </div>
+          <b>78.9%</b>
+        </div>
+        <div class="signal-row violet">
+          <div>
+            <strong>Traffic tier</strong>
+            <span>BuiltWith current Top 1M and long-tail tracked shares bracket where WordPress appears across site sizes.</span>
+          </div>
+          <b>77.3% / 60.6%</b>
+        </div>
+        <div class="signal-row amber">
+          <div>
+            <strong>Attention and demand</strong>
+            <span>All available public/developer/hiring proxy summaries are lower than their baselines.</span>
+          </div>
+          <b>Lower</b>
+        </div></div>
+      </div>
+      <div class="section">
+        <h2>Installed-share trend</h2>
+        <div class="charts"><svg class="spark" viewBox="0 0 520 168" role="img" aria-label="W3Techs all-site share">
+<text x="44" y="20" class="spark-title">W3Techs all-site share</text>
+<line x1="44" x2="500" y1="134.0" y2="134.0" class="spark-grid" />
+<text x="36" y="138.0" class="axis" text-anchor="end">0.0%</text>
+<line x1="44" x2="500" y1="84.0" y2="84.0" class="spark-grid" />
+<text x="36" y="88.0" class="axis" text-anchor="end">24.0%</text>
+<line x1="44" x2="500" y1="34.0" y2="34.0" class="spark-grid" />
+<text x="36" y="38.0" class="axis" text-anchor="end">48.0%</text>
+<path d="M44.0,85.4 L82.0,80.6 L120.0,77.1 L158.0,73.1 L196.0,65.8 L234.0,60.2 L272.0,51.6 L310.0,43.9 L348.0,44.1 L386.0,44.1 L424.0,43.1 L462.0,44.3 L500.0,47.5" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="500.0" cy="47.5" r="4" fill="#2563eb" />
+<text x="44" y="158" class="axis">2015</text>
+<text x="500" y="158" class="axis" text-anchor="end">2026 now</text>
+<text x="500" y="21" class="spark-end" text-anchor="end">41.5%</text>
+</svg>
+<svg class="spark" viewBox="0 0 520 168" role="img" aria-label="W3Techs CMS share">
+<text x="44" y="20" class="spark-title">W3Techs CMS share</text>
+<line x1="44" x2="500" y1="134.0" y2="134.0" class="spark-grid" />
+<text x="36" y="138.0" class="axis" text-anchor="end">0.0%</text>
+<line x1="44" x2="500" y1="84.0" y2="84.0" class="spark-grid" />
+<text x="36" y="88.0" class="axis" text-anchor="end">35.9%</text>
+<line x1="44" x2="500" y1="34.0" y2="34.0" class="spark-grid" />
+<text x="36" y="38.0" class="axis" text-anchor="end">71.7%</text>
+<path d="M44.0,49.4 L82.0,52.0 L120.0,52.4 L158.0,50.3 L196.0,50.8 L234.0,47.4 L272.0,44.6 L310.0,43.1 L348.0,45.2 L386.0,46.3 L424.0,47.6 L462.0,50.1 L500.0,51.3" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="500.0" cy="51.3" r="4" fill="#2563eb" />
+<text x="44" y="158" class="axis">2015</text>
+<text x="500" y="158" class="axis" text-anchor="end">2026 now</text>
+<text x="500" y="21" class="spark-end" text-anchor="end">59.3%</text>
+</svg>
+<svg class="spark" viewBox="0 0 520 168" role="img" aria-label="HTTP Archive tracked share">
+<text x="44" y="20" class="spark-title">HTTP Archive tracked share</text>
+<line x1="44" x2="500" y1="134.0" y2="134.0" class="spark-grid" />
+<text x="36" y="138.0" class="axis" text-anchor="end">0.0%</text>
+<line x1="44" x2="500" y1="84.0" y2="84.0" class="spark-grid" />
+<text x="36" y="88.0" class="axis" text-anchor="end">45.8%</text>
+<line x1="44" x2="500" y1="34.0" y2="34.0" class="spark-grid" />
+<text x="36" y="38.0" class="axis" text-anchor="end">91.6%</text>
+<path d="M44.0,43.1 L57.0,43.4 L70.1,43.7 L83.1,43.6 L96.1,43.7 L109.1,44.3 L122.2,44.7 L135.2,44.4 L148.2,44.4 L161.3,44.5 L174.3,44.7 L187.3,44.8 L200.3,45.0 L213.4,45.2 L226.4,44.4 L239.4,45.4 L252.5,45.4 L265.5,46.0 L278.5,46.5 L291.5,46.1 L304.6,46.1 L317.6,46.2 L330.6,46.5 L343.7,46.5 L356.7,46.8 L369.7,47.1 L382.7,47.4 L395.8,47.0 L408.8,47.3 L421.8,47.9 L434.9,48.6 L447.9,48.1 L460.9,48.0 L473.9,48.2 L487.0,48.4 L500.0,48.5" fill="none" stroke="#159957" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="500.0" cy="48.5" r="4" fill="#159957" />
+<text x="44" y="158" class="axis">2023-06</text>
+<text x="500" y="158" class="axis" text-anchor="end">2026-05</text>
+<text x="500" y="21" class="spark-end" text-anchor="end">78.3%</text>
+</svg></div>
+      </div>
+    </section>
+
+    <section class="grid" style="margin-top:14px">
+      <div class="section">
+        <h2>Current new-site proxy</h2>
+        <p class="note">BuiltWith public Net New Pipeline counts for the last 90 days where available.</p>
+        <div class="bar-stack">
+        <div class="barline">
+          <div class="bar-label"><span>WordPress</span><strong>2.4M</strong></div>
+          <div class="bar"><span style="width:100.0%;background:#159957"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>Shopify</span><strong>726.1k</strong></div>
+          <div class="bar"><span style="width:30.0%;background:#172033"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>Wix</span><strong>403.9k</strong></div>
+          <div class="bar"><span style="width:16.7%;background:#172033"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>Webflow</span><strong>43.7k</strong></div>
+          <div class="bar"><span style="width:2.0%;background:#172033"></span></div>
+        </div></div>
+      </div>
+      <div class="section">
+        <h2>Traffic-tier presence</h2>
+        <p class="note">BuiltWith current tracked share among WordPress, Shopify, Wix, Squarespace, and Webflow.</p>
+        <div class="bar-stack">
+        <div class="barline">
+          <div class="bar-label"><span>Top 1k</span><strong>70.6%</strong></div>
+          <div class="bar"><span style="width:70.6%;background:#7c3aed"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>Top 10k</span><strong>77.7%</strong></div>
+          <div class="bar"><span style="width:77.7%;background:#7c3aed"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>Top 100k</span><strong>80.8%</strong></div>
+          <div class="bar"><span style="width:80.8%;background:#7c3aed"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>Top 1M</span><strong>77.3%</strong></div>
+          <div class="bar"><span style="width:77.3%;background:#7c3aed"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>Long tail</span><strong>60.6%</strong></div>
+          <div class="bar"><span style="width:60.6%;background:#7c3aed"></span></div>
+        </div></div>
+      </div>
+    </section>
+
+    <section class="grid" style="margin-top:14px">
+      <div class="section">
+        <h2>Attention and demand proxy direction</h2>
+        <p class="note">These are directional public proxies, not Google Trends or a broad labor-market export.</p>
+        <div class="signals">
+        <div class="signal-row amber">
+          <div>
+            <strong>HN WP/Woo hiring mention rate</strong>
+            <span>2025-Q3 to 2026-Q2 vs 2012-Q1 to 2023-Q4 (mentions per 100 comments)</span>
+          </div>
+          <b>-77.4%</b>
+        </div>
+        <div class="signal-row amber">
+          <div>
+            <strong>Stack Overflow WordPress questions</strong>
+            <span>2026-Q2 vs 2023-Q4 (questions per quarter)</span>
+          </div>
+          <b>-96.3%</b>
+        </div>
+        <div class="signal-row amber">
+          <div>
+            <strong>Wikipedia WordPress pageviews</strong>
+            <span>2026-Q2 vs 2023-Q4 (views per quarter)</span>
+          </div>
+          <b>-17.1%</b>
+        </div>
+        <div class="signal-row amber">
+          <div>
+            <strong>WordPress Jobs development listings</strong>
+            <span>2026-06-14 vs 2023-01-01 (open listings)</span>
+          </div>
+          <b>-50.0%</b>
+        </div>
+        <div class="signal-row amber">
+          <div>
+            <strong>WordPress Jobs open listings</strong>
+            <span>2026-06-14 vs 2023-01-01 (open listings)</span>
+          </div>
+          <b>-48.3%</b>
+        </div></div>
+      </div>
+      <div class="section">
+        <h2>How to read this</h2>
+        <div class="readout">
+          <div><strong>Still widely chosen.</strong><span>Installed-share evidence remains much stronger than any peer CMS or builder signal.</span></div>
+          <div><strong>Recent share is softer.</strong><span>W3Techs and HTTP Archive show WordPress still leading while its share is lower than recent baselines.</span></div>
+          <div><strong>New-site history is partial.</strong><span>BuiltWith and HTTP Archive are useful current proxies; the source gap plan covers the ideal cohort source.</span></div>
+        </div>
+        <p class="footer-note">Rows come from existing SQLite tables including <code>market_share</code>, <code>new_site_choice_summary</code>, <code>http_archive_tracked_share_monthly</code>, <code>builtwith_tier_share_snapshot</code>, <code>builtwith_new_site_snapshot</code>, and <code>attention_demand_summary</code>. Integrity check: <code>ok</code>.</p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

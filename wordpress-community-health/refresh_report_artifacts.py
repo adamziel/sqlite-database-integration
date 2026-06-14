@@ -44,6 +44,11 @@ HTML_ARTIFACTS = {
         "Activity lanes",
         "Make/Core discussion",
     ],
+    "market_position.html": [
+        "WordPress market position",
+        "Decision lanes",
+        "Current new-site proxy",
+    ],
     "decision_brief.html": [
         "Decision Questions",
         "WordPress is still the default CMS",
@@ -223,6 +228,7 @@ def main():
         run_step([sys.executable, "make_goal_audit.py"])
         run_step([sys.executable, "make_contributor_depth_report.py"])
         run_step([sys.executable, "make_ecosystem_activity_report.py"])
+        run_step([sys.executable, "make_market_position_report.py"])
         run_step([sys.executable, "make_source_gap_plan.py"])
         run_step([sys.executable, "make_data_inventory.py"])
 

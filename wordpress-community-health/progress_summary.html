@@ -90,7 +90,7 @@
 <body>
   <main>
     <h1>WordPress relevance report progress</h1>
-    <p class="lede">This is the working state as of June 14, 2026. The active direction is the WordPress Community & Adoption Health report, not the SQLite benchmark runner. The public report now opens with a decision scorecard and keeps data-source strength visible.</p>
+    <p class="lede">This is the working state as of June 14, 2026. The active direction is the WordPress Community & Adoption Health report, not the SQLite benchmark runner. The public report now opens with a decision scorecard, a Decision Questions checklist, and visible data-source strength.</p>
 
     <section class="grid cards">
       <div class="card">
@@ -107,8 +107,8 @@
       </div>
       <div class="card">
         <h3>Report</h3>
-        <div class="metric">3+ <small>views</small></div>
-        <p class="note">Participation, Project Load, Market Position, a relevance scorecard, a coverage map, and a decision readout are implemented.</p>
+        <div class="metric">7 <small>answers</small></div>
+        <p class="note">The report now answers the seven goal questions directly, then supports them with Participation, Project Load, Market Position, a scorecard, a coverage map, and a decision readout.</p>
         <div class="bar green"><span style="width:86%"></span></div>
       </div>
       <div class="card">
@@ -123,6 +123,10 @@
       <a class="linkcard green" href="index.html#scorecard">
         <strong>Relevance scorecard</strong>
         <span>Short decision view: still in a good place, with softer momentum.</span>
+      </a>
+      <a class="linkcard green" href="index.html#decision-questions">
+        <strong>Decision Questions</strong>
+        <span>Seven plain-English answers mapped to the exact questions from goal.md.</span>
       </a>
       <a class="linkcard" href="index.html#goal-map">
         <strong>Goal coverage map</strong>
@@ -185,7 +189,13 @@
           <div class="item">
             <div class="date">Readout</div>
             <div>
-              <p>Added top-level evidence lanes, seven plain-English decision answers, and a final evidence-strength strip so measured signals are separated from proxy-led signals.</p>
+              <p>Added top-level evidence lanes, the <a href="index.html#decision-questions">Decision Questions</a> checklist, and a final evidence-strength strip so measured signals are separated from proxy-led signals.</p>
+            </div>
+          </div>
+          <div class="item">
+            <div class="date">Latest</div>
+            <div>
+              <p>Published commit <code>341187a</code>, which clarifies the Decision Questions section, adds it to the report navigation, and labels the evidence source behind each answer card.</p>
             </div>
           </div>
           <div class="item">
@@ -230,6 +240,7 @@
           <span class="pill">final_report.html</span>
           <span class="pill">index.html</span>
           <span class="pill">community_health.sqlite.gz</span>
+          <span class="pill">Decision Questions</span>
           <span class="pill">scorecard</span>
           <span class="pill">coverage map</span>
           <span class="pill">data inventory</span>
@@ -257,7 +268,7 @@
           <tr><td>Bug, feature request, and all-ticket views</td><td>Separate Core and Gutenberg line charts plus open-backlog category summaries.</td><td>Covered</td></tr>
           <tr><td>Community outside tickets</td><td>Release credits, committers, Make/Core, WordCamp, Events, Translate, Five for the Future, support snapshots, plugin/theme directory, and enterprise case studies.</td><td>Covered with some snapshots</td></tr>
           <tr><td>Market position and adoption</td><td>W3Techs installed share, HTTP Archive origin and tracked-share trends, BuiltWith pipeline/tier data, plugin install/download history, WooCommerce, and demand proxies.</td><td>Covered with proxies for new-site and demand history</td></tr>
-          <tr><td>Decision questions</td><td>Seven plain-English answer cards plus final evidence-strength and decision readout sections.</td><td>Covered</td></tr>
+          <tr><td>Decision questions</td><td><a href="index.html#decision-questions">Seven plain-English answer cards</a> plus final evidence-strength and decision readout sections.</td><td>Covered</td></tr>
           <tr><td>Short visual decision readout</td><td>Relevance Scorecard, Goal Coverage Map, Decision Brief, and final Decision Readout.</td><td>Covered</td></tr>
           <tr><td>Refresh metadata</td><td>SQLite source_files hashes, source_gaps, generated data inventory page, source coverage cards, generator scripts, cached public-source tables, and compressed DB export.</td><td>Covered</td></tr>
           <tr><td>Remaining ideal sources</td><td>True multi-year new-site cohorts, Google Trends or equivalent, broad labor-market exports, and fuller support-forum history.</td><td>Partial by design</td></tr>

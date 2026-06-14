@@ -30,6 +30,7 @@
     h3 { margin: 0 0 6px; font-size: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; }
     p { margin: 0 0 12px; color: var(--muted); }
     a { color: var(--blue); }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; overflow-wrap: anywhere; }
     .lede { max-width: 880px; font-size: 18px; }
     .grid { display: grid; gap: 14px; }
     .cards { grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 22px 0; }
@@ -45,7 +46,6 @@
     .status { display: inline-block; border-radius: 999px; padding: 4px 9px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
     .covered { background: #dcfce7; color: #166534; }
     .partial { background: #fef3c7; color: #92400e; }
-    .source { background: #dbeafe; color: #1e40af; }
     .audit-list { display: grid; gap: 10px; margin-top: 12px; }
     .audit-row {
       display: grid;
@@ -116,48 +116,57 @@
       <div class="audit-row">
         <div><strong>HTML progress summary</strong><p>Summarize what has been done so far.</p></div>
         <div><span class="status covered">Covered</span></div>
-        <div><p><a href="progress_summary.html">progress_summary.html</a> now summarizes the work, links current artifacts, and includes the latest Decision Questions update.</p></div>
+        <div><p><a href="progress_summary.html">progress_summary.html</a> summarizes the work, links current artifacts, and includes the latest Decision Questions update.</p></div>
       </div>
+
       <div class="audit-row">
         <div><strong>Visual decision report</strong><p>Explain community involvement, project workload, and market position.</p></div>
         <div><span class="status covered">Covered</span></div>
         <div><p><a href="index.html">index.html</a> contains the three main views, a relevance scorecard, a Goal Coverage Map, Source Coverage, and a final Decision Readout.</p></div>
       </div>
+
       <div class="audit-row">
         <div><strong>Separate evidence lanes</strong><p>Do not treat tickets as the whole community.</p></div>
         <div><span class="status covered">Covered</span></div>
         <div><p>The report separates ticket-derived signals, ecosystem signals, and adoption/demand signals at the top of the page.</p></div>
       </div>
+
       <div class="audit-row">
         <div><strong>Ticket participation and load</strong><p>New, closed, net flow, reporters, first-time, repeat, maintainer split, response, close time, reopen, stale share, concentration, drive-by vs sustained.</p></div>
         <div><span class="status covered">Covered</span></div>
-        <div><p>64,951 Core tickets, 32,135 Gutenberg issues, and 12,136 wordpress-develop PRs are loaded. The report uses quarterly Core, Gutenberg, PR, timeline, response, reopen, concentration, and depth tables.</p></div>
+        <div><p>65.0k Core tickets, 32.1k Gutenberg issues, and 12.1k wordpress-develop PRs are loaded. The report uses quarterly Core, Gutenberg, PR, timeline, response, reopen, concentration, and depth tables.</p></div>
       </div>
+
       <div class="audit-row">
         <div><strong>Bug and feature mix</strong><p>Show bugs, feature requests, and all tickets/issues separately where useful.</p></div>
         <div><span class="status covered">Covered</span></div>
         <div><p>The classification trend contains 716 quarterly category rows, with separate Core and Gutenberg category charts plus open-backlog category summaries.</p></div>
       </div>
+
       <div class="audit-row">
         <div><strong>Community outside tickets</strong><p>Props, committers, Make/Core, WordCamps, Meetups, plugins, themes, translations, Five for the Future, support, dev notes.</p></div>
         <div><span class="status covered">Covered</span></div>
         <div><p>The report includes release credits, committers, Make/Core posts/comments/dev notes, WordCamp records, Events/Meetups, Translate snapshots, Five for the Future, support snapshots, and plugin/theme directory activity.</p></div>
       </div>
+
       <div class="audit-row partial-row">
         <div><strong>Popularity and likelihood to choose WordPress</strong><p>Installed share, CMS share, newly detected sites, traffic tiers, peer builders, demand signals, plugins, WooCommerce, enterprise.</p></div>
         <div><span class="status partial">Mixed</span></div>
         <div><p>Installed-share and CMS-share evidence is direct. Newly detected sites, search interest, and broad job demand are presented with public proxies and clearly labeled as partial.</p></div>
       </div>
+
       <div class="audit-row">
         <div><strong>Quarterly preference</strong><p>Prefer quarterly time series where the data supports it.</p></div>
         <div><span class="status covered">Covered</span></div>
         <div><p>Core, Gutenberg, PR, classification, Make/Core, dev-note, support snapshot buckets, Stack Overflow, Wikimedia, HN hiring, plugin downloads, and many market/demand charts use quarterly or monthly-to-quarterly series where available.</p></div>
       </div>
+
       <div class="audit-row">
         <div><strong>Refreshable source metadata</strong><p>Enough metadata to refresh without rediscovering the model.</p></div>
         <div><span class="status covered">Covered</span></div>
         <div><p><a href="data_inventory.html">data_inventory.html</a> lists table counts, local source hashes, and partial-source gaps. <a href="refresh_runbook.html">refresh_runbook.html</a> records the refresh path.</p></div>
       </div>
+
       <div class="audit-row">
         <div><strong>Short visual decision readout</strong><p>End with community health, project load, and market position.</p></div>
         <div><span class="status covered">Covered</span></div>
@@ -170,13 +179,42 @@
     <div class="section">
       <h2>Partial Signals Stored In SQLite</h2>
       <table>
-        <thead><tr><th>Signal</th><th>Status</th></tr></thead>
+        <thead><tr><th>Signal</th><th>Status</th><th>Best next source</th><th>Current note</th></tr></thead>
         <tbody>
-          <tr><td>developer_interest_proxy</td><td>Partial: Stack Overflow and Wikimedia are public proxies, not total developer interest.</td></tr>
-          <tr><td>job_demand</td><td>Partial: HN hiring and WordPress Jobs are narrow demand proxies.</td></tr>
-          <tr><td>new_site_share_history</td><td>Partial: current BuiltWith pipeline and HTTP Archive tracked-share trends are not a full new-site cohort.</td></tr>
-          <tr><td>search_interest</td><td>Partial: Wikimedia pageviews are included; Google Trends or similar would be more direct.</td></tr>
-          <tr><td>support_forum_history</td><td>Partial: current queue snapshots are included; a full historical forum export would improve trend coverage.</td></tr>
+          <tr>
+            <td><code>developer_interest_proxy</code></td>
+            <td><span class="status partial">partial</span></td>
+            <td>Stack Exchange API question totals by Stack Overflow tag plus Wikimedia Pageviews API</td>
+            <td>Quarterly Stack Overflow tag volume and Wikimedia pageviews are included as public attention proxies; they do not measure general search-query interest.</td>
+          </tr>
+
+          <tr>
+            <td><code>job_demand</code></td>
+            <td><span class="status partial">partial</span></td>
+            <td>Hacker News monthly Who is hiring? threads plus hiring-platform exports</td>
+            <td>HN Who is hiring WordPress/WooCommerce, PHP, and agency/studio mention counts plus WordPress Jobs board open-listing snapshots are included as narrow demand proxies; broader job-board demand still needs a labor-market source.</td>
+          </tr>
+
+          <tr>
+            <td><code>new_site_share_history</code></td>
+            <td><span class="status partial">partial</span></td>
+            <td>BuiltWith historical trends or HTTP Archive cohort queries</td>
+            <td>Current report includes BuiltWith current Net New Pipeline plus HTTP Archive monthly origin counts, derived tracked-share history, and rank-tier detected-origin adoption; not a multi-year newly created site cohort.</td>
+          </tr>
+
+          <tr>
+            <td><code>search_interest</code></td>
+            <td><span class="status partial">partial</span></td>
+            <td>Google Trends or another search-interest provider</td>
+            <td>Wikimedia Pageviews API quarterly article-view trends are included as a public-interest proxy; true search-query interest still needs Google Trends or another search provider.</td>
+          </tr>
+
+          <tr>
+            <td><code>support_forum_history</code></td>
+            <td><span class="status partial">partial</span></td>
+            <td>Historical WordPress.org support forum topic/reply export</td>
+            <td>Current report includes public support queue snapshots, last-activity buckets, and major-plugin support-thread totals; not a full long-term topic/reply history.</td>
+          </tr>
         </tbody>
       </table>
     </div>
@@ -195,7 +233,7 @@
     </div>
   </section>
 
-  <p class="footer">Generated as a companion audit for the WordPress Community & Adoption Health report on June 14, 2026. Source counts come from community_health.sqlite.</p>
+  <p class="footer">Generated as a companion audit for the WordPress Community & Adoption Health report on 2026-06-14 16:20 UTC. Source counts come from community_health.sqlite.</p>
 </main>
 </body>
 </html>

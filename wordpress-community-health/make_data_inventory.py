@@ -275,7 +275,7 @@ def render():
         </div>
         <div class="command">
           <b>Publish with the report</b>
-          <code>cp data_inventory.html make_data_inventory.py goal_audit.html /Users/admin/sqlite-database-integration-pages/wordpress-community-health/</code>
+          <code>cp data_inventory.html make_data_inventory.py goal_audit.html make_goal_audit.py /Users/admin/sqlite-database-integration-pages/wordpress-community-health/</code>
         </div>
       </div>
     </section>

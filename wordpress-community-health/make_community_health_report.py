@@ -6901,6 +6901,7 @@ p {{ margin:0 0 12px; }}
         <div class="link-list">
           <code>python3 make_community_health_report.py</code>
           <code>python3 make_community_health_report.py --skip-network</code>
+          <code>python3 make_goal_audit.py</code>
           <code>python3 make_data_inventory.py</code>
           <code>fetch_core_response_metrics.py</code>
           <code>fetch_gutenberg_timeline_metrics.py</code>

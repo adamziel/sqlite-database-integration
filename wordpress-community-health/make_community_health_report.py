@@ -85,6 +85,7 @@ SKIP_NETWORK_DB_FALLBACK_TABLES = [
     "directory_snapshots",
     "directory_activity_snapshots",
     "plugin_search_snapshot",
+    "theme_search_snapshot",
     "plugin_directory_activity_sample",
     "plugin_maintenance_summary",
     "plugin_stale_popular_sample",
@@ -277,6 +278,17 @@ PLUGIN_SEARCH_TERMS = [
     {"term": "performance", "label": "Performance", "category": "operations"},
     {"term": "backup", "label": "Backup", "category": "operations"},
     {"term": "ai", "label": "AI", "category": "emerging"},
+]
+THEME_SEARCH_TERMS = [
+    {"term": "block", "label": "Block themes", "category": "editing"},
+    {"term": "woocommerce", "label": "WooCommerce", "category": "commerce"},
+    {"term": "business", "label": "Business", "category": "business"},
+    {"term": "portfolio", "label": "Portfolio", "category": "creative"},
+    {"term": "blog", "label": "Blog", "category": "publishing"},
+    {"term": "magazine", "label": "Magazine", "category": "publishing"},
+    {"term": "education", "label": "Education", "category": "vertical"},
+    {"term": "agency", "label": "Agency", "category": "services"},
+    {"term": "restaurant", "label": "Restaurant", "category": "vertical"},
 ]
 MAJOR_PLUGIN_SLUGS = [
     "woocommerce",
@@ -3445,6 +3457,105 @@ def fetch_plugin_search_snapshot(skip_network=False):
     return rows
 
 
+def theme_search_cache_path():
+    return CACHE / "wporg-theme-search-snapshot.json"
+
+
+def read_cached_theme_search_snapshot():
+    path = theme_search_cache_path()
+    if not path.exists():
+        return []
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return []
+    rows = payload.get("rows") if isinstance(payload, dict) else payload
+    return rows if isinstance(rows, list) else []
+
+
+def write_cached_theme_search_snapshot(rows):
+    CACHE.mkdir(parents=True, exist_ok=True)
+    theme_search_cache_path().write_text(
+        json.dumps(
+            {
+                "collected_at": dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z"),
+                "source_url": THEME_INFO_API,
+                "rows": rows,
+            },
+            indent=2,
+            sort_keys=True,
+        ),
+        encoding="utf-8",
+    )
+
+
+def theme_search_url(term):
+    params = [
+        ("action", "query_themes"),
+        ("request[search]", term),
+        ("request[page]", 1),
+        ("request[per_page]", 1),
+        ("request[fields][description]", 0),
+        ("request[fields][sections]", 0),
+        ("request[fields][screenshot_url]", 0),
+    ]
+    return f"{THEME_INFO_API}?{urllib.parse.urlencode(params)}"
+
+
+def theme_author_name(author):
+    if isinstance(author, dict):
+        return strip_html(author.get("display_name") or author.get("author") or author.get("user_nicename") or "")
+    return strip_html(author)
+
+
+def fetch_theme_search_snapshot(skip_network=False):
+    cached_rows = read_cached_theme_search_snapshot()
+    if cached_rows:
+        cached_dates = {str(row.get("collected_at", ""))[:10] for row in cached_rows if row.get("collected_at")}
+        today = dt.datetime.now(dt.timezone.utc).date().isoformat()
+        if skip_network or today in cached_dates:
+            return cached_rows
+    if skip_network:
+        return cached_rows
+
+    collected_at = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
+    rows = []
+    for config in THEME_SEARCH_TERMS:
+        source_url = theme_search_url(config["term"])
+        try:
+            data, _headers = fetch_json(source_url)
+        except Exception as exc:
+            eprint(f"WordPress.org theme search failed for {config['term']}: {exc}")
+            continue
+        info = data.get("info", {}) if isinstance(data, dict) else {}
+        themes = data.get("themes", []) if isinstance(data, dict) else []
+        top = themes[0] if themes else {}
+        rows.append(
+            {
+                "snapshot_date": live_snapshot_date(),
+                "collected_at": collected_at,
+                "term": config["term"],
+                "label": config["label"],
+                "category": config["category"],
+                "result_count": num(info.get("results")),
+                "pages": num(info.get("pages")),
+                "top_slug": str(top.get("slug") or ""),
+                "top_name": strip_html(top.get("name")),
+                "top_author_name": theme_author_name(top.get("author")) if top else "",
+                "top_rating": num(top.get("rating")),
+                "top_num_ratings": num(top.get("num_ratings")),
+                "source": "WordPress.org theme directory search snapshot",
+                "source_url": source_url,
+                "source_note": "Result counts are current theme search-result counts from the WordPress.org themes API.",
+            }
+        )
+        time.sleep(0.05)
+    rows.sort(key=lambda row: (-num(row.get("result_count")), row.get("label", "")))
+    if rows:
+        write_cached_theme_search_snapshot(rows)
+    return rows
+
+
 def live_snapshot_date():
     return dt.datetime.now(dt.timezone.utc).date().isoformat()
 
@@ -6350,6 +6461,7 @@ def source_status_rows(fetched):
         ("WordPress.org ecosystem stats", "covered" if fetched.get("wporg_ecosystem_stats_snapshot") else "missing", "Current WordPress, PHP, and database version distribution from WordPress.org stats APIs"),
         ("Plugin/theme directory activity", "covered" if fetched.get("directory_activity_snapshots") else "missing", "Current new, updated, and popular samples from WordPress.org directory APIs"),
         ("Plugin ecosystem search breadth", "covered" if fetched.get("plugin_search_snapshot") else "missing", "Current WordPress.org plugin search-result counts and top matching plugins for selected ecosystem categories"),
+        ("Theme ecosystem search breadth", "covered" if fetched.get("theme_search_snapshot") else "missing", "Current WordPress.org theme search-result counts and top matching themes for selected site categories"),
         (
             "Major plugin install base",
             "covered" if fetched.get("major_plugin_install_snapshot") and fetched.get("major_plugin_install_history") else "partial" if fetched.get("major_plugin_install_snapshot") else "missing",
@@ -6456,6 +6568,7 @@ def build_report(data, fetched):
     directory = {row["metric"]: row for row in fetched.get("directory_snapshots", [])}
     directory_activity = fetched.get("directory_activity_snapshots", [])
     plugin_search_rows = fetched.get("plugin_search_snapshot", [])
+    theme_search_rows = fetched.get("theme_search_snapshot", [])
     plugin_activity_rows = fetched.get("plugin_directory_activity_sample", [])
     plugin_maintenance_summary = fetched.get("plugin_maintenance_summary", [])
     plugin_stale_popular_sample = fetched.get("plugin_stale_popular_sample", [])
@@ -7367,6 +7480,10 @@ def build_report(data, fetched):
     plugin_search_capped = sum(1 for row in plugin_search_sorted if num(row.get("results_capped")) > 0)
     plugin_search_top_installs = sum(num(row.get("top_active_installs")) for row in plugin_search_sorted)
     plugin_search_snapshot_date = max([row.get("snapshot_date", "") for row in plugin_search_sorted if row.get("snapshot_date")] or ["not fetched"])
+    theme_search_sorted = sorted(theme_search_rows, key=lambda row: num(row.get("result_count")), reverse=True)
+    theme_search_max = max([num(row.get("result_count")) for row in theme_search_sorted] or [1])
+    theme_search_total = sum(num(row.get("result_count")) for row in theme_search_sorted)
+    theme_search_snapshot_date = max([row.get("snapshot_date", "") for row in theme_search_sorted if row.get("snapshot_date")] or ["not fetched"])
     popular_plugin_sample = max(1, num(directory_activity_snapshot.get("popular_plugin_sample_size")))
     popular_plugin_stale = num(directory_activity_snapshot.get("popular_plugin_stale_2y"))
     plugin_maintenance = plugin_maintenance_summary[0] if plugin_maintenance_summary else {}
@@ -8669,6 +8786,17 @@ p {{ margin:0 0 12px; }}
         </div>
       </div>
       <div class="card">
+        <h3>Theme ecosystem breadth</h3>
+        <p>Current WordPress.org theme search-result counts for selected site categories. This is a current breadth snapshot, not a theme-install trend.</p>
+        <div class="stats">
+          {stat_card("Search terms", compact(len(theme_search_sorted)), "site-category probes", "soft")}
+          {stat_card("Theme results", compact(theme_search_total), f"{theme_search_snapshot_date} snapshot", "good" if theme_search_sorted else "watch")}
+        </div>
+        {''.join(horizontal_count_metric(str(row.get("label", "")), num(row.get("result_count")), theme_search_max, COLORS["purple"], " results") for row in theme_search_sorted[:8])}
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
         <h3>Popular themes by ratings</h3>
         <p>Top sampled popular themes ranked by rating count in the current WordPress.org theme API response.</p>
         {''.join(horizontal_count_metric(str(row.get("name", "")), num(row.get("num_ratings")), max_popular_theme_ratings, COLORS["community"], " ratings") for row in top_popular_themes)}
@@ -8926,6 +9054,7 @@ def main():
         fetched["theme_directory_activity_sample"],
     ) = fetch_directory_activity(args.skip_network)
     fetched["plugin_search_snapshot"] = fetch_plugin_search_snapshot(args.skip_network)
+    fetched["theme_search_snapshot"] = fetch_theme_search_snapshot(args.skip_network)
     fetched["major_plugin_install_snapshot"] = fetch_major_plugin_install_snapshot(args.skip_network)
     fetched["major_plugin_install_history"] = fetch_major_plugin_install_history(
         fetched["major_plugin_install_snapshot"], args.skip_network

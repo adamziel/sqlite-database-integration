@@ -179,6 +179,7 @@ def render():
         ("make_core_*", "Make/Core posts, comments, dev notes, authors, and release tags."),
         ("major_plugin_*", "Major plugin installs, historical snapshots, support counts, and downloads."),
         ("plugin_search_snapshot", "Current WordPress.org plugin search-result counts and top matching plugins by category."),
+        ("theme_search_snapshot", "Current WordPress.org theme search-result counts and top matching themes by site category."),
         ("packagist_package_snapshot", "Current Composer package downloads, favorites, dependents, and release timestamps."),
         ("github_repo_search_snapshot", "Current GitHub repository-search totals and top matching repositories for selected WordPress ecosystem topics."),
     ]

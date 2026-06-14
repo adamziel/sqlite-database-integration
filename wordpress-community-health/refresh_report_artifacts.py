@@ -43,6 +43,7 @@ HTML_ARTIFACTS = {
         "WordPress ecosystem activity",
         "Activity lanes",
         "Plugin ecosystem breadth",
+        "Theme ecosystem breadth",
         "Make/Core discussion",
     ],
     "market_position.html": [

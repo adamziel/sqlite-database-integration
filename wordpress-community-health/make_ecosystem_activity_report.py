@@ -193,6 +193,11 @@ def main():
             if table_exists(conn, "plugin_search_snapshot")
             else []
         )
+        theme_search = (
+            rows(conn, "SELECT * FROM theme_search_snapshot ORDER BY CAST(result_count AS REAL) DESC, label")
+            if table_exists(conn, "theme_search_snapshot")
+            else []
+        )
     finally:
         conn.close()
 
@@ -232,6 +237,19 @@ def main():
         )
         for row in plugin_search[:9]
     )
+    theme_search_max = max([num(row.get("result_count")) for row in theme_search] or [1])
+    theme_search_top = theme_search[0] if theme_search else {}
+    theme_search_total = sum(num(row.get("result_count")) for row in theme_search)
+    theme_search_bars = "".join(
+        bar_row(
+            row.get("label", ""),
+            row.get("result_count"),
+            theme_search_max,
+            "violet",
+            " results",
+        )
+        for row in theme_search[:9]
+    )
 
     make_comment_points = [
         (row.get("quarter", "")[:4] + " Q" + str((int(row.get("quarter", "")[5:7] or 1) - 1) // 3 + 1), row.get("comments"))
@@ -257,6 +275,7 @@ def main():
             metric_card("Support topics sampled", compact(latest_support.get("topics")), f"{pct(latest_support.get('resolved_share_pct'))} resolved in current queue", "amber"),
             metric_card("Plugin directory", compact(plugin_count), f"{compact(latest_directory_activity.get('plugins_added_30d'))} plugins added in 30 days", "green"),
             metric_card("Plugin search breadth", compact(len(plugin_search)), f"{compact(plugin_search_capped)} terms at 10k cap", "green"),
+            metric_card("Theme search breadth", compact(theme_search_total), f"{compact(len(theme_search))} theme category probes", "violet"),
             metric_card("Theme directory", compact(theme_count), f"{compact(theme_sample_size)} sampled themes, {compact(theme_commercial)} commercial flags", "violet"),
         ]
     )
@@ -274,6 +293,7 @@ def main():
             signal_row("Plugin maintenance", f"Popular-plugin sample median update age is {num(latest_plugin_maintenance.get('median_days_since_update')):.0f} days", f"{compact(latest_plugin_maintenance.get('stale_2y_count'))} stale 2y", "green"),
             signal_row("Plugin directory activity", f"{compact(latest_directory_activity.get('plugins_added_30d'))} plugins added and {compact(latest_directory_activity.get('plugins_updated_30d'))} updated in 30 days", f"{compact(plugin_count)} plugins", "green"),
             signal_row("Plugin ecosystem breadth", f"Selected plugin-directory searches are led by {plugin_search_top.get('label', 'n/a')}; + means the API result count hit the cap.", f"{compact(plugin_search_top.get('result_count'))} results", "green"),
+            signal_row("Theme ecosystem breadth", f"Selected theme-directory searches are led by {theme_search_top.get('label', 'n/a')}. This is category breadth, not install share.", f"{compact(theme_search_top.get('result_count'))} results", "violet"),
             signal_row("Theme directory activity", f"{compact(theme_sample_size)} sampled themes across new, updated, and popular views; top rated-sample theme is {top_theme.get('name', 'n/a')}", f"{compact(theme_count)} themes", "violet"),
         ]
     )
@@ -402,13 +422,21 @@ def main():
     </section>
 
     <section class="section" style="margin-top:14px">
+      <h2>Theme ecosystem breadth</h2>
+      <p class="note">Current WordPress.org theme search-result counts for selected site categories. This shows theme-category supply, not theme installs.</p>
+      <div class="bar-list">
+{theme_search_bars}
+      </div>
+    </section>
+
+    <section class="section" style="margin-top:14px">
       <h2>How to read this</h2>
       <div class="readout">
         <div><strong>Community activity is wider than tickets.</strong><span>Release credits, discussion, events, translation, support, and directories show multiple active participation channels.</span></div>
         <div><strong>Some signals are snapshots.</strong><span>Events, support queues, plugin freshness, translation, and pledge counts are current-state views, while WordCamp, Make/Core, and release rows have historical shape.</span></div>
         <div><strong>Use this with tracker data.</strong><span>Fewer first-time reporters does not mean the whole ecosystem is inactive; it means tracker participation is softer than before.</span></div>
       </div>
-      <p class="footer-note">Rows come from existing SQLite tables including <code>wordcamp_yearly</code>, <code>make_core_comment_quarterly</code>, <code>make_core_dev_note_quarterly</code>, <code>core_release_credits</code>, <code>translation_snapshots</code>, <code>fttf_snapshots</code>, <code>support_forum_snapshot_summary</code>, <code>directory_activity_snapshots</code>, <code>plugin_search_snapshot</code>, and <code>theme_directory_activity_sample</code>. Integrity check: <code>{esc(integrity)}</code>. Latest WordCamp row in the database is {esc(latest_wc_any.get("label", "n/a"))}; current and future years are partial. Theme sample flags include {compact(theme_commercial)} commercial and {compact(theme_community)} community themes.</p>
+      <p class="footer-note">Rows come from existing SQLite tables including <code>wordcamp_yearly</code>, <code>make_core_comment_quarterly</code>, <code>make_core_dev_note_quarterly</code>, <code>core_release_credits</code>, <code>translation_snapshots</code>, <code>fttf_snapshots</code>, <code>support_forum_snapshot_summary</code>, <code>directory_activity_snapshots</code>, <code>plugin_search_snapshot</code>, <code>theme_search_snapshot</code>, and <code>theme_directory_activity_sample</code>. Integrity check: <code>{esc(integrity)}</code>. Latest WordCamp row in the database is {esc(latest_wc_any.get("label", "n/a"))}; current and future years are partial. Theme sample flags include {compact(theme_commercial)} commercial and {compact(theme_community)} community themes.</p>
     </section>
   </main>
 </body>

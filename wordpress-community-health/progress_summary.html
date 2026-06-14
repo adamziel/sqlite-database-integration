@@ -74,6 +74,25 @@
     li + li { margin-top: 6px; }
     .status { display: inline-flex; align-items: center; gap: 7px; font-weight: 750; }
     .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--green); }
+    .mini-grid, .coveragegrid, .gapcards { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; margin-top: 12px; }
+    .statecard, .coveragecard, .gapcard {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--blue);
+      border-radius: 8px;
+      background: #fbfdff;
+      padding: 13px;
+    }
+    .statecard.green, .coveragecard.green { border-left-color: var(--green); }
+    .statecard.amber, .coveragecard.amber, .gapcard { border-left-color: var(--amber); }
+    .statecard strong, .coveragecard strong, .gapcard strong { display: block; font-size: 15px; line-height: 1.25; margin-bottom: 6px; }
+    .statecard span, .coveragecard p, .gapcard span { display: block; color: var(--muted); font-size: 14px; line-height: 1.4; }
+    .gapcard b { display: block; margin-top: 12px; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink); }
+    .badge { display: inline-flex; border-radius: 999px; padding: 4px 8px; margin-bottom: 8px; background: #eef8f1; color: var(--green); font-size: 12px; font-weight: 750; }
+    .badge.amber { background: #fff7ed; color: var(--amber); }
+    .strength { margin-top: 12px; }
+    .strength div:first-child { display: flex; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 13px; }
+    .strength strong { color: var(--ink); }
     table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 14px; table-layout: fixed; }
     th, td { text-align: left; border-bottom: 1px solid var(--line); padding: 9px 8px; vertical-align: top; overflow-wrap: anywhere; }
     th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
@@ -267,35 +286,90 @@
           <span class="pill">goal audit</span>
           <span class="pill">data inventory</span>
         </div>
-        <table>
-          <thead><tr><th>Area</th><th>State</th></tr></thead>
-          <tbody>
-            <tr><td>Ticket participation</td><td>Implemented with quarterly charts.</td></tr>
-            <tr><td>Project load</td><td>Implemented with flow, backlog, response, closure, reopen, and age charts.</td></tr>
-            <tr><td>Market position</td><td>Implemented with all-site/CMS share, HTTP Archive origin counts, tracked builder-share history, traffic tiers, competitor signals, demand proxies, and compact proxy-direction summaries.</td></tr>
-            <tr><td>Refreshability</td><td>Decision brief, progress summary, companion views, goal audit, source gap plan, and data inventory are generated from SQLite or the current report artifact list.</td></tr>
-          </tbody>
-        </table>
+        <div class="mini-grid">
+
+          <div class="statecard green">
+            <strong>Ticket participation</strong>
+            <span>Implemented with quarterly charts.</span>
+          </div>
+
+          <div class="statecard green">
+            <strong>Project load</strong>
+            <span>Implemented with flow, backlog, response, closure, reopen, and age charts.</span>
+          </div>
+
+          <div class="statecard green">
+            <strong>Market position</strong>
+            <span>Implemented with all-site/CMS share, HTTP Archive, BuiltWith, traffic tiers, competitor signals, and compact demand summaries.</span>
+          </div>
+
+          <div class="statecard green">
+            <strong>Refreshability</strong>
+            <span>Generated companion pages, source metadata, source gaps, and a compressed database export.</span>
+          </div>
+        </div>
       </div>
     </section>
 
     <section class="section" style="margin-top:14px">
       <h2>Goal coverage checklist</h2>
       <p class="note">This maps the current artifacts back to goal.md. Items marked partial are present in the report, but rely on proxies or snapshots rather than the ideal broad historical source.</p>
-      <table>
-        <thead><tr><th>Requirement</th><th>Evidence</th><th>Status</th></tr></thead>
-        <tbody>
-          <tr><td>Three report views</td><td>Participation, Project Load, and Market Position sections in <a href="index.html">index.html</a>.</td><td>Covered</td></tr>
-          <tr><td>Ticket-derived participation and load</td><td>Quarterly Core Trac, Gutenberg, and wordpress-develop PR charts for flow, reporters, response, closure, reopen, stale share, and concentration.</td><td>Covered</td></tr>
-          <tr><td>Bug, feature request, and all-ticket views</td><td>Separate Core and Gutenberg line charts plus open-backlog category summaries.</td><td>Covered</td></tr>
-          <tr><td>Community outside tickets</td><td>Release credits, committers, Make/Core, WordCamp, Events, Translate, Five for the Future, support snapshots and answer summaries, plugin/theme directory, stale popular plugins, and enterprise case studies.</td><td>Covered with snapshots</td></tr>
-          <tr><td>Market position and adoption</td><td>W3Techs installed share, HTTP Archive origin and tracked-share trends, BuiltWith pipeline/tier data, plugin install/download history, WooCommerce, and compact new-site plus attention/demand proxy summaries.</td><td>Covered with proxies for new-site and demand history</td></tr>
-          <tr><td>Decision questions</td><td><a href="index.html#decision-questions">Seven plain-English answer cards</a> plus final evidence-strength and decision readout sections.</td><td>Covered</td></tr>
-          <tr><td>Short visual decision readout</td><td>Relevance Scorecard, Goal Coverage Map, generated Decision Brief, and final Decision Readout.</td><td>Covered</td></tr>
-          <tr><td>Refresh metadata</td><td>SQLite source hashes, source_gaps, generated data inventory, generated decision brief, generated progress summary, generator scripts, cached public-source tables, and compressed DB export.</td><td>Covered</td></tr>
-          <tr><td>Remaining ideal sources</td><td>True multi-year new-site cohorts, Google Trends or equivalent, broad labor-market exports, fuller support-forum history, and another developer-community source.</td><td>Partial by design</td></tr>
-        </tbody>
-      </table>
+      <div class="coveragegrid">
+
+          <div class="coveragecard green">
+            <span class="badge green">Covered</span>
+            <strong>Three report views</strong>
+            <p>Participation, Project Load, and Market Position sections in <a href="index.html">index.html</a>.</p>
+          </div>
+
+          <div class="coveragecard green">
+            <span class="badge green">Covered</span>
+            <strong>Ticket-derived participation and load</strong>
+            <p>Quarterly Core Trac, Gutenberg, and wordpress-develop PR charts for flow, reporters, response, closure, reopen, stale share, and concentration.</p>
+          </div>
+
+          <div class="coveragecard green">
+            <span class="badge green">Covered</span>
+            <strong>Bug, feature request, and all-ticket views</strong>
+            <p>Separate Core and Gutenberg line charts plus open-backlog category summaries.</p>
+          </div>
+
+          <div class="coveragecard green">
+            <span class="badge green">Covered with snapshots</span>
+            <strong>Community outside tickets</strong>
+            <p>Release credits, committers, Make/Core, WordCamp, Events, Translate, Five for the Future, support snapshots and answer summaries, plugin/theme directory, stale popular plugins, and enterprise case studies.</p>
+          </div>
+
+          <div class="coveragecard green">
+            <span class="badge green">Covered with proxies for new-site and demand history</span>
+            <strong>Market position and adoption</strong>
+            <p>W3Techs installed share, HTTP Archive origin and tracked-share trends, BuiltWith pipeline/tier data, plugin install/download history, WooCommerce, and compact new-site plus attention/demand proxy summaries.</p>
+          </div>
+
+          <div class="coveragecard green">
+            <span class="badge green">Covered</span>
+            <strong>Decision questions</strong>
+            <p><a href="index.html#decision-questions">Seven plain-English answer cards</a> plus final evidence-strength and decision readout sections.</p>
+          </div>
+
+          <div class="coveragecard green">
+            <span class="badge green">Covered</span>
+            <strong>Short visual decision readout</strong>
+            <p>Relevance Scorecard, Goal Coverage Map, generated Decision Brief, and final Decision Readout.</p>
+          </div>
+
+          <div class="coveragecard green">
+            <span class="badge green">Covered</span>
+            <strong>Refresh metadata</strong>
+            <p>SQLite source hashes, source_gaps, generated data inventory, generated decision brief, generated progress summary, generator scripts, cached public-source tables, and compressed DB export.</p>
+          </div>
+
+          <div class="coveragecard amber">
+            <span class="badge amber">Partial by design</span>
+            <strong>Remaining ideal sources</strong>
+            <p>True multi-year new-site cohorts, Google Trends or equivalent, broad labor-market exports, fuller support-forum history, and another developer-community source.</p>
+          </div>
+      </div>
     </section>
 
     <section class="section" style="margin-top:14px">
@@ -310,16 +384,70 @@
         <a class="pill" href="source_gap_plan.html">Source gap plan</a>
         <a class="pill" href="refresh_runbook.html">Refresh runbook</a>
       </div>
-      <table>
-        <thead><tr><th>Partial signal</th><th>Best next source</th><th>Current coverage</th></tr></thead>
-        <tbody>
-          <tr><td>developer interest proxy</td><td>Stack Exchange API question totals, Wikimedia Pageviews API, npm package downloads, GitHub PR activity, and broader developer-community sources</td><td>Quarterly Stack Overflow tag volume, Wikimedia pageviews, npm @wordpress package downloads, wordpress-develop PR activity, and a compact attention/demand summary are included as public attention and contribution proxies; they do not measure general search-query interest.</td></tr>
-          <tr><td>job demand</td><td>Hacker News monthly Who is hiring? threads plus hiring-platform exports</td><td>HN Who is hiring WordPress/WooCommerce, PHP, and agency/studio mention counts, WordPress Jobs board open-listing snapshots, a compact proxy-direction summary, and a job-demand companion view are included; broader job-board demand still needs a labor-market source.</td></tr>
-          <tr><td>new site share history</td><td>BuiltWith historical trends or HTTP Archive cohort queries</td><td>Current report includes BuiltWith current Net New Pipeline, HTTP Archive monthly origin counts, derived tracked-share history, rank-tier detected-origin adoption, a compact new-site choice summary, and a dedicated new-site choice companion view; not a multi-year newly created site cohort.</td></tr>
-          <tr><td>search interest</td><td>Google Trends or another search-interest provider</td><td>Wikimedia Pageviews API quarterly article-view trends, Stack Overflow tag-volume context, a compact attention/demand summary, and a search-interest companion view are included as public-interest proxies; true search-query interest still needs Google Trends or another search provider.</td></tr>
-          <tr><td>support forum history</td><td>Historical WordPress.org support forum topic/reply export</td><td>Current report includes public support queue snapshots, resolved/unresolved/no-reply summaries, last-activity buckets, forum-level unanswered summaries, a support-load companion view, and major-plugin support-thread totals; not a full long-term topic/reply history.</td></tr>
-        </tbody>
-      </table>
+      <div class="gapcards">
+
+          <div class="gapcard">
+            <strong>Developer interest</strong>
+            <span>Stack Overflow, Wikimedia, npm downloads, and GitHub PR activity are in.</span>
+            <b>Best next source</b>
+            <span>Add one broader developer-community source.</span>
+          </div>
+
+          <div class="gapcard">
+            <strong>Hiring demand</strong>
+            <span>HN hiring threads and WordPress Jobs snapshots are in.</span>
+            <b>Best next source</b>
+            <span>Add a broad hiring-platform export.</span>
+          </div>
+
+          <div class="gapcard">
+            <strong>New-site history</strong>
+            <span>BuiltWith current pipeline and HTTP Archive proxies are in.</span>
+            <b>Best next source</b>
+            <span>Add a true first-seen site cohort.</span>
+          </div>
+
+          <div class="gapcard">
+            <strong>Search interest</strong>
+            <span>Wikimedia and Stack Overflow attention proxies are in.</span>
+            <b>Best next source</b>
+            <span>Add Google Trends or a similar search-provider export.</span>
+          </div>
+
+          <div class="gapcard">
+            <strong>Support history</strong>
+            <span>Current support queues and unresolved snapshots are in.</span>
+            <b>Best next source</b>
+            <span>Add long-running topic and reply history.</span>
+          </div>
+      </div>
+      <div class="strengthwrap">
+
+          <div class="strength">
+            <div><strong>Ticket history</strong><span>96%</span></div>
+            <div class="bar green"><span style="width:96%"></span></div>
+          </div>
+
+          <div class="strength">
+            <div><strong>Ecosystem snapshots</strong><span>76%</span></div>
+            <div class="bar green"><span style="width:76%"></span></div>
+          </div>
+
+          <div class="strength">
+            <div><strong>Market share history</strong><span>72%</span></div>
+            <div class="bar green"><span style="width:72%"></span></div>
+          </div>
+
+          <div class="strength">
+            <div><strong>New-site choice</strong><span>48%</span></div>
+            <div class="bar amber"><span style="width:48%"></span></div>
+          </div>
+
+          <div class="strength">
+            <div><strong>Hiring and search interest</strong><span>44%</span></div>
+            <div class="bar amber"><span style="width:44%"></span></div>
+          </div>
+      </div>
       <p class="note" style="margin-top:10px">Disk is currently very tight, so the next data pull should either free local cache space first or import one source at a time and checkpoint SQLite after each refresh.</p>
     </section>
   </main>

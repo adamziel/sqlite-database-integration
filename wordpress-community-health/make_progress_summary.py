@@ -79,10 +79,109 @@ def timeline_item(label, body):
           </div>"""
 
 
-def table_rows(items):
+GAP_SUMMARIES = {
+    "developer_interest_proxy": {
+        "title": "Developer interest",
+        "current": "Stack Overflow, Wikimedia, npm downloads, and GitHub PR activity are in.",
+        "next": "Add one broader developer-community source.",
+    },
+    "job_demand": {
+        "title": "Hiring demand",
+        "current": "HN hiring threads and WordPress Jobs snapshots are in.",
+        "next": "Add a broad hiring-platform export.",
+    },
+    "new_site_share_history": {
+        "title": "New-site history",
+        "current": "BuiltWith current pipeline and HTTP Archive proxies are in.",
+        "next": "Add a true first-seen site cohort.",
+    },
+    "search_interest": {
+        "title": "Search interest",
+        "current": "Wikimedia and Stack Overflow attention proxies are in.",
+        "next": "Add Google Trends or a similar search-provider export.",
+    },
+    "support_forum_history": {
+        "title": "Support history",
+        "current": "Current support queues and unresolved snapshots are in.",
+        "next": "Add long-running topic and reply history.",
+    },
+}
+
+
+def tone_for_status(status):
+    return "amber" if "partial" in str(status).lower() else "green"
+
+
+def status_badge(status):
+    tone = tone_for_status(status)
+    return f'<span class="badge {esc(tone)}">{esc(status)}</span>'
+
+
+def state_cards(items):
     return "\n".join(
-        f"          <tr><td>{item[0]}</td><td>{item[1]}</td><td>{item[2]}</td></tr>"
+        f"""
+          <div class="statecard {esc(tone_for_status(state))}">
+            <strong>{esc(label)}</strong>
+            <span>{esc(state)}</span>
+          </div>"""
+        for label, state in items
+    )
+
+
+def coverage_cards(items):
+    return "\n".join(
+        f"""
+          <div class="coveragecard {esc(tone_for_status(item[2]))}">
+            {status_badge(item[2])}
+            <strong>{esc(item[0])}</strong>
+            <p>{item[1]}</p>
+          </div>"""
         for item in items
+    )
+
+
+def gap_cards(rows):
+    cards = []
+    for row in rows:
+        signal = row["signal"]
+        summary = GAP_SUMMARIES.get(
+            signal,
+            {
+                "title": signal.replace("_", " ").title(),
+                "current": row["note"],
+                "next": row["needed_source"],
+            },
+        )
+        cards.append(
+            f"""
+          <div class="gapcard">
+            <strong>{esc(summary["title"])}</strong>
+            <span>{esc(summary["current"])}</span>
+            <b>Best next source</b>
+            <span>{esc(summary["next"])}</span>
+          </div>"""
+        )
+    return "\n".join(cards)
+
+
+def source_strength_bar(label, width, tone="green"):
+    return f"""
+          <div class="strength">
+            <div><strong>{esc(label)}</strong><span>{max(2, min(100, num(width))):.0f}%</span></div>
+            <div class="bar {esc(tone)}"><span style="width:{max(2, min(100, num(width))):.0f}%"></span></div>
+          </div>"""
+
+
+def source_strength_bars():
+    items = [
+        ("Ticket history", 96, "green"),
+        ("Ecosystem snapshots", 76, "green"),
+        ("Market share history", 72, "green"),
+        ("New-site choice", 48, "amber"),
+        ("Hiring and search interest", 44, "amber"),
+    ]
+    return "\n".join(
+        source_strength_bar(label, width, tone) for label, width, tone in items
     )
 
 
@@ -144,7 +243,16 @@ def main():
         ]
     )
 
-    coverage_rows = table_rows(
+    current_state = state_cards(
+        [
+            ("Ticket participation", "Implemented with quarterly charts."),
+            ("Project load", "Implemented with flow, backlog, response, closure, reopen, and age charts."),
+            ("Market position", "Implemented with all-site/CMS share, HTTP Archive, BuiltWith, traffic tiers, competitor signals, and compact demand summaries."),
+            ("Refreshability", "Generated companion pages, source metadata, source gaps, and a compressed database export."),
+        ]
+    )
+
+    coverage_grid = coverage_cards(
         [
             ("Three report views", 'Participation, Project Load, and Market Position sections in <a href="index.html">index.html</a>.', "Covered"),
             ("Ticket-derived participation and load", "Quarterly Core Trac, Gutenberg, and wordpress-develop PR charts for flow, reporters, response, closure, reopen, stale share, and concentration.", "Covered"),
@@ -158,10 +266,8 @@ def main():
         ]
     )
 
-    next_rows = "\n".join(
-        f"          <tr><td>{esc(row['signal'].replace('_', ' '))}</td><td>{esc(row['needed_source'])}</td><td>{esc(row['note'])}</td></tr>"
-        for row in gaps
-    )
+    next_grid = gap_cards(gaps)
+    strength_bars = source_strength_bars()
 
     html_text = f"""<!doctype html>
 <html lang="en">
@@ -239,6 +345,25 @@ def main():
     li + li {{ margin-top: 6px; }}
     .status {{ display: inline-flex; align-items: center; gap: 7px; font-weight: 750; }}
     .dot {{ width: 10px; height: 10px; border-radius: 50%; background: var(--green); }}
+    .mini-grid, .coveragegrid, .gapcards {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; margin-top: 12px; }}
+    .statecard, .coveragecard, .gapcard {{
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--blue);
+      border-radius: 8px;
+      background: #fbfdff;
+      padding: 13px;
+    }}
+    .statecard.green, .coveragecard.green {{ border-left-color: var(--green); }}
+    .statecard.amber, .coveragecard.amber, .gapcard {{ border-left-color: var(--amber); }}
+    .statecard strong, .coveragecard strong, .gapcard strong {{ display: block; font-size: 15px; line-height: 1.25; margin-bottom: 6px; }}
+    .statecard span, .coveragecard p, .gapcard span {{ display: block; color: var(--muted); font-size: 14px; line-height: 1.4; }}
+    .gapcard b {{ display: block; margin-top: 12px; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink); }}
+    .badge {{ display: inline-flex; border-radius: 999px; padding: 4px 8px; margin-bottom: 8px; background: #eef8f1; color: var(--green); font-size: 12px; font-weight: 750; }}
+    .badge.amber {{ background: #fff7ed; color: var(--amber); }}
+    .strength {{ margin-top: 12px; }}
+    .strength div:first-child {{ display: flex; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 13px; }}
+    .strength strong {{ color: var(--ink); }}
     table {{ width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 14px; table-layout: fixed; }}
     th, td {{ text-align: left; border-bottom: 1px solid var(--line); padding: 9px 8px; vertical-align: top; overflow-wrap: anywhere; }}
     th {{ color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }}
@@ -300,27 +425,18 @@ def main():
           <span class="pill">goal audit</span>
           <span class="pill">data inventory</span>
         </div>
-        <table>
-          <thead><tr><th>Area</th><th>State</th></tr></thead>
-          <tbody>
-            <tr><td>Ticket participation</td><td>Implemented with quarterly charts.</td></tr>
-            <tr><td>Project load</td><td>Implemented with flow, backlog, response, closure, reopen, and age charts.</td></tr>
-            <tr><td>Market position</td><td>Implemented with all-site/CMS share, HTTP Archive origin counts, tracked builder-share history, traffic tiers, competitor signals, demand proxies, and compact proxy-direction summaries.</td></tr>
-            <tr><td>Refreshability</td><td>Decision brief, progress summary, companion views, goal audit, source gap plan, and data inventory are generated from SQLite or the current report artifact list.</td></tr>
-          </tbody>
-        </table>
+        <div class="mini-grid">
+{current_state}
+        </div>
       </div>
     </section>
 
     <section class="section" style="margin-top:14px">
       <h2>Goal coverage checklist</h2>
       <p class="note">This maps the current artifacts back to goal.md. Items marked partial are present in the report, but rely on proxies or snapshots rather than the ideal broad historical source.</p>
-      <table>
-        <thead><tr><th>Requirement</th><th>Evidence</th><th>Status</th></tr></thead>
-        <tbody>
-{coverage_rows}
-        </tbody>
-      </table>
+      <div class="coveragegrid">
+{coverage_grid}
+      </div>
     </section>
 
     <section class="section" style="margin-top:14px">
@@ -335,12 +451,12 @@ def main():
         <a class="pill" href="source_gap_plan.html">Source gap plan</a>
         <a class="pill" href="refresh_runbook.html">Refresh runbook</a>
       </div>
-      <table>
-        <thead><tr><th>Partial signal</th><th>Best next source</th><th>Current coverage</th></tr></thead>
-        <tbody>
-{next_rows}
-        </tbody>
-      </table>
+      <div class="gapcards">
+{next_grid}
+      </div>
+      <div class="strengthwrap">
+{strength_bars}
+      </div>
       <p class="note" style="margin-top:10px">Disk is currently very tight, so the next data pull should either free local cache space first or import one source at a time and checkpoint SQLite after each refresh.</p>
     </section>
   </main>

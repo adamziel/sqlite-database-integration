@@ -2907,6 +2907,7 @@ def build_derived_metrics(data):
         "support_forum_age_buckets": support_age,
         "contributor_depth_buckets": derive_contributor_depth(data),
         "contributor_concentration_summary": derive_contributor_concentration_summary(data),
+        "maintainer_participation_quarterly": derive_maintainer_participation_quarterly(data),
         "category_open_backlog_summary": derive_category_open_backlog_summary(data),
         "open_backlog_age_summary": derive_open_backlog_age_summary(data),
         "closure_age_summary": derive_closure_age_summary(data),
@@ -3464,6 +3465,76 @@ def derive_contributor_concentration_summary(data):
     return rows
 
 
+PROJECT_MEMBER_ASSOCIATIONS = {"MEMBER", "OWNER", "COLLABORATOR"}
+
+
+def participation_bucket(row):
+    author_type = str(row.get("author_type") or "").strip().lower()
+    if author_type == "bot":
+        return "bot"
+    association = str(row.get("author_association") or "").strip().upper()
+    if association in PROJECT_MEMBER_ASSOCIATIONS:
+        return "project_member"
+    if association:
+        return "outside"
+    return "unknown"
+
+
+def derive_maintainer_participation_quarterly(data):
+    source_defs = [
+        ("Gutenberg issues", data.get("gutenberg_issues", []), "created_at", "author_login"),
+        ("wordpress-develop PRs", data.get("github_prs", []), "created_at", "author_login"),
+    ]
+    rows = []
+    for source, source_rows, date_key, author_key in source_defs:
+        buckets = defaultdict(
+            lambda: {
+                "project_member_items": 0,
+                "outside_items": 0,
+                "bot_items": 0,
+                "unknown_items": 0,
+                "project_member_authors": set(),
+                "outside_authors": set(),
+                "bot_authors": set(),
+                "unknown_authors": set(),
+            }
+        )
+        for item in source_rows:
+            quarter = quarter_start(item.get(date_key))
+            if not quarter:
+                continue
+            bucket = participation_bucket(item)
+            author = str(item.get(author_key) or "").strip() or "(unknown)"
+            values = buckets[quarter]
+            values[f"{bucket}_items"] += 1
+            values[f"{bucket}_authors"].add(author)
+        for quarter, values in sorted(buckets.items()):
+            known_human_items = values["project_member_items"] + values["outside_items"]
+            total_items = known_human_items + values["bot_items"] + values["unknown_items"]
+            rows.append(
+                {
+                    "source": source,
+                    "quarter": quarter,
+                    "label": quarter_label(quarter),
+                    "project_member_items": values["project_member_items"],
+                    "outside_items": values["outside_items"],
+                    "bot_items": values["bot_items"],
+                    "unknown_items": values["unknown_items"],
+                    "known_human_items": known_human_items,
+                    "total_items": total_items,
+                    "project_member_authors": len(values["project_member_authors"]),
+                    "outside_authors": len(values["outside_authors"]),
+                    "bot_authors": len(values["bot_authors"]),
+                    "unknown_authors": len(values["unknown_authors"]),
+                    "project_member_share_pct": round(values["project_member_items"] / known_human_items * 100, 2) if known_human_items else 0,
+                    "outside_share_pct": round(values["outside_items"] / known_human_items * 100, 2) if known_human_items else 0,
+                    "bot_share_pct": round(values["bot_items"] / total_items * 100, 2) if total_items else 0,
+                    "source_note": "GitHub author_association bucketed by quarter; project-member means MEMBER/OWNER/COLLABORATOR and excludes bots.",
+                }
+            )
+    return rows
+
+
 def derive_category_open_backlog_summary(data):
     sources = [
         ("Core", data.get("classification_summary_core", [])),
@@ -3662,6 +3733,7 @@ def source_status_rows(fetched):
         ("Gutenberg GitHub issues", "covered", "32k issues with labels, state, authors, close dates"),
         ("Gutenberg response/reopen timelines", "covered" if SOURCE_FILES["gutenberg_timeline_quarterly"].exists() else "missing", "GitHub comment timestamps and reopened events"),
         ("wordpress-develop PRs", "covered", "12k PRs with authors, dates, Trac links"),
+        ("Project-member/outside split", "covered" if fetched.get("maintainer_participation_quarterly") else "missing", "Quarterly GitHub author_association split for Gutenberg issues and wordpress-develop PRs"),
         ("Contributor depth buckets", "covered" if fetched.get("contributor_depth_buckets") else "missing", "One-time, repeat, and sustained contributors across Core, Gutenberg, and PR activity"),
         ("Contributor concentration", "covered" if fetched.get("contributor_concentration_summary") else "missing", "Top 10, 25, and 50 contributor work share across Core, Gutenberg, and PR activity"),
         ("Ticket category classification", "covered", "Bug, feature request, enhancement, task, and other categories"),
@@ -3763,6 +3835,7 @@ def build_report(data, fetched):
     builtwith_technology_history = fetched.get("builtwith_technology_history", [])
     contributor_depth = fetched.get("contributor_depth_buckets", [])
     contributor_concentration_summary = fetched.get("contributor_concentration_summary", [])
+    maintainer_participation = fetched.get("maintainer_participation_quarterly", [])
     category_open_backlog = fetched.get("category_open_backlog_summary", [])
     open_backlog_age = fetched.get("open_backlog_age_summary", [])
 
@@ -3856,6 +3929,21 @@ def build_report(data, fetched):
         ("Gutenberg issue creators", "Gutenberg", COLORS["gutenberg"]),
         ("wordpress-develop PR authors", "PRs", COLORS["prs"]),
     ]
+    maintainer_latest_by_source = {
+        source: max(
+            [row for row in maintainer_participation if row.get("source") == source],
+            key=lambda row: row.get("quarter", ""),
+            default={},
+        )
+        for source in ("Gutenberg issues", "wordpress-develop PRs")
+    }
+
+    def maintainer_points(source, field, start="2021-01-01"):
+        return [
+            (row.get("quarter"), num(row.get(field)))
+            for row in sorted(maintainer_participation, key=lambda item: (item.get("source", ""), item.get("quarter", "")))
+            if row.get("source") == source and row.get("quarter", "") >= start
+        ]
 
     wp_usage_latest = market_latest(market_rows, "all_sites_usage", "WordPress")
     wp_usage_2025 = next((r for r in market_rows if r["metric"] == "all_sites_usage" and r["technology"] == "WordPress" and r["date"] == "2025-01-01"), None)
@@ -4461,6 +4549,26 @@ p {{ margin:0 0 12px; }}
         {"label": "Gutenberg repeat creators", "color": COLORS["gutenberg"], "points": gut_repeat_creator_points},
         {"label": "PR repeat authors", "color": COLORS["prs"], "points": pr_repeat_author_points},
     ])}
+    <div class="grid-2">
+      <div>
+        {svg_line_chart("Project-member share of GitHub work", "Quarterly split from GitHub author_association. Project-member means MEMBER/OWNER/COLLABORATOR; bots are excluded from the share.", [
+            {"label": "Gutenberg issues", "color": COLORS["gutenberg"], "points": maintainer_points("Gutenberg issues", "project_member_share_pct")},
+            {"label": "Core PRs", "color": COLORS["prs"], "points": maintainer_points("wordpress-develop PRs", "project_member_share_pct")},
+        ], y_suffix="%")}
+      </div>
+      <div class="card">
+        <h3>Project-member vs outside work</h3>
+        <p>This is the closest available maintainer/non-maintainer split for GitHub-originated activity. It is based on the author's relationship to the repository at collection time, not on who reviewed or merged the work.</p>
+        <div class="stats">
+          {stat_card("Gutenberg member share", pct(num(maintainer_latest_by_source.get("Gutenberg issues", {}).get("project_member_share_pct"))), quarter_label(maintainer_latest_by_source.get("Gutenberg issues", {}).get("quarter", "")), "soft")}
+          {stat_card("Gutenberg outside authors", compact(num(maintainer_latest_by_source.get("Gutenberg issues", {}).get("outside_authors"))), "latest quarter", "good")}
+          {stat_card("Core PR member share", pct(num(maintainer_latest_by_source.get("wordpress-develop PRs", {}).get("project_member_share_pct"))), quarter_label(maintainer_latest_by_source.get("wordpress-develop PRs", {}).get("quarter", "")), "soft")}
+          {stat_card("Core PR outside authors", compact(num(maintainer_latest_by_source.get("wordpress-develop PRs", {}).get("outside_authors"))), "latest quarter", "good")}
+        </div>
+        {horizontal_metric("Latest Gutenberg outside share", num(maintainer_latest_by_source.get("Gutenberg issues", {}).get("outside_share_pct")), 100, COLORS["community"])}
+        {horizontal_metric("Latest Core PR outside share", num(maintainer_latest_by_source.get("wordpress-develop PRs", {}).get("outside_share_pct")), 100, COLORS["community"])}
+      </div>
+    </div>
     <div class="grid-2">
       <div>
         {svg_line_chart("Gutenberg issue origin", "GitHub exposes author association, so this can split member and community-created issues.", [

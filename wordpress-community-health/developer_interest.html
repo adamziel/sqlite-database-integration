@@ -61,7 +61,7 @@
 <body>
 <main>
   <h1>WordPress developer interest</h1>
-    <p class="lede">A compact readout of developer-attention and demand proxies already stored in SQLite: Stack Overflow questions, Wikipedia pageviews, npm package downloads, GitHub repository interest, Hacker News hiring mentions, WordPress Jobs snapshots, and wordpress-develop PR activity.</p>
+    <p class="lede">A compact readout of developer-attention and demand proxies already stored in SQLite: Stack Overflow questions, Wikipedia pageviews, npm package downloads, GitHub repository interest, Hacker News hiring mentions, WordPress Jobs snapshots, and wordpress-develop PR plus review-comment activity.</p>
     <nav class="nav">
       <a href="index.html#market">Market Position</a>
       <a href="index.html#participation">Participation</a>
@@ -112,10 +112,15 @@
         <strong>162</strong>
         <p>2026 Q2; 66 first-time authors</p>
       </article>
+      <article class="metric green">
+        <h3>GitHub review comments</h3>
+        <strong>1,409</strong>
+        <p>2026 Q2; 93 commenters</p>
+      </article>
       <article class="metric amber">
         <h3>Jobs board listings</h3>
-        <strong>15</strong>
-        <p>2026-06-14; -48.3% vs 2023-01-01</p>
+        <strong>13</strong>
+        <p>2026-06-14; -55.2% vs 2023-01-01</p>
       </article>
   </section>
 
@@ -140,10 +145,10 @@
         </div>
         <div class="signal-row green">
           <div>
-            <strong>Code-review activity is not showing the same drop</strong>
-            <span>wordpress-develop PR creation and author counts remain substantial in recent quarters.</span>
+            <strong>Code-review activity remains visible</strong>
+            <span>wordpress-develop has both substantial PR flow and line review-comment traffic in recent quarters.</span>
           </div>
-          <b>741 PRs</b>
+          <b>1,409 comments</b>
         </div>
         <div class="signal-row green">
           <div>
@@ -164,14 +169,14 @@
             <strong>Hiring proxies are narrower and lower</strong>
             <span>HN WP/Woo mentions and jobs.wordpress.net open listings are both lower than their stored baselines.</span>
           </div>
-          <b>15 listings</b>
+          <b>13 listings</b>
         </div>
       </div>
     </article>
     <article class="section">
       <h2>How to read this</h2>
       <p>This page separates public attention, developer help-seeking, code-review participation, and hiring proxies. Lower help questions can mean less interest, fewer Stack Overflow users, better docs, or answers moving elsewhere, so it should not be read as adoption by itself.</p>
-      <p class="callout">Quarterly Stack Overflow tag volume, Wikimedia pageviews, npm @wordpress package downloads, wordpress-develop PR activity, GitHub repository interest snapshots, and a compact attention/demand summary are included as public attention and contribution proxies; they do not measure general search-query interest.</p>
+      <p class="callout">Quarterly Stack Overflow tag volume, Wikimedia pageviews, npm @wordpress package downloads, wordpress-develop PR and line review-comment activity, GitHub repository interest snapshots, and a compact attention/demand summary are included as public attention and contribution proxies; they do not measure general search-query interest.</p>
     </article>
   </section>
 
@@ -273,9 +278,9 @@
 </div>
 </article>
 <article class="chart-card">
-<h2>GitHub code-review activity</h2>
+<h2>GitHub PR flow</h2>
 <p>Quarterly wordpress-develop pull requests. This is project contribution activity, not market demand.</p>
-<svg viewBox="0 0 760 300" role="img" aria-label="GitHub code-review activity">
+<svg viewBox="0 0 760 300" role="img" aria-label="GitHub PR flow">
 <line x1="58" x2="734" y1="252.0" y2="252.0" class="gridline" />
 <text x="48" y="256.0" class="axis" text-anchor="end">0</text>
 <line x1="58" x2="734" y1="147.0" y2="147.0" class="gridline" />
@@ -298,6 +303,31 @@
 <span><i style="background:#159957"></i>Closed PRs <b>257</b></span>
 <span><i style="background:#7c3aed"></i>Unique authors <b>162</b></span>
 <span><i style="background:#b7791f"></i>First-time authors <b>66</b></span>
+</div>
+</article>
+<article class="chart-card">
+<h2>GitHub code-review comments</h2>
+<p>Quarterly wordpress-develop line review comments from GitHub pull-request review-comment activity.</p>
+<svg viewBox="0 0 760 300" role="img" aria-label="GitHub code-review comments">
+<line x1="58" x2="734" y1="252.0" y2="252.0" class="gridline" />
+<text x="48" y="256.0" class="axis" text-anchor="end">0</text>
+<line x1="58" x2="734" y1="147.0" y2="147.0" class="gridline" />
+<text x="48" y="151.0" class="axis" text-anchor="end">2,113</text>
+<line x1="58" x2="734" y1="42.0" y2="42.0" class="gridline" />
+<text x="48" y="46.0" class="axis" text-anchor="end">4,226</text>
+<path d="M58.0,191.3 L97.8,202.9 L137.5,167.8 L177.3,200.3 L217.1,167.5 L256.8,153.5 L296.6,120.7 L336.4,181.7 L376.1,126.5 L415.9,166.1 L455.6,171.7 L495.4,208.0 L535.2,208.3 L574.9,228.9 L614.7,197.9 L654.5,138.4 L694.2,64.5 L734.0,182.0" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="734.0" cy="182.0" r="4" fill="#2563eb" />
+<path d="M58.0,246.1 L97.8,244.8 L137.5,243.7 L177.3,243.5 L217.1,242.4 L256.8,243.7 L296.6,239.3 L336.4,243.3 L376.1,240.8 L415.9,239.8 L455.6,241.0 L495.4,242.8 L535.2,243.3 L574.9,246.1 L614.7,242.7 L654.5,237.7 L694.2,232.5 L734.0,241.7" fill="none" stroke="#159957" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="734.0" cy="241.7" r="4" fill="#159957" />
+<path d="M58.0,248.7 L97.8,248.4 L137.5,248.1 L177.3,248.6 L217.1,248.0 L256.8,247.8 L296.6,246.9 L336.4,248.1 L376.1,247.1 L415.9,246.8 L455.6,247.8 L495.4,247.9 L535.2,248.4 L574.9,249.2 L614.7,248.1 L654.5,247.4 L694.2,246.4 L734.0,247.4" fill="none" stroke="#7c3aed" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="734.0" cy="247.4" r="4" fill="#7c3aed" />
+<text x="58" y="284" class="axis">2022 Q1</text>
+<text x="734" y="284" class="axis" text-anchor="end">2026 Q2</text>
+</svg>
+<div class="legend">
+<span><i style="background:#2563eb"></i>Review comments <b>1,409</b></span>
+<span><i style="background:#159957"></i>Reviewed PRs <b>207</b></span>
+<span><i style="background:#7c3aed"></i>Review commenters <b>93</b></span>
 </div>
 </article>
 <article class="chart-card">
@@ -335,8 +365,8 @@
 <text x="48" y="151.0" class="axis" text-anchor="end">22</text>
 <line x1="58" x2="734" y1="42.0" y2="42.0" class="gridline" />
 <text x="48" y="46.0" class="axis" text-anchor="end">45</text>
-<path d="M58.0,120.8 L133.1,64.5 L208.2,102.0 L283.3,102.0 L358.4,97.3 L433.6,134.8 L508.7,116.1 L583.8,153.6 L658.9,181.7 L734.0,181.7" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
-<circle cx="734.0" cy="181.7" r="4" fill="#2563eb" />
+<path d="M58.0,120.8 L133.1,64.5 L208.2,102.0 L283.3,102.0 L358.4,97.3 L433.6,134.8 L508.7,116.1 L583.8,153.6 L658.9,181.7 L734.0,191.1" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="734.0" cy="191.1" r="4" fill="#2563eb" />
 <path d="M58.0,181.7 L133.1,195.8 L208.2,181.7 L283.3,181.7 L358.4,181.7 L433.6,181.7 L508.7,186.4 L583.8,200.4 L658.9,219.2 L734.0,219.2" fill="none" stroke="#159957" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
 <circle cx="734.0" cy="219.2" r="4" fill="#159957" />
 <path d="M58.0,177.0 L133.1,111.4 L208.2,186.4 L283.3,195.8 L358.4,205.1 L433.6,205.1 L508.7,214.5 L583.8,205.1 L658.9,214.5 L734.0,223.9" fill="none" stroke="#b7791f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
@@ -345,14 +375,14 @@
 <text x="734" y="284" class="axis" text-anchor="end">2026</text>
 </svg>
 <div class="legend">
-<span><i style="background:#2563eb"></i>All listings <b>15</b></span>
+<span><i style="background:#2563eb"></i>All listings <b>13</b></span>
 <span><i style="background:#159957"></i>Development <b>7</b></span>
 <span><i style="background:#b7791f"></i>Project <b>6</b></span>
 </div>
 </article>
   </section>
 
-  <p class="footer-note">Rows come from <code>stack_overflow_tag_quarterly</code>, <code>wikimedia_pageviews_quarterly</code>, <code>npm_wordpress_downloads_quarterly</code>, <code>github_repo_interest_snapshot</code> collected 2026-06-14, <code>hn_hiring_wordpress_quarterly</code>, <code>wordpress_jobs_board_snapshots</code>, <code>github_pr_quarterly</code>, and <code>attention_demand_summary</code>. Integrity check: <code>ok</code>.</p>
+  <p class="footer-note">Rows come from <code>stack_overflow_tag_quarterly</code>, <code>wikimedia_pageviews_quarterly</code>, <code>npm_wordpress_downloads_quarterly</code>, <code>github_repo_interest_snapshot</code> collected 2026-06-14, <code>hn_hiring_wordpress_quarterly</code>, <code>wordpress_jobs_board_snapshots</code>, <code>github_pr_quarterly</code>, <code>github_pr_review_comments_quarterly</code>, and <code>attention_demand_summary</code>. Integrity check: <code>ok</code>.</p>
 </main>
 </body>
 </html>

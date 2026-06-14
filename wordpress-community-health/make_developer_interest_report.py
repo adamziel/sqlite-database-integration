@@ -245,6 +245,11 @@ def main():
         hn = rows(conn, "SELECT * FROM hn_hiring_wordpress_quarterly ORDER BY quarter")
         jobs = rows(conn, "SELECT * FROM wordpress_jobs_board_snapshots ORDER BY snapshot_date")
         prs = rows(conn, "SELECT * FROM github_pr_quarterly ORDER BY quarter")
+        review_comments = (
+            rows(conn, "SELECT * FROM github_pr_review_comments_quarterly ORDER BY quarter")
+            if table_exists(conn, "github_pr_review_comments_quarterly")
+            else []
+        )
         gap = rows(conn, "SELECT * FROM source_gaps WHERE signal='developer_interest_proxy'")
     finally:
         conn.close()
@@ -258,6 +263,7 @@ def main():
     latest_pr = latest(prs, "quarter")
     latest_hn = latest(hn, "quarter")
     latest_jobs = latest(jobs, "snapshot_date")
+    latest_review = latest(review_comments, "quarter")
     latest_so = latest([row for row in stack if row.get("technology") == "WordPress"], "quarter")
     latest_wiki = latest([row for row in wiki if row.get("technology") == "WordPress"], "quarter")
     latest_npm_quarter = max([row.get("quarter", "") for row in npm], default="")
@@ -332,13 +338,23 @@ def main():
         value_decimals=0,
     )
     pr_chart = multi_line_chart(
-        "GitHub code-review activity",
+        "GitHub PR flow",
         "Quarterly wordpress-develop pull requests. This is project contribution activity, not market demand.",
         [
             {"name": "Created PRs", "color": COLORS["wordpress"], "points": point_series(prs, "quarter", "created", limit=18)},
             {"name": "Closed PRs", "color": COLORS["green"], "points": point_series(prs, "quarter", "closed", limit=18)},
             {"name": "Unique authors", "color": COLORS["woocommerce"], "points": point_series(prs, "quarter", "unique_authors", limit=18)},
             {"name": "First-time authors", "color": COLORS["amber"], "points": point_series(prs, "quarter", "first_time_authors", limit=18)},
+        ],
+        value_decimals=0,
+    )
+    review_chart = multi_line_chart(
+        "GitHub code-review comments",
+        "Quarterly wordpress-develop line review comments from GitHub pull-request review-comment activity.",
+        [
+            {"name": "Review comments", "color": COLORS["wordpress"], "points": point_series(review_comments, "quarter", "review_comments", limit=18)},
+            {"name": "Reviewed PRs", "color": COLORS["green"], "points": point_series(review_comments, "quarter", "reviewed_prs", limit=18)},
+            {"name": "Review commenters", "color": COLORS["woocommerce"], "points": point_series(review_comments, "quarter", "unique_commenters", limit=18)},
         ],
         value_decimals=0,
     )
@@ -403,6 +419,12 @@ def main():
                 "green",
             ),
             metric_card(
+                "GitHub review comments",
+                compact(latest_review.get("review_comments")),
+                f"{quarter_label(latest_review.get('quarter'))}; {compact(latest_review.get('unique_commenters'))} commenters",
+                "green",
+            ),
+            metric_card(
                 "Jobs board listings",
                 compact(latest_jobs.get("total_jobs")),
                 f"{latest_jobs.get('snapshot_date', 'latest')}; {change_label(jobs_summary)}",
@@ -426,9 +448,9 @@ def main():
                 "wordpress",
             ),
             signal_row(
-                "Code-review activity is not showing the same drop",
-                "wordpress-develop PR creation and author counts remain substantial in recent quarters.",
-                f"{compact(latest_pr.get('created'))} PRs",
+                "Code-review activity remains visible",
+                "wordpress-develop has both substantial PR flow and line review-comment traffic in recent quarters.",
+                f"{compact(latest_review.get('review_comments'))} comments",
                 "green",
             ),
             signal_row(
@@ -517,7 +539,7 @@ def main():
 <body>
 <main>
   <h1>WordPress developer interest</h1>
-    <p class="lede">A compact readout of developer-attention and demand proxies already stored in SQLite: Stack Overflow questions, Wikipedia pageviews, npm package downloads, GitHub repository interest, Hacker News hiring mentions, WordPress Jobs snapshots, and wordpress-develop PR activity.</p>
+    <p class="lede">A compact readout of developer-attention and demand proxies already stored in SQLite: Stack Overflow questions, Wikipedia pageviews, npm package downloads, GitHub repository interest, Hacker News hiring mentions, WordPress Jobs snapshots, and wordpress-develop PR plus review-comment activity.</p>
 {nav_html()}
 
   <section class="metrics" aria-label="Developer interest summary">
@@ -543,11 +565,12 @@ def main():
 {wiki_chart}
 {npm_chart}
 {pr_chart}
+{review_chart}
 {hn_chart}
 {jobs_chart}
   </section>
 
-  <p class="footer-note">Rows come from <code>stack_overflow_tag_quarterly</code>, <code>wikimedia_pageviews_quarterly</code>, <code>npm_wordpress_downloads_quarterly</code>, <code>github_repo_interest_snapshot</code> collected {esc(repo_collected)}, <code>hn_hiring_wordpress_quarterly</code>, <code>wordpress_jobs_board_snapshots</code>, <code>github_pr_quarterly</code>, and <code>attention_demand_summary</code>. Integrity check: <code>{esc(integrity)}</code>.</p>
+  <p class="footer-note">Rows come from <code>stack_overflow_tag_quarterly</code>, <code>wikimedia_pageviews_quarterly</code>, <code>npm_wordpress_downloads_quarterly</code>, <code>github_repo_interest_snapshot</code> collected {esc(repo_collected)}, <code>hn_hiring_wordpress_quarterly</code>, <code>wordpress_jobs_board_snapshots</code>, <code>github_pr_quarterly</code>, <code>github_pr_review_comments_quarterly</code>, and <code>attention_demand_summary</code>. Integrity check: <code>{esc(integrity)}</code>.</p>
 </main>
 </body>
 </html>

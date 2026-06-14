@@ -82,7 +82,7 @@ def timeline_item(label, body):
 GAP_SUMMARIES = {
     "developer_interest_proxy": {
         "title": "Developer interest",
-        "current": "Stack Overflow, Wikimedia, npm downloads, GitHub PRs, and repository-interest snapshots are in.",
+        "current": "Stack Overflow, Wikimedia, npm downloads, GitHub PRs, GitHub review comments, and repository-interest snapshots are in.",
         "next": "Add one broader developer-community source.",
     },
     "job_demand": {
@@ -215,7 +215,7 @@ def main():
             link_card("Contributor depth", "Drive-by, repeat, regular, and sustained participation readout.", "contributor_depth.html", "green"),
             link_card("Market position", "Installed-share, current new-site proxy, and demand direction readout.", "market_position.html", "amber"),
             link_card("New-site choice", "Current newly found-site, recurring crawl, and traffic-tier readout.", "new_site_choice.html", "amber"),
-            link_card("Developer interest", "Help-seeking, public attention, npm packages, hiring proxies, and PR activity.", "developer_interest.html", "amber"),
+            link_card("Developer interest", "Help-seeking, public attention, npm packages, hiring proxies, PR flow, and review-comment activity.", "developer_interest.html", "amber"),
             link_card("Search interest", "Wikimedia pageviews and Stack Overflow questions as public-attention proxies.", "search_interest.html", "amber"),
             link_card("Job demand", "HN hiring mentions, Remote OK current jobs, WordPress Jobs snapshots, and jobs-board categories.", "job_demand.html", "amber"),
             link_card("Ecosystem activity", "Non-ticket community channels and current ecosystem snapshots.", "ecosystem_activity.html", "green"),

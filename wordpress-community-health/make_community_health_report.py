@@ -66,6 +66,8 @@ SKIP_NETWORK_DB_FALLBACK_TABLES = [
     "npm_wordpress_downloads_monthly",
     "npm_wordpress_downloads_quarterly",
     "github_repo_interest_snapshot",
+    "github_pr_review_comments",
+    "github_pr_review_comments_quarterly",
     "hn_hiring_wordpress_quarterly",
     "remoteok_job_signal_snapshot",
     "remoteok_matching_jobs_snapshot",
@@ -155,6 +157,8 @@ RELEASE_ARCHIVE_URL = "https://wordpress.org/download/releases/"
 CREDITS_API = "https://api.wordpress.org/core/credits/1.1/"
 GITHUB_COMPARE_API = "https://api.github.com/repos/WordPress/wordpress-develop/compare"
 GITHUB_REPO_API = "https://api.github.com/repos"
+GITHUB_PR_REVIEW_COMMENTS_API = "https://api.github.com/repos/WordPress/wordpress-develop/pulls/comments"
+GITHUB_PR_REVIEW_COMMENTS_CACHE = ROOT / "cache" / "github-wordpress-develop-review-comments.json"
 GITHUB_INTEREST_REPOS = [
     ("WordPress", "wordpress-develop", "Core development mirror"),
     ("WordPress", "gutenberg", "Block editor project"),
@@ -640,6 +644,158 @@ def fetch_github_repo_interest_snapshot(skip_network=False):
             }
         )
         time.sleep(0.05)
+    return rows
+
+
+def pull_number_from_url(value):
+    match = re.search(r"/pulls/(\d+)$", str(value or ""))
+    return match.group(1) if match else ""
+
+
+def compact_review_comment(item, collected_at):
+    user = item.get("user") or {}
+    return {
+        "id": item.get("id", ""),
+        "pull_request_review_id": item.get("pull_request_review_id", ""),
+        "pull_number": pull_number_from_url(item.get("pull_request_url")),
+        "commenter_login": user.get("login", ""),
+        "commenter_type": user.get("type", ""),
+        "author_association": item.get("author_association", ""),
+        "created_at": item.get("created_at", ""),
+        "updated_at": item.get("updated_at", ""),
+        "path": item.get("path", ""),
+        "subject_type": item.get("subject_type", ""),
+        "in_reply_to_id": item.get("in_reply_to_id", ""),
+        "source_url": item.get("html_url", ""),
+        "api_url": item.get("url", ""),
+        "collected_at": collected_at,
+    }
+
+
+def fetch_github_pr_review_comments(skip_network=False):
+    if GITHUB_PR_REVIEW_COMMENTS_CACHE.exists():
+        try:
+            payload = json.loads(GITHUB_PR_REVIEW_COMMENTS_CACHE.read_text(encoding="utf-8"))
+            rows = payload.get("rows", []) if isinstance(payload, dict) else payload
+            if rows:
+                return rows
+        except (json.JSONDecodeError, OSError):
+            pass
+    if skip_network:
+        return []
+
+    token = credential_from_git()
+    if not token:
+        eprint("GitHub review comments unavailable: no Git credential for authenticated API access")
+        return []
+
+    collected_at = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
+    rows = []
+    url = f"{GITHUB_PR_REVIEW_COMMENTS_API}?per_page=100&sort=created&direction=asc"
+    page = 0
+    while url:
+        page += 1
+        try:
+            payload, headers = github_json(url, token=token, use_cache=False)
+        except urllib.error.HTTPError as exc:
+            eprint(f"GitHub review comments unavailable on page {page}: HTTP {exc.code}")
+            break
+        if not isinstance(payload, list):
+            eprint(f"GitHub review comments returned unexpected payload on page {page}")
+            break
+        rows.extend(compact_review_comment(item, collected_at) for item in payload)
+        remaining = headers.get("X-RateLimit-Remaining")
+        eprint(f"review comments page {page}: total={len(rows)} remaining={remaining}")
+        url = next_link(headers)
+        time.sleep(0.03)
+
+    if rows:
+        GITHUB_PR_REVIEW_COMMENTS_CACHE.parent.mkdir(parents=True, exist_ok=True)
+        GITHUB_PR_REVIEW_COMMENTS_CACHE.write_text(
+            json.dumps(
+                {
+                    "collected_at": collected_at,
+                    "source_url": GITHUB_PR_REVIEW_COMMENTS_API,
+                    "rows": rows,
+                },
+                ensure_ascii=True,
+                sort_keys=True,
+            ),
+            encoding="utf-8",
+        )
+    return rows
+
+
+def derive_github_pr_review_comments_quarterly(review_comments):
+    buckets = defaultdict(
+        lambda: {
+            "comments": 0,
+            "reply_comments": 0,
+            "review_threads": set(),
+            "reviewed_prs": set(),
+            "commenters": set(),
+            "project_member_commenters": set(),
+            "outside_commenters": set(),
+            "bot_commenters": set(),
+            "unknown_commenters": set(),
+            "project_member_comments": 0,
+            "outside_comments": 0,
+            "bot_comments": 0,
+            "unknown_comments": 0,
+        }
+    )
+    for row in review_comments or []:
+        quarter = quarter_start(row.get("created_at"))
+        if not quarter:
+            continue
+        values = buckets[quarter]
+        values["comments"] += 1
+        if row.get("in_reply_to_id"):
+            values["reply_comments"] += 1
+        review_id = str(row.get("pull_request_review_id") or "").strip()
+        if review_id:
+            values["review_threads"].add(review_id)
+        pull_number = str(row.get("pull_number") or "").strip()
+        if pull_number:
+            values["reviewed_prs"].add(pull_number)
+        commenter = str(row.get("commenter_login") or "").strip() or "(unknown)"
+        values["commenters"].add(commenter)
+        bucket = participation_bucket(
+            {
+                "author_type": row.get("commenter_type"),
+                "author_association": row.get("author_association"),
+            }
+        )
+        values[f"{bucket}_comments"] += 1
+        values[f"{bucket}_commenters"].add(commenter)
+
+    rows = []
+    for quarter, values in sorted(buckets.items()):
+        known_human_comments = values["project_member_comments"] + values["outside_comments"]
+        total_comments = values["comments"]
+        rows.append(
+            {
+                "quarter": quarter,
+                "label": quarter_label(quarter),
+                "review_comments": total_comments,
+                "reply_comments": values["reply_comments"],
+                "review_threads": len(values["review_threads"]),
+                "reviewed_prs": len(values["reviewed_prs"]),
+                "unique_commenters": len(values["commenters"]),
+                "project_member_comments": values["project_member_comments"],
+                "outside_comments": values["outside_comments"],
+                "bot_comments": values["bot_comments"],
+                "unknown_comments": values["unknown_comments"],
+                "project_member_commenters": len(values["project_member_commenters"]),
+                "outside_commenters": len(values["outside_commenters"]),
+                "bot_commenters": len(values["bot_commenters"]),
+                "unknown_commenters": len(values["unknown_commenters"]),
+                "project_member_share_pct": round(values["project_member_comments"] / known_human_comments * 100, 2) if known_human_comments else 0,
+                "outside_share_pct": round(values["outside_comments"] / known_human_comments * 100, 2) if known_human_comments else 0,
+                "comments_per_reviewed_pr": round(total_comments / len(values["reviewed_prs"]), 2) if values["reviewed_prs"] else 0,
+                "source_note": "GitHub pull-request line review comments from wordpress-develop /pulls/comments API; excludes reviews with no line comment.",
+            }
+        )
     return rows
 
 
@@ -4453,8 +4609,8 @@ def build_database(data, fetched):
             (
                 "developer_interest_proxy",
                 "partial",
-                "Stack Exchange API question totals, Wikimedia Pageviews API, npm package downloads, GitHub PR/repository activity, and broader developer-community sources",
-                "Quarterly Stack Overflow tag volume, Wikimedia pageviews, npm @wordpress package downloads, wordpress-develop PR activity, GitHub repository interest snapshots, and a compact attention/demand summary are included as public attention and contribution proxies; they do not measure general search-query interest.",
+                "Stack Exchange API question totals, Wikimedia Pageviews API, npm package downloads, GitHub PR/repository/review activity, and broader developer-community sources",
+                "Quarterly Stack Overflow tag volume, Wikimedia pageviews, npm @wordpress package downloads, wordpress-develop PR and line review-comment activity, GitHub repository interest snapshots, and a compact attention/demand summary are included as public attention and contribution proxies; they do not measure general search-query interest.",
             )
         )
     else:
@@ -5682,6 +5838,7 @@ def source_status_rows(fetched):
         ("Wikimedia pageviews", "covered" if fetched.get("wikimedia_pageviews_quarterly") else "missing", "Quarterly en.wikipedia article pageviews as a public-interest proxy, not search-query volume"),
         ("WordPress npm packages", "covered" if fetched.get("npm_wordpress_downloads_quarterly") else "missing", "Quarterly npm downloads for selected @wordpress packages as package-ecosystem activity, not developer headcount"),
         ("GitHub repo interest snapshot", "covered" if fetched.get("github_repo_interest_snapshot") else "missing", "Current stars, forks, subscribers, open issues, and activity timestamps for selected WordPress ecosystem repositories"),
+        ("GitHub PR review comments", "covered" if fetched.get("github_pr_review_comments_quarterly") else "missing", "Quarterly wordpress-develop line review-comment activity from GitHub pull-request review comments"),
         ("HN hiring mentions", "partial" if fetched.get("hn_hiring_wordpress_quarterly") else "missing", "WordPress/WooCommerce, PHP, and agency/studio mentions in monthly Hacker News Who is hiring threads from 2012 onward; not a broad job-board index"),
         ("Remote OK jobs snapshot", "partial" if fetched.get("remoteok_job_signal_snapshot") else "missing", "Current Remote OK public API job snapshot with WordPress, WooCommerce, PHP, hosted-builder, CMS, and agency/studio term counts"),
         ("WordPress Jobs board", "partial" if fetched.get("wordpress_jobs_board_snapshots") else "missing", "Open-listing snapshots from jobs.wordpress.net current page and annual Internet Archive captures; WordPress-specific, not a broad hiring-platform index"),
@@ -5763,6 +5920,7 @@ def build_report(data, fetched):
     wporg_ecosystem_stats = fetched.get("wporg_ecosystem_stats_snapshot", [])
     stack_overflow_tags = fetched.get("stack_overflow_tag_quarterly", [])
     wikimedia_pageviews_q = fetched.get("wikimedia_pageviews_quarterly", [])
+    review_comments_q = fetched.get("github_pr_review_comments_quarterly", [])
     hn_hiring_q = fetched.get("hn_hiring_wordpress_quarterly", [])
     hn_hiring_summary = fetched.get("hn_hiring_demand_summary", [])
     attention_demand_summary = fetched.get("attention_demand_summary", [])
@@ -5819,6 +5977,7 @@ def build_report(data, fetched):
     core_latest = current_latest(core_q)
     gut_latest = current_latest(gut_q)
     pr_latest = current_latest(github_q)
+    review_latest = current_latest(review_comments_q)
 
     core_created_prev = average(core_q, "created", "2021-01-01", "2024-01-01")
     core_created_recent = average(core_q, "created", "2024-01-01")
@@ -5832,6 +5991,9 @@ def build_report(data, fetched):
     gut_first_recent = average(gut_q, "first_time_creators", "2024-01-01")
     pr_created_prev = average(github_q, "created", "2021-01-01", "2024-01-01")
     pr_created_recent = average(github_q, "created", "2024-01-01")
+    review_comments_prev = average(review_comments_q, "review_comments", "2021-01-01", "2024-01-01")
+    review_comments_recent = average(review_comments_q, "review_comments", "2024-01-01")
+    review_comment_ratio = review_comments_recent / review_comments_prev * 100 if review_comments_prev else 0
     core_first_retention = core_first_recent / core_first_prev * 100 if core_first_prev else 0
     gut_first_retention = gut_first_recent / gut_first_prev * 100 if gut_first_prev else 0
     pr_flow_ratio = pr_created_recent / pr_created_prev * 100 if pr_created_prev else 0
@@ -7083,7 +7245,7 @@ p {{ margin:0 0 12px; }}
     {signal_card("Adoption", "Dominant, softer recently", adoption_detail, "watch")}
     {signal_card("Participation", "Fewer new reporters", f"Core first-time reporters averaged {compact(core_first_prev)} per quarter in 2021-2023 and {compact(core_first_recent)} since 2024. Gutenberg moved from {compact(gut_first_prev)} to {compact(gut_first_recent)}.", "slower")}
     {signal_card("Project load", "Closer to balanced", f"Since 2024, Core closures slightly exceed new tickets on average. Gutenberg is close to flat, with the latest sampled quarter closing {compact(num(gut_latest.get('closed')))} against {compact(num(gut_latest.get('created')))} new issues.", "soft")}
-    {signal_card("Code review", "PR flow is higher", f"wordpress-develop PR creation averaged {compact(pr_created_prev)} per quarter in 2021-2023 and {compact(pr_created_recent)} since 2024.", "good")}
+    {signal_card("Code review", "Review traffic remains visible", f"wordpress-develop PR creation averaged {compact(pr_created_prev)} per quarter in 2021-2023 and {compact(pr_created_recent)} since 2024. Line review comments averaged {compact(review_comments_recent)} per quarter since 2024.", "good")}
   </section>
 
   <section id="decision-questions" class="section">
@@ -7105,7 +7267,7 @@ p {{ margin:0 0 12px; }}
     <article class="question-card slower">
       <span class="tag">Participation?</span>
       <strong>Fewer new reporters.</strong>
-      <p>Core first-time reporter retention is {pct(core_first_retention)} of the 2021-2023 average; Gutenberg is {pct(gut_first_retention)}. PR creation is higher.</p>
+      <p>Core first-time reporter retention is {pct(core_first_retention)} of the 2021-2023 average; Gutenberg is {pct(gut_first_retention)}. PR and review-comment activity remain visible.</p>
       <span class="source">Core Trac + Gutenberg + PRs</span>
     </article>
     <article class="question-card soft">
@@ -7144,7 +7306,7 @@ p {{ margin:0 0 12px; }}
 
   <section id="participation" class="section">
     <h2>Participation</h2>
-    <p class="callout">The main participation change is not a collapse. It is fewer first-time and unique reporters in the trackers, while PR authorship is steadier and recent PR volume is higher. The companion <a href="contributor_depth.html">contributor depth view</a> breaks this down into drive-by, returning, regular, and sustained participation.</p>
+    <p class="callout">The main participation change is not a collapse. It is fewer first-time and unique reporters in the trackers, while PR authorship is steadier and code review still has visible quarterly traffic. The companion <a href="contributor_depth.html">contributor depth view</a> breaks this down into drive-by, returning, regular, and sustained participation.</p>
     {svg_line_chart("People opening issues and PRs by quarter", "Unique Core ticket reporters, Gutenberg issue creators, and wordpress-develop PR authors.", [
         {"label": "Core reporters", "color": COLORS["core"], "points": point_series(core_q, "quarter", "unique_reporters", "2021-01-01")},
         {"label": "Gutenberg creators", "color": COLORS["gutenberg"], "points": point_series(gut_q, "quarter", "unique_creators", "2021-01-01")},
@@ -7159,6 +7321,11 @@ p {{ margin:0 0 12px; }}
         {"label": "Core repeat reporters", "color": COLORS["core"], "points": core_repeat_reporter_points},
         {"label": "Gutenberg repeat creators", "color": COLORS["gutenberg"], "points": gut_repeat_creator_points},
         {"label": "PR repeat authors", "color": COLORS["prs"], "points": pr_repeat_author_points},
+    ])}
+    {svg_line_chart("Core GitHub PR review activity", "Line review comments, reviewed pull requests, and unique review commenters by quarter in wordpress-develop.", [
+        {"label": "Review comments", "color": COLORS["prs"], "points": point_series(review_comments_q, "quarter", "review_comments", "2021-01-01")},
+        {"label": "Reviewed PRs", "color": COLORS["green"], "points": point_series(review_comments_q, "quarter", "reviewed_prs", "2021-01-01")},
+        {"label": "Review commenters", "color": COLORS["community"], "points": point_series(review_comments_q, "quarter", "unique_commenters", "2021-01-01")},
     ])}
     <div class="grid-2">
       <div>
@@ -8057,10 +8224,11 @@ p {{ margin:0 0 12px; }}
     <div class="readout-grid">
       <div class="readout-card">
         <strong>Community health: active, narrower entry funnel</strong>
-        <p>Core and Gutenberg still get steady participation, but fewer first-time reporters are entering the trackers than in 2021-2023. Code review activity is not showing the same drop.</p>
+        <p>Core and Gutenberg still get steady participation, but fewer first-time reporters are entering the trackers than in 2021-2023. PR and review-comment activity are still visible.</p>
         {horizontal_metric("Core first-time reporter retention", core_first_retention, 100, COLORS["red"])}
         {horizontal_metric("Gutenberg first-time creator retention", gut_first_retention, 100, COLORS["red"])}
         {horizontal_metric("PR creation vs 2021-2023", pr_flow_ratio, max(160, pr_flow_ratio), COLORS["green"])}
+        {horizontal_metric("Review comments vs 2021-2023", review_comment_ratio, max(160, review_comment_ratio), COLORS["prs"])}
       </div>
       <div class="readout-card">
         <strong>Project load: mostly keeping up, backlog still aged</strong>
@@ -8090,7 +8258,7 @@ p {{ margin:0 0 12px; }}
 
   <section class="footer">
     <p>Generated {dt.datetime.now(dt.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')} from local Core/Gutenberg exports and public sources.</p>
-    <p>Sources: <a href="{W3TECHS_USAGE_URL}">W3Techs usage trend</a>, <a href="{W3TECHS_MARKET_SHARE_URL}">W3Techs CMS market-share trend</a>, <a href="{HTTP_ARCHIVE_CMS_URL}">HTTP Archive Web Almanac CMS 2025</a>, <a href="{HTTP_ARCHIVE_TECH_REPORT_URL}">HTTP Archive Technology Report API</a>, <a href="{STACK_EXCHANGE_DOCS_URL}">Stack Exchange API</a>, <a href="{WIKIMEDIA_PAGEVIEWS_DOCS_URL}">Wikimedia Pageviews API</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="{PLUGIN_DOWNLOADS_DOCS_URL}">WordPress.org plugin download stats</a>, <a href="{REMOTEOK_SOURCE_URL}">Remote OK</a>, <a href="{WORDPRESS_JOBS_URL}">WordPress Jobs board</a>, <a href="{WAYBACK_CDX_API}">Internet Archive CDX API</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="{EVENTS_WORDPRESS_URL}">WordPress Events</a>, <a href="{TRANSLATE_LOCALES_URL}">Translate WordPress</a>, <a href="{MAKE_CORE_API}">Make/Core posts API</a>, <a href="{MAKE_CORE_COMMENTS_API}">Make/Core comments API</a>, <a href="https://wordpress.org/support/view/all-topics/">WordPress.org support forums</a>, <a href="https://trends.builtwith.com/cms/WordPress">BuiltWith technology pages</a>, <a href="https://github.com/WordPress/gutenberg/issues">Gutenberg GitHub issues</a>, <a href="{FTTF_PLEDGES_URL}">Five for the Future pledges</a>, <a href="{RELEASE_ARCHIVE_URL}">WordPress release archive</a>, and <a href="{CREDITS_API}">Core credits API</a>.</p>
+    <p>Sources: <a href="{W3TECHS_USAGE_URL}">W3Techs usage trend</a>, <a href="{W3TECHS_MARKET_SHARE_URL}">W3Techs CMS market-share trend</a>, <a href="{HTTP_ARCHIVE_CMS_URL}">HTTP Archive Web Almanac CMS 2025</a>, <a href="{HTTP_ARCHIVE_TECH_REPORT_URL}">HTTP Archive Technology Report API</a>, <a href="{STACK_EXCHANGE_DOCS_URL}">Stack Exchange API</a>, <a href="{WIKIMEDIA_PAGEVIEWS_DOCS_URL}">Wikimedia Pageviews API</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="{PLUGIN_DOWNLOADS_DOCS_URL}">WordPress.org plugin download stats</a>, <a href="{REMOTEOK_SOURCE_URL}">Remote OK</a>, <a href="{WORDPRESS_JOBS_URL}">WordPress Jobs board</a>, <a href="{WAYBACK_CDX_API}">Internet Archive CDX API</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="{EVENTS_WORDPRESS_URL}">WordPress Events</a>, <a href="{TRANSLATE_LOCALES_URL}">Translate WordPress</a>, <a href="{MAKE_CORE_API}">Make/Core posts API</a>, <a href="{MAKE_CORE_COMMENTS_API}">Make/Core comments API</a>, <a href="https://wordpress.org/support/view/all-topics/">WordPress.org support forums</a>, <a href="https://trends.builtwith.com/cms/WordPress">BuiltWith technology pages</a>, <a href="https://github.com/WordPress/gutenberg/issues">Gutenberg GitHub issues</a>, <a href="{GITHUB_PR_REVIEW_COMMENTS_API}">wordpress-develop GitHub review comments</a>, <a href="{FTTF_PLEDGES_URL}">Five for the Future pledges</a>, <a href="{RELEASE_ARCHIVE_URL}">WordPress release archive</a>, and <a href="{CREDITS_API}">Core credits API</a>.</p>
   </section>
 </main>
 </body>
@@ -8136,6 +8304,10 @@ def main():
         args.skip_network
     )
     fetched["github_repo_interest_snapshot"] = fetch_github_repo_interest_snapshot(args.skip_network)
+    fetched["github_pr_review_comments"] = fetch_github_pr_review_comments(args.skip_network)
+    fetched["github_pr_review_comments_quarterly"] = derive_github_pr_review_comments_quarterly(
+        fetched["github_pr_review_comments"]
+    )
     fetched["hn_hiring_wordpress_quarterly"] = fetch_hn_hiring_wordpress_quarterly(args.skip_network)
     (
         fetched["remoteok_job_signal_snapshot"],

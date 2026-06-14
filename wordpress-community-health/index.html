@@ -245,7 +245,7 @@ p { margin:0 0 12px; }
       <article class="score-card good">
         <span class="score-chip">Deep</span>
         <b>Ecosystem base</b>
-        <strong>61.2k / 8,337</strong>
+        <strong>61.2k / 8,341</strong>
         <p>Current WordPress.org plugin and theme directory counts, plus active releases, events, translations, and pledges elsewhere in the report.</p>
       </article>
     </div>
@@ -293,8 +293,8 @@ p { margin:0 0 12px; }
     </article>
     <article class="signal good">
       <h3>Code review</h3>
-      <strong>PR flow is higher</strong>
-      <p>wordpress-develop PR creation averaged 413.8 per quarter in 2021-2023 and 632.5 since 2024.</p>
+      <strong>Review traffic remains visible</strong>
+      <p>wordpress-develop PR creation averaged 413.8 per quarter in 2021-2023 and 632.5 since 2024. Line review comments averaged 1,666 per quarter since 2024.</p>
     </article>
   </section>
 
@@ -317,7 +317,7 @@ p { margin:0 0 12px; }
     <article class="question-card slower">
       <span class="tag">Participation?</span>
       <strong>Fewer new reporters.</strong>
-      <p>Core first-time reporter retention is 66.2% of the 2021-2023 average; Gutenberg is 69.5%. PR creation is higher.</p>
+      <p>Core first-time reporter retention is 66.2% of the 2021-2023 average; Gutenberg is 69.5%. PR and review-comment activity remain visible.</p>
       <span class="source">Core Trac + Gutenberg + PRs</span>
     </article>
     <article class="question-card soft">
@@ -372,7 +372,7 @@ p { margin:0 0 12px; }
 
   <section id="participation" class="section">
     <h2>Participation</h2>
-    <p class="callout">The main participation change is not a collapse. It is fewer first-time and unique reporters in the trackers, while PR authorship is steadier and recent PR volume is higher. The companion <a href="contributor_depth.html">contributor depth view</a> breaks this down into drive-by, returning, regular, and sustained participation.</p>
+    <p class="callout">The main participation change is not a collapse. It is fewer first-time and unique reporters in the trackers, while PR authorship is steadier and code review still has visible quarterly traffic. The companion <a href="contributor_depth.html">contributor depth view</a> breaks this down into drive-by, returning, regular, and sustained participation.</p>
     <svg class="chart" viewBox="0 0 980 330" role="img" aria-label="People opening issues and PRs by quarter">
 <text x="72" y="28" class="chart-title">People opening issues and PRs by quarter</text>
 <text x="72" y="50" class="chart-note">Unique Core ticket reporters, Gutenberg issue creators, and wordpress-develop PR authors.</text>
@@ -493,6 +493,43 @@ p { margin:0 0 12px; }
 <text x="868.0" y="148.6" class="end-label" fill="#16a34a">140</text>
 <text x="868.0" y="164.6" class="end-label" fill="#2563eb">137</text>
 <text x="868.0" y="184.9" class="end-label" fill="#7c3aed">96</text>
+</svg>
+    <svg class="chart" viewBox="0 0 980 330" role="img" aria-label="Core GitHub PR review activity">
+<text x="72" y="28" class="chart-title">Core GitHub PR review activity</text>
+<text x="72" y="50" class="chart-note">Line review comments, reviewed pull requests, and unique review commenters by quarter in wordpress-develop.</text>
+<line x1="72" y1="272.0" x2="938" y2="272.0" class="grid" />
+<text x="60" y="276.0" class="axis" text-anchor="end">0</text>
+<line x1="72" y1="220.5" x2="938" y2="220.5" class="grid" />
+<text x="60" y="224.5" class="axis" text-anchor="end">1,000</text>
+<line x1="72" y1="169.0" x2="938" y2="169.0" class="grid" />
+<text x="60" y="173.0" class="axis" text-anchor="end">2,000</text>
+<line x1="72" y1="117.5" x2="938" y2="117.5" class="grid" />
+<text x="60" y="121.5" class="axis" text-anchor="end">3,000</text>
+<line x1="72" y1="66.0" x2="938" y2="66.0" class="grid" />
+<text x="60" y="70.0" class="axis" text-anchor="end">4,000</text>
+<text x="72.0" y="308" class="axis" text-anchor="middle">2021-Q1</text>
+<text x="237.0" y="308" class="axis" text-anchor="middle">2022-Q1</text>
+<text x="401.9" y="308" class="axis" text-anchor="middle">2023-Q1</text>
+<text x="608.1" y="308" class="axis" text-anchor="middle">2024-Q2</text>
+<text x="773.0" y="308" class="axis" text-anchor="middle">2025-Q2</text>
+<text x="938.0" y="308" class="axis" text-anchor="middle">2026-Q2</text>
+<line x1="72" y1="272" x2="938" y2="272" class="axis-line" />
+<line x1="72" y1="66" x2="72" y2="272" class="axis-line" />
+<circle cx="72" cy="322" r="5" fill="#7c3aed" />
+<text x="82" y="326" class="legend">Review comments</text>
+<circle cx="234" cy="322" r="5" fill="#16a34a" />
+<text x="244" y="326" class="legend">Reviewed PRs</text>
+<circle cx="372" cy="322" r="5" fill="#ea580c" />
+<text x="382" y="326" class="legend">Review commenters</text>
+<path d="M72.0,251.6 L112.7,242.4 L153.8,247.0 L195.4,207.6 L237.0,209.1 L277.7,221.1 L318.8,184.8 L360.4,218.4 L401.9,184.4 L442.6,169.9 L483.8,135.9 L525.3,199.2 L566.9,142.0 L608.1,183.0 L649.2,188.8 L690.8,226.4 L732.3,226.7 L773.0,248.1 L814.2,215.9 L855.7,154.3 L897.3,77.7 L938.0,199.4" fill="none" stroke="#7c3aed" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="938.0" cy="199.4" r="4" fill="#7c3aed" />
+<path d="M72.0,268.4 L112.7,268.1 L153.8,268.4 L195.4,265.4 L237.0,265.9 L277.7,264.5 L318.8,263.4 L360.4,263.1 L401.9,262.0 L442.6,263.3 L483.8,258.8 L525.3,263.0 L566.9,260.4 L608.1,259.4 L649.2,260.6 L690.8,262.4 L732.3,262.9 L773.0,265.9 L814.2,262.3 L855.7,257.2 L897.3,251.8 L938.0,261.3" fill="none" stroke="#16a34a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="938.0" cy="261.3" r="4" fill="#16a34a" />
+<path d="M72.0,269.9 L112.7,269.4 L153.8,269.8 L195.4,268.7 L237.0,268.6 L277.7,268.2 L318.8,267.9 L360.4,268.5 L401.9,267.9 L442.6,267.7 L483.8,266.7 L525.3,268.0 L566.9,267.0 L608.1,266.6 L649.2,267.7 L690.8,267.7 L732.3,268.2 L773.0,269.1 L814.2,267.9 L855.7,267.3 L897.3,266.2 L938.0,267.2" fill="none" stroke="#ea580c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="938.0" cy="267.2" r="4" fill="#ea580c" />
+<text x="868.0" y="191.4" class="end-label" fill="#7c3aed">1,409</text>
+<text x="868.0" y="248.0" class="end-label" fill="#16a34a">207</text>
+<text x="868.0" y="264.0" class="end-label" fill="#ea580c">93</text>
 </svg>
     <div class="grid-2">
       <div>
@@ -724,14 +761,14 @@ p { margin:0 0 12px; }
 <text x="202" y="326" class="legend">Commenters</text>
 <circle cx="314" cy="322" r="5" fill="#7c3aed" />
 <text x="324" y="326" class="legend">Posts discussed</text>
-<path d="M72.0,268.7 L84.4,267.3 L96.9,250.2 L109.5,240.2 L122.2,202.2 L134.6,210.4 L147.1,154.9 L159.7,219.1 L172.4,225.8 L184.7,250.2 L197.2,248.2 L209.9,230.5 L222.5,250.3 L235.1,255.0 L247.6,238.5 L260.2,240.9 L272.9,197.8 L285.2,223.3 L297.7,171.3 L310.4,164.8 L323.0,212.5 L335.4,200.0 L347.9,222.6 L360.6,208.7 L373.2,221.3 L385.6,199.1 L398.1,96.0 L410.8,185.0 L423.4,201.1 L435.9,194.3 L448.4,192.8 L461.1,206.1 L473.7,229.8 L486.1,224.6 L498.6,239.1 L511.3,246.2 L523.9,253.0 L536.3,251.2 L548.8,250.1 L561.4,156.4 L574.1,224.5 L586.5,232.6 L599.0,179.0 L611.6,201.8 L624.3,212.4 L636.8,215.7 L649.3,167.5 L661.9,218.2 L674.6,221.5 L687.0,225.3 L699.5,230.0 L712.1,237.0 L724.8,217.1 L737.1,227.7 L749.6,213.8 L762.3,233.7 L774.9,237.9 L787.3,230.5 L799.8,206.4 L812.5,238.4 L825.1,232.2 L837.6,227.7 L850.1,240.3 L862.8,244.7 L875.4,260.6 L887.8,261.0 L900.3,252.9 L913.0,245.0 L925.6,235.6 L938.0,252.6" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
-<circle cx="938.0" cy="252.6" r="4" fill="#2563eb" />
-<path d="M72.0,270.1 L84.4,268.4 L96.9,267.8 L109.5,263.7 L122.2,255.3 L134.6,252.2 L147.1,247.0 L159.7,255.8 L172.4,255.9 L184.7,262.5 L197.2,258.9 L209.9,254.1 L222.5,260.7 L235.1,263.9 L247.6,256.0 L260.2,255.7 L272.9,244.8 L285.2,250.1 L297.7,241.3 L310.4,237.1 L323.0,251.5 L335.4,242.3 L347.9,244.8 L360.6,242.4 L373.2,249.0 L385.6,238.3 L398.1,203.9 L410.8,232.2 L423.4,242.1 L435.9,236.7 L448.4,238.5 L461.1,237.9 L473.7,252.4 L486.1,251.2 L498.6,256.8 L511.3,258.3 L523.9,261.2 L536.3,260.5 L548.8,259.6 L561.4,221.9 L574.1,251.6 L586.5,252.3 L599.0,244.0 L611.6,243.7 L624.3,247.8 L636.8,246.1 L649.3,228.1 L661.9,249.1 L674.6,249.2 L687.0,250.1 L699.5,252.4 L712.1,251.8 L724.8,247.1 L737.1,250.7 L749.6,247.7 L762.3,255.4 L774.9,255.9 L787.3,250.2 L799.8,243.4 L812.5,253.6 L825.1,253.5 L837.6,251.3 L850.1,254.9 L862.8,254.9 L875.4,265.7 L887.8,265.2 L900.3,261.0 L913.0,257.8 L925.6,252.3 L938.0,259.3" fill="none" stroke="#ea580c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
-<circle cx="938.0" cy="259.3" r="4" fill="#ea580c" />
+<path d="M72.0,268.7 L84.4,267.3 L96.9,250.2 L109.5,240.2 L122.2,202.2 L134.6,210.4 L147.1,154.9 L159.7,219.1 L172.4,225.8 L184.7,250.2 L197.2,248.2 L209.9,230.5 L222.5,250.3 L235.1,255.0 L247.6,238.5 L260.2,240.9 L272.9,197.8 L285.2,223.3 L297.7,171.3 L310.4,164.8 L323.0,212.5 L335.4,200.0 L347.9,222.6 L360.6,208.7 L373.2,221.3 L385.6,199.1 L398.1,96.0 L410.8,185.0 L423.4,201.1 L435.9,194.3 L448.4,192.8 L461.1,206.1 L473.7,229.8 L486.1,224.6 L498.6,239.1 L511.3,246.2 L523.9,253.0 L536.3,251.2 L548.8,250.1 L561.4,156.4 L574.1,224.5 L586.5,232.6 L599.0,179.0 L611.6,201.8 L624.3,212.4 L636.8,215.7 L649.3,167.5 L661.9,218.2 L674.6,221.5 L687.0,225.3 L699.5,230.0 L712.1,237.0 L724.8,217.1 L737.1,227.7 L749.6,213.8 L762.3,233.7 L774.9,237.9 L787.3,230.5 L799.8,206.4 L812.5,238.4 L825.1,232.2 L837.6,227.7 L850.1,240.3 L862.8,244.7 L875.4,260.6 L887.8,261.0 L900.3,252.9 L913.0,245.0 L925.6,235.6 L938.0,252.5" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="938.0" cy="252.5" r="4" fill="#2563eb" />
+<path d="M72.0,270.1 L84.4,268.4 L96.9,267.8 L109.5,263.7 L122.2,255.3 L134.6,252.2 L147.1,247.0 L159.7,255.8 L172.4,255.9 L184.7,262.5 L197.2,258.9 L209.9,254.1 L222.5,260.7 L235.1,263.9 L247.6,256.0 L260.2,255.7 L272.9,244.8 L285.2,250.1 L297.7,241.3 L310.4,237.1 L323.0,251.5 L335.4,242.3 L347.9,244.8 L360.6,242.4 L373.2,249.0 L385.6,238.3 L398.1,203.9 L410.8,232.2 L423.4,242.1 L435.9,236.7 L448.4,238.5 L461.1,237.9 L473.7,252.4 L486.1,251.2 L498.6,256.8 L511.3,258.3 L523.9,261.2 L536.3,260.5 L548.8,259.6 L561.4,221.9 L574.1,251.6 L586.5,252.3 L599.0,244.0 L611.6,243.7 L624.3,247.8 L636.8,246.1 L649.3,228.1 L661.9,249.1 L674.6,249.2 L687.0,250.1 L699.5,252.4 L712.1,251.8 L724.8,247.1 L737.1,250.7 L749.6,247.7 L762.3,255.4 L774.9,255.9 L787.3,250.2 L799.8,243.4 L812.5,253.6 L825.1,253.5 L837.6,251.3 L850.1,254.9 L862.8,254.9 L875.4,265.7 L887.8,265.2 L900.3,261.0 L913.0,257.8 L925.6,252.3 L938.0,259.2" fill="none" stroke="#ea580c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="938.0" cy="259.2" r="4" fill="#ea580c" />
 <path d="M72.0,271.0 L84.4,270.6 L96.9,269.6 L109.5,268.5 L122.2,264.4 L134.6,265.2 L147.1,265.7 L159.7,266.6 L172.4,267.4 L184.7,268.2 L197.2,269.5 L209.9,268.2 L222.5,268.1 L235.1,269.3 L247.6,268.0 L260.2,268.6 L272.9,265.4 L285.2,269.1 L297.7,264.9 L310.4,266.2 L323.0,265.5 L335.4,265.2 L347.9,267.2 L360.6,265.4 L373.2,265.2 L385.6,266.2 L398.1,262.0 L410.8,265.4 L423.4,265.0 L435.9,265.7 L448.4,266.1 L461.1,265.4 L473.7,267.0 L486.1,266.1 L498.6,266.2 L511.3,267.6 L523.9,267.7 L536.3,267.3 L548.8,267.4 L561.4,263.1 L574.1,263.1 L586.5,265.1 L599.0,263.9 L611.6,264.1 L624.3,263.3 L636.8,262.3 L649.3,261.3 L661.9,263.6 L674.6,263.0 L687.0,264.4 L699.5,266.3 L712.1,266.1 L724.8,264.7 L737.1,264.6 L749.6,265.3 L762.3,262.5 L774.9,265.3 L787.3,266.6 L799.8,264.4 L812.5,265.5 L825.1,265.3 L837.6,265.0 L850.1,266.4 L862.8,267.8 L875.4,268.1 L887.8,269.1 L900.3,269.0 L913.0,267.4 L925.6,267.2 L938.0,267.9" fill="none" stroke="#7c3aed" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
 <circle cx="938.0" cy="267.9" r="4" fill="#7c3aed" />
-<text x="868.0" y="232.0" class="end-label" fill="#2563eb">188</text>
-<text x="868.0" y="248.0" class="end-label" fill="#ea580c">123</text>
+<text x="868.0" y="232.0" class="end-label" fill="#2563eb">189</text>
+<text x="868.0" y="248.0" class="end-label" fill="#ea580c">124</text>
 <text x="868.0" y="264.0" class="end-label" fill="#7c3aed">40</text>
 </svg>
     </div>
@@ -772,12 +809,12 @@ p { margin:0 0 12px; }
     </div>
           <div class="stat soft">
       <div class="stat-label">Latest quarter</div>
-      <div class="stat-value">188</div>
+      <div class="stat-value">189</div>
       <div class="stat-note">2026-Q2</div>
     </div>
           <div class="stat soft">
       <div class="stat-label">Commenters</div>
-      <div class="stat-value">123</div>
+      <div class="stat-value">124</div>
       <div class="stat-note">latest quarter</div>
     </div>
           <div class="stat soft">
@@ -999,19 +1036,19 @@ p { margin:0 0 12px; }
       <div class="hmetric-top"><span>German</span><strong>7,654 profiles</strong></div>
       <div class="bar"><span style="width:100.0%;background:#0891b2"></span></div>
     </div><div class="hmetric">
-      <div class="hmetric-top"><span>Spanish (Spain)</span><strong>6,594 profiles</strong></div>
+      <div class="hmetric-top"><span>Spanish (Spain)</span><strong>6,597 profiles</strong></div>
       <div class="bar"><span style="width:86.2%;background:#0891b2"></span></div>
     </div><div class="hmetric">
-      <div class="hmetric-top"><span>Russian</span><strong>4,941 profiles</strong></div>
+      <div class="hmetric-top"><span>Russian</span><strong>4,945 profiles</strong></div>
       <div class="bar"><span style="width:64.6%;background:#0891b2"></span></div>
     </div><div class="hmetric">
       <div class="hmetric-top"><span>Italian</span><strong>4,800 profiles</strong></div>
       <div class="bar"><span style="width:62.7%;background:#0891b2"></span></div>
     </div><div class="hmetric">
-      <div class="hmetric-top"><span>Dutch</span><strong>4,710 profiles</strong></div>
-      <div class="bar"><span style="width:61.5%;background:#0891b2"></span></div>
+      <div class="hmetric-top"><span>Dutch</span><strong>4,715 profiles</strong></div>
+      <div class="bar"><span style="width:61.6%;background:#0891b2"></span></div>
     </div><div class="hmetric">
-      <div class="hmetric-top"><span>French (France)</span><strong>4,673 profiles</strong></div>
+      <div class="hmetric-top"><span>French (France)</span><strong>4,674 profiles</strong></div>
       <div class="bar"><span style="width:61.1%;background:#0891b2"></span></div>
     </div><div class="hmetric">
       <div class="hmetric-top"><span>Portuguese (Brazil)</span><strong>2,628 profiles</strong></div>
@@ -1058,9 +1095,9 @@ p { margin:0 0 12px; }
 <text x="204" y="326" class="legend">Meetups</text>
 <circle cx="314" cy="322" r="5" fill="#ea580c" />
 <text x="324" y="326" class="legend">WordCamps</text>
-<path d="M72.0,76.3 L149.8,167.3 L230.2,223.9 L310.5,211.9 L388.3,249.7 L468.7,246.2 L546.5,254.8 L626.9,266.9 L707.2,268.6 L779.8,268.6 L860.2,265.1 L938.0,270.3" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<path d="M72.0,72.9 L149.8,163.8 L230.2,222.2 L310.5,211.9 L388.3,249.7 L468.7,246.2 L546.5,254.8 L626.9,266.9 L707.2,268.6 L779.8,268.6 L860.2,265.1 L938.0,270.3" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
 <circle cx="938.0" cy="270.3" r="4" fill="#2563eb" />
-<path d="M72.0,78.0 L149.8,174.2 L230.2,229.1 L310.5,220.5 L388.3,253.1 L468.7,251.4 L546.5,256.6 L626.9,266.9 L707.2,268.6 L779.8,268.6 L860.2,266.9 L938.0,270.3" fill="none" stroke="#16a34a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<path d="M72.0,74.6 L149.8,170.7 L230.2,227.4 L310.5,220.5 L388.3,253.1 L468.7,251.4 L546.5,256.6 L626.9,266.9 L707.2,268.6 L779.8,268.6 L860.2,266.9 L938.0,270.3" fill="none" stroke="#16a34a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
 <circle cx="938.0" cy="270.3" r="4" fill="#16a34a" />
 <path d="M72.0,270.3 L149.8,265.1 L230.2,266.9 L310.5,263.4 L388.3,268.6 L468.7,266.9 L546.5,270.3 L860.2,270.3" fill="none" stroke="#ea580c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
 <circle cx="860.2" cy="270.3" r="4" fill="#ea580c" />
@@ -1074,22 +1111,22 @@ p { margin:0 0 12px; }
         <div class="stats">
           <div class="stat good">
       <div class="stat-label">Upcoming events</div>
-      <div class="stat-value">288</div>
+      <div class="stat-value">293</div>
       <div class="stat-note">2026-06-14 to 2027-05-26</div>
     </div>
           <div class="stat good">
       <div class="stat-label">Meetups</div>
-      <div class="stat-value">268</div>
+      <div class="stat-value">273</div>
       <div class="stat-note">scheduled meetup events</div>
     </div>
           <div class="stat good">
       <div class="stat-label">Groups</div>
-      <div class="stat-value">147</div>
+      <div class="stat-value">152</div>
       <div class="stat-note">unique meetup groups</div>
     </div>
           <div class="stat soft">
       <div class="stat-label">Online</div>
-      <div class="stat-value">76</div>
+      <div class="stat-value">78</div>
       <div class="stat-note">online events</div>
     </div>
         </div>
@@ -1129,20 +1166,20 @@ p { margin:0 0 12px; }
         <h3>Event mix</h3>
         <p>Meetups dominate the upcoming event calendar; WordCamps remain visible as larger scheduled events.</p>
         <div class="hmetric">
-      <div class="hmetric-top"><span>Meetups</span><strong>268</strong></div>
-      <div class="bar"><span style="width:93.1%;background:#16a34a"></span></div>
+      <div class="hmetric-top"><span>Meetups</span><strong>273</strong></div>
+      <div class="bar"><span style="width:93.2%;background:#16a34a"></span></div>
     </div>
         <div class="hmetric">
       <div class="hmetric-top"><span>WordCamps</span><strong>20</strong></div>
-      <div class="bar"><span style="width:6.9%;background:#ea580c"></span></div>
+      <div class="bar"><span style="width:6.8%;background:#ea580c"></span></div>
     </div>
         <div class="hmetric">
-      <div class="hmetric-top"><span>In-person or location-listed</span><strong>212</strong></div>
-      <div class="bar"><span style="width:73.6%;background:#2563eb"></span></div>
+      <div class="hmetric-top"><span>In-person or location-listed</span><strong>215</strong></div>
+      <div class="bar"><span style="width:73.4%;background:#2563eb"></span></div>
     </div>
         <div class="hmetric">
-      <div class="hmetric-top"><span>Online</span><strong>76</strong></div>
-      <div class="bar"><span style="width:26.4%;background:#7c3aed"></span></div>
+      <div class="hmetric-top"><span>Online</span><strong>78</strong></div>
+      <div class="bar"><span style="width:26.6%;background:#7c3aed"></span></div>
     </div>
       </div>
     </div>
@@ -2654,7 +2691,7 @@ p { margin:0 0 12px; }
     </div><div class="stat watch">
       <div class="stat-label">WordPress Jobs open listings</div>
       <div class="stat-value">Lower</div>
-      <div class="stat-note">15 vs 29 open listings</div>
+      <div class="stat-note">13 vs 29 open listings</div>
     </div>
       </div>
       <div class="grid-2">
@@ -2672,8 +2709,8 @@ p { margin:0 0 12px; }
       <div class="hmetric-top"><span>Lower: WordPress Jobs development listings</span><strong>50%</strong></div>
       <div class="bar"><span style="width:51.9%;background:#dc2626"></span></div>
     </div><div class="hmetric">
-      <div class="hmetric-top"><span>Lower: WordPress Jobs open listings</span><strong>48.3%</strong></div>
-      <div class="bar"><span style="width:50.1%;background:#dc2626"></span></div>
+      <div class="hmetric-top"><span>Lower: WordPress Jobs open listings</span><strong>55.2%</strong></div>
+      <div class="bar"><span style="width:57.3%;background:#dc2626"></span></div>
     </div>
         </div>
         <p class="small-note">Rows are stored in SQLite as <code>attention_demand_summary</code>. Baselines use the latest available pre-2024 quarter or archived snapshot where the source supports it.</p>
@@ -3006,18 +3043,18 @@ p { margin:0 0 12px; }
 <text x="358" y="326" class="legend">Project/freelance-style</text>
 <circle cx="574" cy="322" r="5" fill="#16a34a" />
 <text x="584" y="326" class="legend">Support</text>
-<path d="M72.0,127.8 L157.1,66.0 L244.2,107.2 L325.7,107.2 L415.0,102.1 L486.7,143.2 L652.1,122.7 L734.9,163.8 L818.2,194.8 L938.0,194.8" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
-<circle cx="938.0" cy="194.8" r="4" fill="#2563eb" />
+<path d="M72.0,127.8 L157.1,66.0 L244.2,107.2 L325.7,107.2 L415.0,102.1 L486.7,143.2 L652.1,122.7 L734.9,163.8 L818.2,194.8 L938.0,205.1" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="938.0" cy="205.1" r="4" fill="#2563eb" />
 <path d="M72.0,194.8 L157.1,210.2 L244.2,194.8 L325.7,194.8 L415.0,194.8 L486.7,194.8 L652.1,199.9 L734.9,215.3 L818.2,235.9 L938.0,235.9" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
 <circle cx="938.0" cy="235.9" r="4" fill="#2563eb" />
 <path d="M72.0,189.6 L157.1,117.5 L244.2,199.9 L325.7,210.2 L415.0,220.5 L486.7,220.5 L652.1,230.8 L734.9,220.5 L818.2,230.8 L938.0,241.1" fill="none" stroke="#ea580c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
 <circle cx="938.0" cy="241.1" r="4" fill="#ea580c" />
-<path d="M72.0,272.0 L157.1,272.0 L244.2,272.0 L325.7,272.0 L415.0,246.2 L486.7,272.0 L652.1,251.4 L734.9,251.4 L818.2,266.9 L938.0,261.7" fill="none" stroke="#16a34a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
-<circle cx="938.0" cy="261.7" r="4" fill="#16a34a" />
-<text x="868.0" y="186.8" class="end-label" fill="#2563eb">15</text>
+<path d="M72.0,272.0 L157.1,272.0 L244.2,272.0 L325.7,272.0 L415.0,246.2 L486.7,272.0 L652.1,251.4 L734.9,251.4 L818.2,266.9 L938.0,272.0" fill="none" stroke="#16a34a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="938.0" cy="272.0" r="4" fill="#16a34a" />
+<text x="868.0" y="197.1" class="end-label" fill="#2563eb">13</text>
 <text x="868.0" y="227.9" class="end-label" fill="#2563eb">7</text>
 <text x="868.0" y="243.9" class="end-label" fill="#ea580c">6</text>
-<text x="868.0" y="259.9" class="end-label" fill="#16a34a">2</text>
+<text x="868.0" y="264.0" class="end-label" fill="#16a34a">0</text>
 </svg>
       <div class="card">
         <h3>Jobs-board readout</h3>
@@ -3025,17 +3062,17 @@ p { margin:0 0 12px; }
         <div class="stats">
           <div class="stat soft">
       <div class="stat-label">Latest open listings</div>
-      <div class="stat-value">15</div>
+      <div class="stat-value">13</div>
       <div class="stat-note">2026-06-14</div>
     </div>
           <div class="stat soft">
       <div class="stat-label">Development share</div>
-      <div class="stat-value">46.7%</div>
+      <div class="stat-value">53.8%</div>
       <div class="stat-note">7 current listings</div>
     </div>
           <div class="stat soft">
       <div class="stat-label">Project-style share</div>
-      <div class="stat-value">40.0%</div>
+      <div class="stat-value">46.2%</div>
       <div class="stat-note">6 current listings</div>
     </div>
           <div class="stat good">
@@ -3052,9 +3089,6 @@ p { margin:0 0 12px; }
       <div class="bar"><span style="width:28.6%;background:#2563eb"></span></div>
     </div><div class="hmetric">
       <div class="hmetric-top"><span>General</span><strong>2 listings</strong></div>
-      <div class="bar"><span style="width:28.6%;background:#2563eb"></span></div>
-    </div><div class="hmetric">
-      <div class="hmetric-top"><span>Support</span><strong>2 listings</strong></div>
       <div class="bar"><span style="width:28.6%;background:#2563eb"></span></div>
     </div><div class="hmetric">
       <div class="hmetric-top"><span>Performance</span><strong>1 listings</strong></div>
@@ -3383,13 +3417,13 @@ p { margin:0 0 12px; }
         <div class="stats">
           <div class="stat good">
       <div class="stat-label">Added 30 days</div>
-      <div class="stat-value">1,894</div>
+      <div class="stat-value">1,943</div>
       <div class="stat-note">new plugin browse</div>
     </div>
           <div class="stat good">
       <div class="stat-label">Added 90 days</div>
-      <div class="stat-value">4,179</div>
-      <div class="stat-note">42 pages fetched</div>
+      <div class="stat-value">4,227</div>
+      <div class="stat-note">43 pages fetched</div>
     </div>
           <div class="stat soft">
       <div class="stat-label">Updated 30 days</div>
@@ -3403,8 +3437,8 @@ p { margin:0 0 12px; }
     </div>
         </div>
         <div class="hmetric">
-      <div class="hmetric-top"><span>Plugins added in sampled 90 days</span><strong>4,179</strong></div>
-      <div class="bar"><span style="width:52.2%;background:#16a34a"></span></div>
+      <div class="hmetric-top"><span>Plugins added in sampled 90 days</span><strong>4,227</strong></div>
+      <div class="bar"><span style="width:52.8%;background:#16a34a"></span></div>
     </div>
         <div class="hmetric">
       <div class="hmetric-top"><span>Plugins updated in sampled 90 days</span><strong>7,999</strong></div>
@@ -3542,17 +3576,17 @@ p { margin:0 0 12px; }
         <div class="stats">
           <div class="stat soft">
       <div class="stat-label">Support threads</div>
-      <div class="stat-value">961</div>
+      <div class="stat-value">959</div>
       <div class="stat-note">tracked major plugins</div>
     </div>
           <div class="stat watch">
       <div class="stat-label">Unresolved</div>
-      <div class="stat-value">212</div>
+      <div class="stat-value">214</div>
       <div class="stat-note">support threads</div>
     </div>
           <div class="stat soft">
       <div class="stat-label">Resolved share</div>
-      <div class="stat-value">77.9%</div>
+      <div class="stat-value">77.7%</div>
       <div class="stat-note">of support threads</div>
     </div>
         </div>
@@ -3563,16 +3597,16 @@ p { margin:0 0 12px; }
       <div class="hmetric-top"><span>Wordfence</span><strong>170 threads</strong></div>
       <div class="bar"><span style="width:72.3%;background:#ea580c"></span></div>
     </div><div class="hmetric">
-      <div class="hmetric-top"><span>LiteSpeed Cache</span><strong>95 threads</strong></div>
-      <div class="bar"><span style="width:40.4%;background:#ea580c"></span></div>
+      <div class="hmetric-top"><span>LiteSpeed Cache</span><strong>96 threads</strong></div>
+      <div class="bar"><span style="width:40.9%;background:#ea580c"></span></div>
     </div><div class="hmetric">
-      <div class="hmetric-top"><span>Contact Form 7</span><strong>75 threads</strong></div>
-      <div class="bar"><span style="width:31.9%;background:#ea580c"></span></div>
-    </div><div class="hmetric">
-      <div class="hmetric-top"><span>Yoast SEO</span><strong>60 threads</strong></div>
-      <div class="bar"><span style="width:25.5%;background:#ea580c"></span></div>
+      <div class="hmetric-top"><span>Contact Form 7</span><strong>74 threads</strong></div>
+      <div class="bar"><span style="width:31.5%;background:#ea580c"></span></div>
     </div><div class="hmetric">
       <div class="hmetric-top"><span>Elementor</span><strong>59 threads</strong></div>
+      <div class="bar"><span style="width:25.1%;background:#ea580c"></span></div>
+    </div><div class="hmetric">
+      <div class="hmetric-top"><span>Yoast SEO</span><strong>59 threads</strong></div>
       <div class="bar"><span style="width:25.1%;background:#ea580c"></span></div>
     </div><div class="hmetric">
       <div class="hmetric-top"><span>Jetpack</span><strong>49 threads</strong></div>
@@ -3592,27 +3626,27 @@ p { margin:0 0 12px; }
       <div class="hmetric-top"><span>Wordfence</span><strong>88.2%</strong></div>
       <div class="bar"><span style="width:88.2%;background:#16a34a"></span></div>
     </div><div class="hmetric">
-      <div class="hmetric-top"><span>LiteSpeed Cache</span><strong>69.5%</strong></div>
-      <div class="bar"><span style="width:69.5%;background:#ea580c"></span></div>
+      <div class="hmetric-top"><span>LiteSpeed Cache</span><strong>68.8%</strong></div>
+      <div class="bar"><span style="width:68.8%;background:#ea580c"></span></div>
     </div><div class="hmetric">
-      <div class="hmetric-top"><span>Contact Form 7</span><strong>37.3%</strong></div>
-      <div class="bar"><span style="width:37.3%;background:#ea580c"></span></div>
-    </div><div class="hmetric">
-      <div class="hmetric-top"><span>Yoast SEO</span><strong>96.7%</strong></div>
-      <div class="bar"><span style="width:96.7%;background:#16a34a"></span></div>
+      <div class="hmetric-top"><span>Contact Form 7</span><strong>37.8%</strong></div>
+      <div class="bar"><span style="width:37.8%;background:#ea580c"></span></div>
     </div><div class="hmetric">
       <div class="hmetric-top"><span>Elementor</span><strong>83.1%</strong></div>
       <div class="bar"><span style="width:83.1%;background:#16a34a"></span></div>
+    </div><div class="hmetric">
+      <div class="hmetric-top"><span>Yoast SEO</span><strong>96.6%</strong></div>
+      <div class="bar"><span style="width:96.6%;background:#16a34a"></span></div>
     </div>
         <div class="hmetric">
       <div class="hmetric-top"><span>WooCommerce unresolved</span><strong>49 open</strong></div>
       <div class="bar"><span style="width:100.0%;background:#dc2626"></span></div>
     </div><div class="hmetric">
-      <div class="hmetric-top"><span>Contact Form 7 unresolved</span><strong>47 open</strong></div>
-      <div class="bar"><span style="width:95.9%;background:#dc2626"></span></div>
+      <div class="hmetric-top"><span>Contact Form 7 unresolved</span><strong>46 open</strong></div>
+      <div class="bar"><span style="width:93.9%;background:#dc2626"></span></div>
     </div><div class="hmetric">
-      <div class="hmetric-top"><span>LiteSpeed Cache unresolved</span><strong>29 open</strong></div>
-      <div class="bar"><span style="width:59.2%;background:#dc2626"></span></div>
+      <div class="hmetric-top"><span>LiteSpeed Cache unresolved</span><strong>30 open</strong></div>
+      <div class="bar"><span style="width:61.2%;background:#dc2626"></span></div>
     </div><div class="hmetric">
       <div class="hmetric-top"><span>Classic Editor unresolved</span><strong>20 open</strong></div>
       <div class="bar"><span style="width:40.8%;background:#dc2626"></span></div>
@@ -3764,11 +3798,11 @@ p { margin:0 0 12px; }
           <div class="stat soft">
       <div class="stat-label">Popular sample</div>
       <div class="stat-value">300</div>
-      <div class="stat-note">8,268 total browse results</div>
+      <div class="stat-note">8,271 total browse results</div>
     </div>
           <div class="stat good">
       <div class="stat-label">Theme directory</div>
-      <div class="stat-value">8,337</div>
+      <div class="stat-value">8,341</div>
       <div class="stat-note">current WordPress.org API result</div>
     </div>
         </div>
@@ -3789,7 +3823,7 @@ p { margin:0 0 12px; }
       <div class="hmetric-top"><span>GeneratePress</span><strong>1,426 ratings</strong></div>
       <div class="bar"><span style="width:22.0%;background:#ea580c"></span></div>
     </div><div class="hmetric">
-      <div class="hmetric-top"><span>Neve</span><strong>1,278 ratings</strong></div>
+      <div class="hmetric-top"><span>Neve</span><strong>1,277 ratings</strong></div>
       <div class="bar"><span style="width:19.7%;background:#ea580c"></span></div>
     </div><div class="hmetric">
       <div class="hmetric-top"><span>Customizr</span><strong>993 ratings</strong></div>
@@ -3811,7 +3845,7 @@ p { margin:0 0 12px; }
     </div>
       <div class="stat good">
       <div class="stat-label">Theme directory</div>
-      <div class="stat-value">8,337</div>
+      <div class="stat-value">8,341</div>
       <div class="stat-note">current WordPress.org API result</div>
     </div>
       <div class="stat good">
@@ -3889,12 +3923,12 @@ p { margin:0 0 12px; }
     </div>
           <div class="stat good">
       <div class="stat-label">Fetched tables</div>
-      <div class="stat-value">68</div>
-      <div class="stat-note">73.1k fetched/derived rows</div>
+      <div class="stat-value">70</div>
+      <div class="stat-note">106.5k fetched/derived rows</div>
     </div>
           <div class="stat good">
       <div class="stat-label">Covered signals</div>
-      <div class="stat-value">44</div>
+      <div class="stat-value">45</div>
       <div class="stat-note">source coverage cards</div>
     </div>
           <div class="stat watch">
@@ -3948,7 +3982,7 @@ p { margin:0 0 12px; }
       </div>
     </div>
     <div class="status-grid">
-      <div class="status covered"><span class="pill">covered</span><b>Core Trac tickets</b><span>64k tickets, status history, types, components, reporters</span></div><div class="status covered"><span class="pill">covered</span><b>Core first-response activity</b><span>Trac RSS first non-reporter activity for 2021-2026 tickets</span></div><div class="status covered"><span class="pill">covered</span><b>Gutenberg GitHub issues</b><span>32k issues with labels, state, authors, close dates</span></div><div class="status covered"><span class="pill">covered</span><b>Gutenberg response/reopen timelines</b><span>GitHub comment timestamps and reopened events</span></div><div class="status covered"><span class="pill">covered</span><b>wordpress-develop PRs</b><span>12k PRs with authors, dates, Trac links</span></div><div class="status covered"><span class="pill">covered</span><b>Project-member/outside split</b><span>Quarterly GitHub author_association split for Gutenberg issues and wordpress-develop PRs</span></div><div class="status covered"><span class="pill">covered</span><b>Contributor depth buckets</b><span>One-time, repeat, and sustained contributors across Core, Gutenberg, and PR activity</span></div><div class="status covered"><span class="pill">covered</span><b>Contributor concentration</b><span>Top 10, 25, and 50 contributor work share across Core, Gutenberg, and PR activity</span></div><div class="status covered"><span class="pill">covered</span><b>Ticket category classification</b><span>Bug, feature request, enhancement, task, and other categories</span></div><div class="status covered"><span class="pill">covered</span><b>Open category backlog</b><span>Open bug, enhancement, feature-request, and other category composition</span></div><div class="status covered"><span class="pill">covered</span><b>Open backlog age buckets</b><span>Current open Core/Gutenberg backlog by last-activity age bucket</span></div><div class="status covered"><span class="pill">covered</span><b>W3Techs adoption</b><span>All-site usage and CMS market-share yearly trends</span></div><div class="status covered"><span class="pill">covered</span><b>HTTP Archive/Web Almanac</b><span>2025 CMS adoption snapshot and high-traffic context</span></div><div class="status covered"><span class="pill">covered</span><b>HTTP Archive Technology Report API</b><span>Monthly origin counts, quarterly derived tracked-share trend, builder momentum summaries, and rank-tier detected-origin adoption for WordPress, Shopify, Wix, Squarespace, and Webflow</span></div><div class="status covered"><span class="pill">covered</span><b>HTTP Archive Core Web Vitals</b><span>Monthly good Core Web Vitals rates by technology from the HTTP Archive Technology Report API</span></div><div class="status covered"><span class="pill">covered</span><b>BuiltWith ecommerce history</b><span>Shopify and WooCommerce live-site counts by traffic tier</span></div><div class="status covered"><span class="pill">covered</span><b>BuiltWith traffic tiers</b><span>Current WordPress share by traffic tier across tracked CMS/builder technologies</span></div><div class="status covered"><span class="pill">covered</span><b>Stack Overflow tag volume</b><span>Quarterly public developer-attention proxy from Stack Exchange API tag totals</span></div><div class="status covered"><span class="pill">covered</span><b>Wikimedia pageviews</b><span>Quarterly en.wikipedia article pageviews as a public-interest proxy, not search-query volume</span></div><div class="status covered"><span class="pill">covered</span><b>WordPress npm packages</b><span>Quarterly npm downloads for selected @wordpress packages as package-ecosystem activity, not developer headcount</span></div><div class="status covered"><span class="pill">covered</span><b>GitHub repo interest snapshot</b><span>Current stars, forks, subscribers, open issues, and activity timestamps for selected WordPress ecosystem repositories</span></div><div class="status partial"><span class="pill">partial</span><b>HN hiring mentions</b><span>WordPress/WooCommerce, PHP, and agency/studio mentions in monthly Hacker News Who is hiring threads from 2012 onward; not a broad job-board index</span></div><div class="status partial"><span class="pill">partial</span><b>Remote OK jobs snapshot</b><span>Current Remote OK public API job snapshot with WordPress, WooCommerce, PHP, hosted-builder, CMS, and agency/studio term counts</span></div><div class="status partial"><span class="pill">partial</span><b>WordPress Jobs board</b><span>Open-listing snapshots from jobs.wordpress.net current page and annual Internet Archive captures; WordPress-specific, not a broad hiring-platform index</span></div><div class="status covered"><span class="pill">covered</span><b>Attention and demand summary</b><span>Derived compact comparison of Stack Overflow, Wikimedia, HN hiring, and WordPress Jobs proxy direction</span></div><div class="status covered"><span class="pill">covered</span><b>Enterprise adoption signal</b><span>Current public WordPress VIP case-study snapshot with industries and use cases</span></div><div class="status covered"><span class="pill">covered</span><b>WordPress.org plugin/theme directories</b><span>Current plugin and theme counts</span></div><div class="status covered"><span class="pill">covered</span><b>WordPress.org ecosystem stats</b><span>Current WordPress, PHP, and database version distribution from WordPress.org stats APIs</span></div><div class="status covered"><span class="pill">covered</span><b>Plugin/theme directory activity</b><span>Current new, updated, and popular samples from WordPress.org directory APIs</span></div><div class="status covered"><span class="pill">covered</span><b>Major plugin install base</b><span>Current fixed-slug plugin API snapshot plus annual Wayback snapshots of archived WordPress.org plugin active-install buckets</span></div><div class="status covered"><span class="pill">covered</span><b>Stale popular plugin sample</b><span>Derived WordPress.org popular-plugin sample showing 2+ year stale count, install reach, and detail rows</span></div><div class="status covered"><span class="pill">covered</span><b>Major plugin support snapshot</b><span>Current WordPress.org plugin API support-thread and resolved-thread counts for the fixed major-plugin list</span></div><div class="status covered"><span class="pill">covered</span><b>Major plugin download trend</b><span>WordPress.org daily plugin download stats for the fixed major-plugin list, aggregated quarterly</span></div><div class="status covered"><span class="pill">covered</span><b>WordCamp Central</b><span>Historical WordCamp event records and anticipated-attendance fields where available</span></div><div class="status covered"><span class="pill">covered</span><b>WordPress Events</b><span>Current upcoming Meetup and WordCamp events</span></div><div class="status covered"><span class="pill">covered</span><b>Translate WordPress</b><span>Current locale team profile counts and Core dev translation status</span></div><div class="status covered"><span class="pill">covered</span><b>Make/Core posts</b><span>Post counts and author IDs</span></div><div class="status covered"><span class="pill">covered</span><b>Make/Core comments</b><span>Comment counts and commenter identities from Make/Core REST API</span></div><div class="status covered"><span class="pill">covered</span><b>Make/Core dev notes</b><span>Dev-note tagged posts by quarter and release</span></div><div class="status covered"><span class="pill">covered</span><b>Core release credits</b><span>WordPress.org credits API props by major release</span></div><div class="status covered"><span class="pill">covered</span><b>Core committers per release</b><span>GitHub tag-to-tag compare ranges by major release</span></div><div class="status covered"><span class="pill">covered</span><b>Core reopen rate</b><span>Quarterly Core Trac reopened status-change events</span></div><div class="status covered"><span class="pill">covered</span><b>Closure age summary</b><span>Median, p75, and p90 days-to-close by quarter for Core and Gutenberg</span></div><div class="status covered"><span class="pill">covered</span><b>Five for the Future</b><span>Current pledge organizations, hours, and listed profiles</span></div><div class="status partial"><span class="pill">partial</span><b>Newly detected sites</b><span>Current BuiltWith Net New Pipeline snapshot plus HTTP Archive monthly origin counts, quarterly derived tracked-share trend, builder momentum summaries, rank-tier detected-origin adoption, and a dedicated new-site choice companion view; multi-year new-site creation still needs paid BuiltWith or cohort queries</span></div><div class="status covered"><span class="pill">covered</span><b>New-site choice summary</b><span>Compact current proxy readout across BuiltWith 30/90-day pipeline, HTTP Archive tracked share, and traffic-tier presence</span></div><div class="status covered"><span class="pill">covered</span><b>Builder momentum summary</b><span>Derived HTTP Archive quarterly tracked-share change by builder technology</span></div><div class="status partial"><span class="pill">partial</span><b>Support forums</b><span>Current WordPress.org support queue snapshot with forum, status, last-activity, and age buckets; historical trend still needs a fuller export</span></div><div class="status covered"><span class="pill">covered</span><b>Support unanswered summary</b><span>Current support snapshot summarized into resolved, unresolved, no-reply, and forum-level unanswered tables</span></div><div class="status partial"><span class="pill">partial</span><b>Search interest and job demand</b><span>General web search trends and broad hiring-platform time series are not included; Wikimedia, Stack Overflow, and HN are narrower public/developer/demand proxies</span></div>
+      <div class="status covered"><span class="pill">covered</span><b>Core Trac tickets</b><span>64k tickets, status history, types, components, reporters</span></div><div class="status covered"><span class="pill">covered</span><b>Core first-response activity</b><span>Trac RSS first non-reporter activity for 2021-2026 tickets</span></div><div class="status covered"><span class="pill">covered</span><b>Gutenberg GitHub issues</b><span>32k issues with labels, state, authors, close dates</span></div><div class="status covered"><span class="pill">covered</span><b>Gutenberg response/reopen timelines</b><span>GitHub comment timestamps and reopened events</span></div><div class="status covered"><span class="pill">covered</span><b>wordpress-develop PRs</b><span>12k PRs with authors, dates, Trac links</span></div><div class="status covered"><span class="pill">covered</span><b>Project-member/outside split</b><span>Quarterly GitHub author_association split for Gutenberg issues and wordpress-develop PRs</span></div><div class="status covered"><span class="pill">covered</span><b>Contributor depth buckets</b><span>One-time, repeat, and sustained contributors across Core, Gutenberg, and PR activity</span></div><div class="status covered"><span class="pill">covered</span><b>Contributor concentration</b><span>Top 10, 25, and 50 contributor work share across Core, Gutenberg, and PR activity</span></div><div class="status covered"><span class="pill">covered</span><b>Ticket category classification</b><span>Bug, feature request, enhancement, task, and other categories</span></div><div class="status covered"><span class="pill">covered</span><b>Open category backlog</b><span>Open bug, enhancement, feature-request, and other category composition</span></div><div class="status covered"><span class="pill">covered</span><b>Open backlog age buckets</b><span>Current open Core/Gutenberg backlog by last-activity age bucket</span></div><div class="status covered"><span class="pill">covered</span><b>W3Techs adoption</b><span>All-site usage and CMS market-share yearly trends</span></div><div class="status covered"><span class="pill">covered</span><b>HTTP Archive/Web Almanac</b><span>2025 CMS adoption snapshot and high-traffic context</span></div><div class="status covered"><span class="pill">covered</span><b>HTTP Archive Technology Report API</b><span>Monthly origin counts, quarterly derived tracked-share trend, builder momentum summaries, and rank-tier detected-origin adoption for WordPress, Shopify, Wix, Squarespace, and Webflow</span></div><div class="status covered"><span class="pill">covered</span><b>HTTP Archive Core Web Vitals</b><span>Monthly good Core Web Vitals rates by technology from the HTTP Archive Technology Report API</span></div><div class="status covered"><span class="pill">covered</span><b>BuiltWith ecommerce history</b><span>Shopify and WooCommerce live-site counts by traffic tier</span></div><div class="status covered"><span class="pill">covered</span><b>BuiltWith traffic tiers</b><span>Current WordPress share by traffic tier across tracked CMS/builder technologies</span></div><div class="status covered"><span class="pill">covered</span><b>Stack Overflow tag volume</b><span>Quarterly public developer-attention proxy from Stack Exchange API tag totals</span></div><div class="status covered"><span class="pill">covered</span><b>Wikimedia pageviews</b><span>Quarterly en.wikipedia article pageviews as a public-interest proxy, not search-query volume</span></div><div class="status covered"><span class="pill">covered</span><b>WordPress npm packages</b><span>Quarterly npm downloads for selected @wordpress packages as package-ecosystem activity, not developer headcount</span></div><div class="status covered"><span class="pill">covered</span><b>GitHub repo interest snapshot</b><span>Current stars, forks, subscribers, open issues, and activity timestamps for selected WordPress ecosystem repositories</span></div><div class="status covered"><span class="pill">covered</span><b>GitHub PR review comments</b><span>Quarterly wordpress-develop line review-comment activity from GitHub pull-request review comments</span></div><div class="status partial"><span class="pill">partial</span><b>HN hiring mentions</b><span>WordPress/WooCommerce, PHP, and agency/studio mentions in monthly Hacker News Who is hiring threads from 2012 onward; not a broad job-board index</span></div><div class="status partial"><span class="pill">partial</span><b>Remote OK jobs snapshot</b><span>Current Remote OK public API job snapshot with WordPress, WooCommerce, PHP, hosted-builder, CMS, and agency/studio term counts</span></div><div class="status partial"><span class="pill">partial</span><b>WordPress Jobs board</b><span>Open-listing snapshots from jobs.wordpress.net current page and annual Internet Archive captures; WordPress-specific, not a broad hiring-platform index</span></div><div class="status covered"><span class="pill">covered</span><b>Attention and demand summary</b><span>Derived compact comparison of Stack Overflow, Wikimedia, HN hiring, and WordPress Jobs proxy direction</span></div><div class="status covered"><span class="pill">covered</span><b>Enterprise adoption signal</b><span>Current public WordPress VIP case-study snapshot with industries and use cases</span></div><div class="status covered"><span class="pill">covered</span><b>WordPress.org plugin/theme directories</b><span>Current plugin and theme counts</span></div><div class="status covered"><span class="pill">covered</span><b>WordPress.org ecosystem stats</b><span>Current WordPress, PHP, and database version distribution from WordPress.org stats APIs</span></div><div class="status covered"><span class="pill">covered</span><b>Plugin/theme directory activity</b><span>Current new, updated, and popular samples from WordPress.org directory APIs</span></div><div class="status covered"><span class="pill">covered</span><b>Major plugin install base</b><span>Current fixed-slug plugin API snapshot plus annual Wayback snapshots of archived WordPress.org plugin active-install buckets</span></div><div class="status covered"><span class="pill">covered</span><b>Stale popular plugin sample</b><span>Derived WordPress.org popular-plugin sample showing 2+ year stale count, install reach, and detail rows</span></div><div class="status covered"><span class="pill">covered</span><b>Major plugin support snapshot</b><span>Current WordPress.org plugin API support-thread and resolved-thread counts for the fixed major-plugin list</span></div><div class="status covered"><span class="pill">covered</span><b>Major plugin download trend</b><span>WordPress.org daily plugin download stats for the fixed major-plugin list, aggregated quarterly</span></div><div class="status covered"><span class="pill">covered</span><b>WordCamp Central</b><span>Historical WordCamp event records and anticipated-attendance fields where available</span></div><div class="status covered"><span class="pill">covered</span><b>WordPress Events</b><span>Current upcoming Meetup and WordCamp events</span></div><div class="status covered"><span class="pill">covered</span><b>Translate WordPress</b><span>Current locale team profile counts and Core dev translation status</span></div><div class="status covered"><span class="pill">covered</span><b>Make/Core posts</b><span>Post counts and author IDs</span></div><div class="status covered"><span class="pill">covered</span><b>Make/Core comments</b><span>Comment counts and commenter identities from Make/Core REST API</span></div><div class="status covered"><span class="pill">covered</span><b>Make/Core dev notes</b><span>Dev-note tagged posts by quarter and release</span></div><div class="status covered"><span class="pill">covered</span><b>Core release credits</b><span>WordPress.org credits API props by major release</span></div><div class="status covered"><span class="pill">covered</span><b>Core committers per release</b><span>GitHub tag-to-tag compare ranges by major release</span></div><div class="status covered"><span class="pill">covered</span><b>Core reopen rate</b><span>Quarterly Core Trac reopened status-change events</span></div><div class="status covered"><span class="pill">covered</span><b>Closure age summary</b><span>Median, p75, and p90 days-to-close by quarter for Core and Gutenberg</span></div><div class="status covered"><span class="pill">covered</span><b>Five for the Future</b><span>Current pledge organizations, hours, and listed profiles</span></div><div class="status partial"><span class="pill">partial</span><b>Newly detected sites</b><span>Current BuiltWith Net New Pipeline snapshot plus HTTP Archive monthly origin counts, quarterly derived tracked-share trend, builder momentum summaries, rank-tier detected-origin adoption, and a dedicated new-site choice companion view; multi-year new-site creation still needs paid BuiltWith or cohort queries</span></div><div class="status covered"><span class="pill">covered</span><b>New-site choice summary</b><span>Compact current proxy readout across BuiltWith 30/90-day pipeline, HTTP Archive tracked share, and traffic-tier presence</span></div><div class="status covered"><span class="pill">covered</span><b>Builder momentum summary</b><span>Derived HTTP Archive quarterly tracked-share change by builder technology</span></div><div class="status partial"><span class="pill">partial</span><b>Support forums</b><span>Current WordPress.org support queue snapshot with forum, status, last-activity, and age buckets; historical trend still needs a fuller export</span></div><div class="status covered"><span class="pill">covered</span><b>Support unanswered summary</b><span>Current support snapshot summarized into resolved, unresolved, no-reply, and forum-level unanswered tables</span></div><div class="status partial"><span class="pill">partial</span><b>Search interest and job demand</b><span>General web search trends and broad hiring-platform time series are not included; Wikimedia, Stack Overflow, and HN are narrower public/developer/demand proxies</span></div>
     </div>
   </section>
 
@@ -3980,7 +4014,7 @@ p { margin:0 0 12px; }
     <div class="readout-grid">
       <div class="readout-card">
         <strong>Community health: active, narrower entry funnel</strong>
-        <p>Core and Gutenberg still get steady participation, but fewer first-time reporters are entering the trackers than in 2021-2023. Code review activity is not showing the same drop.</p>
+        <p>Core and Gutenberg still get steady participation, but fewer first-time reporters are entering the trackers than in 2021-2023. PR and review-comment activity are still visible.</p>
         <div class="hmetric">
       <div class="hmetric-top"><span>Core first-time reporter retention</span><strong>66.2%</strong></div>
       <div class="bar"><span style="width:66.2%;background:#dc2626"></span></div>
@@ -3992,6 +4026,10 @@ p { margin:0 0 12px; }
         <div class="hmetric">
       <div class="hmetric-top"><span>PR creation vs 2021-2023</span><strong>152.9%</strong></div>
       <div class="bar"><span style="width:95.5%;background:#16a34a"></span></div>
+    </div>
+        <div class="hmetric">
+      <div class="hmetric-top"><span>Review comments vs 2021-2023</span><strong>129.9%</strong></div>
+      <div class="bar"><span style="width:81.2%;background:#7c3aed"></span></div>
     </div>
       </div>
       <div class="readout-card">
@@ -4065,8 +4103,8 @@ p { margin:0 0 12px; }
   </section>
 
   <section class="footer">
-    <p>Generated 2026-06-14 20:01 UTC from local Core/Gutenberg exports and public sources.</p>
-    <p>Sources: <a href="https://w3techs.com/technologies/history_overview/content_management/all/y">W3Techs usage trend</a>, <a href="https://w3techs.com/technologies/history_overview/content_management/ms/y">W3Techs CMS market-share trend</a>, <a href="https://almanac.httparchive.org/en/2025/cms">HTTP Archive Web Almanac CMS 2025</a>, <a href="https://httparchive.org/reports/techreport/tech">HTTP Archive Technology Report API</a>, <a href="https://api.stackexchange.com/docs/questions">Stack Exchange API</a>, <a href="https://doc.wikimedia.org/generated-data-platform/aqs/analytics-api/reference/page-views.html">Wikimedia Pageviews API</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="https://codex.wordpress.org/WordPress.org_API#Plugin_Download_Stats">WordPress.org plugin download stats</a>, <a href="https://remoteok.com/">Remote OK</a>, <a href="https://jobs.wordpress.net/">WordPress Jobs board</a>, <a href="https://web.archive.org/cdx">Internet Archive CDX API</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="https://events.wordpress.org/">WordPress Events</a>, <a href="https://translate.wordpress.org/">Translate WordPress</a>, <a href="https://make.wordpress.org/core/wp-json/wp/v2/posts">Make/Core posts API</a>, <a href="https://make.wordpress.org/core/wp-json/wp/v2/comments">Make/Core comments API</a>, <a href="https://wordpress.org/support/view/all-topics/">WordPress.org support forums</a>, <a href="https://trends.builtwith.com/cms/WordPress">BuiltWith technology pages</a>, <a href="https://github.com/WordPress/gutenberg/issues">Gutenberg GitHub issues</a>, <a href="https://wordpress.org/five-for-the-future/pledges/">Five for the Future pledges</a>, <a href="https://wordpress.org/download/releases/">WordPress release archive</a>, and <a href="https://api.wordpress.org/core/credits/1.1/">Core credits API</a>.</p>
+    <p>Generated 2026-06-14 21:04 UTC from local Core/Gutenberg exports and public sources.</p>
+    <p>Sources: <a href="https://w3techs.com/technologies/history_overview/content_management/all/y">W3Techs usage trend</a>, <a href="https://w3techs.com/technologies/history_overview/content_management/ms/y">W3Techs CMS market-share trend</a>, <a href="https://almanac.httparchive.org/en/2025/cms">HTTP Archive Web Almanac CMS 2025</a>, <a href="https://httparchive.org/reports/techreport/tech">HTTP Archive Technology Report API</a>, <a href="https://api.stackexchange.com/docs/questions">Stack Exchange API</a>, <a href="https://doc.wikimedia.org/generated-data-platform/aqs/analytics-api/reference/page-views.html">Wikimedia Pageviews API</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="https://codex.wordpress.org/WordPress.org_API#Plugin_Download_Stats">WordPress.org plugin download stats</a>, <a href="https://remoteok.com/">Remote OK</a>, <a href="https://jobs.wordpress.net/">WordPress Jobs board</a>, <a href="https://web.archive.org/cdx">Internet Archive CDX API</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="https://events.wordpress.org/">WordPress Events</a>, <a href="https://translate.wordpress.org/">Translate WordPress</a>, <a href="https://make.wordpress.org/core/wp-json/wp/v2/posts">Make/Core posts API</a>, <a href="https://make.wordpress.org/core/wp-json/wp/v2/comments">Make/Core comments API</a>, <a href="https://wordpress.org/support/view/all-topics/">WordPress.org support forums</a>, <a href="https://trends.builtwith.com/cms/WordPress">BuiltWith technology pages</a>, <a href="https://github.com/WordPress/gutenberg/issues">Gutenberg GitHub issues</a>, <a href="https://api.github.com/repos/WordPress/wordpress-develop/pulls/comments">wordpress-develop GitHub review comments</a>, <a href="https://wordpress.org/five-for-the-future/pledges/">Five for the Future pledges</a>, <a href="https://wordpress.org/download/releases/">WordPress release archive</a>, and <a href="https://api.wordpress.org/core/credits/1.1/">Core credits API</a>.</p>
   </section>
 </main>
 </body>

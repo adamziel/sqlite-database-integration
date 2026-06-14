@@ -146,7 +146,7 @@
     </nav>
 
     <section class="grid metrics" aria-label="Database summary">
-      <div class="metric"><h3>Tables</h3><strong>89</strong><span>SQLite tables in the report database.</span></div>
+      <div class="metric"><h3>Tables</h3><strong>91</strong><span>SQLite tables in the report database.</span></div>
       <div class="metric"><h3>Local sources</h3><strong>19</strong><span>Imported files with SHA-256 hashes.</span></div>
       <div class="metric"><h3>Tickets/issues</h3><strong>97.1k</strong><span>Core Trac tickets plus Gutenberg issues.</span></div>
       <div class="metric"><h3>Pull requests</h3><strong>12.1k</strong><span>wordpress-develop GitHub PR records.</span></div>
@@ -275,6 +275,8 @@
 <div class="table-chip"><code>fttf_pledges</code><span>280 rows</span></div>
 <div class="table-chip"><code>fttf_snapshots</code><span>1 rows</span></div>
 <div class="table-chip"><code>github_pr_quarterly</code><span>94 rows</span></div>
+<div class="table-chip"><code>github_pr_review_comments</code><span>33.3k rows</span></div>
+<div class="table-chip"><code>github_pr_review_comments_quarterly</code><span>31 rows</span></div>
 <div class="table-chip"><code>github_prs</code><span>12.1k rows</span></div>
 <div class="table-chip"><code>github_repo_interest_snapshot</code><span>5 rows</span></div>
 <div class="table-chip"><code>gutenberg_issues</code><span>32.1k rows</span></div>
@@ -306,7 +308,7 @@
 <div class="table-chip"><code>npm_wordpress_downloads_monthly</code><span>624 rows</span></div>
 <div class="table-chip"><code>npm_wordpress_downloads_quarterly</code><span>208 rows</span></div>
 <div class="table-chip"><code>open_backlog_age_summary</code><span>12 rows</span></div>
-<div class="table-chip"><code>plugin_directory_activity_sample</code><span>13.2k rows</span></div>
+<div class="table-chip"><code>plugin_directory_activity_sample</code><span>13.3k rows</span></div>
 <div class="table-chip"><code>plugin_maintenance_summary</code><span>1 rows</span></div>
 <div class="table-chip"><code>plugin_stale_popular_sample</code><span>41 rows</span></div>
 <div class="table-chip"><code>remoteok_job_signal_snapshot</code><span>9 rows</span></div>
@@ -329,10 +331,10 @@
 <div class="table-chip"><code>wikimedia_pageviews_quarterly</code><span>264 rows</span></div>
 <div class="table-chip"><code>wordcamp_yearly</code><span>22 rows</span></div>
 <div class="table-chip"><code>wordcamps</code><span>1,458 rows</span></div>
-<div class="table-chip"><code>wordpress_jobs_board_category_snapshots</code><span>62 rows</span></div>
+<div class="table-chip"><code>wordpress_jobs_board_category_snapshots</code><span>61 rows</span></div>
 <div class="table-chip"><code>wordpress_jobs_board_snapshots</code><span>10 rows</span></div>
 <div class="table-chip"><code>wp_event_snapshots</code><span>1 rows</span></div>
-<div class="table-chip"><code>wp_events</code><span>288 rows</span></div>
+<div class="table-chip"><code>wp_events</code><span>293 rows</span></div>
 <div class="table-chip"><code>wporg_ecosystem_stats_snapshot</code><span>105 rows</span></div></div>
     </section>
 
@@ -484,9 +486,9 @@
           <span class="status">partial</span>
           <strong>Developer Interest Proxy</strong>
           <b>Best next source</b>
-          <p>Stack Exchange API question totals, Wikimedia Pageviews API, npm package downloads, GitHub PR/repository activity, and broader developer-community sources</p>
+          <p>Stack Exchange API question totals, Wikimedia Pageviews API, npm package downloads, GitHub PR/repository/review activity, and broader developer-community sources</p>
           <b>Current coverage</b>
-          <p>Quarterly Stack Overflow tag volume, Wikimedia pageviews, npm @wordpress package downloads, wordpress-develop PR activity, GitHub repository interest snapshots, and a compact attention/demand summary are included as public attention and contribution proxies; they do not measure general search-query interest.</p>
+          <p>Quarterly Stack Overflow tag volume, Wikimedia pageviews, npm @wordpress package downloads, wordpress-develop PR and line review-comment activity, GitHub repository interest snapshots, and a compact attention/demand summary are included as public attention and contribution proxies; they do not measure general search-query interest.</p>
         </article>
 
         <article class="gap-card">

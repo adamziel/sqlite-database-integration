@@ -5942,6 +5942,7 @@ p {{ margin:0 0 12px; }}
     <a href="#scorecard">Scorecard</a>
     <a href="#goal-map">Coverage Map</a>
     <a href="#coverage">Source Coverage</a>
+    <a href="data_inventory.html">Data Inventory</a>
     <a href="#readout">Decision Readout</a>
   </nav>
 
@@ -6868,11 +6869,11 @@ p {{ margin:0 0 12px; }}
 
   <section id="coverage" class="section">
     <h2>Source Coverage</h2>
-    <p class="callout">The SQLite database stores imported source tables, fetched ecosystem/adoption records, file hashes, and explicit source gaps. Download: <a href="community_health.sqlite.gz">community_health.sqlite.gz</a>.</p>
+    <p class="callout">The SQLite database stores imported source tables, fetched ecosystem/adoption records, file hashes, and explicit source gaps. Download: <a href="community_health.sqlite.gz">community_health.sqlite.gz</a>. Inventory: <a href="data_inventory.html">data_inventory.html</a>.</p>
     <div class="grid-2">
       <div class="card">
         <h3>Refresh provenance</h3>
-        <p>The report is built from local ticket exports plus public-source fetches. The SQLite database stores source-file paths, row counts, and SHA-256 hashes for local imports, so a later refresh can verify whether the underlying exports changed.</p>
+        <p>The report is built from local ticket exports plus public-source fetches. The SQLite database stores source-file paths, row counts, and SHA-256 hashes for local imports, so a later refresh can verify whether the underlying exports changed. The <a href="data_inventory.html">data inventory</a> lists the current tables, source hashes, and partial-source gaps.</p>
         <div class="stats">
           {stat_card("Local source files", compact(local_source_file_count), f"{compact(local_source_row_count)} imported rows", "good")}
           {stat_card("Fetched tables", compact(len(fetched_nonempty_tables)), f"{compact(fetched_row_count)} fetched/derived rows", "good")}

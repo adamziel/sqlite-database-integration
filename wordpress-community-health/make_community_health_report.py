@@ -2661,6 +2661,17 @@ def point_series(rows, date_col, value_col, start=None):
     return out
 
 
+def difference_series(rows, date_col, minuend_col, subtrahend_col, start=None):
+    out = []
+    for row in rows:
+        date_value = row.get(date_col)
+        if start and date_value < start:
+            continue
+        value = max(0, float(row.get(minuend_col) or 0) - float(row.get(subtrahend_col) or 0))
+        out.append((date_value, value))
+    return out
+
+
 def series_from_counter(counter):
     return sorted((key, value) for key, value in counter.items())
 
@@ -2751,6 +2762,7 @@ def svg_line_chart(title, note, series_list, height=330, y_suffix="", start_zero
         pieces.append(f'<circle cx="{legend_x}" cy="{height-8}" r="5" fill="{color}" />')
         pieces.append(f'<text x="{legend_x+10}" y="{height-4}" class="legend">{html.escape(label)}</text>')
         legend_x += max(120, len(label) * 8 + 42)
+    terminal_labels = []
     for series in series_list:
         points = [(d, v) for d, v in series["points"] if d and v is not None]
         if not points:
@@ -2759,7 +2771,29 @@ def svg_line_chart(title, note, series_list, height=330, y_suffix="", start_zero
         pieces.append(f'<path d="{path}" fill="none" stroke="{series["color"]}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />')
         for d, v in points[-1:]:
             pieces.append(f'<circle cx="{x(d):.1f}" cy="{y(v):.1f}" r="4" fill="{series["color"]}" />')
-            pieces.append(f'<text x="{min(width-right-70, x(d)+8):.1f}" y="{y(v)-8:.1f}" class="end-label" fill="{series["color"]}">{compact(v)}{y_suffix}</text>')
+            terminal_labels.append(
+                {
+                    "x": min(width - right - 70, x(d) + 8),
+                    "y": y(v) - 8,
+                    "color": series["color"],
+                    "label": f"{compact(v)}{y_suffix}",
+                }
+            )
+    terminal_labels.sort(key=lambda item: item["y"])
+    min_label_y = top + 12
+    max_label_y = top + plot_h - 8
+    previous_y = min_label_y - 16
+    for item in terminal_labels:
+        item["y"] = max(min_label_y, item["y"], previous_y + 16)
+        previous_y = item["y"]
+    next_y = max_label_y + 16
+    for item in reversed(terminal_labels):
+        item["y"] = min(max_label_y, item["y"], next_y - 16)
+        next_y = item["y"]
+    for item in terminal_labels:
+        pieces.append(
+            f'<text x="{item["x"]:.1f}" y="{item["y"]:.1f}" class="end-label" fill="{item["color"]}">{html.escape(item["label"])}</text>'
+        )
     pieces.append("</svg>")
     return "\n".join(pieces)
 
@@ -3092,6 +3126,9 @@ def build_report(data, fetched):
 
     member_points = point_series(gut_q, "quarter", "member_created", "2021-01-01")
     community_points = point_series(gut_q, "quarter", "community_created", "2021-01-01")
+    core_repeat_reporter_points = difference_series(core_q, "quarter", "unique_reporters", "first_time_reporters", "2021-01-01")
+    gut_repeat_creator_points = difference_series(gut_q, "quarter", "unique_creators", "first_time_creators", "2021-01-01")
+    pr_repeat_author_points = difference_series(github_q, "quarter", "unique_authors", "first_time_authors", "2021-01-01")
     core_make_posts = count_by_quarter(make_posts, "date")
     core_make_authors = count_by_quarter(make_posts, "date", distinct_key="author")
     make_comment_points = point_series(make_comment_quarterly, "quarter", "comments", "2009-01-01")
@@ -3242,6 +3279,24 @@ def build_report(data, fetched):
     ]:
         points = sorted((date_value, value) for (cat, date_value), value in combined_cat.items() if cat == category)
         cat_series.append({"label": label, "color": color, "points": points})
+
+    def category_points(source, category):
+        return sorted(
+            (date_value, value)
+            for (row_source, row_category, date_value), value in classification_by_source_cat.items()
+            if row_source == source and row_category == category and date_value >= "2021-01-01"
+        )
+
+    core_category_series = [
+        {"label": "All Core tickets", "color": COLORS["core"], "points": point_series(core_q, "quarter", "created", "2021-01-01")},
+        {"label": "Core bugs", "color": COLORS["red"], "points": category_points("core", "bug")},
+        {"label": "Core feature requests", "color": COLORS["purple"], "points": category_points("core", "feature_request")},
+    ]
+    gut_category_series = [
+        {"label": "All Gutenberg issues", "color": COLORS["gutenberg"], "points": point_series(gut_q, "quarter", "created", "2021-01-01")},
+        {"label": "Gutenberg bugs", "color": COLORS["red"], "points": category_points("gutenberg", "bug")},
+        {"label": "Gutenberg feature requests", "color": COLORS["purple"], "points": category_points("gutenberg", "feature_request")},
+    ]
 
     market_usage_series = []
     market_cms_series = []
@@ -3480,6 +3535,11 @@ p {{ margin:0 0 12px; }}
         {"label": "Core first-time reporters", "color": COLORS["core"], "points": point_series(core_q, "quarter", "first_time_reporters", "2021-01-01")},
         {"label": "Gutenberg first-time creators", "color": COLORS["gutenberg"], "points": point_series(gut_q, "quarter", "first_time_creators", "2021-01-01")},
         {"label": "PR first-time authors", "color": COLORS["prs"], "points": point_series(github_q, "quarter", "first_time_authors", "2021-01-01")},
+    ])}
+    {svg_line_chart("Repeat participation by quarter", "People who had already appeared before in the same tracker or PR stream.", [
+        {"label": "Core repeat reporters", "color": COLORS["core"], "points": core_repeat_reporter_points},
+        {"label": "Gutenberg repeat creators", "color": COLORS["gutenberg"], "points": gut_repeat_creator_points},
+        {"label": "PR repeat authors", "color": COLORS["prs"], "points": pr_repeat_author_points},
     ])}
     <div class="grid-2">
       <div>
@@ -3770,6 +3830,10 @@ p {{ margin:0 0 12px; }}
       </div>
     </div>
     {svg_line_chart("Large ticket categories by quarter", "Combined Core plus Gutenberg classified issue/ticket categories since 2021.", cat_series)}
+    <div class="grid-2">
+      {svg_line_chart("Core bugs, feature requests, and all tickets", "Quarterly Trac tickets by classified category. All tickets are direct created-ticket counts.", core_category_series)}
+      {svg_line_chart("Gutenberg bugs, feature requests, and all issues", "Quarterly GitHub issues by classified category. All issues are direct created-issue counts.", gut_category_series)}
+    </div>
   </section>
 
   <section id="market" class="section">

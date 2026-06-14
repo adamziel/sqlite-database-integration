@@ -90,7 +90,7 @@
 <body>
   <main>
     <h1>WordPress relevance report progress</h1>
-    <p class="lede">This is the working state as of June 14, 2026. The active direction is the WordPress Community & Adoption Health report, not the SQLite benchmark runner. The public report now opens with a decision scorecard, a Decision Questions checklist, and visible data-source strength.</p>
+    <p class="lede">This is the working state as of June 14, 2026. The active direction is the WordPress Community & Adoption Health report, not the SQLite benchmark runner. The public report now opens with a decision scorecard, a Decision Questions checklist, visible data-source strength, and a SQLite-generated decision brief.</p>
 
     <section class="grid cards">
       <div class="card">
@@ -170,7 +170,7 @@
       </a>
       <a class="linkcard amber" href="decision_brief.html">
         <strong>Decision brief</strong>
-        <span>One-page summary for quick sharing and review.</span>
+        <span>SQLite-generated one-page summary for quick sharing and review.</span>
       </a>
       <a class="linkcard" href="goal_audit.html">
         <strong>Goal audit</strong>
@@ -239,7 +239,13 @@
           <div class="item">
             <div class="date">Latest</div>
             <div>
-              <p>Published commit <code>bb7e26b</code>, which adds the compact Project Load companion view and links it from the main report.</p>
+              <p>Published commit <code>bc7cf1b</code>, which turns <a href="decision_brief.html">decision_brief.html</a> into a SQLite-generated artifact and wires <code>make_decision_brief.py</code> into the refresh workflow.</p>
+            </div>
+          </div>
+          <div class="item">
+            <div class="date">Decision brief</div>
+            <div>
+              <p>Added <code>make_decision_brief.py</code> so installed share, current new-site proxy, closure ratios, first-time reporter retention, backlog age, contributor concentration, npm package downloads, and theme sample counts are regenerated from SQLite instead of hand-edited.</p>
             </div>
           </div>
           <div class="item">
@@ -257,7 +263,7 @@
           <div class="item">
             <div class="date">Current status</div>
             <div>
-              <p>The public report now has the three requested main views, a decision scorecard, a coverage map, a source inventory, a goal audit, a refresh runbook, and SQLite-backed companion pages for the areas that need a shorter readout than the full report.</p>
+              <p>The public report now has the three requested main views, a decision scorecard, a coverage map, a generated decision brief, a source inventory, a goal audit, a refresh runbook, and SQLite-backed companion pages for the areas that need a shorter readout than the full report.</p>
             </div>
           </div>
           <div class="item">
@@ -317,7 +323,7 @@
           <div class="item">
             <div class="date">Refresh</div>
             <div>
-              <p>Added <code>refresh_report_artifacts.py</code> to rebuild the main report, goal audit, and data inventory in the correct order from the current SQLite database, then validate generated HTML and required links.</p>
+              <p>Added <code>refresh_report_artifacts.py</code> to rebuild the main report, focused companion pages, generated decision brief, source gap plan, goal audit, and data inventory in the correct order from the current SQLite database, then validate generated HTML and required links.</p>
             </div>
           </div>
           <div class="item">
@@ -345,6 +351,7 @@
           <span class="pill">index.html</span>
           <span class="pill">community_health.sqlite.gz</span>
           <span class="pill">Decision Questions</span>
+          <span class="pill">make_decision_brief.py</span>
           <span class="pill">scorecard</span>
           <span class="pill">coverage map</span>
           <span class="pill">project load</span>
@@ -379,7 +386,7 @@
           <tr><td>Market position and adoption</td><td>W3Techs installed share, HTTP Archive origin and tracked-share trends, BuiltWith pipeline/tier data, plugin install/download history, WooCommerce, and compact new-site plus attention/demand proxy summaries.</td><td>Covered with proxies for new-site and demand history</td></tr>
           <tr><td>Decision questions</td><td><a href="index.html#decision-questions">Seven plain-English answer cards</a> plus final evidence-strength and decision readout sections.</td><td>Covered</td></tr>
           <tr><td>Short visual decision readout</td><td>Relevance Scorecard, Goal Coverage Map, Decision Brief, and final Decision Readout.</td><td>Covered</td></tr>
-          <tr><td>Refresh metadata</td><td>SQLite source_files hashes, source_gaps, generated data inventory page, source coverage cards, generator scripts, cached public-source tables, and compressed DB export.</td><td>Covered</td></tr>
+          <tr><td>Refresh metadata</td><td>SQLite source_files hashes, source_gaps, generated data inventory page, generated decision brief, source coverage cards, generator scripts, cached public-source tables, and compressed DB export.</td><td>Covered</td></tr>
           <tr><td>Remaining ideal sources</td><td>True multi-year new-site cohorts, Google Trends or equivalent, broad labor-market exports, and fuller support-forum history.</td><td>Partial by design</td></tr>
         </tbody>
       </table>

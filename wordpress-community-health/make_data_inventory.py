@@ -79,6 +79,7 @@ def nav_html():
             '      <a href="index.html#goal-map">Coverage map</a>',
             '      <a href="progress_summary.html">Progress summary</a>',
             '      <a href="decision_brief.html">Decision brief</a>',
+            '      <a href="goal_audit.html">Goal audit</a>',
             '      <a href="refresh_runbook.html">Refresh runbook</a>',
             '      <a href="community_health.sqlite.gz">SQLite download</a>',
             "    </nav>",
@@ -274,7 +275,7 @@ def render():
         </div>
         <div class="command">
           <b>Publish with the report</b>
-          <code>cp data_inventory.html make_data_inventory.py /Users/admin/sqlite-database-integration-pages/wordpress-community-health/</code>
+          <code>cp data_inventory.html make_data_inventory.py goal_audit.html /Users/admin/sqlite-database-integration-pages/wordpress-community-health/</code>
         </div>
       </div>
     </section>

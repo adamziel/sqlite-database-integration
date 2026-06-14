@@ -51,7 +51,7 @@ HTML_ARTIFACTS = {
     ],
     "new_site_choice.html": [
         "WordPress new-site choice",
-        "Recurring tracked share over time",
+        "Quarterly tracked share over time",
         "BuiltWith 90-day newly found sites",
     ],
     "developer_interest.html": [

@@ -251,7 +251,7 @@ def multi_line_chart(title, note, series, value_decimals=1, y_suffix="%"):
 
 def points_for(rows_, technology, value_key):
     return [
-        (row.get("date", "")[:7], row.get(value_key))
+        (row.get("label") or row.get("date", "")[:7], row.get(value_key))
         for row in rows_
         if row.get("technology") == technology
     ]
@@ -284,10 +284,14 @@ def main():
         http_share = rows(
             conn,
             """
-            SELECT date, technology, mobile_tracked_share_pct, total_tracked_share_pct, mobile_origins
-            FROM http_archive_tracked_share_monthly
+            SELECT quarter AS date, label, technology,
+                   avg_mobile_tracked_share_pct AS mobile_tracked_share_pct,
+                   avg_total_tracked_share_pct AS total_tracked_share_pct,
+                   avg_mobile_origins AS mobile_origins,
+                   months
+            FROM http_archive_tracked_share_quarterly
             WHERE technology IN ('WordPress','Shopify','Wix','Squarespace','Webflow')
-            ORDER BY date, technology
+            ORDER BY quarter, technology
             """,
         )
         rank_rows = rows(
@@ -379,8 +383,8 @@ def main():
 
     tech_order = ["WordPress", "Shopify", "Wix", "Squarespace", "Webflow"]
     share_chart = multi_line_chart(
-        "Recurring tracked share over time",
-        "HTTP Archive monthly mobile-crawl share among WordPress, Shopify, Wix, Squarespace, and Webflow. This is not a first-seen new-site cohort.",
+        "Quarterly tracked share over time",
+        "HTTP Archive mobile-crawl share averaged by quarter across WordPress, Shopify, Wix, Squarespace, and Webflow. This is not a first-seen new-site cohort.",
         [
             {
                 "name": tech,
@@ -393,8 +397,8 @@ def main():
         y_suffix="%",
     )
     origin_chart = multi_line_chart(
-        "Detected mobile origins over time",
-        "HTTP Archive recurring mobile-crawl origin counts. Use it for direction, not exact market sizing.",
+        "Quarterly detected mobile origins",
+        "HTTP Archive recurring mobile-crawl origin counts averaged by quarter. Use it for direction, not exact market sizing.",
         [
             {
                 "name": tech,

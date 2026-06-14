@@ -882,6 +882,63 @@ def derive_http_archive_tracked_share_monthly(adoption_rows):
     return rows
 
 
+def quarter_start(date_value):
+    raw = str(date_value or "")
+    if len(raw) < 7:
+        return ""
+    try:
+        year = int(raw[:4])
+        month = int(raw[5:7])
+    except ValueError:
+        return ""
+    start_month = ((month - 1) // 3) * 3 + 1
+    return f"{year:04d}-{start_month:02d}-01"
+
+
+def derive_http_archive_tracked_share_quarterly(monthly_rows):
+    grouped = defaultdict(list)
+    for row in monthly_rows or []:
+        quarter = quarter_start(row.get("date"))
+        if not quarter:
+            continue
+        key = (
+            quarter,
+            row.get("technology") or "",
+            row.get("rank") or "ALL",
+            row.get("geo") or "ALL",
+        )
+        grouped[key].append(row)
+
+    rows = []
+    collected_at = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
+    for (quarter, technology, rank, geo), items in sorted(grouped.items()):
+        month_count = len(items)
+        latest = max(items, key=lambda item: item.get("date", ""))
+        rows.append(
+            {
+                "quarter": quarter,
+                "label": quarter_label(quarter),
+                "technology": technology,
+                "rank": rank,
+                "geo": geo,
+                "months": month_count,
+                "avg_mobile_origins": round(sum(num(item.get("mobile_origins")) for item in items) / month_count, 2),
+                "avg_desktop_origins": round(sum(num(item.get("desktop_origins")) for item in items) / month_count, 2),
+                "avg_total_origins": round(sum(num(item.get("total_origins")) for item in items) / month_count, 2),
+                "avg_mobile_tracked_share_pct": round(sum(num(item.get("mobile_tracked_share_pct")) for item in items) / month_count, 4),
+                "avg_desktop_tracked_share_pct": round(sum(num(item.get("desktop_tracked_share_pct")) for item in items) / month_count, 4),
+                "avg_total_tracked_share_pct": round(sum(num(item.get("total_tracked_share_pct")) for item in items) / month_count, 4),
+                "latest_month": latest.get("date", ""),
+                "latest_mobile_origins": latest.get("mobile_origins", ""),
+                "latest_mobile_tracked_share_pct": latest.get("mobile_tracked_share_pct", ""),
+                "source": "Derived quarterly average from HTTP Archive tracked-share monthly rows",
+                "source_url": HTTP_ARCHIVE_TECH_REPORT_URL,
+                "collected_at": collected_at,
+            }
+        )
+    return rows
+
+
 def http_archive_rank_cache_path():
     return CACHE / "http-archive-rank-adoption-snapshot.json"
 
@@ -4136,7 +4193,7 @@ def build_database(data, fetched):
                 "new_site_share_history",
                 "partial",
                 "BuiltWith historical trends or HTTP Archive cohort queries",
-                "Current report includes BuiltWith current Net New Pipeline, HTTP Archive monthly origin counts, derived tracked-share history, rank-tier detected-origin adoption, a compact new-site choice summary, and a dedicated new-site choice companion view; not a multi-year newly created site cohort.",
+                "Current report includes BuiltWith current Net New Pipeline, HTTP Archive monthly origin counts, quarterly derived tracked-share history, rank-tier detected-origin adoption, a compact new-site choice summary, and a dedicated new-site choice companion view; not a multi-year newly created site cohort.",
             )
         )
     else:
@@ -5417,7 +5474,7 @@ def source_status_rows(fetched):
         ("Open backlog age buckets", "covered" if fetched.get("open_backlog_age_summary") else "missing", "Current open Core/Gutenberg backlog by last-activity age bucket"),
         ("W3Techs adoption", "covered" if fetched.get("market_share") else "missing", "All-site usage and CMS market-share yearly trends"),
         ("HTTP Archive/Web Almanac", "covered", "2025 CMS adoption snapshot and high-traffic context"),
-        ("HTTP Archive Technology Report API", "covered" if fetched.get("http_archive_adoption_monthly") else "missing", "Monthly origin counts, derived tracked-share trend, and rank-tier detected-origin adoption for WordPress, Shopify, Wix, Squarespace, and Webflow"),
+        ("HTTP Archive Technology Report API", "covered" if fetched.get("http_archive_adoption_monthly") else "missing", "Monthly origin counts, quarterly derived tracked-share trend, and rank-tier detected-origin adoption for WordPress, Shopify, Wix, Squarespace, and Webflow"),
         ("HTTP Archive Core Web Vitals", "covered" if fetched.get("http_archive_cwv_monthly") else "missing", "Monthly good Core Web Vitals rates by technology from the HTTP Archive Technology Report API"),
         ("BuiltWith ecommerce history", "covered" if fetched.get("builtwith_technology_history") else "missing", "Shopify and WooCommerce live-site counts by traffic tier"),
         ("BuiltWith traffic tiers", "covered" if fetched.get("builtwith_tier_share_snapshot") else "missing", "Current WordPress share by traffic tier across tracked CMS/builder technologies"),
@@ -5454,7 +5511,7 @@ def source_status_rows(fetched):
         (
             "Newly detected sites",
             "partial" if SOURCE_FILES["builtwith_new_site_snapshot"].exists() else "missing",
-            "Current BuiltWith Net New Pipeline snapshot plus HTTP Archive monthly origin counts, derived tracked-share trend, rank-tier detected-origin adoption, and a dedicated new-site choice companion view; multi-year new-site creation still needs paid BuiltWith or cohort queries",
+            "Current BuiltWith Net New Pipeline snapshot plus HTTP Archive monthly origin counts, quarterly derived tracked-share trend, rank-tier detected-origin adoption, and a dedicated new-site choice companion view; multi-year new-site creation still needs paid BuiltWith or cohort queries",
         ),
         (
             "New-site choice summary",
@@ -7852,6 +7909,9 @@ def main():
     fetched["http_archive_adoption_monthly"] = fetch_http_archive_adoption_monthly(args.skip_network)
     fetched["http_archive_tracked_share_monthly"] = derive_http_archive_tracked_share_monthly(
         fetched["http_archive_adoption_monthly"]
+    )
+    fetched["http_archive_tracked_share_quarterly"] = derive_http_archive_tracked_share_quarterly(
+        fetched["http_archive_tracked_share_monthly"]
     )
     fetched["http_archive_rank_adoption_snapshot"] = fetch_http_archive_rank_adoption_snapshot(args.skip_network)
     fetched["http_archive_cwv_monthly"] = fetch_http_archive_cwv_monthly(args.skip_network)

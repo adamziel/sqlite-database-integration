@@ -64,6 +64,7 @@ THEME_INFO_API = "https://api.wordpress.org/themes/info/1.2/"
 WORDCAMP_API = "https://central.wordcamp.org/wp-json/wp/v2/wordcamps"
 EVENTS_WORDPRESS_URL = "https://events.wordpress.org/"
 MAKE_CORE_API = "https://make.wordpress.org/core/wp-json/wp/v2/posts"
+MAKE_CORE_COMMENTS_API = "https://make.wordpress.org/core/wp-json/wp/v2/comments"
 MAKE_CORE_TAGS_API = "https://make.wordpress.org/core/wp-json/wp/v2/tags"
 TRANSLATE_LOCALES_URL = "https://translate.wordpress.org/"
 TRANSLATE_CORE_DEV_URL = "https://translate.wordpress.org/projects/wp/dev/"
@@ -768,6 +769,91 @@ def fetch_make_core_posts(skip_network=False):
     return rows
 
 
+def make_commenter_key(item):
+    author = str(item.get("author") or "").strip()
+    if author and author != "0":
+        return f"user:{author}"
+    author_name = strip_html(item.get("author_name")).lower()
+    author_url = str(item.get("author_url") or "").strip().lower()
+    if author_url:
+        return f"url:{author_url}"
+    if author_name:
+        return f"name:{author_name}"
+    return "anonymous"
+
+
+def fetch_make_core_comments(skip_network=False):
+    if skip_network:
+        return []
+    rows = []
+    page = 1
+    total_pages = None
+    fields = "id,date,post,parent,author,author_name,author_url,link"
+    while True:
+        params = urllib.parse.urlencode({"per_page": 100, "page": page, "_fields": fields})
+        try:
+            data, headers = fetch_json(f"{MAKE_CORE_COMMENTS_API}?{params}")
+        except urllib.error.HTTPError as exc:
+            if exc.code == 400 and page > 1:
+                break
+            raise
+        if total_pages is None:
+            total_pages = int(headers.get("X-WP-TotalPages", "1") or 1)
+        for item in data:
+            commenter_key = make_commenter_key(item)
+            rows.append(
+                {
+                    "id": str(item.get("id", "")),
+                    "date": str(item.get("date", "")),
+                    "post": str(item.get("post", "")),
+                    "parent": str(item.get("parent", "")),
+                    "author": str(item.get("author", "")),
+                    "author_name": strip_html(item.get("author_name")),
+                    "author_url": str(item.get("author_url") or ""),
+                    "commenter_key": commenter_key,
+                    "is_registered_author": "1" if str(item.get("author") or "").strip() not in {"", "0"} else "0",
+                    "link": str(item.get("link", "")),
+                    "raw_json": json.dumps(item, ensure_ascii=True, sort_keys=True),
+                    "source_url": MAKE_CORE_COMMENTS_API,
+                }
+            )
+        if page >= total_pages:
+            break
+        if page % 50 == 0:
+            eprint(f"make/core comments page {page}/{total_pages}")
+        page += 1
+        time.sleep(0.05)
+    return rows
+
+
+def derive_make_core_comment_quarterly(comments):
+    buckets = defaultdict(lambda: {"comments": 0, "commenters": set(), "registered": 0, "anonymous": 0, "posts": set()})
+    for row in comments:
+        q = quarter_start(row.get("date"))
+        if not q:
+            continue
+        bucket = buckets[q]
+        bucket["comments"] += 1
+        bucket["commenters"].add(row.get("commenter_key") or row.get("author_name") or "anonymous")
+        bucket["posts"].add(str(row.get("post", "")))
+        if str(row.get("is_registered_author")) == "1":
+            bucket["registered"] += 1
+        else:
+            bucket["anonymous"] += 1
+    return [
+        {
+            "quarter": quarter,
+            "label": quarter_label(quarter),
+            "comments": values["comments"],
+            "unique_commenters": len(values["commenters"]),
+            "registered_author_comments": values["registered"],
+            "guest_or_anonymous_comments": values["anonymous"],
+            "posts_commented_on": len(values["posts"]),
+        }
+        for quarter, values in sorted(buckets.items())
+    ]
+
+
 def parse_translate_locale_cards(body, source_url):
     rows = []
     for match in re.finditer(r'<div class="locale percent-(\d+)">(.*?)(?=<div class="locale percent-|\Z)', body, re.S):
@@ -1455,6 +1541,15 @@ def build_database(data, fetched):
                 "Dev note volume needs Make/Core post tag IDs and dev-notes tag metadata.",
             )
         )
+    if not fetched.get("make_core_comments"):
+        gaps.append(
+            (
+                "make_core_commenters",
+                "missing",
+                "Make/Core REST API comments endpoint",
+                "Needs Make/Core comment rows to distinguish publishing authors from discussion participants.",
+            )
+        )
     conn.executemany("INSERT INTO source_gaps VALUES (?,?,?,?)", gaps)
     conn.commit()
     conn.close()
@@ -1810,6 +1905,7 @@ def source_status_rows(fetched):
         ("WordPress Events", "covered" if fetched.get("wp_events") else "missing", "Current upcoming Meetup and WordCamp events"),
         ("Translate WordPress", "covered" if fetched.get("translation_locale_snapshot") else "missing", "Current locale team profile counts and Core dev translation status"),
         ("Make/Core posts", "covered" if fetched.get("make_core_posts") else "missing", "Post counts and author IDs"),
+        ("Make/Core comments", "covered" if fetched.get("make_core_comments") else "missing", "Comment counts and commenter identities from Make/Core REST API"),
         ("Make/Core dev notes", "covered" if fetched.get("make_core_dev_notes") else "missing", "Dev-note tagged posts by quarter and release"),
         ("Core release credits", "covered" if fetched.get("core_release_credits") else "missing", "WordPress.org credits API props by major release"),
         ("Core committers per release", "covered" if fetched.get("core_release_committers") else "missing", "GitHub tag-to-tag compare ranges by major release"),
@@ -1846,6 +1942,8 @@ def build_report(data, fetched):
     wp_event_snapshots = fetched.get("wp_event_snapshots", [])
     wp_events = fetched.get("wp_events", [])
     make_posts = fetched.get("make_core_posts", [])
+    make_comments = fetched.get("make_core_comments", [])
+    make_comment_quarterly = fetched.get("make_core_comment_quarterly", [])
     translation_snapshots = fetched.get("translation_snapshots", [])
     translation_locales = fetched.get("translation_locale_snapshot", [])
     translation_core_dev = fetched.get("translation_core_dev_status", [])
@@ -1904,6 +2002,11 @@ def build_report(data, fetched):
     community_points = point_series(gut_q, "quarter", "community_created", "2021-01-01")
     core_make_posts = count_by_quarter(make_posts, "date")
     core_make_authors = count_by_quarter(make_posts, "date", distinct_key="author")
+    make_comment_points = point_series(make_comment_quarterly, "quarter", "comments", "2009-01-01")
+    make_commenter_points = point_series(make_comment_quarterly, "quarter", "unique_commenters", "2009-01-01")
+    make_comment_post_points = point_series(make_comment_quarterly, "quarter", "posts_commented_on", "2009-01-01")
+    latest_make_comment_quarter = max(make_comment_quarterly, key=lambda row: row.get("quarter", "")) if make_comment_quarterly else {}
+    make_comment_conc_recent = contributor_concentration(make_comments, "commenter_key", "date", "2024-01-01")
     dev_note_quarter_points = point_series(make_dev_note_quarterly, "quarter", "dev_notes", "2008-01-01")
     dev_note_author_points = point_series(make_dev_note_quarterly, "quarter", "unique_authors", "2008-01-01")
     wordcamp_years = count_by_year(wordcamps, "start_date")
@@ -2189,9 +2292,28 @@ p {{ margin:0 0 12px; }}
           {"label": "Posts", "color": COLORS["core"], "points": core_make_posts},
           {"label": "Authors", "color": COLORS["community"], "points": core_make_authors},
       ])}
+      {svg_line_chart("Make/Core discussion activity", "Comments, unique commenters, and posts receiving comments per quarter.", [
+          {"label": "Comments", "color": COLORS["core"], "points": make_comment_points},
+          {"label": "Commenters", "color": COLORS["community"], "points": make_commenter_points},
+          {"label": "Posts discussed", "color": COLORS["prs"], "points": make_comment_post_points},
+      ])}
+    </div>
+    <div class="grid-2">
       {svg_line_chart("WordCamp records by year", "WordCamp Central event records by start year. Recent future/scheduled records may be incomplete.", [
           {"label": "WordCamps", "color": COLORS["gutenberg"], "points": wordcamp_years},
       ])}
+      <div class="card">
+        <h3>Make/Core discussion readout</h3>
+        <p>Comments show who is participating in Make/Core discussion, which is separate from who publishes posts.</p>
+        <div class="stats">
+          {stat_card("Comments fetched", compact(len(make_comments)), "Make/Core REST API", "good")}
+          {stat_card("Latest quarter", compact(num(latest_make_comment_quarter.get("comments"))), latest_make_comment_quarter.get("label", ""), "soft")}
+          {stat_card("Commenters", compact(num(latest_make_comment_quarter.get("unique_commenters"))), "latest quarter", "soft")}
+          {stat_card("Posts discussed", compact(num(latest_make_comment_quarter.get("posts_commented_on"))), "latest quarter", "soft")}
+        </div>
+        {horizontal_metric("Top 10 commenters since 2024", make_comment_conc_recent["top10"], 100, COLORS["community"])}
+        {horizontal_metric("Top 25 commenters since 2024", make_comment_conc_recent["top25"], 100, COLORS["core"])}
+      </div>
     </div>
     <div class="grid-2">
       {svg_line_chart("Make/Core dev notes by quarter", "Developer-note tagged Make/Core posts and unique author IDs per quarter.", [
@@ -2488,7 +2610,7 @@ p {{ margin:0 0 12px; }}
 
   <section class="footer">
     <p>Generated {dt.datetime.now(dt.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')} from local Core/Gutenberg exports and public sources.</p>
-    <p>Sources: <a href="{W3TECHS_USAGE_URL}">W3Techs usage trend</a>, <a href="{W3TECHS_MARKET_SHARE_URL}">W3Techs CMS market-share trend</a>, <a href="{HTTP_ARCHIVE_CMS_URL}">HTTP Archive Web Almanac CMS 2025</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="{EVENTS_WORDPRESS_URL}">WordPress Events</a>, <a href="{TRANSLATE_LOCALES_URL}">Translate WordPress</a>, <a href="https://make.wordpress.org/core/wp-json/wp/v2/posts">Make/Core REST API</a>, <a href="https://wordpress.org/support/view/all-topics/">WordPress.org support forums</a>, <a href="https://trends.builtwith.com/cms/WordPress">BuiltWith technology pages</a>, <a href="https://github.com/WordPress/gutenberg/issues">Gutenberg GitHub issues</a>, <a href="{FTTF_PLEDGES_URL}">Five for the Future pledges</a>, <a href="{RELEASE_ARCHIVE_URL}">WordPress release archive</a>, and <a href="{CREDITS_API}">Core credits API</a>.</p>
+    <p>Sources: <a href="{W3TECHS_USAGE_URL}">W3Techs usage trend</a>, <a href="{W3TECHS_MARKET_SHARE_URL}">W3Techs CMS market-share trend</a>, <a href="{HTTP_ARCHIVE_CMS_URL}">HTTP Archive Web Almanac CMS 2025</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="{EVENTS_WORDPRESS_URL}">WordPress Events</a>, <a href="{TRANSLATE_LOCALES_URL}">Translate WordPress</a>, <a href="{MAKE_CORE_API}">Make/Core posts API</a>, <a href="{MAKE_CORE_COMMENTS_API}">Make/Core comments API</a>, <a href="https://wordpress.org/support/view/all-topics/">WordPress.org support forums</a>, <a href="https://trends.builtwith.com/cms/WordPress">BuiltWith technology pages</a>, <a href="https://github.com/WordPress/gutenberg/issues">Gutenberg GitHub issues</a>, <a href="{FTTF_PLEDGES_URL}">Five for the Future pledges</a>, <a href="{RELEASE_ARCHIVE_URL}">WordPress release archive</a>, and <a href="{CREDITS_API}">Core credits API</a>.</p>
   </section>
 </main>
 </body>
@@ -2523,6 +2645,8 @@ def main():
         fetched["translation_core_dev_status"],
     ) = fetch_translation_snapshots(args.skip_network)
     fetched["make_core_posts"] = fetch_make_core_posts(args.skip_network)
+    fetched["make_core_comments"] = fetch_make_core_comments(args.skip_network)
+    fetched["make_core_comment_quarterly"] = derive_make_core_comment_quarterly(fetched["make_core_comments"])
     fetched["make_core_dev_note_tags"] = fetch_make_core_dev_note_tags(args.skip_network)
     (
         fetched["make_core_dev_notes"],

@@ -66,6 +66,7 @@ SKIP_NETWORK_DB_FALLBACK_TABLES = [
     "directory_activity_snapshots",
     "plugin_directory_activity_sample",
     "major_plugin_install_snapshot",
+    "major_plugin_install_history",
     "major_plugin_download_daily",
     "major_plugin_download_quarterly",
     "theme_directory_activity_sample",
@@ -121,6 +122,8 @@ STACK_EXCHANGE_DOCS_URL = "https://api.stackexchange.com/docs/questions"
 HN_SEARCH_API = "https://hn.algolia.com/api/v1/search"
 HN_ITEM_API = "https://hn.algolia.com/api/v1/items"
 HN_HIRING_SOURCE_URL = "https://news.ycombinator.com/submitted?id=whoishiring"
+WAYBACK_CDX_API = "https://web.archive.org/cdx"
+WAYBACK_WEB_ROOT = "https://web.archive.org/web"
 WIKIMEDIA_PAGEVIEWS_API = "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article"
 WIKIMEDIA_PAGEVIEWS_DOCS_URL = "https://doc.wikimedia.org/generated-data-platform/aqs/analytics-api/reference/page-views.html"
 WPVIP_CASE_STUDY_API = "https://wpvip.com/wp-json/wp/v2/case-study"
@@ -128,6 +131,7 @@ WPVIP_CASE_STUDY_ARCHIVE_URL = "https://wpvip.com/case-studies/"
 STACK_OVERFLOW_TAG_START = dt.datetime(2010, 1, 1, tzinfo=dt.timezone.utc)
 HN_HIRING_START = dt.datetime(2012, 1, 1, tzinfo=dt.timezone.utc)
 WIKIMEDIA_PAGEVIEW_START = dt.datetime(2015, 7, 1, tzinfo=dt.timezone.utc)
+MAJOR_PLUGIN_ARCHIVE_START_YEAR = 2016
 STACK_OVERFLOW_TAGS = [
     {"tag": "wordpress", "label": "WordPress", "color": "#2563eb"},
     {"tag": "woocommerce", "label": "WooCommerce", "color": "#7c3aed"},
@@ -447,6 +451,19 @@ def fetch_json(url):
     req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "application/json"})
     with urllib.request.urlopen(req, timeout=60) as resp:
         return json.loads(resp.read().decode("utf-8")), dict(resp.headers.items())
+
+
+def fetch_with_retries(fetcher, url, label, attempts=3, delay=1.0):
+    last_exc = None
+    for attempt in range(1, attempts + 1):
+        try:
+            return fetcher(url)
+        except Exception as exc:
+            last_exc = exc
+            if attempt == attempts:
+                break
+            time.sleep(delay * attempt)
+    raise last_exc
 
 
 def credential_from_git():
@@ -1627,6 +1644,225 @@ def fetch_major_plugin_install_snapshot(skip_network=False):
     rows = [rows_by_slug[slug] for slug in MAJOR_PLUGIN_SLUGS if slug in rows_by_slug]
     if rows:
         write_cached_major_plugin_snapshot(rows)
+    return rows
+
+
+def major_plugin_install_history_cache_path():
+    return CACHE / "major-plugin-install-history.json"
+
+
+def read_cached_major_plugin_install_history():
+    path = major_plugin_install_history_cache_path()
+    if not path.exists():
+        return []
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return []
+    rows = payload.get("rows") if isinstance(payload, dict) else payload
+    return rows if isinstance(rows, list) else []
+
+
+def write_cached_major_plugin_install_history(rows):
+    CACHE.mkdir(parents=True, exist_ok=True)
+    major_plugin_install_history_cache_path().write_text(
+        json.dumps(
+            {
+                "collected_at": dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z"),
+                "source_url": WAYBACK_CDX_API,
+                "rows": rows,
+            },
+            indent=2,
+            sort_keys=True,
+        ),
+        encoding="utf-8",
+    )
+
+
+def wayback_cdx_url(slug):
+    params = [
+        ("url", f"wordpress.org/plugins/{slug}/"),
+        ("from", str(MAJOR_PLUGIN_ARCHIVE_START_YEAR)),
+        ("to", str(END.year - 1)),
+        ("matchType", "exact"),
+        ("filter", "statuscode:200"),
+        ("filter", "mimetype:text/html"),
+        ("collapse", "timestamp:4"),
+        ("output", "json"),
+        ("fl", "timestamp,original,digest"),
+    ]
+    return f"{WAYBACK_CDX_API}?{urllib.parse.urlencode(params)}"
+
+
+def wayback_replay_url(timestamp, original_url):
+    return f"{WAYBACK_WEB_ROOT}/{timestamp}id_/{original_url}"
+
+
+def parse_active_install_bucket(value):
+    raw = strip_html(value).lower().replace("\xa0", " ")
+    raw = re.sub(r"\s+", " ", raw).strip()
+    match = re.search(r"([0-9]+(?:[.,][0-9]+)?)\s*\+?\s*(billion|million|thousand|k|m)?", raw)
+    if not match:
+        return None
+    number_text = match.group(1)
+    if "," in number_text and "." not in number_text:
+        if re.search(r",\d{3}(?:\D|$)", number_text):
+            number_text = number_text.replace(",", "")
+        else:
+            number_text = number_text.replace(",", ".")
+    number = float(number_text)
+    unit = match.group(2) or ""
+    multiplier = 1
+    if unit in {"billion"}:
+        multiplier = 1_000_000_000
+    elif unit in {"million", "m"}:
+        multiplier = 1_000_000
+    elif unit in {"thousand", "k"}:
+        multiplier = 1_000
+    return int(number * multiplier)
+
+
+def parse_plugin_page_active_installs(page_html):
+    patterns = [
+        r"Active installations:\s*<strong>\s*([^<]+)\s*</strong>",
+        r"<li[^>]*>\s*Active installations:\s*<strong>\s*([^<]+)\s*</strong>",
+        r"Active installations:\s*([^<\n]+)",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, page_html, flags=re.I | re.S)
+        if not match:
+            continue
+        bucket = strip_html(match.group(1))
+        installs = parse_active_install_bucket(bucket)
+        if installs is not None:
+            return bucket, installs
+    text = strip_html(page_html)
+    match = re.search(r"Active installations:\s*([0-9][0-9.,]*\s*\+?\s*(?:billion|million|thousand|k|m)?)", text, flags=re.I)
+    if match:
+        bucket = match.group(1)
+        installs = parse_active_install_bucket(bucket)
+        if installs is not None:
+            return bucket, installs
+    return "", None
+
+
+def fetch_wayback_cdx_rows(slug):
+    url = wayback_cdx_url(slug)
+    payload, _headers = fetch_with_retries(fetch_json, url, f"Wayback CDX {slug}", attempts=4, delay=2.0)
+    if not isinstance(payload, list) or len(payload) < 2:
+        return [], url
+    header = payload[0]
+    rows = []
+    for item in payload[1:]:
+        if not isinstance(item, list) or len(item) != len(header):
+            continue
+        row = dict(zip(header, item))
+        timestamp = str(row.get("timestamp") or "")
+        if not re.match(r"^\d{14}$", timestamp):
+            continue
+        rows.append(row)
+    return rows, url
+
+
+def current_major_plugin_install_history_rows(major_plugin_rows):
+    rows = []
+    collected_at = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
+    for index, row in enumerate(major_plugin_rows or [], start=1):
+        slug = str(row.get("slug") or "")
+        if not slug:
+            continue
+        installs = num(row.get("active_installs"))
+        rows.append(
+            {
+                "snapshot_date": str(row.get("snapshot_date") or live_snapshot_date()),
+                "year": str(row.get("snapshot_date") or live_snapshot_date())[:4],
+                "slug": slug,
+                "plugin_name": MAJOR_PLUGIN_DISPLAY_NAMES.get(slug, str(row.get("name") or slug)),
+                "rank": row.get("rank") or index,
+                "active_installs": installs,
+                "active_install_bucket": compact(installs),
+                "source_type": "current_api",
+                "source": "WordPress.org plugin information API current snapshot",
+                "source_url": str(row.get("source_url") or plugin_information_url(slug)),
+                "archive_timestamp": "",
+                "archive_original_url": "",
+                "archive_digest": "",
+                "collected_at": collected_at,
+            }
+        )
+    return rows
+
+
+def fetch_major_plugin_install_history(major_plugin_rows=None, skip_network=False):
+    cached_rows = read_cached_major_plugin_install_history()
+    if skip_network and cached_rows:
+        return cached_rows
+    if skip_network:
+        return current_major_plugin_install_history_rows(major_plugin_rows or [])
+
+    name_by_slug = {
+        str(row.get("slug") or ""): str(row.get("name") or row.get("slug") or "")
+        for row in (major_plugin_rows or [])
+        if row.get("slug")
+    }
+    rows_by_key = {
+        (str(row.get("slug") or ""), str(row.get("archive_timestamp") or ""), str(row.get("source_type") or "")): dict(row)
+        for row in cached_rows
+        if isinstance(row, dict) and row.get("slug")
+    }
+    collected_at = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
+    for index, slug in enumerate(MAJOR_PLUGIN_SLUGS, start=1):
+        try:
+            cdx_rows, cdx_source_url = fetch_wayback_cdx_rows(slug)
+        except Exception as exc:
+            eprint(f"Wayback CDX fetch failed for {slug}: {exc}")
+            continue
+        for cdx_row in cdx_rows:
+            timestamp = str(cdx_row.get("timestamp") or "")
+            key = (slug, timestamp, "wayback_archive")
+            if key in rows_by_key and rows_by_key[key].get("active_installs"):
+                continue
+            original_url = str(cdx_row.get("original") or f"https://wordpress.org/plugins/{slug}/")
+            replay_url = wayback_replay_url(timestamp, original_url)
+            try:
+                page_html, _headers = fetch_with_retries(fetch_text, replay_url, f"Wayback plugin page {slug} {timestamp}", attempts=4, delay=2.0)
+            except Exception as exc:
+                eprint(f"Wayback plugin page fetch failed for {slug} {timestamp}: {exc}")
+                continue
+            bucket, installs = parse_plugin_page_active_installs(page_html)
+            if installs is None:
+                eprint(f"Wayback plugin page had no active install bucket for {slug} {timestamp}")
+                continue
+            snapshot_date = f"{timestamp[0:4]}-{timestamp[4:6]}-{timestamp[6:8]}"
+            rows_by_key[key] = {
+                "snapshot_date": snapshot_date,
+                "year": timestamp[:4],
+                "slug": slug,
+                "plugin_name": MAJOR_PLUGIN_DISPLAY_NAMES.get(slug, name_by_slug.get(slug, slug)),
+                "rank": index,
+                "active_installs": installs,
+                "active_install_bucket": bucket,
+                "source_type": "wayback_archive",
+                "source": "Internet Archive Wayback Machine archived WordPress.org plugin page",
+                "source_url": cdx_source_url,
+                "archive_timestamp": timestamp,
+                "archive_original_url": original_url,
+                "archive_digest": str(cdx_row.get("digest") or ""),
+                "archive_replay_url": replay_url,
+                "collected_at": collected_at,
+            }
+            time.sleep(0.6)
+        time.sleep(1.0)
+
+    for row in current_major_plugin_install_history_rows(major_plugin_rows or []):
+        rows_by_key[(row["slug"], "", "current_api")] = row
+
+    rows = sorted(
+        rows_by_key.values(),
+        key=lambda row: (num(row.get("rank")), str(row.get("slug") or ""), str(row.get("snapshot_date") or ""), str(row.get("source_type") or "")),
+    )
+    if rows:
+        write_cached_major_plugin_install_history(rows)
     return rows
 
 
@@ -2890,18 +3126,19 @@ def build_database(data, fetched):
             )
         )
     if fetched.get("major_plugin_install_snapshot"):
-        gaps.append(
-            (
-                "major_plugin_install_base_growth",
-                "partial",
-                "WordPress.org plugin information API plus archived snapshots",
+        if not fetched.get("major_plugin_install_history"):
+            gaps.append(
                 (
-                    "Current major-plugin install-base snapshot is included, and WordPress.org daily download history "
-                    "is included as a one-year demand trend. Historical active-install growth still needs repeated "
-                    "snapshots or archived WordPress.org plugin metadata."
-                ),
+                    "major_plugin_install_base_growth",
+                    "partial",
+                    "WordPress.org plugin information API plus archived snapshots",
+                    (
+                        "Current major-plugin install-base snapshot is included, and WordPress.org daily download history "
+                        "is included as a one-year demand trend. Historical active-install growth still needs repeated "
+                        "snapshots or archived WordPress.org plugin metadata."
+                    ),
+                )
             )
-        )
     else:
         gaps.append(
             (
@@ -3234,7 +3471,7 @@ def nice_ticks(max_value, count=4):
     return [i * step for i in range(int(top / step) + 1)]
 
 
-def svg_line_chart(title, note, series_list, height=330, y_suffix="", start_zero=True):
+def svg_line_chart(title, note, series_list, height=330, y_suffix="", start_zero=True, show_end_labels=True):
     width = 980
     left, right, top, bottom = 72, 42, 66, 58
     plot_w = width - left - right
@@ -3312,31 +3549,33 @@ def svg_line_chart(title, note, series_list, height=330, y_suffix="", start_zero
             continue
         path = " ".join(("M" if i == 0 else "L") + f"{x(d):.1f},{y(v):.1f}" for i, (d, v) in enumerate(points))
         pieces.append(f'<path d="{path}" fill="none" stroke="{series["color"]}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />')
-        for d, v in points[-1:]:
-            pieces.append(f'<circle cx="{x(d):.1f}" cy="{y(v):.1f}" r="4" fill="{series["color"]}" />')
-            terminal_labels.append(
-                {
-                    "x": min(width - right - 70, x(d) + 8),
-                    "y": y(v) - 8,
-                    "color": series["color"],
-                    "label": f"{compact(v)}{y_suffix}",
-                }
+        if show_end_labels:
+            for d, v in points[-1:]:
+                pieces.append(f'<circle cx="{x(d):.1f}" cy="{y(v):.1f}" r="4" fill="{series["color"]}" />')
+                terminal_labels.append(
+                    {
+                        "x": min(width - right - 70, x(d) + 8),
+                        "y": y(v) - 8,
+                        "color": series["color"],
+                        "label": f"{compact(v)}{y_suffix}",
+                    }
+                )
+    if show_end_labels:
+        terminal_labels.sort(key=lambda item: item["y"])
+        min_label_y = top + 12
+        max_label_y = top + plot_h - 8
+        previous_y = min_label_y - 16
+        for item in terminal_labels:
+            item["y"] = max(min_label_y, item["y"], previous_y + 16)
+            previous_y = item["y"]
+        next_y = max_label_y + 16
+        for item in reversed(terminal_labels):
+            item["y"] = min(max_label_y, item["y"], next_y - 16)
+            next_y = item["y"]
+        for item in terminal_labels:
+            pieces.append(
+                f'<text x="{item["x"]:.1f}" y="{item["y"]:.1f}" class="end-label" fill="{item["color"]}">{html.escape(item["label"])}</text>'
             )
-    terminal_labels.sort(key=lambda item: item["y"])
-    min_label_y = top + 12
-    max_label_y = top + plot_h - 8
-    previous_y = min_label_y - 16
-    for item in terminal_labels:
-        item["y"] = max(min_label_y, item["y"], previous_y + 16)
-        previous_y = item["y"]
-    next_y = max_label_y + 16
-    for item in reversed(terminal_labels):
-        item["y"] = min(max_label_y, item["y"], next_y - 16)
-        next_y = item["y"]
-    for item in terminal_labels:
-        pieces.append(
-            f'<text x="{item["x"]:.1f}" y="{item["y"]:.1f}" class="end-label" fill="{item["color"]}">{html.escape(item["label"])}</text>'
-        )
     pieces.append("</svg>")
     return "\n".join(pieces)
 
@@ -3813,7 +4052,11 @@ def source_status_rows(fetched):
         ("Enterprise adoption signal", "covered" if fetched.get("enterprise_vip_case_studies") else "missing", "Current public WordPress VIP case-study snapshot with industries and use cases"),
         ("WordPress.org plugin/theme directories", "covered" if fetched.get("directory_snapshots") else "missing", "Current plugin and theme counts"),
         ("Plugin/theme directory activity", "covered" if fetched.get("directory_activity_snapshots") else "missing", "Current new, updated, and popular samples from WordPress.org directory APIs"),
-        ("Major plugin install base", "partial" if fetched.get("major_plugin_install_snapshot") else "missing", "Current fixed-slug plugin API snapshot; historical growth still requires archived snapshots"),
+        (
+            "Major plugin install base",
+            "covered" if fetched.get("major_plugin_install_snapshot") and fetched.get("major_plugin_install_history") else "partial" if fetched.get("major_plugin_install_snapshot") else "missing",
+            "Current fixed-slug plugin API snapshot plus annual Wayback snapshots of archived WordPress.org plugin active-install buckets",
+        ),
         ("Major plugin download trend", "covered" if fetched.get("major_plugin_download_quarterly") else "missing", "WordPress.org daily plugin download stats for the fixed major-plugin list, aggregated quarterly"),
         ("WordCamp Central", "covered" if fetched.get("wordcamps") else "missing", "Historical WordCamp event records and anticipated-attendance fields where available"),
         ("WordPress Events", "covered" if fetched.get("wp_events") else "missing", "Current upcoming Meetup and WordCamp events"),
@@ -3886,6 +4129,7 @@ def build_report(data, fetched):
     directory_activity = fetched.get("directory_activity_snapshots", [])
     plugin_activity_rows = fetched.get("plugin_directory_activity_sample", [])
     major_plugin_rows = fetched.get("major_plugin_install_snapshot", [])
+    major_plugin_install_history = fetched.get("major_plugin_install_history", [])
     major_plugin_download_daily = fetched.get("major_plugin_download_daily", [])
     major_plugin_download_q = fetched.get("major_plugin_download_quarterly", [])
     theme_activity_rows = fetched.get("theme_directory_activity_sample", [])
@@ -4459,11 +4703,42 @@ def build_report(data, fetched):
     for row in major_plugin_download_q:
         if row.get("slug") and row.get("plugin_name"):
             plugin_name_by_slug.setdefault(str(row.get("slug")), str(row.get("plugin_name")))
+    plugin_download_colors = [COLORS["core"], COLORS["purple"], COLORS["green"], COLORS["orange"], COLORS["neutral"]]
+    install_history_slugs = [
+        str(row.get("slug"))
+        for row in top_major_plugins
+        if row.get("slug") and any(hist.get("slug") == row.get("slug") for hist in major_plugin_install_history)
+    ][:5]
+    major_plugin_install_history_series = [
+        {
+            "label": plugin_name_by_slug.get(slug, slug),
+            "color": plugin_download_colors[index % len(plugin_download_colors)],
+            "points": sorted(
+                (row.get("snapshot_date"), num(row.get("active_installs")))
+                for row in major_plugin_install_history
+                if row.get("slug") == slug and row.get("snapshot_date", "") >= "2018-01-01" and num(row.get("active_installs")) > 0
+            ),
+        }
+        for index, slug in enumerate(install_history_slugs)
+    ]
+    install_history_archive_rows = [
+        row for row in major_plugin_install_history if row.get("source_type") == "wayback_archive"
+    ]
+    install_history_latest_rows = [
+        row for row in major_plugin_install_history if row.get("source_type") == "current_api"
+    ]
+    install_history_plugin_count = len({row.get("slug") for row in major_plugin_install_history if row.get("slug")})
+    install_history_year_count = len({row.get("year") for row in install_history_archive_rows if row.get("year")})
+    install_history_years = sorted({row.get("year") for row in install_history_archive_rows if row.get("year")})
+    install_history_year_range = (
+        f"{install_history_years[0]} to {install_history_years[-1]}"
+        if install_history_years
+        else "not fetched"
+    )
     plugin_download_totals = Counter()
     for row in major_plugin_download_q:
         plugin_download_totals[str(row.get("slug") or "")] += num(row.get("downloads"))
     top_download_slugs = [slug for slug, _downloads in plugin_download_totals.most_common(5) if slug]
-    plugin_download_colors = [COLORS["core"], COLORS["purple"], COLORS["green"], COLORS["orange"], COLORS["neutral"]]
     major_plugin_download_series = [
         {
             "label": plugin_name_by_slug.get(slug, slug),
@@ -5191,16 +5466,21 @@ p {{ margin:0 0 12px; }}
         </div>
       </div>
     </div>
-    <div class="grid-2">
-      {svg_line_chart("Major plugin downloads by quarter", "WordPress.org daily download stats, aggregated quarterly for the highest-download tracked plugins. Latest quarter may be partial.", major_plugin_download_series)}
-      <div class="card">
-        <h3>Active-install growth gap</h3>
-        <p>The report now includes current active installs and a one-year download trend. Active-install growth over time still needs repeated WordPress.org snapshots or a reliable archive of historical plugin metadata.</p>
-        {horizontal_count_metric("Current install snapshot coverage", len(major_plugin_rows), max(1, len(MAJOR_PLUGIN_SLUGS)), COLORS["green"], " plugins")}
-        {horizontal_count_metric("Download trend coverage", major_plugin_download_plugin_count, max(1, len(MAJOR_PLUGIN_SLUGS)), COLORS["core"], " plugins")}
-        {horizontal_count_metric("Historical active-install snapshots", 0, 1, COLORS["orange"], "")}
+    {svg_line_chart("Major plugin install-base history", "Annual Wayback snapshots plus the current WordPress.org API snapshot. Rounded active-install buckets, not exact counts.", major_plugin_install_history_series, show_end_labels=False)}
+    <div class="card">
+      <h3>Active-install history readout</h3>
+      <p>These archived plugin-page values are rounded active-install buckets, but they add direction to the current snapshot and help separate mature install reach from short-term download activity.</p>
+      <div class="stats">
+        {stat_card("Archived rows", compact(len(install_history_archive_rows)), "Wayback plugin snapshots", "good" if install_history_archive_rows else "watch")}
+        {stat_card("Plugins covered", f"{install_history_plugin_count}/{len(MAJOR_PLUGIN_SLUGS)}", "tracked major plugins", "good" if install_history_plugin_count == len(MAJOR_PLUGIN_SLUGS) else "watch")}
+        {stat_card("Archive years", compact(install_history_year_count), install_history_year_range, "soft")}
+        {stat_card("Current rows", compact(len(install_history_latest_rows)), "WordPress.org API snapshot", "soft")}
       </div>
+      {horizontal_count_metric("Current install snapshot coverage", len(major_plugin_rows), max(1, len(MAJOR_PLUGIN_SLUGS)), COLORS["green"], " plugins")}
+      {horizontal_count_metric("Historical install-history coverage", install_history_plugin_count, max(1, len(MAJOR_PLUGIN_SLUGS)), COLORS["core"], " plugins")}
+      {horizontal_count_metric("Download trend coverage", major_plugin_download_plugin_count, max(1, len(MAJOR_PLUGIN_SLUGS)), COLORS["core"], " plugins")}
     </div>
+    {svg_line_chart("Major plugin downloads by quarter", "WordPress.org daily download stats, aggregated quarterly for the highest-download tracked plugins. Latest quarter may be partial.", major_plugin_download_series)}
     <div class="grid-2">
       <div class="card">
         <h3>Theme directory browse sample</h3>
@@ -5271,7 +5551,7 @@ p {{ margin:0 0 12px; }}
 
   <section class="footer">
     <p>Generated {dt.datetime.now(dt.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')} from local Core/Gutenberg exports and public sources.</p>
-    <p>Sources: <a href="{W3TECHS_USAGE_URL}">W3Techs usage trend</a>, <a href="{W3TECHS_MARKET_SHARE_URL}">W3Techs CMS market-share trend</a>, <a href="{HTTP_ARCHIVE_CMS_URL}">HTTP Archive Web Almanac CMS 2025</a>, <a href="{STACK_EXCHANGE_DOCS_URL}">Stack Exchange API</a>, <a href="{WIKIMEDIA_PAGEVIEWS_DOCS_URL}">Wikimedia Pageviews API</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="{PLUGIN_DOWNLOADS_DOCS_URL}">WordPress.org plugin download stats</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="{EVENTS_WORDPRESS_URL}">WordPress Events</a>, <a href="{TRANSLATE_LOCALES_URL}">Translate WordPress</a>, <a href="{MAKE_CORE_API}">Make/Core posts API</a>, <a href="{MAKE_CORE_COMMENTS_API}">Make/Core comments API</a>, <a href="https://wordpress.org/support/view/all-topics/">WordPress.org support forums</a>, <a href="https://trends.builtwith.com/cms/WordPress">BuiltWith technology pages</a>, <a href="https://github.com/WordPress/gutenberg/issues">Gutenberg GitHub issues</a>, <a href="{FTTF_PLEDGES_URL}">Five for the Future pledges</a>, <a href="{RELEASE_ARCHIVE_URL}">WordPress release archive</a>, and <a href="{CREDITS_API}">Core credits API</a>.</p>
+    <p>Sources: <a href="{W3TECHS_USAGE_URL}">W3Techs usage trend</a>, <a href="{W3TECHS_MARKET_SHARE_URL}">W3Techs CMS market-share trend</a>, <a href="{HTTP_ARCHIVE_CMS_URL}">HTTP Archive Web Almanac CMS 2025</a>, <a href="{STACK_EXCHANGE_DOCS_URL}">Stack Exchange API</a>, <a href="{WIKIMEDIA_PAGEVIEWS_DOCS_URL}">Wikimedia Pageviews API</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="{PLUGIN_DOWNLOADS_DOCS_URL}">WordPress.org plugin download stats</a>, <a href="{WAYBACK_CDX_API}">Internet Archive CDX API</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="{EVENTS_WORDPRESS_URL}">WordPress Events</a>, <a href="{TRANSLATE_LOCALES_URL}">Translate WordPress</a>, <a href="{MAKE_CORE_API}">Make/Core posts API</a>, <a href="{MAKE_CORE_COMMENTS_API}">Make/Core comments API</a>, <a href="https://wordpress.org/support/view/all-topics/">WordPress.org support forums</a>, <a href="https://trends.builtwith.com/cms/WordPress">BuiltWith technology pages</a>, <a href="https://github.com/WordPress/gutenberg/issues">Gutenberg GitHub issues</a>, <a href="{FTTF_PLEDGES_URL}">Five for the Future pledges</a>, <a href="{RELEASE_ARCHIVE_URL}">WordPress release archive</a>, and <a href="{CREDITS_API}">Core credits API</a>.</p>
   </section>
 </main>
 </body>
@@ -5309,6 +5589,9 @@ def main():
         fetched["theme_directory_activity_sample"],
     ) = fetch_directory_activity(args.skip_network)
     fetched["major_plugin_install_snapshot"] = fetch_major_plugin_install_snapshot(args.skip_network)
+    fetched["major_plugin_install_history"] = fetch_major_plugin_install_history(
+        fetched["major_plugin_install_snapshot"], args.skip_network
+    )
     (
         fetched["major_plugin_download_daily"],
         fetched["major_plugin_download_quarterly"],

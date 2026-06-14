@@ -126,6 +126,7 @@ WIKIMEDIA_PAGEVIEWS_DOCS_URL = "https://doc.wikimedia.org/generated-data-platfor
 WPVIP_CASE_STUDY_API = "https://wpvip.com/wp-json/wp/v2/case-study"
 WPVIP_CASE_STUDY_ARCHIVE_URL = "https://wpvip.com/case-studies/"
 STACK_OVERFLOW_TAG_START = dt.datetime(2010, 1, 1, tzinfo=dt.timezone.utc)
+HN_HIRING_START = dt.datetime(2012, 1, 1, tzinfo=dt.timezone.utc)
 WIKIMEDIA_PAGEVIEW_START = dt.datetime(2015, 7, 1, tzinfo=dt.timezone.utc)
 STACK_OVERFLOW_TAGS = [
     {"tag": "wordpress", "label": "WordPress", "color": "#2563eb"},
@@ -1048,11 +1049,11 @@ def fetch_hn_hiring_wordpress_quarterly(skip_network=False):
         for row in cached_rows
         if isinstance(row, dict) and row.get("month")
     }
-    expected_months = [month.strftime("%Y-%m-%d") for month in month_starts(STACK_OVERFLOW_TAG_START, END)]
+    expected_months = [month.strftime("%Y-%m-%d") for month in month_starts(HN_HIRING_START, END)]
     if skip_network or set(expected_months).issubset(set(by_month)):
         return aggregate_hn_hiring_quarterly([by_month[month] for month in expected_months if month in by_month])
 
-    for month_start in month_starts(STACK_OVERFLOW_TAG_START, END):
+    for month_start in month_starts(HN_HIRING_START, END):
         month = month_start.strftime("%Y-%m-%d")
         if month in by_month:
             continue
@@ -2742,7 +2743,7 @@ def build_database(data, fetched):
             "job_demand",
             "partial",
             "Hacker News monthly Who is hiring? threads plus hiring-platform exports",
-            "HN Who is hiring WordPress/WooCommerce mention counts are included as a narrow startup-hiring proxy; broader job-board demand still needs a labor-market source.",
+            "HN Who is hiring WordPress/WooCommerce mention counts are included from 2012 onward as a narrow startup-hiring proxy; broader job-board demand still needs a labor-market source.",
         )
     )
     if not fetched.get("enterprise_vip_case_studies"):
@@ -3428,7 +3429,7 @@ def source_status_rows(fetched):
         ("BuiltWith traffic tiers", "covered" if fetched.get("builtwith_tier_share_snapshot") else "missing", "Current WordPress share by traffic tier across tracked CMS/builder technologies"),
         ("Stack Overflow tag volume", "covered" if fetched.get("stack_overflow_tag_quarterly") else "missing", "Quarterly public developer-attention proxy from Stack Exchange API tag totals"),
         ("Wikimedia pageviews", "covered" if fetched.get("wikimedia_pageviews_quarterly") else "missing", "Quarterly en.wikipedia article pageviews as a public-interest proxy, not search-query volume"),
-        ("HN hiring mentions", "partial" if fetched.get("hn_hiring_wordpress_quarterly") else "missing", "WordPress/WooCommerce mentions in monthly Hacker News Who is hiring threads; not a broad job-board index"),
+        ("HN hiring mentions", "partial" if fetched.get("hn_hiring_wordpress_quarterly") else "missing", "WordPress/WooCommerce mentions in monthly Hacker News Who is hiring threads from 2012 onward; not a broad job-board index"),
         ("Enterprise adoption signal", "covered" if fetched.get("enterprise_vip_case_studies") else "missing", "Current public WordPress VIP case-study snapshot with industries and use cases"),
         ("WordPress.org plugin/theme directories", "covered" if fetched.get("directory_snapshots") else "missing", "Current plugin and theme counts"),
         ("Plugin/theme directory activity", "covered" if fetched.get("directory_activity_snapshots") else "missing", "Current new, updated, and popular samples from WordPress.org directory APIs"),
@@ -3840,28 +3841,35 @@ def build_report(data, fetched):
         {
             "label": "WordPress/WooCommerce",
             "color": COLORS["wordpress"],
-            "points": point_series(hn_hiring_q, "quarter", "wordpress_or_woocommerce_comments", "2021-01-01"),
+            "points": point_series(hn_hiring_q, "quarter", "wordpress_or_woocommerce_comments"),
         },
         {
             "label": "PHP",
             "color": COLORS["purple"],
-            "points": point_series(hn_hiring_q, "quarter", "php_comments", "2021-01-01"),
+            "points": point_series(hn_hiring_q, "quarter", "php_comments"),
         },
         {
             "label": "Agency/studio",
             "color": COLORS["orange"],
-            "points": point_series(hn_hiring_q, "quarter", "agency_comments", "2021-01-01"),
+            "points": point_series(hn_hiring_q, "quarter", "agency_comments"),
         },
     ]
     hn_hiring_share_series = [
         {
             "label": "WP/Woo mentions per 100 posts",
             "color": COLORS["wordpress"],
-            "points": point_series(hn_hiring_q, "quarter", "wordpress_or_woocommerce_per_100_comments", "2021-01-01"),
+            "points": point_series(hn_hiring_q, "quarter", "wordpress_or_woocommerce_per_100_comments"),
         }
     ]
     latest_hn_hiring = max(hn_hiring_q, key=lambda row: row.get("quarter", ""), default={})
     hn_hiring_months = sum(num(row.get("months_with_thread")) for row in hn_hiring_q)
+    hn_hiring_first = min([row.get("quarter", "") for row in hn_hiring_q if row.get("quarter")], default="")
+    hn_hiring_latest = max([row.get("quarter", "") for row in hn_hiring_q if row.get("quarter")], default="")
+    hn_hiring_range_label = (
+        f"{quarter_label(hn_hiring_first)} to {quarter_label(hn_hiring_latest)}"
+        if hn_hiring_first and hn_hiring_latest
+        else "not fetched"
+    )
     enterprise_recent_cases = sum(1 for row in enterprise_vip_cases if str(row.get("date", "")) >= "2024-01-01")
     enterprise_industry_counts = Counter()
     enterprise_use_case_counts = Counter()
@@ -4440,6 +4448,7 @@ p {{ margin:0 0 12px; }}
         {stat_card("Latest WP/Woo mentions", compact(num(latest_hn_hiring.get("wordpress_or_woocommerce_comments"))), latest_hn_hiring.get("label", "not fetched"), "soft")}
         {stat_card("Per 100 posts", pct(float(latest_hn_hiring.get("wordpress_or_woocommerce_per_100_comments") or 0)), "WP/Woo mentions in latest quarter", "soft")}
         {stat_card("Thread coverage", compact(hn_hiring_months), "monthly hiring threads parsed", "good" if hn_hiring_months else "watch")}
+        {stat_card("Coverage range", hn_hiring_range_label, "HN monthly threads", "soft")}
       </div>
     </div>
     <div class="grid-2">

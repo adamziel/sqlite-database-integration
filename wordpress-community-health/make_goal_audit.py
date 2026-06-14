@@ -80,7 +80,7 @@ GAP_SUMMARIES = {
     ),
     "search_interest": (
         "Search interest",
-        "Wikimedia and Stack Overflow attention proxies are in.",
+        "Wikimedia, Stack Overflow, and current autocomplete query-intent proxies are in.",
         "Add Google Trends or a similar search-provider export.",
     ),
     "support_forum_history": (
@@ -160,7 +160,7 @@ def render():
             "Popularity and likelihood to choose WordPress",
             "Installed share, CMS share, newly detected sites, traffic tiers, peer builders, demand signals, plugins, WooCommerce, enterprise.",
             "Mixed",
-            "Installed-share and CMS-share evidence is direct. Newly detected sites, search interest, and broad job demand are presented with public proxies, including compact new-site choice, search-interest, and attention/demand summaries, and clearly labeled as partial.",
+            "Installed-share and CMS-share evidence is direct. Newly detected sites, search interest, and broad job demand are presented with public proxies, including compact new-site choice, query-intent, search-interest, and attention/demand summaries, and clearly labeled as partial.",
             "partial",
         ),
         audit_row(

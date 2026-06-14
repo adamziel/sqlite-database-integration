@@ -24,9 +24,9 @@ PLAN = {
         "order": "2",
         "color": "green",
         "next_step": "Import Google Trends or an equivalent search-interest export for WordPress, WordPress developer, Shopify, Wix, Squarespace, and Webflow.",
-        "target_tables": ["search_interest_quarterly"],
-        "success": "Normalized quarterly search series for WordPress and peer builders.",
-        "why": "Turns the current Wikimedia public-attention proxy into a direct broad-interest signal.",
+        "target_tables": ["search_interest_quarterly", "search_query_suggestions", "search_query_intent_summary"],
+        "success": "Normalized quarterly search series for WordPress and peer builders, plus refreshable query-intent snapshots.",
+        "why": "Turns the current Wikimedia, Stack Overflow, and autocomplete proxies into a direct broad-interest signal.",
     },
     "job_demand": {
         "label": "Job demand",

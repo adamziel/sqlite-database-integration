@@ -58,6 +58,10 @@ def rows(conn, sql, params=()):
     return [dict(row) for row in conn.execute(sql, params).fetchall()]
 
 
+def table_exists(conn, name):
+    return bool(one(conn, "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (name,)))
+
+
 def latest(rows_, key):
     return max(rows_, key=lambda row: row.get(key, ""), default={})
 
@@ -122,6 +126,29 @@ def bar_row(label, value, max_value, color=COLORS["blue"], suffix=""):
           <div class="bar-label"><span>{esc(label)}</span><strong>{esc(compact(value))}{esc(suffix)}</strong></div>
           <div class="bar"><span style="width:{width:.1f}%;background:{esc(color)}"></span></div>
         </div>"""
+
+
+def suggestion_card(row):
+    top = [item.strip() for item in str(row.get("top_suggestions") or "").split(";") if item.strip()]
+    items = "".join(f"<span>{esc(item)}</span>" for item in top[:5])
+    counts = [
+        ("developer", row.get("developer_count"), COLORS["blue"]),
+        ("jobs", row.get("job_count"), COLORS["green"]),
+        ("alternatives", row.get("alternative_count"), COLORS["amber"]),
+        ("comparisons", row.get("comparison_count"), COLORS["violet"]),
+    ]
+    max_count = max([num(count) for _label, count, _color in counts] or [1])
+    bars = "".join(
+        bar_row(label, count, max_count, color)
+        for label, count, color in counts
+        if num(count) > 0
+    )
+    return f"""
+      <article class="suggest-card">
+        <h3>{esc(row.get("seed_query"))}</h3>
+        <div class="suggestions">{items}</div>
+        <div class="mini-bars">{bars}</div>
+      </article>"""
 
 
 def point_series(rows_, key, value_key, label_transform=quarter_label, limit=None):
@@ -206,6 +233,16 @@ def main():
         integrity = one(conn, "PRAGMA integrity_check")
         wiki = rows(conn, "SELECT * FROM wikimedia_pageviews_quarterly ORDER BY quarter, technology")
         stack = rows(conn, "SELECT * FROM stack_overflow_tag_quarterly ORDER BY quarter, technology")
+        suggest = (
+            rows(conn, "SELECT * FROM search_query_suggestions ORDER BY seed_group, seed_query, CAST(rank AS INTEGER)")
+            if table_exists(conn, "search_query_suggestions")
+            else []
+        )
+        suggest_summary = (
+            rows(conn, "SELECT * FROM search_query_intent_summary ORDER BY seed_group, seed_query")
+            if table_exists(conn, "search_query_intent_summary")
+            else []
+        )
         attention = rows(conn, "SELECT * FROM attention_demand_summary WHERE signal IN ('wikimedia_wordpress_pageviews','stack_overflow_wordpress_questions')")
         gap = rows(conn, "SELECT * FROM source_gaps WHERE signal='search_interest'")
     finally:
@@ -227,6 +264,11 @@ def main():
     latest_wp_wiki = latest_wiki_by_tech.get("WordPress", {})
     latest_shopify_wiki = latest_wiki_by_tech.get("Shopify", {})
     latest_wp_stack = latest_stack_by_tech.get("WordPress", {})
+    suggest_by_seed = {row.get("seed_query"): row for row in suggest_summary}
+    developer_seed = suggest_by_seed.get("wordpress developer", {})
+    alternatives_seed = suggest_by_seed.get("wordpress alternatives", {})
+    comparison_seed_count = sum(num(row.get("comparison_count")) for row in suggest_summary)
+    suggestion_total = len(suggest)
     wiki_ratio = num(latest_wp_wiki.get("views")) / num(latest_shopify_wiki.get("views"), 1)
     latest_total_views = sum(num(row.get("views")) for row in latest_wiki_by_tech.values())
     wp_latest_share = num(latest_wp_wiki.get("views")) / latest_total_views * 100 if latest_total_views else 0
@@ -264,6 +306,24 @@ def main():
                 pct(wp_question_share),
                 "of latest tracked Stack Overflow questions",
                 "violet",
+            ),
+            metric_card(
+                "Search suggestions",
+                compact(suggestion_total),
+                "current autocomplete snapshot",
+                "blue",
+            ),
+            metric_card(
+                "Developer suggestions",
+                compact(num(developer_seed.get("suggestion_count"))),
+                "for wordpress developer",
+                "green",
+            ),
+            metric_card(
+                "Alternatives suggestions",
+                compact(num(alternatives_seed.get("suggestion_count"))),
+                "for wordpress alternatives",
+                "amber",
             ),
         ]
     )
@@ -303,6 +363,7 @@ def main():
         bar_row(tech, latest_stack_by_tech[tech].get("question_count"), max_questions, COLORS.get(tech.lower(), COLORS["blue"]))
         for tech in tech_order
     )
+    suggestion_cards = "".join(suggestion_card(row) for row in suggest_summary)
 
     gap_note = gap[0].get("note") if gap else "True search-query interest still needs a search-interest provider."
     readout = "".join(
@@ -326,8 +387,14 @@ def main():
                 "amber",
             ),
             signal_row(
+                "Search-query intent is now captured as a snapshot",
+                "Autocomplete suggestions include developer, alternatives, comparison, job, pricing, and open/self-hosted themes for selected WordPress queries.",
+                compact(suggestion_total),
+                "blue",
+            ),
+            signal_row(
                 "This is not Google Trends",
-                "Use this page as public-attention and developer-help context, not as true search-query volume.",
+                "Use this page as public-attention, developer-help, and query-intent context, not as true search-query volume.",
                 "proxy",
                 "violet",
             ),
@@ -358,8 +425,8 @@ def main():
     .lede {{ max-width:900px; font-size:18px; margin-bottom:20px; }}
     .nav {{ display:flex; flex-wrap:wrap; gap:8px; margin:18px 0 22px; }}
     .nav a {{ border:1px solid var(--line); border-radius:999px; padding:7px 11px; background:#fbfdff; text-decoration:none; font-weight:700; font-size:13px; }}
-    .metrics {{ display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; margin:22px 0; }}
-    .metric, .section, .chart-card {{ background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px; }}
+    .metrics {{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin:22px 0; }}
+    .metric, .section, .chart-card, .suggest-card {{ background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px; }}
     .metric {{ border-top:5px solid var(--blue); min-height:148px; }}
     .metric.green {{ border-top-color:var(--green); }}
     .metric.amber {{ border-top-color:var(--amber); }}
@@ -389,11 +456,16 @@ def main():
     .bar-label strong {{ white-space:nowrap; }}
     .bar {{ height:9px; border-radius:999px; background:#e7edf5; overflow:hidden; }}
     .bar span {{ display:block; height:100%; border-radius:inherit; }}
+    .suggest-grid {{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:14px; }}
+    .suggest-card h3 {{ text-transform:none; letter-spacing:0; color:var(--ink); font-size:18px; }}
+    .suggestions {{ display:flex; flex-wrap:wrap; gap:7px; margin:10px 0 12px; }}
+    .suggestions span {{ border:1px solid var(--line); border-radius:999px; padding:5px 8px; background:#fbfdff; color:var(--muted); font-size:13px; }}
+    .mini-bars {{ display:grid; gap:6px; }}
     .callout {{ margin-top:14px; padding:14px; border:1px solid var(--line); border-left:5px solid var(--amber); border-radius:8px; background:#fffaf0; color:#7c4a03; }}
     .footer-note {{ margin-top:18px; font-size:13px; }}
     @media (max-width:960px) {{
       main {{ padding:24px 14px 36px; }}
-      .metrics, .grid, .charts {{ grid-template-columns:1fr; }}
+      .metrics, .grid, .charts, .suggest-grid {{ grid-template-columns:1fr; }}
       .metric {{ min-height:auto; }}
       .signal-row {{ align-items:flex-start; flex-direction:column; }}
       .signal-row b, .bar-label strong {{ white-space:normal; }}
@@ -403,7 +475,7 @@ def main():
 <body>
 <main>
   <h1>WordPress search interest</h1>
-  <p class="lede">A compact proxy readout for search and public attention using data already stored in SQLite: Wikimedia article pageviews and Stack Overflow tag-question volume for WordPress and peer site-builder terms.</p>
+  <p class="lede">A compact proxy readout for search and public attention using data already stored in SQLite: Wikimedia article pageviews, Stack Overflow tag-question volume, and current autocomplete suggestions for WordPress, developer, alternatives, and comparison queries.</p>
 {nav_html()}
 
   <section class="metrics" aria-label="Search interest summary">
@@ -425,6 +497,13 @@ def main():
   </section>
 
   <section class="charts">
+    <article class="chart-card" style="grid-column:1 / -1">
+      <h2>Search query intent snapshot</h2>
+      <p>Current autocomplete suggestions for selected WordPress queries. This captures query themes, not search volume or history.</p>
+      <div class="suggest-grid">
+{suggestion_cards}
+      </div>
+    </article>
 {wiki_chart}
 {stack_chart}
     <article class="chart-card">
@@ -443,7 +522,7 @@ def main():
     </article>
   </section>
 
-  <p class="footer-note">Rows come from <code>wikimedia_pageviews_quarterly</code>, <code>stack_overflow_tag_quarterly</code>, and <code>attention_demand_summary</code>. Integrity check: <code>{esc(integrity)}</code>.</p>
+  <p class="footer-note">Rows come from <code>wikimedia_pageviews_quarterly</code>, <code>stack_overflow_tag_quarterly</code>, <code>search_query_suggestions</code>, <code>search_query_intent_summary</code>, and <code>attention_demand_summary</code>. Integrity check: <code>{esc(integrity)}</code>.</p>
 </main>
 </body>
 </html>

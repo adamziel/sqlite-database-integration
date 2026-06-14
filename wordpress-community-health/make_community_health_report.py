@@ -63,6 +63,8 @@ SKIP_NETWORK_DB_FALLBACK_TABLES = [
     "wporg_ecosystem_stats_snapshot",
     "wikimedia_pageviews_monthly",
     "wikimedia_pageviews_quarterly",
+    "search_query_suggestions",
+    "search_query_intent_summary",
     "npm_wordpress_downloads_monthly",
     "npm_wordpress_downloads_quarterly",
     "github_repo_interest_snapshot",
@@ -189,6 +191,10 @@ WAYBACK_CDX_API = "https://web.archive.org/cdx"
 WAYBACK_WEB_ROOT = "https://web.archive.org/web"
 WIKIMEDIA_PAGEVIEWS_API = "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article"
 WIKIMEDIA_PAGEVIEWS_DOCS_URL = "https://doc.wikimedia.org/generated-data-platform/aqs/analytics-api/reference/page-views.html"
+SEARCH_SUGGEST_API = "https://suggestqueries.google.com/complete/search"
+SEARCH_SUGGEST_SOURCE_URL = "https://suggestqueries.google.com/complete/search?client=firefox&hl=en&gl=US&q=wordpress"
+SEARCH_SUGGEST_LOCALE = "en"
+SEARCH_SUGGEST_REGION = "US"
 NPM_DOWNLOADS_API = "https://api.npmjs.org/downloads/range"
 NPM_DOWNLOADS_DOCS_URL = "https://github.com/npm/registry/blob/main/docs/download-counts.md"
 WPVIP_CASE_STUDY_API = "https://wpvip.com/wp-json/wp/v2/case-study"
@@ -214,6 +220,15 @@ WIKIMEDIA_PAGEVIEW_ARTICLES = [
     {"article": "Wix.com", "label": "Wix", "color": "#f59e0b"},
     {"article": "Squarespace", "label": "Squarespace", "color": "#64748b"},
     {"article": "Webflow", "label": "Webflow", "color": "#0891b2"},
+]
+SEARCH_SUGGEST_SEEDS = [
+    {"seed_query": "wordpress", "seed_group": "brand"},
+    {"seed_query": "wordpress developer", "seed_group": "developer"},
+    {"seed_query": "wordpress alternatives", "seed_group": "alternatives"},
+    {"seed_query": "wordpress vs shopify", "seed_group": "comparison"},
+    {"seed_query": "wordpress vs wix", "seed_group": "comparison"},
+    {"seed_query": "wordpress vs squarespace", "seed_group": "comparison"},
+    {"seed_query": "wordpress vs webflow", "seed_group": "comparison"},
 ]
 NPM_WORDPRESS_PACKAGES = [
     {"package": "@wordpress/block-editor", "label": "block-editor", "color": "#2563eb"},
@@ -1732,6 +1747,150 @@ def fetch_wikimedia_pageviews(skip_network=False):
     if monthly_rows:
         write_cached_wikimedia_pageviews_monthly(monthly_rows)
     return monthly_rows, aggregate_wikimedia_pageviews_quarterly(monthly_rows)
+
+
+def search_suggest_cache_path():
+    return CACHE / "search-query-suggestions.json"
+
+
+def read_cached_search_suggestions():
+    path = search_suggest_cache_path()
+    if not path.exists():
+        return []
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return []
+    rows = payload.get("rows") if isinstance(payload, dict) else payload
+    return rows if isinstance(rows, list) else []
+
+
+def write_cached_search_suggestions(rows):
+    CACHE.mkdir(parents=True, exist_ok=True)
+    search_suggest_cache_path().write_text(
+        json.dumps(
+            {
+                "collected_at": dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z"),
+                "source_url": SEARCH_SUGGEST_SOURCE_URL,
+                "rows": rows,
+            },
+            indent=2,
+            sort_keys=True,
+        ),
+        encoding="utf-8",
+    )
+
+
+def search_suggest_url(query):
+    params = urllib.parse.urlencode(
+        {
+            "client": "firefox",
+            "hl": SEARCH_SUGGEST_LOCALE,
+            "gl": SEARCH_SUGGEST_REGION,
+            "q": query,
+        }
+    )
+    return f"{SEARCH_SUGGEST_API}?{params}"
+
+
+def classify_search_suggestion(text):
+    lower = str(text or "").lower()
+    buckets = [
+        ("job", [" job", "jobs", "salary", "remote", "career", "hiring", "freelance", "praca"]),
+        ("developer", ["developer", "plugin", "theme", "course", "tutorial", "docker", "api", "mcp"]),
+        ("alternative", ["alternative", "alternatives", "instead of", "replace"]),
+        ("comparison", [" vs ", "versus", "which is better", "compare", "comparison"]),
+        ("cost", ["cost", "price", "pricing", "free", "cheap"]),
+        ("ownership", ["open source", "self hosted", "self-hosted"]),
+        ("commerce", ["shopify", "woocommerce", "ecommerce", "store"]),
+        ("community_validation", ["reddit", "review", "reviews"]),
+        ("getting_started", ["download", "login", "tutorial", "course", "install"]),
+    ]
+    matches = []
+    for bucket, needles in buckets:
+        if any(needle in lower for needle in needles):
+            matches.append(bucket)
+    return matches[0] if matches else "general", ",".join(matches)
+
+
+def fetch_search_query_suggestions(skip_network=False):
+    cached_rows = read_cached_search_suggestions()
+    if cached_rows:
+        cached_dates = {str(row.get("collected_at", ""))[:10] for row in cached_rows if row.get("collected_at")}
+        today = dt.datetime.now(dt.timezone.utc).date().isoformat()
+        if skip_network or today in cached_dates:
+            return cached_rows
+    if skip_network:
+        return cached_rows
+
+    collected_at = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
+    rows = []
+    for seed in SEARCH_SUGGEST_SEEDS:
+        seed_query = seed["seed_query"]
+        api_url = search_suggest_url(seed_query)
+        req = urllib.request.Request(api_url, headers={"User-Agent": UA})
+        try:
+            with urllib.request.urlopen(req, timeout=20) as resp:
+                payload = json.loads(resp.read().decode("utf-8"))
+        except Exception as exc:
+            eprint(f"Search suggestions fetch failed for {seed_query}: {exc}")
+            continue
+        suggestions = payload[1] if isinstance(payload, list) and len(payload) > 1 and isinstance(payload[1], list) else []
+        for rank, suggestion in enumerate(suggestions, start=1):
+            bucket, matched_buckets = classify_search_suggestion(suggestion)
+            rows.append(
+                {
+                    "seed_query": seed_query,
+                    "seed_group": seed["seed_group"],
+                    "rank": rank,
+                    "suggestion": suggestion,
+                    "intent_bucket": bucket,
+                    "matched_buckets": matched_buckets,
+                    "locale": SEARCH_SUGGEST_LOCALE,
+                    "region": SEARCH_SUGGEST_REGION,
+                    "source": "Google autocomplete suggestion snapshot",
+                    "source_url": SEARCH_SUGGEST_SOURCE_URL,
+                    "api_url": api_url,
+                    "collected_at": collected_at,
+                }
+            )
+        time.sleep(0.1)
+    if rows:
+        write_cached_search_suggestions(rows)
+    return rows
+
+
+def derive_search_query_intent_summary(suggestion_rows):
+    grouped = defaultdict(list)
+    for row in suggestion_rows or []:
+        grouped[(row.get("seed_group", ""), row.get("seed_query", ""))].append(row)
+    rows = []
+    for (seed_group, seed_query), items in sorted(grouped.items()):
+        ordered = sorted(items, key=lambda row: num(row.get("rank")))
+        buckets = Counter(row.get("intent_bucket") or "general" for row in ordered)
+        top_suggestions = "; ".join(row.get("suggestion", "") for row in ordered[:5])
+        rows.append(
+            {
+                "seed_query": seed_query,
+                "seed_group": seed_group,
+                "suggestion_count": len(ordered),
+                "top_suggestions": top_suggestions,
+                "general_count": buckets.get("general", 0),
+                "developer_count": buckets.get("developer", 0),
+                "job_count": buckets.get("job", 0),
+                "alternative_count": buckets.get("alternative", 0),
+                "comparison_count": buckets.get("comparison", 0),
+                "cost_count": buckets.get("cost", 0),
+                "ownership_count": buckets.get("ownership", 0),
+                "commerce_count": buckets.get("commerce", 0),
+                "community_validation_count": buckets.get("community_validation", 0),
+                "getting_started_count": buckets.get("getting_started", 0),
+                "source": "Derived from Google autocomplete suggestion snapshot",
+                "source_url": SEARCH_SUGGEST_SOURCE_URL,
+                "collected_at": ordered[0].get("collected_at", "") if ordered else "",
+            }
+        )
+    return rows
 
 
 def npm_downloads_cache_path():
@@ -4628,7 +4787,7 @@ def build_database(data, fetched):
                 "search_interest",
                 "partial",
                 "Google Trends or another search-interest provider",
-                "Wikimedia Pageviews API quarterly article-view trends, Stack Overflow tag-volume context, a compact attention/demand summary, and a search-interest companion view are included as public-interest proxies; true search-query interest still needs Google Trends or another search provider.",
+                "Wikimedia Pageviews API quarterly article-view trends, Stack Overflow tag-volume context, a current Google autocomplete suggestion snapshot, a compact attention/demand summary, and a search-interest companion view are included as public-interest and query-intent proxies; true search-volume history still needs Google Trends or another search provider.",
             )
         )
     else:
@@ -5836,6 +5995,7 @@ def source_status_rows(fetched):
         ("BuiltWith traffic tiers", "covered" if fetched.get("builtwith_tier_share_snapshot") else "missing", "Current WordPress share by traffic tier across tracked CMS/builder technologies"),
         ("Stack Overflow tag volume", "covered" if fetched.get("stack_overflow_tag_quarterly") else "missing", "Quarterly public developer-attention proxy from Stack Exchange API tag totals"),
         ("Wikimedia pageviews", "covered" if fetched.get("wikimedia_pageviews_quarterly") else "missing", "Quarterly en.wikipedia article pageviews as a public-interest proxy, not search-query volume"),
+        ("Search query suggestions", "covered" if fetched.get("search_query_suggestions") else "missing", "Current Google autocomplete suggestions for selected WordPress, developer, alternatives, and comparison queries; not search volume"),
         ("WordPress npm packages", "covered" if fetched.get("npm_wordpress_downloads_quarterly") else "missing", "Quarterly npm downloads for selected @wordpress packages as package-ecosystem activity, not developer headcount"),
         ("GitHub repo interest snapshot", "covered" if fetched.get("github_repo_interest_snapshot") else "missing", "Current stars, forks, subscribers, open issues, and activity timestamps for selected WordPress ecosystem repositories"),
         ("GitHub PR review comments", "covered" if fetched.get("github_pr_review_comments_quarterly") else "missing", "Quarterly wordpress-develop line review-comment activity from GitHub pull-request review comments"),
@@ -5894,7 +6054,7 @@ def source_status_rows(fetched):
         (
             "Search interest and job demand",
             "partial" if fetched.get("wikimedia_pageviews_quarterly") or fetched.get("hn_hiring_wordpress_quarterly") else "missing",
-            "General web search trends and broad hiring-platform time series are not included; Wikimedia, Stack Overflow, and HN are narrower public/developer/demand proxies",
+            "General web search trends and broad hiring-platform time series are not included; Wikimedia, Stack Overflow, Google autocomplete suggestions, and HN are narrower public/query/developer/demand proxies",
         ),
     ]
     return rows
@@ -5920,6 +6080,8 @@ def build_report(data, fetched):
     wporg_ecosystem_stats = fetched.get("wporg_ecosystem_stats_snapshot", [])
     stack_overflow_tags = fetched.get("stack_overflow_tag_quarterly", [])
     wikimedia_pageviews_q = fetched.get("wikimedia_pageviews_quarterly", [])
+    search_suggestions = fetched.get("search_query_suggestions", [])
+    search_intent_summary = fetched.get("search_query_intent_summary", [])
     review_comments_q = fetched.get("github_pr_review_comments_quarterly", [])
     hn_hiring_q = fetched.get("hn_hiring_wordpress_quarterly", [])
     hn_hiring_summary = fetched.get("hn_hiring_demand_summary", [])
@@ -6652,6 +6814,40 @@ def build_report(data, fetched):
         if latest_wikimedia_wp and previous_wikimedia_wp
         else None
     )
+    search_summary_by_seed = {row.get("seed_query"): row for row in search_intent_summary}
+    search_ordered_summary = [
+        search_summary_by_seed.get(seed["seed_query"])
+        for seed in SEARCH_SUGGEST_SEEDS
+        if search_summary_by_seed.get(seed["seed_query"])
+    ]
+    search_total_suggestions = sum(num(row.get("suggestion_count")) for row in search_ordered_summary)
+    search_developer_seed = search_summary_by_seed.get("wordpress developer", {})
+    search_alternative_seed = search_summary_by_seed.get("wordpress alternatives", {})
+    search_comparison_count = sum(num(row.get("comparison_count")) for row in search_ordered_summary)
+    search_job_count = sum(num(row.get("job_count")) for row in search_ordered_summary)
+    search_alternative_count = sum(num(row.get("alternative_count")) for row in search_ordered_summary)
+    search_intent_max = max(
+        [
+            search_comparison_count,
+            search_job_count,
+            search_alternative_count,
+            sum(num(row.get("developer_count")) for row in search_ordered_summary),
+            sum(num(row.get("cost_count")) for row in search_ordered_summary),
+            1,
+        ]
+    )
+
+    def search_seed_status(row):
+        top = [item.strip() for item in str(row.get("top_suggestions") or "").split(";") if item.strip()]
+        summary = ", ".join(top[:3])
+        return f"""
+        <div class="status">
+          <b>{html.escape(str(row.get("seed_query") or ""))}</b>
+          <span>{html.escape(summary)}</span>
+        </div>
+        """.strip()
+
+    search_seed_cards = "\n".join(search_seed_status(row) for row in search_ordered_summary)
     hn_hiring_series = [
         {
             "label": "WordPress/WooCommerce",
@@ -7736,6 +7932,27 @@ p {{ margin:0 0 12px; }}
       </div>
     </div>
     <div class="grid-2">
+      <div class="card">
+        <h3>Search query intent snapshot</h3>
+        <p>Current autocomplete suggestions for selected WordPress, developer, alternatives, and comparison queries. This shows query themes, not search volume.</p>
+        <div class="stats">
+          {stat_card("Suggestion rows", compact(search_total_suggestions), "current snapshot", "soft")}
+          {stat_card("Developer seed", compact(num(search_developer_seed.get("suggestion_count"))), "wordpress developer", "soft")}
+          {stat_card("Alternatives seed", compact(num(search_alternative_seed.get("suggestion_count"))), "wordpress alternatives", "soft")}
+        </div>
+        {horizontal_count_metric("Comparison suggestions", search_comparison_count, search_intent_max, COLORS["wordpress"], " suggestions")}
+        {horizontal_count_metric("Job suggestions", search_job_count, search_intent_max, COLORS["green"], " suggestions")}
+        {horizontal_count_metric("Alternative suggestions", search_alternative_count, search_intent_max, COLORS["orange"], " suggestions")}
+      </div>
+      <div class="card">
+        <h3>Top suggestion themes</h3>
+        <p>Seed queries are stored in SQLite as <code>search_query_suggestions</code> with rank, locale, source URL, and intent bucket.</p>
+        <div class="status-grid">
+          {search_seed_cards}
+        </div>
+      </div>
+    </div>
+    <div class="grid-2">
       {svg_line_chart("Share of all websites", "W3Techs yearly usage trend. This includes sites with no known CMS.", market_usage_series, y_suffix="%")}
       {svg_line_chart("Share among CMS sites", "W3Techs yearly CMS market-share trend.", market_cms_series, y_suffix="%")}
     </div>
@@ -8258,7 +8475,7 @@ p {{ margin:0 0 12px; }}
 
   <section class="footer">
     <p>Generated {dt.datetime.now(dt.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')} from local Core/Gutenberg exports and public sources.</p>
-    <p>Sources: <a href="{W3TECHS_USAGE_URL}">W3Techs usage trend</a>, <a href="{W3TECHS_MARKET_SHARE_URL}">W3Techs CMS market-share trend</a>, <a href="{HTTP_ARCHIVE_CMS_URL}">HTTP Archive Web Almanac CMS 2025</a>, <a href="{HTTP_ARCHIVE_TECH_REPORT_URL}">HTTP Archive Technology Report API</a>, <a href="{STACK_EXCHANGE_DOCS_URL}">Stack Exchange API</a>, <a href="{WIKIMEDIA_PAGEVIEWS_DOCS_URL}">Wikimedia Pageviews API</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="{PLUGIN_DOWNLOADS_DOCS_URL}">WordPress.org plugin download stats</a>, <a href="{REMOTEOK_SOURCE_URL}">Remote OK</a>, <a href="{WORDPRESS_JOBS_URL}">WordPress Jobs board</a>, <a href="{WAYBACK_CDX_API}">Internet Archive CDX API</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="{EVENTS_WORDPRESS_URL}">WordPress Events</a>, <a href="{TRANSLATE_LOCALES_URL}">Translate WordPress</a>, <a href="{MAKE_CORE_API}">Make/Core posts API</a>, <a href="{MAKE_CORE_COMMENTS_API}">Make/Core comments API</a>, <a href="https://wordpress.org/support/view/all-topics/">WordPress.org support forums</a>, <a href="https://trends.builtwith.com/cms/WordPress">BuiltWith technology pages</a>, <a href="https://github.com/WordPress/gutenberg/issues">Gutenberg GitHub issues</a>, <a href="{GITHUB_PR_REVIEW_COMMENTS_API}">wordpress-develop GitHub review comments</a>, <a href="{FTTF_PLEDGES_URL}">Five for the Future pledges</a>, <a href="{RELEASE_ARCHIVE_URL}">WordPress release archive</a>, and <a href="{CREDITS_API}">Core credits API</a>.</p>
+    <p>Sources: <a href="{W3TECHS_USAGE_URL}">W3Techs usage trend</a>, <a href="{W3TECHS_MARKET_SHARE_URL}">W3Techs CMS market-share trend</a>, <a href="{HTTP_ARCHIVE_CMS_URL}">HTTP Archive Web Almanac CMS 2025</a>, <a href="{HTTP_ARCHIVE_TECH_REPORT_URL}">HTTP Archive Technology Report API</a>, <a href="{STACK_EXCHANGE_DOCS_URL}">Stack Exchange API</a>, <a href="{WIKIMEDIA_PAGEVIEWS_DOCS_URL}">Wikimedia Pageviews API</a>, <a href="{SEARCH_SUGGEST_SOURCE_URL}">Google autocomplete suggestions</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="{PLUGIN_DOWNLOADS_DOCS_URL}">WordPress.org plugin download stats</a>, <a href="{REMOTEOK_SOURCE_URL}">Remote OK</a>, <a href="{WORDPRESS_JOBS_URL}">WordPress Jobs board</a>, <a href="{WAYBACK_CDX_API}">Internet Archive CDX API</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="{EVENTS_WORDPRESS_URL}">WordPress Events</a>, <a href="{TRANSLATE_LOCALES_URL}">Translate WordPress</a>, <a href="{MAKE_CORE_API}">Make/Core posts API</a>, <a href="{MAKE_CORE_COMMENTS_API}">Make/Core comments API</a>, <a href="https://wordpress.org/support/view/all-topics/">WordPress.org support forums</a>, <a href="https://trends.builtwith.com/cms/WordPress">BuiltWith technology pages</a>, <a href="https://github.com/WordPress/gutenberg/issues">Gutenberg GitHub issues</a>, <a href="{GITHUB_PR_REVIEW_COMMENTS_API}">wordpress-develop GitHub review comments</a>, <a href="{FTTF_PLEDGES_URL}">Five for the Future pledges</a>, <a href="{RELEASE_ARCHIVE_URL}">WordPress release archive</a>, and <a href="{CREDITS_API}">Core credits API</a>.</p>
   </section>
 </main>
 </body>
@@ -8299,6 +8516,10 @@ def main():
     fetched["stack_overflow_tag_quarterly"] = fetch_stackoverflow_tag_quarterly(args.skip_network)
     fetched["wikimedia_pageviews_monthly"], fetched["wikimedia_pageviews_quarterly"] = fetch_wikimedia_pageviews(
         args.skip_network
+    )
+    fetched["search_query_suggestions"] = fetch_search_query_suggestions(args.skip_network)
+    fetched["search_query_intent_summary"] = derive_search_query_intent_summary(
+        fetched["search_query_suggestions"]
     )
     fetched["npm_wordpress_downloads_monthly"], fetched["npm_wordpress_downloads_quarterly"] = fetch_npm_wordpress_downloads(
         args.skip_network

@@ -22,8 +22,8 @@
     .lede { max-width:900px; font-size:18px; margin-bottom:20px; }
     .nav { display:flex; flex-wrap:wrap; gap:8px; margin:18px 0 22px; }
     .nav a { border:1px solid var(--line); border-radius:999px; padding:7px 11px; background:#fbfdff; text-decoration:none; font-weight:700; font-size:13px; }
-    .metrics { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; margin:22px 0; }
-    .metric, .section, .chart-card { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px; }
+    .metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin:22px 0; }
+    .metric, .section, .chart-card, .suggest-card { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px; }
     .metric { border-top:5px solid var(--blue); min-height:148px; }
     .metric.green { border-top-color:var(--green); }
     .metric.amber { border-top-color:var(--amber); }
@@ -53,11 +53,16 @@
     .bar-label strong { white-space:nowrap; }
     .bar { height:9px; border-radius:999px; background:#e7edf5; overflow:hidden; }
     .bar span { display:block; height:100%; border-radius:inherit; }
+    .suggest-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:14px; }
+    .suggest-card h3 { text-transform:none; letter-spacing:0; color:var(--ink); font-size:18px; }
+    .suggestions { display:flex; flex-wrap:wrap; gap:7px; margin:10px 0 12px; }
+    .suggestions span { border:1px solid var(--line); border-radius:999px; padding:5px 8px; background:#fbfdff; color:var(--muted); font-size:13px; }
+    .mini-bars { display:grid; gap:6px; }
     .callout { margin-top:14px; padding:14px; border:1px solid var(--line); border-left:5px solid var(--amber); border-radius:8px; background:#fffaf0; color:#7c4a03; }
     .footer-note { margin-top:18px; font-size:13px; }
     @media (max-width:960px) {
       main { padding:24px 14px 36px; }
-      .metrics, .grid, .charts { grid-template-columns:1fr; }
+      .metrics, .grid, .charts, .suggest-grid { grid-template-columns:1fr; }
       .metric { min-height:auto; }
       .signal-row { align-items:flex-start; flex-direction:column; }
       .signal-row b, .bar-label strong { white-space:normal; }
@@ -67,7 +72,7 @@
 <body>
 <main>
   <h1>WordPress search interest</h1>
-  <p class="lede">A compact proxy readout for search and public attention using data already stored in SQLite: Wikimedia article pageviews and Stack Overflow tag-question volume for WordPress and peer site-builder terms.</p>
+  <p class="lede">A compact proxy readout for search and public attention using data already stored in SQLite: Wikimedia article pageviews, Stack Overflow tag-question volume, and current autocomplete suggestions for WordPress, developer, alternatives, and comparison queries.</p>
     <nav class="nav">
       <a href="index.html#market">Market Position</a>
       <a href="market_position.html">Market position</a>
@@ -112,6 +117,21 @@
         <strong>74.0%</strong>
         <p>of latest tracked Stack Overflow questions</p>
       </article>
+      <article class="metric blue">
+        <h3>Search suggestions</h3>
+        <strong>70</strong>
+        <p>current autocomplete snapshot</p>
+      </article>
+      <article class="metric green">
+        <h3>Developer suggestions</h3>
+        <strong>10</strong>
+        <p>for wordpress developer</p>
+      </article>
+      <article class="metric amber">
+        <h3>Alternatives suggestions</h3>
+        <strong>10</strong>
+        <p>for wordpress alternatives</p>
+      </article>
   </section>
 
   <section class="grid">
@@ -140,10 +160,17 @@
           </div>
           <b>-96.3%</b>
         </div>
+        <div class="signal-row blue">
+          <div>
+            <strong>Search-query intent is now captured as a snapshot</strong>
+            <span>Autocomplete suggestions include developer, alternatives, comparison, job, pricing, and open/self-hosted themes for selected WordPress queries.</span>
+          </div>
+          <b>70</b>
+        </div>
         <div class="signal-row violet">
           <div>
             <strong>This is not Google Trends</strong>
-            <span>Use this page as public-attention and developer-help context, not as true search-query volume.</span>
+            <span>Use this page as public-attention, developer-help, and query-intent context, not as true search-query volume.</span>
           </div>
           <b>proxy</b>
         </div>
@@ -152,11 +179,89 @@
     <article class="section">
       <h2>How to read this</h2>
       <p>This page is a public-attention proxy. Wikimedia pageviews and Stack Overflow questions are stable public sources, but they do not replace Google Trends or another search-interest provider.</p>
-      <p class="callout">Wikimedia Pageviews API quarterly article-view trends, Stack Overflow tag-volume context, a compact attention/demand summary, and a search-interest companion view are included as public-interest proxies; true search-query interest still needs Google Trends or another search provider.</p>
+      <p class="callout">Wikimedia Pageviews API quarterly article-view trends, Stack Overflow tag-volume context, a current Google autocomplete suggestion snapshot, a compact attention/demand summary, and a search-interest companion view are included as public-interest and query-intent proxies; true search-volume history still needs Google Trends or another search provider.</p>
     </article>
   </section>
 
   <section class="charts">
+    <article class="chart-card" style="grid-column:1 / -1">
+      <h2>Search query intent snapshot</h2>
+      <p>Current autocomplete suggestions for selected WordPress queries. This captures query themes, not search volume or history.</p>
+      <div class="suggest-grid">
+
+      <article class="suggest-card">
+        <h3>wordpress alternatives</h3>
+        <div class="suggestions"><span>wordpress alternatives</span><span>wordpress alternatives open source</span><span>wordpress alternatives 2026</span><span>wordpress alternatives free</span><span>wordpress alternatives 2025</span></div>
+        <div class="mini-bars">
+        <div class="barline">
+          <div class="bar-label"><span>developer</span><strong>1</strong></div>
+          <div class="bar"><span style="width:11.1%;background:#2563eb"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>alternatives</span><strong>9</strong></div>
+          <div class="bar"><span style="width:100.0%;background:#b7791f"></span></div>
+        </div></div>
+      </article>
+      <article class="suggest-card">
+        <h3>wordpress</h3>
+        <div class="suggestions"><span>wordpress download</span><span>wordpress elementor</span><span>wordpress plugins</span><span>wordpress developer</span><span>wordpress docker</span></div>
+        <div class="mini-bars">
+        <div class="barline">
+          <div class="bar-label"><span>developer</span><strong>5</strong></div>
+          <div class="bar"><span style="width:100.0%;background:#2563eb"></span></div>
+        </div></div>
+      </article>
+      <article class="suggest-card">
+        <h3>wordpress vs shopify</h3>
+        <div class="suggestions"><span>wordpress vs shopify</span><span>wordpress vs shopify for ecommerce</span><span>wordpress vs shopify which is better</span><span>wordpress vs shopify reddit</span><span>wordpress vs shopify vs wix</span></div>
+        <div class="mini-bars">
+        <div class="barline">
+          <div class="bar-label"><span>comparisons</span><strong>10</strong></div>
+          <div class="bar"><span style="width:100.0%;background:#7c3aed"></span></div>
+        </div></div>
+      </article>
+      <article class="suggest-card">
+        <h3>wordpress vs squarespace</h3>
+        <div class="suggestions"><span>wordpress vs squarespace</span><span>wordpress vs squarespace vs wix</span><span>wordpress vs squarespace pricing</span><span>wordpress vs squarespace reddit</span><span>wordpress vs squarespace for blogging</span></div>
+        <div class="mini-bars">
+        <div class="barline">
+          <div class="bar-label"><span>comparisons</span><strong>10</strong></div>
+          <div class="bar"><span style="width:100.0%;background:#7c3aed"></span></div>
+        </div></div>
+      </article>
+      <article class="suggest-card">
+        <h3>wordpress vs webflow</h3>
+        <div class="suggestions"><span>wordpress vs webflow</span><span>wordpress vs webflow vs framer</span><span>wordpress vs webflow reddit</span><span>wordpress vs webflow for seo</span><span>wordpress vs webflow pricing</span></div>
+        <div class="mini-bars">
+        <div class="barline">
+          <div class="bar-label"><span>comparisons</span><strong>10</strong></div>
+          <div class="bar"><span style="width:100.0%;background:#7c3aed"></span></div>
+        </div></div>
+      </article>
+      <article class="suggest-card">
+        <h3>wordpress vs wix</h3>
+        <div class="suggestions"><span>wordpress vs wix</span><span>wordpress vs wix vs squarespace</span><span>wordpress vs wix pricing</span><span>wordpress vs wix reddit</span><span>wordpress vs wix for blogging</span></div>
+        <div class="mini-bars">
+        <div class="barline">
+          <div class="bar-label"><span>comparisons</span><strong>10</strong></div>
+          <div class="bar"><span style="width:100.0%;background:#7c3aed"></span></div>
+        </div></div>
+      </article>
+      <article class="suggest-card">
+        <h3>wordpress developer</h3>
+        <div class="suggestions"><span>wordpress developer</span><span>wordpress developer praca</span><span>wordpress developer jobs</span><span>wordpress developer salary</span><span>wordpress developer jobs remote</span></div>
+        <div class="mini-bars">
+        <div class="barline">
+          <div class="bar-label"><span>developer</span><strong>3</strong></div>
+          <div class="bar"><span style="width:42.9%;background:#2563eb"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>jobs</span><strong>7</strong></div>
+          <div class="bar"><span style="width:100.0%;background:#159957"></span></div>
+        </div></div>
+      </article>
+      </div>
+    </article>
 <article class="chart-card">
 <h2>Public attention proxy</h2>
 <p>Quarterly English Wikipedia article pageviews. This is a stable public-interest signal, not search-query volume.</p>
@@ -289,7 +394,7 @@
     </article>
   </section>
 
-  <p class="footer-note">Rows come from <code>wikimedia_pageviews_quarterly</code>, <code>stack_overflow_tag_quarterly</code>, and <code>attention_demand_summary</code>. Integrity check: <code>ok</code>.</p>
+  <p class="footer-note">Rows come from <code>wikimedia_pageviews_quarterly</code>, <code>stack_overflow_tag_quarterly</code>, <code>search_query_suggestions</code>, <code>search_query_intent_summary</code>, and <code>attention_demand_summary</code>. Integrity check: <code>ok</code>.</p>
 </main>
 </body>
 </html>

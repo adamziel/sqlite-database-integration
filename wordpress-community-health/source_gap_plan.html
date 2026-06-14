@@ -164,7 +164,7 @@
 
     <section class="metrics" aria-label="Source gap summary">
       <div class="metric"><h3>Partial signals</h3><strong>5</strong><span>Stored in <code>source_gaps</code>.</span></div>
-      <div class="metric"><h3>Database tables</h3><strong>91</strong><span>Existing report tables remain intact.</span></div>
+      <div class="metric"><h3>Database tables</h3><strong>93</strong><span>Existing report tables remain intact.</span></div>
       <div class="metric"><h3>Integrity</h3><strong>ok</strong><span>SQLite integrity check.</span></div>
       <div class="metric"><h3>Next mode</h3><strong>1 at a time</strong><span>Import, validate, then publish each source family.</span></div>
     </section>
@@ -185,7 +185,7 @@
           <span>2</span>
           <div>
             <strong>Search interest</strong>
-            <p>Normalized quarterly search series for WordPress and peer builders.</p>
+            <p>Normalized quarterly search series for WordPress and peer builders, plus refreshable query-intent snapshots.</p>
           </div>
         </div>
 
@@ -253,13 +253,13 @@
           <span class="order">2</span>
           <div>
             <h2>Search interest</h2>
-            <p>Turns the current Wikimedia public-attention proxy into a direct broad-interest signal.</p>
+            <p>Turns the current Wikimedia, Stack Overflow, and autocomplete proxies into a direct broad-interest signal.</p>
           </div>
         </div>
         <div class="gap-grid">
           <div>
             <h3>Current coverage</h3>
-            <p>Wikimedia Pageviews API quarterly article-view trends, Stack Overflow tag-volume context, a compact attention/demand summary, and a search-interest companion view are included as public-interest proxies; true search-query interest still needs Google Trends or another search provider.</p>
+            <p>Wikimedia Pageviews API quarterly article-view trends, Stack Overflow tag-volume context, a current Google autocomplete suggestion snapshot, a compact attention/demand summary, and a search-interest companion view are included as public-interest and query-intent proxies; true search-volume history still needs Google Trends or another search provider.</p>
           </div>
           <div>
             <h3>Best next source</h3>
@@ -271,12 +271,12 @@
           </div>
           <div>
             <h3>Target tables</h3>
-            <p class="targets"><code>search_interest_quarterly</code></p>
+            <p class="targets"><code>search_interest_quarterly</code> <code>search_query_suggestions</code> <code>search_query_intent_summary</code></p>
           </div>
         </div>
         <div class="success">
           <b>Done when</b>
-          <span>Normalized quarterly search series for WordPress and peer builders.</span>
+          <span>Normalized quarterly search series for WordPress and peer builders, plus refreshable query-intent snapshots.</span>
         </div>
       </article>
 

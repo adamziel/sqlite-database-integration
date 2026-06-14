@@ -67,6 +67,7 @@ HTML_ARTIFACTS = {
     ],
     "search_interest.html": [
         "WordPress search interest",
+        "Search query intent snapshot",
         "Public attention proxy",
         "Latest Wikimedia peer comparison",
     ],

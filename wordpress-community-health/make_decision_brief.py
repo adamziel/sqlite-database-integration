@@ -128,6 +128,11 @@ def signal(conn, name):
     return dict(row) if row else {}
 
 
+def attention_signal(conn, name):
+    row = conn.execute("SELECT * FROM attention_demand_summary WHERE signal=?", (name,)).fetchone()
+    return dict(row) if row else {}
+
+
 def latest_npm(conn):
     latest = value(conn, "SELECT MAX(quarter) FROM npm_wordpress_downloads_quarterly", default="")
     total = value(
@@ -187,6 +192,12 @@ def ladder_row(tone, label, value, text):
       </div>""".strip()
 
 
+def change_pct_label(row):
+    if not row:
+        return "n/a"
+    return f"{num(row.get('change_pct')):+.1f}%"
+
+
 def main():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
@@ -204,6 +215,9 @@ def main():
         builtwith_30_share = num(builtwith_30.get("wordpress_share_pct"))
         archive_share = num(archive_latest.get("wordpress_share_pct"))
         archive_delta = num(archive_change.get("wordpress_value"))
+        wiki_attention = attention_signal(conn, "wikimedia_wordpress_pageviews")
+        stack_attention = attention_signal(conn, "stack_overflow_wordpress_questions")
+        hn_attention = attention_signal(conn, "hn_wordpress_woocommerce_hiring_rate")
 
         core_created_recent = average(conn, "core_quarterly", "created", "2024-01-01")
         core_closed_recent = average(conn, "core_quarterly", "closed", "2024-01-01")
@@ -377,8 +391,8 @@ def main():
     .matrix-card strong {{ display:block; color:var(--ink); font-size:21px; line-height:1.16; margin-bottom:8px; }}
     .matrix-card p {{ margin-bottom:11px; }}
     .matrix-card span {{ display:block; color:#475569; font-size:13px; font-weight:800; }}
-    .newsite-ladder {{ background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px; margin:20px 0; }}
-    .newsite-ladder h2 {{ margin-top:0; }}
+    .evidence-ladder {{ background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px; margin:20px 0; }}
+    .evidence-ladder h2 {{ margin-top:0; }}
     .ladder-grid {{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }}
     .ladder-row {{ border:1px solid var(--line); border-left:5px solid var(--blue); border-radius:8px; padding:12px; background:#fbfdff; min-width:0; }}
     .ladder-row span {{ display:block; color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.06em; font-weight:800; }}
@@ -451,7 +465,7 @@ def main():
 {cards}
   </section>
 
-  <section class="newsite-ladder">
+  <section class="evidence-ladder">
     <h2>New-site Evidence Ladder</h2>
     <p>Use the first two rows for confidence that WordPress is still widely chosen. Use the last two rows to understand why new-site momentum is labeled as a proxy instead of a complete history.</p>
     <div class="ladder-grid">
@@ -459,6 +473,17 @@ def main():
       {ladder_row("soft", "Current pipeline", pct(builtwith_90_share), f"BuiltWith 90-day newly found-site proxy; 30-day share is {pct(builtwith_30_share)}.")}
       {ladder_row("watch", "Recurring crawl trend", signed_pts(archive_delta), "HTTP Archive tracked-share movement since 2020-01.")}
       {ladder_row("softer", "True cohort", "Not yet", "Needs first-seen site cohort or paid BuiltWith historical export.")}
+    </div>
+  </section>
+
+  <section class="evidence-ladder">
+    <h2>Attention and Demand Evidence Ladder</h2>
+    <p>Use this to separate public attention, developer help-seeking, and hiring proxies from direct search or labor-market evidence.</p>
+    <div class="ladder-grid">
+      {ladder_row("watch", "Public attention", change_pct_label(wiki_attention), "Wikimedia WordPress pageviews versus the latest pre-2024 quarter.")}
+      {ladder_row("softer", "Developer help", change_pct_label(stack_attention), "Stack Overflow WordPress-tag questions versus the latest pre-2024 quarter.")}
+      {ladder_row("watch", "Hiring proxy", change_pct_label(hn_attention), "HN WP/Woo hiring mention rate versus parsed pre-2024 history.")}
+      {ladder_row("softer", "Direct search/jobs", "Not yet", "Needs Google Trends or similar plus a broad hiring-platform export.")}
     </div>
   </section>
 

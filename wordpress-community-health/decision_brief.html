@@ -49,8 +49,8 @@
     .matrix-card strong { display:block; color:var(--ink); font-size:21px; line-height:1.16; margin-bottom:8px; }
     .matrix-card p { margin-bottom:11px; }
     .matrix-card span { display:block; color:#475569; font-size:13px; font-weight:800; }
-    .newsite-ladder { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px; margin:20px 0; }
-    .newsite-ladder h2 { margin-top:0; }
+    .evidence-ladder { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px; margin:20px 0; }
+    .evidence-ladder h2 { margin-top:0; }
     .ladder-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
     .ladder-row { border:1px solid var(--line); border-left:5px solid var(--blue); border-radius:8px; padding:12px; background:#fbfdff; min-width:0; }
     .ladder-row span { display:block; color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.06em; font-weight:800; }
@@ -153,7 +153,7 @@
     </div>
   </section>
 
-  <section class="newsite-ladder">
+  <section class="evidence-ladder">
     <h2>New-site Evidence Ladder</h2>
     <p>Use the first two rows for confidence that WordPress is still widely chosen. Use the last two rows to understand why new-site momentum is labeled as a proxy instead of a complete history.</p>
     <div class="ladder-grid">
@@ -176,6 +176,33 @@
         <span>True cohort</span>
         <strong>Not yet</strong>
         <p>Needs first-seen site cohort or paid BuiltWith historical export.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="evidence-ladder">
+    <h2>Attention and Demand Evidence Ladder</h2>
+    <p>Use this to separate public attention, developer help-seeking, and hiring proxies from direct search or labor-market evidence.</p>
+    <div class="ladder-grid">
+      <div class="ladder-row watch">
+        <span>Public attention</span>
+        <strong>-17.1%</strong>
+        <p>Wikimedia WordPress pageviews versus the latest pre-2024 quarter.</p>
+      </div>
+      <div class="ladder-row softer">
+        <span>Developer help</span>
+        <strong>-96.3%</strong>
+        <p>Stack Overflow WordPress-tag questions versus the latest pre-2024 quarter.</p>
+      </div>
+      <div class="ladder-row watch">
+        <span>Hiring proxy</span>
+        <strong>-77.4%</strong>
+        <p>HN WP/Woo hiring mention rate versus parsed pre-2024 history.</p>
+      </div>
+      <div class="ladder-row softer">
+        <span>Direct search/jobs</span>
+        <strong>Not yet</strong>
+        <p>Needs Google Trends or similar plus a broad hiring-platform export.</p>
       </div>
     </div>
   </section>

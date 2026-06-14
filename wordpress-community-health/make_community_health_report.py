@@ -7696,6 +7696,7 @@ def build_report(data, fetched):
     latest_jobs_project_share = latest_project_jobs / latest_jobs_total * 100 if latest_jobs_total else 0
     latest_jobs_development_share = latest_development_jobs / latest_jobs_total * 100 if latest_jobs_total else 0
     attention_rows = sorted(attention_demand_summary, key=lambda row: str(row.get("label", "")))
+    attention_by_signal = {row.get("signal"): row for row in attention_demand_summary}
     attention_change_max = max([abs(float(row.get("change_pct") or 0)) for row in attention_rows] or [1])
 
     def attention_value(row, field):
@@ -7703,6 +7704,12 @@ def build_report(data, fetched):
         if "per 100" in str(row.get("unit", "")):
             return f"{value:.2f}"
         return compact(value)
+
+    def attention_change_label(signal):
+        row = attention_by_signal.get(signal, {})
+        if not row:
+            return "n/a"
+        return f"{float(row.get('change_pct') or 0):+.1f}%"
 
     def attention_tone(row):
         direction = str(row.get("direction") or "")
@@ -8056,9 +8063,9 @@ p {{ margin:0 0 12px; }}
 .score-card.slower .score-chip {{ background:#fee2e2; color:#991b1b; }}
 .score-card.watch {{ border-top-color:var(--orange); }}
 .score-card.watch .score-chip {{ background:#fef3c7; color:#92400e; }}
-.newsite-ladder {{ border:1px solid var(--line); border-radius:8px; padding:16px; background:#fff; margin:14px 0 24px; }}
-.newsite-ladder h3 {{ margin-bottom:6px; font-size:20px; line-height:1.2; color:var(--ink); text-transform:none; letter-spacing:0; }}
-.newsite-ladder > p {{ color:var(--muted); margin-bottom:12px; }}
+.evidence-ladder {{ border:1px solid var(--line); border-radius:8px; padding:16px; background:#fff; margin:14px 0 24px; }}
+.evidence-ladder h3 {{ margin-bottom:6px; font-size:20px; line-height:1.2; color:var(--ink); text-transform:none; letter-spacing:0; }}
+.evidence-ladder > p {{ color:var(--muted); margin-bottom:12px; }}
 .ladder-grid {{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }}
 .ladder-row {{ border:1px solid var(--line); border-left:5px solid var(--blue); border-radius:8px; padding:12px; background:#fbfdff; min-width:0; }}
 .ladder-row span {{ display:block; color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.06em; font-weight:800; }}
@@ -8193,7 +8200,7 @@ p {{ margin:0 0 12px; }}
         <p>Current WordPress.org plugin and theme directory counts, plus active releases, events, translations, and pledges elsewhere in the report.</p>
       </article>
     </div>
-    <div class="newsite-ladder">
+    <div class="evidence-ladder">
       <h3>New-site evidence ladder</h3>
       <p>Read this from strongest to most provisional: installed share is direct, current newly found-site counts are a useful proxy, recurring crawl trend shows direction, and a true first-seen cohort source is still the next source to add.</p>
       <div class="ladder-grid">
@@ -8201,6 +8208,16 @@ p {{ margin:0 0 12px; }}
         {ladder_row("soft", "Current pipeline", pct(builtwith_wp_90_share), f"BuiltWith 90-day tracked newly found-site share; 30-day share is {pct(builtwith_wp_30_share)}.")}
         {ladder_row("watch", "Recurring crawl trend", http_share_wp_delta_label, f"HTTP Archive tracked-share movement since {http_share_first_date or 'the first stored month'}.")}
         {ladder_row("softer", "True cohort", "Not yet", "Needs first-seen site cohort or paid BuiltWith historical export.")}
+      </div>
+    </div>
+    <div class="evidence-ladder">
+      <h3>Attention and demand evidence ladder</h3>
+      <p>These signals help separate public attention, developer help-seeking, and hiring demand. They are useful directional evidence, but they are not a substitute for search-provider or broad hiring-platform exports.</p>
+      <div class="ladder-grid">
+        {ladder_row("watch", "Public attention", attention_change_label("wikimedia_wordpress_pageviews"), "Wikimedia WordPress pageviews versus the latest pre-2024 quarter.")}
+        {ladder_row("softer", "Developer help", attention_change_label("stack_overflow_wordpress_questions"), "Stack Overflow WordPress-tag questions versus the latest pre-2024 quarter.")}
+        {ladder_row("watch", "Hiring proxy", attention_change_label("hn_wordpress_woocommerce_hiring_rate"), "HN WP/Woo hiring mention rate versus parsed pre-2024 history.")}
+        {ladder_row("softer", "Direct search/jobs", "Not yet", "Needs Google Trends or similar plus a broad hiring-platform export.")}
       </div>
     </div>
   </section>

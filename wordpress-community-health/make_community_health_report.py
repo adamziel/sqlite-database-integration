@@ -6884,10 +6884,11 @@ p {{ margin:0 0 12px; }}
       </div>
       <div class="card">
         <h3>Refresh path</h3>
-        <p>Run the report generator to refresh public sources, or use cached data when validating layout and wording. The supporting fetch scripts keep Core response metrics, Gutenberg timelines, and support snapshots reproducible.</p>
+        <p>Run the report generator to refresh public sources, or use cached data when validating layout and wording. After any database change, regenerate the data inventory too. The supporting fetch scripts keep Core response metrics, Gutenberg timelines, and support snapshots reproducible.</p>
         <div class="link-list">
           <code>python3 make_community_health_report.py</code>
           <code>python3 make_community_health_report.py --skip-network</code>
+          <code>python3 make_data_inventory.py</code>
           <code>fetch_core_response_metrics.py</code>
           <code>fetch_gutenberg_timeline_metrics.py</code>
           <code>fetch_support_forum_snapshot.py</code>

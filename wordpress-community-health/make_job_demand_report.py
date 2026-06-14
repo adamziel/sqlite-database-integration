@@ -6,7 +6,7 @@ from pathlib import Path
 
 ROOT = Path("/Users/admin/wordpress_community_health")
 DB_PATH = ROOT / "community_health.sqlite"
-OUT = ROOT / "support_load.html"
+OUT = ROOT / "job_demand.html"
 
 COLORS = {
     "blue": "#2563eb",
@@ -58,16 +58,25 @@ def latest(rows_, key):
     return max(rows_, key=lambda row: row.get(key, ""), default={})
 
 
+def quarter_label(value):
+    value = str(value or "")
+    if len(value) < 7:
+        return value
+    month = value[5:7]
+    q = {"01": "Q1", "04": "Q2", "07": "Q3", "10": "Q4"}.get(month, "")
+    return f"{value[:4]} {q}".strip()
+
+
 def nav_html():
     return "\n".join(
         [
             '    <nav class="nav">',
-            '      <a href="index.html#participation">Participation</a>',
-            '      <a href="ecosystem_activity.html">Ecosystem activity</a>',
-            '      <a href="project_load.html">Project load</a>',
+            '      <a href="index.html#market">Market Position</a>',
             '      <a href="market_position.html">Market position</a>',
             '      <a href="developer_interest.html">Developer interest</a>',
-            '      <a href="job_demand.html">Job demand</a>',
+            '      <a href="support_load.html">Support load</a>',
+            '      <a href="project_load.html">Project load</a>',
+            '      <a href="ecosystem_activity.html">Ecosystem activity</a>',
             '      <a href="contributor_depth.html">Contributor depth</a>',
             '      <a href="progress_summary.html">Progress summary</a>',
             '      <a href="decision_brief.html">Decision brief</a>',
@@ -110,9 +119,9 @@ def bar_row(label, value, max_value, color=COLORS["blue"], suffix=""):
         </div>"""
 
 
-def point_series(rows_, key, value_key, label_key="label"):
+def point_series(rows_, key, value_key, label_transform=quarter_label):
     return [
-        (row.get(label_key) or str(row.get(key, ""))[:7], num(row.get(value_key)))
+        (label_transform(row.get(key, "")), num(row.get(value_key)))
         for row in sorted(rows_, key=lambda item: item.get(key, ""))
     ]
 
@@ -184,133 +193,139 @@ def multi_line_chart(title, note, series, value_decimals=0):
     return "\n".join(pieces)
 
 
+def date_year(value):
+    return str(value or "")[:4]
+
+
 def main():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     try:
         integrity = one(conn, "PRAGMA integrity_check")
-        snapshot = latest(rows(conn, "SELECT * FROM support_forum_snapshot_summary"), "snapshot_at")
-        monthly = rows(conn, "SELECT * FROM support_forum_activity_monthly ORDER BY month")
-        age_buckets = rows(conn, "SELECT * FROM support_forum_age_buckets ORDER BY CAST(bucket_order AS INTEGER)")
-        forums = rows(
-            conn,
-            """
-            SELECT forum_name, topics, unresolved, unresolved_share_pct, resolved_share_pct, no_replies
-            FROM support_forum_unanswered_by_forum
-            ORDER BY CAST(unresolved AS REAL) DESC
-            LIMIT 8
-            """,
-        )
-        plugin_rows = rows(
-            conn,
-            """
-            SELECT slug, name, active_installs, support_threads, support_threads_resolved,
-                   (CAST(support_threads AS REAL) - CAST(support_threads_resolved AS REAL)) AS unresolved_threads,
-                   CASE WHEN CAST(support_threads AS REAL) > 0
-                        THEN ROUND(CAST(support_threads_resolved AS REAL) / CAST(support_threads AS REAL) * 100, 1)
-                        ELSE 0 END AS resolved_pct
-            FROM major_plugin_install_snapshot
-            ORDER BY unresolved_threads DESC
-            LIMIT 8
-            """,
-        )
-        gap = rows(conn, "SELECT * FROM source_gaps WHERE signal='support_forum_history'")
+        hn = rows(conn, "SELECT * FROM hn_hiring_wordpress_quarterly ORDER BY quarter")
+        hn_summary = rows(conn, "SELECT * FROM hn_hiring_demand_summary ORDER BY window")
+        jobs = rows(conn, "SELECT * FROM wordpress_jobs_board_snapshots ORDER BY snapshot_date")
+        categories = rows(conn, "SELECT * FROM wordpress_jobs_board_category_snapshots ORDER BY snapshot_date, category")
+        attention = rows(conn, "SELECT * FROM attention_demand_summary WHERE signal IN ('hn_wordpress_woocommerce_hiring_rate','wordpress_jobs_open_listings','wordpress_jobs_development_listings')")
+        gap = rows(conn, "SELECT * FROM source_gaps WHERE signal='job_demand'")
     finally:
         conn.close()
 
+    latest_hn = latest(hn, "quarter")
+    latest_jobs = latest(jobs, "snapshot_date")
+    summary_by_window = {row.get("window"): row for row in hn_summary}
+    latest_4q = summary_by_window.get("latest_4q", {})
+    pre_2024 = summary_by_window.get("pre_2024", {})
+    attention_by_signal = {row.get("signal"): row for row in attention}
+    jobs_summary = attention_by_signal.get("wordpress_jobs_open_listings", {})
+    dev_jobs_summary = attention_by_signal.get("wordpress_jobs_development_listings", {})
+    hn_attention = attention_by_signal.get("hn_wordpress_woocommerce_hiring_rate", {})
+
+    latest_jobs_date = latest_jobs.get("snapshot_date", "")
+    latest_categories = [
+        row for row in categories if row.get("snapshot_date") == latest_jobs_date
+    ]
+    max_category = max([num(row.get("open_jobs")) for row in latest_categories] or [1])
+    category_rows = "".join(
+        bar_row(str(row.get("category", "")), row.get("open_jobs"), max_category, COLORS["blue"], f" of {compact(row.get('total_jobs'))}")
+        for row in sorted(latest_categories, key=lambda item: num(item.get("open_jobs")), reverse=True)
+    )
+
     metrics = "".join(
         [
-            metric_card("Topics sampled", compact(snapshot.get("topics")), f"{snapshot.get('snapshot_at', '')[:10]} support queue snapshot", "blue"),
-            metric_card("Unresolved", compact(snapshot.get("unresolved")), f"{pct(snapshot.get('unresolved_share_pct'))} of sampled topics", "amber"),
-            metric_card("Resolved", compact(snapshot.get("resolved")), f"{pct(snapshot.get('resolved_share_pct'))} of sampled topics", "green"),
-            metric_card("Participants", compact(snapshot.get("participants")), f"{compact(snapshot.get('unique_starters'))} unique topic starters", "violet"),
-            metric_card("No replies", compact(snapshot.get("no_replies")), f"{pct(snapshot.get('no_reply_share_pct'))} of sampled topics", "green"),
+            metric_card(
+                "HN WP/Woo rate",
+                f"{num(latest_hn.get('wordpress_or_woocommerce_per_100_comments')):.2f}",
+                f"mentions per 100 comments in {quarter_label(latest_hn.get('quarter'))}",
+                "amber",
+            ),
+            metric_card(
+                "Latest four-quarter rate",
+                f"{num(latest_4q.get('wordpress_or_woocommerce_per_100_comments')):.2f}",
+                f"vs {num(pre_2024.get('wordpress_or_woocommerce_per_100_comments')):.2f} before 2024",
+                "amber",
+            ),
+            metric_card(
+                "Jobs board listings",
+                compact(latest_jobs.get("total_jobs")),
+                f"{latest_jobs_date}; {pct(jobs_summary.get('change_pct'))} vs {jobs_summary.get('baseline_period', 'baseline')}",
+                "blue",
+            ),
+            metric_card(
+                "Development listings",
+                compact(latest_jobs.get("development_jobs")),
+                f"{pct(dev_jobs_summary.get('change_pct'))} vs {dev_jobs_summary.get('baseline_period', 'baseline')}",
+                "green",
+            ),
+            metric_card(
+                "Remote listings",
+                compact(latest_jobs.get("remote_jobs")),
+                f"{compact(latest_jobs.get('full_time_jobs'))} full-time listings in current snapshot",
+                "violet",
+            ),
         ]
     )
 
-    month_chart = multi_line_chart(
-        "Support queue by last activity month",
-        "Current support topics grouped by the month of last activity. This is a snapshot distribution, not all topics opened in the month.",
+    hn_rate_chart = multi_line_chart(
+        "HN hiring mention rates",
+        "Quarterly mentions per 100 top-level comments in Hacker News Who is hiring threads.",
         [
-            {"name": "Topics", "color": COLORS["blue"], "points": point_series(monthly, "month", "topics")},
-            {"name": "Unresolved", "color": COLORS["amber"], "points": point_series(monthly, "month", "unresolved")},
-            {"name": "Resolved", "color": COLORS["green"], "points": point_series(monthly, "month", "resolved")},
-            {"name": "Replies", "color": COLORS["violet"], "points": point_series(monthly, "month", "replies")},
+            {"name": "WP or Woo", "color": COLORS["blue"], "points": point_series(hn, "quarter", "wordpress_or_woocommerce_per_100_comments")},
+            {"name": "PHP", "color": COLORS["violet"], "points": point_series(hn, "quarter", "php_per_100_comments")},
+            {"name": "Agency", "color": COLORS["red"], "points": point_series(hn, "quarter", "agency_per_100_comments")},
         ],
+        value_decimals=2,
+    )
+    hn_count_chart = multi_line_chart(
+        "HN hiring mention counts",
+        "Quarterly top-level comments mentioning WordPress or WooCommerce, PHP, or agency/studio terms.",
+        [
+            {"name": "WP or Woo", "color": COLORS["blue"], "points": point_series(hn, "quarter", "wordpress_or_woocommerce_comments")},
+            {"name": "PHP", "color": COLORS["violet"], "points": point_series(hn, "quarter", "php_comments")},
+            {"name": "Agency", "color": COLORS["red"], "points": point_series(hn, "quarter", "agency_comments")},
+        ],
+        value_decimals=0,
+    )
+    jobs_chart = multi_line_chart(
+        "WordPress Jobs board snapshots",
+        "Annual archived snapshots plus the current jobs.wordpress.net page. These are visible open listings, not total postings over each year.",
+        [
+            {"name": "All listings", "color": COLORS["blue"], "points": point_series(jobs, "snapshot_date", "total_jobs", date_year)},
+            {"name": "Development", "color": COLORS["green"], "points": point_series(jobs, "snapshot_date", "development_jobs", date_year)},
+            {"name": "Project", "color": COLORS["amber"], "points": point_series(jobs, "snapshot_date", "project_jobs", date_year)},
+            {"name": "Remote", "color": COLORS["violet"], "points": point_series(jobs, "snapshot_date", "remote_jobs", date_year)},
+        ],
+        value_decimals=0,
     )
 
-    max_age_topics = max([num(row.get("topics")) for row in age_buckets] or [1])
-    max_forum_unresolved = max([num(row.get("unresolved")) for row in forums] or [1])
-    max_plugin_unresolved = max([num(row.get("unresolved_threads")) for row in plugin_rows] or [1])
-
-    age_rows = "".join(
-        bar_row(
-            f"{row.get('age_bucket')} unresolved",
-            row.get("unresolved"),
-            max_age_topics,
-            COLORS["amber"],
-        )
-        + bar_row(
-            f"{row.get('age_bucket')} resolved",
-            row.get("resolved"),
-            max_age_topics,
-            COLORS["green"],
-        )
-        for row in age_buckets
-    )
-    forum_rows = "".join(
-        bar_row(
-            str(row.get("forum_name", "")),
-            row.get("unresolved"),
-            max_forum_unresolved,
-            COLORS["amber"],
-            f" of {compact(row.get('topics'))}",
-        )
-        for row in forums
-    )
-    plugin_rows_html = "".join(
-        bar_row(
-            str(row.get("name", "")),
-            row.get("unresolved_threads"),
-            max_plugin_unresolved,
-            COLORS["red"] if num(row.get("resolved_pct")) < 50 else COLORS["violet"],
-            f" unresolved, {pct(row.get('resolved_pct'))} resolved",
-        )
-        for row in plugin_rows
-    )
-
-    oldest = snapshot.get("oldest_last_activity_at", "")[:10]
-    latest_activity = snapshot.get("latest_last_activity_at", "")[:10]
-    largest_forum = forums[0] if forums else {}
-    stale_90 = sum(num(row.get("topics")) for row in age_buckets if row.get("age_bucket") in ("91-180 days", "181+ days"))
-    stale_90_share = stale_90 / num(snapshot.get("topics"), 1) * 100 if num(snapshot.get("topics")) else 0
-    gap_note = gap[0].get("note") if gap else "The support-forum source is a current snapshot, not a full history."
+    gap_note = gap[0].get("note") if gap else "The job-demand source is a proxy-led signal."
+    hn_change = f"{pct(hn_attention.get('change_pct'))} vs {hn_attention.get('baseline_period', 'baseline')}"
 
     readout = "".join(
         [
             signal_row(
-                "Current queue is visible",
-                "The sampled WordPress.org support queue has enough rows to show where open help load sits now.",
-                compact(snapshot.get("topics")),
+                "HN mentions are lower",
+                "WordPress/WooCommerce mentions in HN Who is hiring threads are lower than the stored pre-2024 baseline.",
+                hn_change,
+                "amber",
+            ),
+            signal_row(
+                "Jobs board is smaller",
+                "The WordPress-specific jobs board has fewer visible open listings than the 2023 archived snapshot.",
+                compact(latest_jobs.get("total_jobs")),
                 "blue",
             ),
             signal_row(
-                "Open load is concentrated",
-                f"{largest_forum.get('forum_name', 'Top forum')} holds the largest unresolved count in the current sample.",
-                compact(largest_forum.get("unresolved")),
-                "amber",
-            ),
-            signal_row(
-                "Older active topics remain present",
-                "Topics with last activity more than 90 days ago are still present in the sampled queue.",
-                pct(stale_90_share),
-                "amber",
-            ),
-            signal_row(
-                "No-reply count is low in this snapshot",
-                "The current sampled queue has few topics with no visible replies.",
-                compact(snapshot.get("no_replies")),
+                "Development remains the largest current category",
+                "Development listings are the largest visible category on jobs.wordpress.net in the latest snapshot.",
+                compact(latest_jobs.get("development_jobs")),
                 "green",
+            ),
+            signal_row(
+                "Agency demand is a separate proxy",
+                "Agency/studio mentions in HN hiring threads remain visible, but they are not WordPress-specific by themselves.",
+                f"{num(latest_hn.get('agency_per_100_comments')):.2f}",
+                "violet",
             ),
         ]
     )
@@ -320,7 +335,7 @@ def main():
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>WordPress Support Load</title>
+  <title>WordPress Job Demand</title>
   <style>
     :root {{
       color-scheme: light;
@@ -361,6 +376,7 @@ def main():
     .signal-row {{ display:flex; justify-content:space-between; gap:14px; align-items:center; border-left:5px solid var(--blue); background:#fbfdff; border-radius:8px; padding:12px; }}
     .signal-row.green {{ border-left-color:var(--green); }}
     .signal-row.amber {{ border-left-color:var(--amber); }}
+    .signal-row.violet {{ border-left-color:var(--violet); }}
     .signal-row strong {{ display:block; line-height:1.2; }}
     .signal-row span {{ display:block; color:var(--muted); font-size:14px; margin-top:3px; }}
     .signal-row b {{ white-space:nowrap; font-size:19px; }}
@@ -382,11 +398,11 @@ def main():
 </head>
 <body>
 <main>
-  <h1>WordPress support load</h1>
-  <p class="lede">A compact view of current WordPress.org support queues already stored in SQLite: sampled topics, unresolved and resolved counts, last-activity age buckets, forum-level open load, and major-plugin support counts.</p>
+  <h1>WordPress job demand</h1>
+  <p class="lede">A compact readout of job-demand proxies already stored in SQLite: Hacker News Who is hiring mention rates, WordPress/WooCommerce and PHP mentions, agency/studio mentions, and jobs.wordpress.net archived snapshots.</p>
 {nav_html()}
 
-  <section class="metrics" aria-label="Support summary">
+  <section class="metrics" aria-label="Job demand summary">
 {metrics}
   </section>
 
@@ -399,37 +415,25 @@ def main():
     </article>
     <article class="section">
       <h2>How to read this</h2>
-      <p>This page uses a current WordPress.org support snapshot. It is useful for where support load sits now, but it is not a full historical forum export. The last-activity range in the sample is {esc(oldest)} to {esc(latest_activity)}.</p>
+      <p>This page separates WordPress-specific jobs board snapshots from broader hiring-thread mentions. It helps show direction, but it is narrower than a labor-market export from a hiring platform.</p>
       <p class="callout">{esc(gap_note)}</p>
     </article>
   </section>
 
   <section class="charts">
-{month_chart}
+{hn_rate_chart}
+{hn_count_chart}
+{jobs_chart}
     <article class="chart-card">
-      <h2>Open load by age</h2>
-      <p>Current topics grouped by age since last visible activity.</p>
+      <h2>Current jobs board categories</h2>
+      <p>Visible open listings by category on the latest jobs.wordpress.net snapshot.</p>
       <div class="bar-stack">
-{age_rows}
-      </div>
-    </article>
-    <article class="chart-card">
-      <h2>Unresolved by forum</h2>
-      <p>Forum-level view of where unresolved support topics sit in the sampled queue.</p>
-      <div class="bar-stack">
-{forum_rows}
-      </div>
-    </article>
-    <article class="chart-card">
-      <h2>Major-plugin support load</h2>
-      <p>Current WordPress.org plugin API support-thread counts for the tracked major-plugin list.</p>
-      <div class="bar-stack">
-{plugin_rows_html}
+{category_rows}
       </div>
     </article>
   </section>
 
-  <p class="footer-note">Rows come from <code>support_forum_snapshot_summary</code>, <code>support_forum_activity_monthly</code>, <code>support_forum_age_buckets</code>, <code>support_forum_unanswered_by_forum</code>, <code>support_forum_topics</code>, and <code>major_plugin_install_snapshot</code>. Integrity check: <code>{esc(integrity)}</code>.</p>
+  <p class="footer-note">Rows come from <code>hn_hiring_wordpress_quarterly</code>, <code>hn_hiring_demand_summary</code>, <code>wordpress_jobs_board_snapshots</code>, <code>wordpress_jobs_board_category_snapshots</code>, and <code>attention_demand_summary</code>. Integrity check: <code>{esc(integrity)}</code>.</p>
 </main>
 </body>
 </html>

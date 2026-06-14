@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WordPress Job Demand</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink:#172033; --muted:#637083; --line:#d9e1ea; --paper:#f6f8fb; --panel:#fff;
+      --blue:#2563eb; --green:#159957; --amber:#b7791f; --violet:#7c3aed; --red:#c2410c;
+    }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    main { max-width:1220px; margin:0 auto; padding:34px 20px 48px; }
+    h1 { margin:0 0 8px; font-size:clamp(34px,4vw,56px); line-height:1.04; letter-spacing:0; }
+    h2 { margin:0 0 8px; font-size:22px; }
+    h3 { margin:0 0 7px; font-size:13px; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); }
+    p { margin:0; color:var(--muted); }
+    a { color:var(--blue); }
+    code { font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:13px; overflow-wrap:anywhere; }
+    .lede { max-width:900px; font-size:18px; margin-bottom:20px; }
+    .nav { display:flex; flex-wrap:wrap; gap:8px; margin:18px 0 22px; }
+    .nav a { border:1px solid var(--line); border-radius:999px; padding:7px 11px; background:#fbfdff; text-decoration:none; font-weight:700; font-size:13px; }
+    .metrics { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; margin:22px 0; }
+    .metric, .section, .chart-card { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px; }
+    .metric { border-top:5px solid var(--blue); min-height:148px; }
+    .metric.green { border-top-color:var(--green); }
+    .metric.amber { border-top-color:var(--amber); }
+    .metric.violet { border-top-color:var(--violet); }
+    .metric strong { display:block; font-size:32px; line-height:1; margin:6px 0 8px; }
+    .metric p { font-size:14px; }
+    .grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; align-items:start; }
+    .charts { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px; }
+    .chart-card p, .section p { font-size:14px; margin-bottom:10px; }
+    svg { display:block; width:100%; height:auto; overflow:visible; }
+    .gridline { stroke:#e6edf5; stroke-width:1; }
+    .axis { fill:#64748b; font-size:12px; }
+    .legend { display:flex; flex-wrap:wrap; gap:8px 13px; margin-top:8px; font-size:13px; color:var(--muted); }
+    .legend span { display:inline-flex; align-items:center; gap:6px; }
+    .legend i { width:10px; height:10px; border-radius:50%; display:inline-block; }
+    .legend b { color:var(--ink); }
+    .signals, .bar-stack { display:grid; gap:9px; }
+    .signal-row { display:flex; justify-content:space-between; gap:14px; align-items:center; border-left:5px solid var(--blue); background:#fbfdff; border-radius:8px; padding:12px; }
+    .signal-row.green { border-left-color:var(--green); }
+    .signal-row.amber { border-left-color:var(--amber); }
+    .signal-row.violet { border-left-color:var(--violet); }
+    .signal-row strong { display:block; line-height:1.2; }
+    .signal-row span { display:block; color:var(--muted); font-size:14px; margin-top:3px; }
+    .signal-row b { white-space:nowrap; font-size:19px; }
+    .bar-label { display:flex; justify-content:space-between; gap:10px; font-size:13px; margin-bottom:4px; }
+    .bar-label span { overflow-wrap:anywhere; }
+    .bar-label strong { white-space:nowrap; }
+    .bar { height:9px; border-radius:999px; background:#e7edf5; overflow:hidden; }
+    .bar span { display:block; height:100%; border-radius:inherit; }
+    .callout { margin-top:14px; padding:14px; border:1px solid var(--line); border-left:5px solid var(--amber); border-radius:8px; background:#fffaf0; color:#7c4a03; }
+    .footer-note { margin-top:18px; font-size:13px; }
+    @media (max-width:960px) {
+      main { padding:24px 14px 36px; }
+      .metrics, .grid, .charts { grid-template-columns:1fr; }
+      .metric { min-height:auto; }
+      .signal-row { align-items:flex-start; flex-direction:column; }
+      .signal-row b, .bar-label strong { white-space:normal; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <h1>WordPress job demand</h1>
+  <p class="lede">A compact readout of job-demand proxies already stored in SQLite: Hacker News Who is hiring mention rates, WordPress/WooCommerce and PHP mentions, agency/studio mentions, and jobs.wordpress.net archived snapshots.</p>
+    <nav class="nav">
+      <a href="index.html#market">Market Position</a>
+      <a href="market_position.html">Market position</a>
+      <a href="developer_interest.html">Developer interest</a>
+      <a href="support_load.html">Support load</a>
+      <a href="project_load.html">Project load</a>
+      <a href="ecosystem_activity.html">Ecosystem activity</a>
+      <a href="contributor_depth.html">Contributor depth</a>
+      <a href="progress_summary.html">Progress summary</a>
+      <a href="decision_brief.html">Decision brief</a>
+      <a href="goal_audit.html">Goal audit</a>
+      <a href="data_inventory.html">Data inventory</a>
+      <a href="source_gap_plan.html">Source gap plan</a>
+    </nav>
+
+  <section class="metrics" aria-label="Job demand summary">
+
+      <article class="metric amber">
+        <h3>HN WP/Woo rate</h3>
+        <strong>0.00</strong>
+        <p>mentions per 100 comments in 2026 Q2</p>
+      </article>
+      <article class="metric amber">
+        <h3>Latest four-quarter rate</h3>
+        <strong>0.12</strong>
+        <p>vs 0.53 before 2024</p>
+      </article>
+      <article class="metric blue">
+        <h3>Jobs board listings</h3>
+        <strong>15</strong>
+        <p>2026-06-14; -48.3% vs 2023-01-01</p>
+      </article>
+      <article class="metric green">
+        <h3>Development listings</h3>
+        <strong>7</strong>
+        <p>-50.0% vs 2023-01-01</p>
+      </article>
+      <article class="metric violet">
+        <h3>Remote listings</h3>
+        <strong>12</strong>
+        <p>8 full-time listings in current snapshot</p>
+      </article>
+  </section>
+
+  <section class="grid">
+    <article class="section">
+      <h2>Decision lanes</h2>
+      <div class="signals">
+
+        <div class="signal-row amber">
+          <div>
+            <strong>HN mentions are lower</strong>
+            <span>WordPress/WooCommerce mentions in HN Who is hiring threads are lower than the stored pre-2024 baseline.</span>
+          </div>
+          <b>-77.4% vs 2012-Q1 to 2023-Q4</b>
+        </div>
+        <div class="signal-row blue">
+          <div>
+            <strong>Jobs board is smaller</strong>
+            <span>The WordPress-specific jobs board has fewer visible open listings than the 2023 archived snapshot.</span>
+          </div>
+          <b>15</b>
+        </div>
+        <div class="signal-row green">
+          <div>
+            <strong>Development remains the largest current category</strong>
+            <span>Development listings are the largest visible category on jobs.wordpress.net in the latest snapshot.</span>
+          </div>
+          <b>7</b>
+        </div>
+        <div class="signal-row violet">
+          <div>
+            <strong>Agency demand is a separate proxy</strong>
+            <span>Agency/studio mentions in HN hiring threads remain visible, but they are not WordPress-specific by themselves.</span>
+          </div>
+          <b>2.54</b>
+        </div>
+      </div>
+    </article>
+    <article class="section">
+      <h2>How to read this</h2>
+      <p>This page separates WordPress-specific jobs board snapshots from broader hiring-thread mentions. It helps show direction, but it is narrower than a labor-market export from a hiring platform.</p>
+      <p class="callout">HN Who is hiring WordPress/WooCommerce, PHP, and agency/studio mention counts, WordPress Jobs board open-listing snapshots, a compact proxy-direction summary, and a job-demand companion view are included; broader job-board demand still needs a labor-market source.</p>
+    </article>
+  </section>
+
+  <section class="charts">
+<article class="chart-card">
+<h2>HN hiring mention rates</h2>
+<p>Quarterly mentions per 100 top-level comments in Hacker News Who is hiring threads.</p>
+<svg viewBox="0 0 760 300" role="img" aria-label="HN hiring mention rates">
+<line x1="58" x2="734" y1="252.0" y2="252.0" class="gridline" />
+<text x="48" y="256.0" class="axis" text-anchor="end">0.00</text>
+<line x1="58" x2="734" y1="147.0" y2="147.0" class="gridline" />
+<text x="48" y="151.0" class="axis" text-anchor="end">6.66</text>
+<line x1="58" x2="734" y1="42.0" y2="42.0" class="gridline" />
+<text x="48" y="46.0" class="axis" text-anchor="end">13.32</text>
+<path d="M58.0,244.1 L69.9,242.4 L81.7,242.2 L93.6,231.7 L105.4,243.0 L117.3,240.0 L129.2,233.1 L141.0,229.4 L152.9,232.4 L164.7,240.5 L176.6,238.6 L188.5,241.1 L200.3,233.4 L212.2,241.7 L224.0,239.7 L235.9,244.4 L247.8,233.2 L259.6,244.3 L271.5,242.1 L283.3,246.5 L295.2,241.9 L307.1,241.6 L318.9,244.3 L330.8,245.2 L342.6,241.7 L354.5,245.8 L366.4,244.4 L378.2,247.6 L390.1,244.1 L401.9,247.0 L413.8,246.0 L425.6,243.0 L437.5,244.1 L449.4,247.7 L461.2,243.2 L473.1,246.0 L484.9,243.3 L496.8,244.9 L508.7,243.5 L520.5,243.6 L532.4,246.3 L544.2,249.9 L556.1,248.2 L568.0,247.7 L579.8,250.7 L591.7,252.0 L603.5,250.3 L615.4,248.8 L627.3,243.5 L639.1,244.3 L651.0,245.7 L662.8,245.5 L674.7,244.3 L686.6,245.5 L698.4,248.7 L710.3,247.7 L722.1,252.0 L734.0,252.0" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="734.0" cy="252.0" r="4" fill="#2563eb" />
+<path d="M58.0,64.5 L69.9,69.5 L81.7,88.2 L93.6,88.6 L105.4,95.9 L117.3,86.1 L129.2,102.2 L141.0,121.7 L152.9,138.1 L164.7,96.2 L176.6,106.9 L188.5,112.6 L200.3,133.9 L212.2,147.9 L224.0,149.3 L235.9,155.3 L247.8,152.8 L259.6,162.7 L271.5,182.5 L283.3,164.6 L295.2,179.9 L307.1,170.8 L318.9,157.7 L330.8,162.7 L342.6,170.3 L354.5,173.0 L366.4,167.3 L378.2,188.0 L390.1,162.0 L401.9,191.4 L413.8,180.4 L425.6,194.0 L437.5,188.8 L449.4,208.9 L461.2,202.3 L473.1,197.6 L484.9,183.9 L496.8,199.8 L508.7,201.9 L520.5,195.4 L532.4,199.3 L544.2,206.0 L556.1,204.4 L568.0,212.1 L579.8,216.8 L591.7,230.6 L603.5,230.4 L615.4,225.2 L627.3,231.5 L639.1,232.1 L651.0,234.8 L662.8,235.9 L674.7,233.5 L686.6,242.2 L698.4,226.9 L710.3,239.2 L722.1,233.2 L734.0,231.2" fill="none" stroke="#7c3aed" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="734.0" cy="231.2" r="4" fill="#7c3aed" />
+<path d="M58.0,225.5 L69.9,235.1 L81.7,220.1 L93.6,236.1 L105.4,227.1 L117.3,236.5 L129.2,202.8 L141.0,218.3 L152.9,228.8 L164.7,243.5 L176.6,226.5 L188.5,237.0 L200.3,233.4 L212.2,234.7 L224.0,236.4 L235.9,239.9 L247.8,236.1 L259.6,235.0 L271.5,227.6 L283.3,231.7 L295.2,231.0 L307.1,234.7 L318.9,228.2 L330.8,232.9 L342.6,228.2 L354.5,228.7 L366.4,227.2 L378.2,230.7 L390.1,231.2 L401.9,234.2 L413.8,229.4 L425.6,229.1 L437.5,226.6 L449.4,236.9 L461.2,234.3 L473.1,227.1 L484.9,230.2 L496.8,230.9 L508.7,229.6 L520.5,228.8 L532.4,228.8 L544.2,235.0 L556.1,227.2 L568.0,226.1 L579.8,222.0 L591.7,216.7 L603.5,228.7 L615.4,233.1 L627.3,222.8 L639.1,227.6 L651.0,222.4 L662.8,229.4 L674.7,218.3 L686.6,216.4 L698.4,208.5 L710.3,208.2 L722.1,214.3 L734.0,211.9" fill="none" stroke="#c2410c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="734.0" cy="211.9" r="4" fill="#c2410c" />
+<text x="58" y="284" class="axis">2012 Q1</text>
+<text x="734" y="284" class="axis" text-anchor="end">2026 Q2</text>
+</svg>
+<div class="legend">
+<span><i style="background:#2563eb"></i>WP or Woo <b>0.00</b></span>
+<span><i style="background:#7c3aed"></i>PHP <b>1.32</b></span>
+<span><i style="background:#c2410c"></i>Agency <b>2.54</b></span>
+</div>
+</article>
+<article class="chart-card">
+<h2>HN hiring mention counts</h2>
+<p>Quarterly top-level comments mentioning WordPress or WooCommerce, PHP, or agency/studio terms.</p>
+<svg viewBox="0 0 760 300" role="img" aria-label="HN hiring mention counts">
+<line x1="58" x2="734" y1="252.0" y2="252.0" class="gridline" />
+<text x="48" y="256.0" class="axis" text-anchor="end">0</text>
+<line x1="58" x2="734" y1="147.0" y2="147.0" class="gridline" />
+<text x="48" y="151.0" class="axis" text-anchor="end">85</text>
+<line x1="58" x2="734" y1="42.0" y2="42.0" class="gridline" />
+<text x="48" y="46.0" class="axis" text-anchor="end">169</text>
+<path d="M58.0,248.3 L69.9,247.0 L81.7,247.0 L93.6,240.8 L105.4,247.0 L117.3,243.3 L129.2,239.6 L141.0,234.6 L152.9,238.3 L164.7,242.1 L176.6,239.6 L188.5,242.1 L200.3,233.4 L212.2,235.9 L224.0,229.6 L235.9,242.1 L247.8,227.2 L259.6,239.6 L271.5,235.9 L283.3,242.1 L295.2,233.4 L307.1,233.4 L318.9,238.3 L330.8,238.3 L342.6,233.4 L354.5,239.6 L366.4,238.3 L378.2,243.3 L390.1,238.3 L401.9,243.3 L413.8,242.1 L425.6,238.3 L437.5,240.8 L449.4,247.0 L461.2,239.6 L473.1,242.1 L484.9,234.6 L496.8,237.1 L508.7,234.6 L520.5,235.9 L532.4,242.1 L544.2,248.3 L556.1,247.0 L568.0,247.0 L579.8,250.8 L591.7,252.0 L603.5,250.8 L615.4,249.5 L627.3,245.8 L639.1,245.8 L651.0,247.0 L662.8,247.0 L674.7,245.8 L686.6,247.0 L698.4,249.5 L710.3,248.3 L722.1,252.0 L734.0,252.0" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="734.0" cy="252.0" r="4" fill="#2563eb" />
+<path d="M58.0,163.8 L69.9,157.6 L81.7,168.8 L93.6,162.6 L105.4,166.3 L117.3,131.6 L129.2,153.9 L141.0,151.4 L152.9,172.5 L164.7,116.7 L176.6,117.9 L188.5,125.3 L200.3,134.0 L212.2,88.1 L224.0,64.5 L235.9,124.1 L247.8,120.4 L259.6,109.2 L271.5,139.0 L283.3,96.8 L295.2,119.1 L307.1,106.7 L318.9,84.4 L330.8,72.0 L342.6,103.0 L354.5,91.8 L366.4,99.3 L378.2,125.3 L390.1,95.5 L401.9,146.5 L413.8,134.0 L425.6,163.8 L437.5,162.6 L449.4,202.3 L461.2,182.5 L473.1,162.6 L484.9,115.4 L496.8,141.5 L508.7,148.9 L520.5,142.7 L532.4,158.9 L544.2,171.3 L556.1,189.9 L568.0,206.1 L579.8,218.5 L591.7,234.6 L603.5,235.9 L615.4,230.9 L627.3,237.1 L639.1,235.9 L651.0,238.3 L662.8,239.6 L674.7,237.1 L686.6,244.5 L698.4,233.4 L710.3,240.8 L722.1,237.1 L734.0,235.9" fill="none" stroke="#7c3aed" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="734.0" cy="235.9" r="4" fill="#7c3aed" />
+<path d="M58.0,239.6 L69.9,243.3 L81.7,235.9 L93.6,243.3 L105.4,238.3 L117.3,240.8 L129.2,219.7 L141.0,225.9 L152.9,235.9 L164.7,244.5 L176.6,228.4 L188.5,238.3 L200.3,233.4 L212.2,224.7 L224.0,223.4 L235.9,235.9 L247.8,230.9 L259.6,224.7 L271.5,212.3 L283.3,216.0 L295.2,213.5 L307.1,221.0 L318.9,209.8 L330.8,213.5 L342.6,208.5 L354.5,204.8 L366.4,207.3 L378.2,209.8 L390.1,216.0 L401.9,221.0 L413.8,214.7 L425.6,217.2 L437.5,216.0 L449.4,234.6 L461.2,227.2 L473.1,211.0 L484.9,208.5 L496.8,207.3 L508.7,206.1 L520.5,207.3 L532.4,211.0 L544.2,222.2 L556.1,219.7 L568.0,222.2 L579.8,223.4 L591.7,223.4 L603.5,234.6 L615.4,237.1 L627.3,230.9 L639.1,232.1 L651.0,228.4 L662.8,234.6 L674.7,224.7 L686.6,224.7 L698.4,219.7 L710.3,213.5 L722.1,222.2 L734.0,221.0" fill="none" stroke="#c2410c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="734.0" cy="221.0" r="4" fill="#c2410c" />
+<text x="58" y="284" class="axis">2012 Q1</text>
+<text x="734" y="284" class="axis" text-anchor="end">2026 Q2</text>
+</svg>
+<div class="legend">
+<span><i style="background:#2563eb"></i>WP or Woo <b>0</b></span>
+<span><i style="background:#7c3aed"></i>PHP <b>13</b></span>
+<span><i style="background:#c2410c"></i>Agency <b>25</b></span>
+</div>
+</article>
+<article class="chart-card">
+<h2>WordPress Jobs board snapshots</h2>
+<p>Annual archived snapshots plus the current jobs.wordpress.net page. These are visible open listings, not total postings over each year.</p>
+<svg viewBox="0 0 760 300" role="img" aria-label="WordPress Jobs board snapshots">
+<line x1="58" x2="734" y1="252.0" y2="252.0" class="gridline" />
+<text x="48" y="256.0" class="axis" text-anchor="end">0</text>
+<line x1="58" x2="734" y1="147.0" y2="147.0" class="gridline" />
+<text x="48" y="151.0" class="axis" text-anchor="end">22</text>
+<line x1="58" x2="734" y1="42.0" y2="42.0" class="gridline" />
+<text x="48" y="46.0" class="axis" text-anchor="end">45</text>
+<path d="M58.0,120.8 L133.1,64.5 L208.2,102.0 L283.3,102.0 L358.4,97.3 L433.6,134.8 L508.7,116.1 L583.8,153.6 L658.9,181.7 L734.0,181.7" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="734.0" cy="181.7" r="4" fill="#2563eb" />
+<path d="M58.0,181.7 L133.1,195.8 L208.2,181.7 L283.3,181.7 L358.4,181.7 L433.6,181.7 L508.7,186.4 L583.8,200.4 L658.9,219.2 L734.0,219.2" fill="none" stroke="#159957" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="734.0" cy="219.2" r="4" fill="#159957" />
+<path d="M58.0,177.0 L133.1,111.4 L208.2,186.4 L283.3,195.8 L358.4,205.1 L433.6,205.1 L508.7,214.5 L583.8,205.1 L658.9,214.5 L734.0,223.9" fill="none" stroke="#b7791f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="734.0" cy="223.9" r="4" fill="#b7791f" />
+<path d="M58.0,252.0 L133.1,247.3 L208.2,247.3 L283.3,242.6 L358.4,242.6 L433.6,209.8 L508.7,209.8 L583.8,237.9 L658.9,242.6 L734.0,195.8" fill="none" stroke="#7c3aed" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="734.0" cy="195.8" r="4" fill="#7c3aed" />
+<text x="58" y="284" class="axis">2016</text>
+<text x="734" y="284" class="axis" text-anchor="end">2026</text>
+</svg>
+<div class="legend">
+<span><i style="background:#2563eb"></i>All listings <b>15</b></span>
+<span><i style="background:#159957"></i>Development <b>7</b></span>
+<span><i style="background:#b7791f"></i>Project <b>6</b></span>
+<span><i style="background:#7c3aed"></i>Remote <b>12</b></span>
+</div>
+</article>
+    <article class="chart-card">
+      <h2>Current jobs board categories</h2>
+      <p>Visible open listings by category on the latest jobs.wordpress.net snapshot.</p>
+      <div class="bar-stack">
+
+        <div class="barline">
+          <div class="bar-label"><span>Development</span><strong>7 of 15</strong></div>
+          <div class="bar"><span style="width:100.0%;background:#2563eb"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>Design</span><strong>2 of 15</strong></div>
+          <div class="bar"><span style="width:28.6%;background:#2563eb"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>General</span><strong>2 of 15</strong></div>
+          <div class="bar"><span style="width:28.6%;background:#2563eb"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>Support</span><strong>2 of 15</strong></div>
+          <div class="bar"><span style="width:28.6%;background:#2563eb"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>Performance</span><strong>1 of 15</strong></div>
+          <div class="bar"><span style="width:14.3%;background:#2563eb"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>Theme Customization</span><strong>1 of 15</strong></div>
+          <div class="bar"><span style="width:14.3%;background:#2563eb"></span></div>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <p class="footer-note">Rows come from <code>hn_hiring_wordpress_quarterly</code>, <code>hn_hiring_demand_summary</code>, <code>wordpress_jobs_board_snapshots</code>, <code>wordpress_jobs_board_category_snapshots</code>, and <code>attention_demand_summary</code>. Integrity check: <code>ok</code>.</p>
+</main>
+</body>
+</html>

@@ -54,6 +54,11 @@ HTML_ARTIFACTS = {
         "Developer-help questions",
         "GitHub code-review activity",
     ],
+    "job_demand.html": [
+        "WordPress job demand",
+        "HN hiring mention rates",
+        "WordPress Jobs board snapshots",
+    ],
     "support_load.html": [
         "WordPress support load",
         "Support queue by last activity month",
@@ -246,6 +251,7 @@ def main():
         run_step([sys.executable, "make_ecosystem_activity_report.py"])
         run_step([sys.executable, "make_market_position_report.py"])
         run_step([sys.executable, "make_developer_interest_report.py"])
+        run_step([sys.executable, "make_job_demand_report.py"])
         run_step([sys.executable, "make_support_load_report.py"])
         run_step([sys.executable, "make_source_gap_plan.py"])
         run_step([sys.executable, "make_data_inventory.py"])

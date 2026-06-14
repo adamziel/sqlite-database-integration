@@ -3994,7 +3994,7 @@ def build_database(data, fetched):
             "job_demand",
             "partial",
             "Hacker News monthly Who is hiring? threads plus hiring-platform exports",
-            "HN Who is hiring WordPress/WooCommerce, PHP, and agency/studio mention counts, WordPress Jobs board open-listing snapshots, and a compact proxy-direction summary are included; broader job-board demand still needs a labor-market source.",
+            "HN Who is hiring WordPress/WooCommerce, PHP, and agency/studio mention counts, WordPress Jobs board open-listing snapshots, a compact proxy-direction summary, and a job-demand companion view are included; broader job-board demand still needs a labor-market source.",
         )
     )
     if not fetched.get("enterprise_vip_case_studies"):
@@ -6488,7 +6488,7 @@ p {{ margin:0 0 12px; }}
     </article>
     <article class="lane-card market">
       <h3><span class="lane-dot"></span>Adoption and demand signals</h3>
-      <p>W3Techs, HTTP Archive, BuiltWith, Stack Overflow, Wikimedia, Hacker News, jobs, and plugin history show market position and demand proxies. See the <a href="market_position.html">market position view</a> for the compact decision readout and the <a href="developer_interest.html">developer interest view</a> for help-seeking, attention, hiring, and PR activity.</p>
+      <p>W3Techs, HTTP Archive, BuiltWith, Stack Overflow, Wikimedia, Hacker News, jobs, and plugin history show market position and demand proxies. See the <a href="market_position.html">market position view</a> for the compact decision readout, the <a href="developer_interest.html">developer interest view</a> for help-seeking and PR activity, and the <a href="job_demand.html">job demand view</a> for hiring proxies.</p>
       <ul class="lane-list">
         <li>Best for installed share, CMS share, traffic-tier presence, current newly found-site proxy, and demand direction.</li>
         <li>Search and broad job-market demand remain partial; current proxies are labeled as such.</li>
@@ -7468,6 +7468,7 @@ p {{ margin:0 0 12px; }}
         <a href="project_load.html">Project load</a>
         <a href="market_position.html">Market position</a>
         <a href="developer_interest.html">Developer interest</a>
+        <a href="job_demand.html">Job demand</a>
         <a href="support_load.html">Support load</a>
         <a href="contributor_depth.html">Contributor depth</a>
         <a href="ecosystem_activity.html">Ecosystem activity</a>

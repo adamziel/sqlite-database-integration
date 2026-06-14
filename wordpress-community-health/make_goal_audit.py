@@ -304,6 +304,7 @@ HTML_TEMPLATE = """<!doctype html>
         <a href="project_load.html">Project load</a>
         <a href="market_position.html">Market position</a>
         <a href="developer_interest.html">Developer interest</a>
+        <a href="job_demand.html">Job demand</a>
         <a href="support_load.html">Support load</a>
         <a href="contributor_depth.html">Contributor depth</a>
         <a href="ecosystem_activity.html">Ecosystem activity</a>

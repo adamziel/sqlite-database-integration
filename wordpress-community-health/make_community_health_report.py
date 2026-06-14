@@ -65,6 +65,7 @@ SKIP_NETWORK_DB_FALLBACK_TABLES = [
     "wikimedia_pageviews_quarterly",
     "npm_wordpress_downloads_monthly",
     "npm_wordpress_downloads_quarterly",
+    "github_repo_interest_snapshot",
     "hn_hiring_wordpress_quarterly",
     "wordpress_jobs_board_snapshots",
     "wordpress_jobs_board_category_snapshots",
@@ -151,6 +152,14 @@ FTTF_PLEDGES_URL = "https://wordpress.org/five-for-the-future/pledges/"
 RELEASE_ARCHIVE_URL = "https://wordpress.org/download/releases/"
 CREDITS_API = "https://api.wordpress.org/core/credits/1.1/"
 GITHUB_COMPARE_API = "https://api.github.com/repos/WordPress/wordpress-develop/compare"
+GITHUB_REPO_API = "https://api.github.com/repos"
+GITHUB_INTEREST_REPOS = [
+    ("WordPress", "wordpress-develop", "Core development mirror"),
+    ("WordPress", "gutenberg", "Block editor project"),
+    ("WP-CLI", "wp-cli", "Command-line tooling"),
+    ("woocommerce", "woocommerce", "Commerce plugin"),
+    ("Automattic", "jetpack", "Major plugin suite"),
+]
 STACK_EXCHANGE_QUESTIONS_API = "https://api.stackexchange.com/2.3/questions"
 STACK_EXCHANGE_DOCS_URL = "https://api.stackexchange.com/docs/questions"
 HN_SEARCH_API = "https://hn.algolia.com/api/v1/search"
@@ -570,6 +579,44 @@ def github_json(url, token=None, use_cache=True):
             encoding="utf-8",
         )
     return data, response_headers
+
+
+def fetch_github_repo_interest_snapshot(skip_network=False):
+    if skip_network:
+        return []
+    token = credential_from_git()
+    collected_at = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
+    rows = []
+    for owner, repo, role in GITHUB_INTEREST_REPOS:
+        source_url = f"{GITHUB_REPO_API}/{urllib.parse.quote(owner)}/{urllib.parse.quote(repo)}"
+        try:
+            payload, _headers = github_json(source_url, token=token)
+        except urllib.error.HTTPError as exc:
+            eprint(f"GitHub repo interest unavailable for {owner}/{repo}: HTTP {exc.code}")
+            continue
+        license_info = payload.get("license") or {}
+        rows.append(
+            {
+                "collected_at": collected_at,
+                "owner": owner,
+                "repo": repo,
+                "full_name": payload.get("full_name") or f"{owner}/{repo}",
+                "role": role,
+                "stars": payload.get("stargazers_count", 0),
+                "forks": payload.get("forks_count", 0),
+                "subscribers": payload.get("subscribers_count", 0),
+                "watchers": payload.get("watchers_count", 0),
+                "open_issues": payload.get("open_issues_count", 0),
+                "language": payload.get("language", ""),
+                "license": license_info.get("spdx_id") or license_info.get("key") or "",
+                "created_at": payload.get("created_at", ""),
+                "updated_at": payload.get("updated_at", ""),
+                "pushed_at": payload.get("pushed_at", ""),
+                "source_url": payload.get("html_url") or source_url,
+            }
+        )
+        time.sleep(0.05)
+    return rows
 
 
 def date_from_w3_header(cell):
@@ -4149,8 +4196,8 @@ def build_database(data, fetched):
             (
                 "developer_interest_proxy",
                 "partial",
-                "Stack Exchange API question totals, Wikimedia Pageviews API, npm package downloads, GitHub PR activity, and broader developer-community sources",
-                "Quarterly Stack Overflow tag volume, Wikimedia pageviews, npm @wordpress package downloads, wordpress-develop PR activity, and a compact attention/demand summary are included as public attention and contribution proxies; they do not measure general search-query interest.",
+                "Stack Exchange API question totals, Wikimedia Pageviews API, npm package downloads, GitHub PR/repository activity, and broader developer-community sources",
+                "Quarterly Stack Overflow tag volume, Wikimedia pageviews, npm @wordpress package downloads, wordpress-develop PR activity, GitHub repository interest snapshots, and a compact attention/demand summary are included as public attention and contribution proxies; they do not measure general search-query interest.",
             )
         )
     else:
@@ -5377,6 +5424,7 @@ def source_status_rows(fetched):
         ("Stack Overflow tag volume", "covered" if fetched.get("stack_overflow_tag_quarterly") else "missing", "Quarterly public developer-attention proxy from Stack Exchange API tag totals"),
         ("Wikimedia pageviews", "covered" if fetched.get("wikimedia_pageviews_quarterly") else "missing", "Quarterly en.wikipedia article pageviews as a public-interest proxy, not search-query volume"),
         ("WordPress npm packages", "covered" if fetched.get("npm_wordpress_downloads_quarterly") else "missing", "Quarterly npm downloads for selected @wordpress packages as package-ecosystem activity, not developer headcount"),
+        ("GitHub repo interest snapshot", "covered" if fetched.get("github_repo_interest_snapshot") else "missing", "Current stars, forks, subscribers, open issues, and activity timestamps for selected WordPress ecosystem repositories"),
         ("HN hiring mentions", "partial" if fetched.get("hn_hiring_wordpress_quarterly") else "missing", "WordPress/WooCommerce, PHP, and agency/studio mentions in monthly Hacker News Who is hiring threads from 2012 onward; not a broad job-board index"),
         ("WordPress Jobs board", "partial" if fetched.get("wordpress_jobs_board_snapshots") else "missing", "Open-listing snapshots from jobs.wordpress.net current page and annual Internet Archive captures; WordPress-specific, not a broad hiring-platform index"),
         ("Attention and demand summary", "covered" if fetched.get("attention_demand_summary") else "missing", "Derived compact comparison of Stack Overflow, Wikimedia, HN hiring, and WordPress Jobs proxy direction"),
@@ -7818,6 +7866,7 @@ def main():
     fetched["npm_wordpress_downloads_monthly"], fetched["npm_wordpress_downloads_quarterly"] = fetch_npm_wordpress_downloads(
         args.skip_network
     )
+    fetched["github_repo_interest_snapshot"] = fetch_github_repo_interest_snapshot(args.skip_network)
     fetched["hn_hiring_wordpress_quarterly"] = fetch_hn_hiring_wordpress_quarterly(args.skip_network)
     (
         fetched["wordpress_jobs_board_snapshots"],

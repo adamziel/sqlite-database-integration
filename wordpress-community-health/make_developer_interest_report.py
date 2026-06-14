@@ -237,6 +237,11 @@ def main():
             if table_exists(conn, "npm_wordpress_downloads_quarterly")
             else []
         )
+        repo_interest = (
+            rows(conn, "SELECT * FROM github_repo_interest_snapshot ORDER BY full_name")
+            if table_exists(conn, "github_repo_interest_snapshot")
+            else []
+        )
         hn = rows(conn, "SELECT * FROM hn_hiring_wordpress_quarterly ORDER BY quarter")
         jobs = rows(conn, "SELECT * FROM wordpress_jobs_board_snapshots ORDER BY snapshot_date")
         prs = rows(conn, "SELECT * FROM github_pr_quarterly ORDER BY quarter")
@@ -259,6 +264,10 @@ def main():
     latest_npm_rows = [row for row in npm if row.get("quarter") == latest_npm_quarter]
     latest_npm_total = sum(num(row.get("downloads")) for row in latest_npm_rows)
     top_npm_package = max(latest_npm_rows, key=lambda row: num(row.get("downloads")), default={})
+    repo_star_total = sum(num(row.get("stars")) for row in repo_interest)
+    repo_fork_total = sum(num(row.get("forks")) for row in repo_interest)
+    top_repo = max(repo_interest, key=lambda row: num(row.get("stars")), default={})
+    repo_collected = top_repo.get("collected_at", "")[:10] if top_repo else "not collected"
 
     stack_techs = [
         ("WordPress", COLORS["wordpress"]),
@@ -376,6 +385,12 @@ def main():
                 "green",
             ),
             metric_card(
+                "GitHub repo interest",
+                compact(repo_star_total),
+                f"{compact(repo_fork_total)} forks across {compact(len(repo_interest))} tracked repos",
+                "green",
+            ),
+            metric_card(
                 "HN WP/Woo hiring rate",
                 f"{num(latest_hn.get('wordpress_or_woocommerce_per_100_comments')):.2f}",
                 f"mentions per 100 comments; {change_label(hn_summary)}",
@@ -420,6 +435,12 @@ def main():
                 "Package ecosystem activity is visible",
                 f"The largest tracked @wordpress npm package in the latest quarter is {top_npm_package.get('package_label', 'n/a')}. Treat downloads as build/tooling activity, not people.",
                 compact(top_npm_package.get("downloads")),
+                "green",
+            ),
+            signal_row(
+                "Repository interest remains visible",
+                f"Selected GitHub repositories include {top_repo.get('full_name', 'n/a')} plus Core, WP-CLI, WooCommerce, and Jetpack. This is a current snapshot, not a trend.",
+                f"{compact(repo_star_total)} stars",
                 "green",
             ),
             signal_row(
@@ -496,7 +517,7 @@ def main():
 <body>
 <main>
   <h1>WordPress developer interest</h1>
-  <p class="lede">A compact readout of developer-attention and demand proxies already stored in SQLite: Stack Overflow questions, Wikipedia pageviews, npm package downloads, Hacker News hiring mentions, WordPress Jobs snapshots, and wordpress-develop PR activity.</p>
+    <p class="lede">A compact readout of developer-attention and demand proxies already stored in SQLite: Stack Overflow questions, Wikipedia pageviews, npm package downloads, GitHub repository interest, Hacker News hiring mentions, WordPress Jobs snapshots, and wordpress-develop PR activity.</p>
 {nav_html()}
 
   <section class="metrics" aria-label="Developer interest summary">
@@ -526,7 +547,7 @@ def main():
 {jobs_chart}
   </section>
 
-  <p class="footer-note">Rows come from <code>stack_overflow_tag_quarterly</code>, <code>wikimedia_pageviews_quarterly</code>, <code>npm_wordpress_downloads_quarterly</code>, <code>hn_hiring_wordpress_quarterly</code>, <code>wordpress_jobs_board_snapshots</code>, <code>github_pr_quarterly</code>, and <code>attention_demand_summary</code>. Integrity check: <code>{esc(integrity)}</code>.</p>
+  <p class="footer-note">Rows come from <code>stack_overflow_tag_quarterly</code>, <code>wikimedia_pageviews_quarterly</code>, <code>npm_wordpress_downloads_quarterly</code>, <code>github_repo_interest_snapshot</code> collected {esc(repo_collected)}, <code>hn_hiring_wordpress_quarterly</code>, <code>wordpress_jobs_board_snapshots</code>, <code>github_pr_quarterly</code>, and <code>attention_demand_summary</code>. Integrity check: <code>{esc(integrity)}</code>.</p>
 </main>
 </body>
 </html>

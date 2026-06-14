@@ -82,7 +82,7 @@ def timeline_item(label, body):
 GAP_SUMMARIES = {
     "developer_interest_proxy": {
         "title": "Developer interest",
-        "current": "Stack Overflow, Wikimedia, npm downloads, and GitHub PR activity are in.",
+        "current": "Stack Overflow, Wikimedia, npm downloads, GitHub PRs, and repository-interest snapshots are in.",
         "next": "Add one broader developer-community source.",
     },
     "job_demand": {

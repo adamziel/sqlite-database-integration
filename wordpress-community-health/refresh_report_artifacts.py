@@ -58,6 +58,7 @@ HTML_ARTIFACTS = {
         "WordPress developer interest",
         "Developer-help questions",
         "Package ecosystem activity",
+        "Composer package snapshot",
         "GitHub code-review comments",
     ],
     "job_demand.html": [

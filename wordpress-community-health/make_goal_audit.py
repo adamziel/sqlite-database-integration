@@ -65,8 +65,8 @@ def audit_row(title, prompt, status, detail, class_name="covered"):
 GAP_SUMMARIES = {
     "developer_interest_proxy": (
         "Developer interest",
-        "Stack Overflow, Wikimedia, npm downloads, GitHub PRs, GitHub review comments, and repository-interest snapshots are in.",
-        "Add one broader developer-community source.",
+        "Stack Overflow, Wikimedia, npm downloads, Packagist Composer package snapshots, GitHub PRs, GitHub review comments, and repository-interest snapshots are in.",
+        "Add one broader developer-community source if a stable public source is available.",
     ),
     "job_demand": (
         "Hiring demand",
@@ -154,7 +154,7 @@ def render():
             "Community outside tickets",
             "Props, committers, Make/Core, WordCamps, Meetups, plugins, themes, translations, Five for the Future, support, dev notes.",
             "Covered",
-            "The report includes release credits, committers, Make/Core posts/comments/dev notes, WordCamp records, Events/Meetups, Translate snapshots, Five for the Future, support answer summaries, plugin/theme directory activity, and a stale popular-plugin sample.",
+            "The report includes release credits, committers, Make/Core posts/comments/dev notes, WordCamp records, Events/Meetups, Translate snapshots, Five for the Future, support answer summaries, plugin/theme directory activity, Composer package snapshots, and a stale popular-plugin sample.",
         ),
         audit_row(
             "Popularity and likelihood to choose WordPress",

@@ -65,6 +65,7 @@ SKIP_NETWORK_DB_FALLBACK_TABLES = [
     "wikimedia_pageviews_quarterly",
     "search_query_suggestions",
     "search_query_intent_summary",
+    "packagist_package_snapshot",
     "npm_wordpress_downloads_monthly",
     "npm_wordpress_downloads_quarterly",
     "github_repo_interest_snapshot",
@@ -197,6 +198,8 @@ SEARCH_SUGGEST_LOCALE = "en"
 SEARCH_SUGGEST_REGION = "US"
 NPM_DOWNLOADS_API = "https://api.npmjs.org/downloads/range"
 NPM_DOWNLOADS_DOCS_URL = "https://github.com/npm/registry/blob/main/docs/download-counts.md"
+PACKAGIST_PACKAGE_API = "https://packagist.org/packages/{package}.json"
+PACKAGIST_DOCS_URL = "https://packagist.org/apidoc"
 WPVIP_CASE_STUDY_API = "https://wpvip.com/wp-json/wp/v2/case-study"
 WPVIP_CASE_STUDY_ARCHIVE_URL = "https://wpvip.com/case-studies/"
 STACK_OVERFLOW_TAG_START = dt.datetime(2010, 1, 1, tzinfo=dt.timezone.utc)
@@ -239,6 +242,19 @@ NPM_WORDPRESS_PACKAGES = [
     {"package": "@wordpress/editor", "label": "editor", "color": "#c2410c"},
     {"package": "@wordpress/i18n", "label": "i18n", "color": "#4f46e5"},
     {"package": "@wordpress/scripts", "label": "scripts", "color": "#64748b"},
+]
+PACKAGIST_WORDPRESS_PACKAGES = [
+    {"package": "wp-cli/wp-cli", "label": "WP-CLI", "category": "tooling"},
+    {"package": "wp-coding-standards/wpcs", "label": "WPCS", "category": "tooling"},
+    {"package": "roots/wordpress", "label": "Roots WordPress", "category": "core package"},
+    {"package": "johnpbloch/wordpress", "label": "John P. Bloch WordPress", "category": "core package"},
+    {"package": "automattic/jetpack-autoloader", "label": "Jetpack Autoloader", "category": "plugin infrastructure"},
+    {"package": "timber/timber", "label": "Timber", "category": "theme framework"},
+    {"package": "roots/sage", "label": "Sage", "category": "starter theme"},
+    {"package": "wp-graphql/wp-graphql", "label": "WPGraphQL", "category": "developer plugin"},
+    {"package": "humanmade/s3-uploads", "label": "S3 Uploads", "category": "developer plugin"},
+    {"package": "woocommerce/woocommerce", "label": "WooCommerce", "category": "commerce plugin"},
+    {"package": "deliciousbrains/wp-background-processing", "label": "WP Background Processing", "category": "library"},
 ]
 MAJOR_PLUGIN_SLUGS = [
     "woocommerce",
@@ -1890,6 +1906,115 @@ def derive_search_query_intent_summary(suggestion_rows):
                 "collected_at": ordered[0].get("collected_at", "") if ordered else "",
             }
         )
+    return rows
+
+
+def packagist_cache_path():
+    return CACHE / "packagist-wordpress-packages.json"
+
+
+def read_cached_packagist_package_snapshot():
+    path = packagist_cache_path()
+    if not path.exists():
+        return []
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return []
+    rows = payload.get("rows") if isinstance(payload, dict) else payload
+    return rows if isinstance(rows, list) else []
+
+
+def write_cached_packagist_package_snapshot(rows):
+    CACHE.mkdir(parents=True, exist_ok=True)
+    packagist_cache_path().write_text(
+        json.dumps(
+            {
+                "collected_at": dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z"),
+                "source_url": PACKAGIST_DOCS_URL,
+                "rows": rows,
+            },
+            indent=2,
+            sort_keys=True,
+        ),
+        encoding="utf-8",
+    )
+
+
+def packagist_package_url(package):
+    return PACKAGIST_PACKAGE_API.format(package=urllib.parse.quote(package, safe="/"))
+
+
+def latest_packagist_version(versions):
+    latest_name = ""
+    latest_time = ""
+    if not isinstance(versions, dict):
+        return latest_name, latest_time
+    for version_name, payload in versions.items():
+        if not isinstance(payload, dict):
+            continue
+        published_at = str(payload.get("time") or "")
+        if published_at and published_at > latest_time:
+            latest_name = str(version_name)
+            latest_time = published_at
+    return latest_name, latest_time
+
+
+def fetch_packagist_package_snapshot(skip_network=False):
+    cached_rows = read_cached_packagist_package_snapshot()
+    if cached_rows:
+        cached_dates = {str(row.get("collected_at", ""))[:10] for row in cached_rows if row.get("collected_at")}
+        today = dt.datetime.now(dt.timezone.utc).date().isoformat()
+        if skip_network or today in cached_dates:
+            return cached_rows
+    if skip_network:
+        return cached_rows
+
+    collected_at = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
+    rows = []
+    for config in PACKAGIST_WORDPRESS_PACKAGES:
+        package = config["package"]
+        source_url = packagist_package_url(package)
+        req = urllib.request.Request(source_url, headers={"User-Agent": UA})
+        try:
+            with urllib.request.urlopen(req, timeout=20) as resp:
+                payload = json.loads(resp.read().decode("utf-8"))
+        except urllib.error.HTTPError as exc:
+            eprint(f"Packagist unavailable for {package}: HTTP {exc.code}")
+            continue
+        except Exception as exc:
+            eprint(f"Packagist unavailable for {package}: {exc}")
+            continue
+        package_payload = payload.get("package") if isinstance(payload, dict) else {}
+        if not isinstance(package_payload, dict):
+            continue
+        downloads = package_payload.get("downloads") or {}
+        latest_version, latest_release_at = latest_packagist_version(package_payload.get("versions"))
+        rows.append(
+            {
+                "collected_at": collected_at,
+                "package": package,
+                "label": config["label"],
+                "category": config["category"],
+                "package_type": package_payload.get("type", ""),
+                "downloads_total": int(num(downloads.get("total"))),
+                "downloads_monthly": int(num(downloads.get("monthly"))),
+                "downloads_daily": int(num(downloads.get("daily"))),
+                "favers": int(num(package_payload.get("favers"))),
+                "dependents": int(num(package_payload.get("dependents"))),
+                "suggesters": int(num(package_payload.get("suggesters"))),
+                "version_count": len(package_payload.get("versions") or {}),
+                "latest_version": latest_version,
+                "latest_release_at": latest_release_at,
+                "package_created_at": package_payload.get("time", ""),
+                "source": "Packagist package API current Composer package snapshot",
+                "source_url": source_url,
+            }
+        )
+        time.sleep(0.05)
+    rows.sort(key=lambda row: (-num(row.get("downloads_monthly")), row.get("package", "")))
+    if rows:
+        write_cached_packagist_package_snapshot(rows)
     return rows
 
 
@@ -4769,7 +4894,7 @@ def build_database(data, fetched):
                 "developer_interest_proxy",
                 "partial",
                 "Stack Exchange API question totals, Wikimedia Pageviews API, npm package downloads, GitHub PR/repository/review activity, and broader developer-community sources",
-                "Quarterly Stack Overflow tag volume, Wikimedia pageviews, npm @wordpress package downloads, wordpress-develop PR and line review-comment activity, GitHub repository interest snapshots, and a compact attention/demand summary are included as public attention and contribution proxies; they do not measure general search-query interest.",
+                "Quarterly Stack Overflow tag volume, Wikimedia pageviews, npm @wordpress package downloads, Packagist Composer package snapshots, wordpress-develop PR and line review-comment activity, GitHub repository interest snapshots, and a compact attention/demand summary are included as public attention and contribution proxies; they do not measure general search-query interest.",
             )
         )
     else:
@@ -5996,6 +6121,7 @@ def source_status_rows(fetched):
         ("Stack Overflow tag volume", "covered" if fetched.get("stack_overflow_tag_quarterly") else "missing", "Quarterly public developer-attention proxy from Stack Exchange API tag totals"),
         ("Wikimedia pageviews", "covered" if fetched.get("wikimedia_pageviews_quarterly") else "missing", "Quarterly en.wikipedia article pageviews as a public-interest proxy, not search-query volume"),
         ("Search query suggestions", "covered" if fetched.get("search_query_suggestions") else "missing", "Current Google autocomplete suggestions for selected WordPress, developer, alternatives, and comparison queries; not search volume"),
+        ("Packagist WordPress packages", "covered" if fetched.get("packagist_package_snapshot") else "missing", "Current Composer package downloads, favorites, dependents, and release timestamps for selected WordPress packages and tooling"),
         ("WordPress npm packages", "covered" if fetched.get("npm_wordpress_downloads_quarterly") else "missing", "Quarterly npm downloads for selected @wordpress packages as package-ecosystem activity, not developer headcount"),
         ("GitHub repo interest snapshot", "covered" if fetched.get("github_repo_interest_snapshot") else "missing", "Current stars, forks, subscribers, open issues, and activity timestamps for selected WordPress ecosystem repositories"),
         ("GitHub PR review comments", "covered" if fetched.get("github_pr_review_comments_quarterly") else "missing", "Quarterly wordpress-develop line review-comment activity from GitHub pull-request review comments"),
@@ -6082,6 +6208,7 @@ def build_report(data, fetched):
     wikimedia_pageviews_q = fetched.get("wikimedia_pageviews_quarterly", [])
     search_suggestions = fetched.get("search_query_suggestions", [])
     search_intent_summary = fetched.get("search_query_intent_summary", [])
+    packagist_packages = fetched.get("packagist_package_snapshot", [])
     review_comments_q = fetched.get("github_pr_review_comments_quarterly", [])
     hn_hiring_q = fetched.get("hn_hiring_wordpress_quarterly", [])
     hn_hiring_summary = fetched.get("hn_hiring_demand_summary", [])
@@ -6787,6 +6914,13 @@ def build_report(data, fetched):
         f"Full {so_expected_label} coverage: {', '.join(so_full_history_labels) if so_full_history_labels else 'none'}. "
         f"Partial coverage: {', '.join(so_partial_history_labels) if so_partial_history_labels else 'none'}."
     )
+    packagist_sorted = sorted(packagist_packages, key=lambda row: num(row.get("downloads_monthly")), reverse=True)
+    packagist_top = packagist_sorted[0] if packagist_sorted else {}
+    packagist_monthly_downloads = sum(num(row.get("downloads_monthly")) for row in packagist_packages)
+    packagist_total_downloads = sum(num(row.get("downloads_total")) for row in packagist_packages)
+    packagist_dependents = sum(num(row.get("dependents")) for row in packagist_packages)
+    packagist_snapshot_date = (packagist_top.get("collected_at", "") or "")[:10] if packagist_top else "not fetched"
+    max_packagist_monthly = max([num(row.get("downloads_monthly")) for row in packagist_sorted] or [1])
     wikimedia_pageview_series = [
         {
             "label": config["label"],
@@ -8059,8 +8193,11 @@ p {{ margin:0 0 12px; }}
           {stat_card("Change vs pre-2024", f"{so_wp_delta:+,}" if so_wp_delta is not None else "n/a", "latest quarter minus last pre-2024 quarter", "watch" if so_wp_delta is not None and so_wp_delta < 0 else "soft")}
           {stat_card("Coverage", compact(len(stack_overflow_tags)), "tag-quarter rows in SQLite", "good" if stack_overflow_tags else "watch")}
           {stat_card("Full-history tags", f"{len(so_full_history_labels)}/{len(STACK_OVERFLOW_TAGS)}", so_expected_label, "soft")}
+          {stat_card("Packagist monthly", compact(packagist_monthly_downloads), "selected WP Composer packages", "good" if packagist_packages else "watch")}
+          {stat_card("Composer dependents", compact(packagist_dependents), f"{compact(len(packagist_packages))} packages, {packagist_snapshot_date}", "soft")}
         </div>
         <p class="small-note">{html.escape(so_coverage_detail)}</p>
+        {''.join(horizontal_count_metric(str(row.get("label")), num(row.get("downloads_monthly")), max_packagist_monthly, COLORS["green"], " monthly downloads") for row in packagist_sorted[:6])}
       </div>
     </div>
     <div class="grid-2">
@@ -8475,7 +8612,7 @@ p {{ margin:0 0 12px; }}
 
   <section class="footer">
     <p>Generated {dt.datetime.now(dt.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')} from local Core/Gutenberg exports and public sources.</p>
-    <p>Sources: <a href="{W3TECHS_USAGE_URL}">W3Techs usage trend</a>, <a href="{W3TECHS_MARKET_SHARE_URL}">W3Techs CMS market-share trend</a>, <a href="{HTTP_ARCHIVE_CMS_URL}">HTTP Archive Web Almanac CMS 2025</a>, <a href="{HTTP_ARCHIVE_TECH_REPORT_URL}">HTTP Archive Technology Report API</a>, <a href="{STACK_EXCHANGE_DOCS_URL}">Stack Exchange API</a>, <a href="{WIKIMEDIA_PAGEVIEWS_DOCS_URL}">Wikimedia Pageviews API</a>, <a href="{SEARCH_SUGGEST_SOURCE_URL}">Google autocomplete suggestions</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="{PLUGIN_DOWNLOADS_DOCS_URL}">WordPress.org plugin download stats</a>, <a href="{REMOTEOK_SOURCE_URL}">Remote OK</a>, <a href="{WORDPRESS_JOBS_URL}">WordPress Jobs board</a>, <a href="{WAYBACK_CDX_API}">Internet Archive CDX API</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="{EVENTS_WORDPRESS_URL}">WordPress Events</a>, <a href="{TRANSLATE_LOCALES_URL}">Translate WordPress</a>, <a href="{MAKE_CORE_API}">Make/Core posts API</a>, <a href="{MAKE_CORE_COMMENTS_API}">Make/Core comments API</a>, <a href="https://wordpress.org/support/view/all-topics/">WordPress.org support forums</a>, <a href="https://trends.builtwith.com/cms/WordPress">BuiltWith technology pages</a>, <a href="https://github.com/WordPress/gutenberg/issues">Gutenberg GitHub issues</a>, <a href="{GITHUB_PR_REVIEW_COMMENTS_API}">wordpress-develop GitHub review comments</a>, <a href="{FTTF_PLEDGES_URL}">Five for the Future pledges</a>, <a href="{RELEASE_ARCHIVE_URL}">WordPress release archive</a>, and <a href="{CREDITS_API}">Core credits API</a>.</p>
+    <p>Sources: <a href="{W3TECHS_USAGE_URL}">W3Techs usage trend</a>, <a href="{W3TECHS_MARKET_SHARE_URL}">W3Techs CMS market-share trend</a>, <a href="{HTTP_ARCHIVE_CMS_URL}">HTTP Archive Web Almanac CMS 2025</a>, <a href="{HTTP_ARCHIVE_TECH_REPORT_URL}">HTTP Archive Technology Report API</a>, <a href="{STACK_EXCHANGE_DOCS_URL}">Stack Exchange API</a>, <a href="{WIKIMEDIA_PAGEVIEWS_DOCS_URL}">Wikimedia Pageviews API</a>, <a href="{SEARCH_SUGGEST_SOURCE_URL}">Google autocomplete suggestions</a>, <a href="{PACKAGIST_DOCS_URL}">Packagist API</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="{PLUGIN_DOWNLOADS_DOCS_URL}">WordPress.org plugin download stats</a>, <a href="{REMOTEOK_SOURCE_URL}">Remote OK</a>, <a href="{WORDPRESS_JOBS_URL}">WordPress Jobs board</a>, <a href="{WAYBACK_CDX_API}">Internet Archive CDX API</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="{EVENTS_WORDPRESS_URL}">WordPress Events</a>, <a href="{TRANSLATE_LOCALES_URL}">Translate WordPress</a>, <a href="{MAKE_CORE_API}">Make/Core posts API</a>, <a href="{MAKE_CORE_COMMENTS_API}">Make/Core comments API</a>, <a href="https://wordpress.org/support/view/all-topics/">WordPress.org support forums</a>, <a href="https://trends.builtwith.com/cms/WordPress">BuiltWith technology pages</a>, <a href="https://github.com/WordPress/gutenberg/issues">Gutenberg GitHub issues</a>, <a href="{GITHUB_PR_REVIEW_COMMENTS_API}">wordpress-develop GitHub review comments</a>, <a href="{FTTF_PLEDGES_URL}">Five for the Future pledges</a>, <a href="{RELEASE_ARCHIVE_URL}">WordPress release archive</a>, and <a href="{CREDITS_API}">Core credits API</a>.</p>
   </section>
 </main>
 </body>
@@ -8521,6 +8658,7 @@ def main():
     fetched["search_query_intent_summary"] = derive_search_query_intent_summary(
         fetched["search_query_suggestions"]
     )
+    fetched["packagist_package_snapshot"] = fetch_packagist_package_snapshot(args.skip_network)
     fetched["npm_wordpress_downloads_monthly"], fetched["npm_wordpress_downloads_quarterly"] = fetch_npm_wordpress_downloads(
         args.skip_network
     )

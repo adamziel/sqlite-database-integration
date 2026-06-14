@@ -164,7 +164,7 @@
 
     <section class="metrics" aria-label="Source gap summary">
       <div class="metric"><h3>Partial signals</h3><strong>5</strong><span>Stored in <code>source_gaps</code>.</span></div>
-      <div class="metric"><h3>Database tables</h3><strong>93</strong><span>Existing report tables remain intact.</span></div>
+      <div class="metric"><h3>Database tables</h3><strong>94</strong><span>Existing report tables remain intact.</span></div>
       <div class="metric"><h3>Integrity</h3><strong>ok</strong><span>SQLite integrity check.</span></div>
       <div class="metric"><h3>Next mode</h3><strong>1 at a time</strong><span>Import, validate, then publish each source family.</span></div>
     </section>
@@ -209,7 +209,7 @@
           <span>5</span>
           <div>
             <strong>Developer interest</strong>
-            <p>Quarterly developer-attention rows that combine help questions, public attention, package use, and contribution activity.</p>
+            <p>Developer-attention rows that combine help questions, public attention, package use, Composer ecosystem usage, and contribution activity.</p>
           </div>
         </div></div>
     </section>
@@ -355,7 +355,7 @@
         <div class="gap-grid">
           <div>
             <h3>Current coverage</h3>
-            <p>Quarterly Stack Overflow tag volume, Wikimedia pageviews, npm @wordpress package downloads, wordpress-develop PR and line review-comment activity, GitHub repository interest snapshots, and a compact attention/demand summary are included as public attention and contribution proxies; they do not measure general search-query interest.</p>
+            <p>Quarterly Stack Overflow tag volume, Wikimedia pageviews, npm @wordpress package downloads, Packagist Composer package snapshots, wordpress-develop PR and line review-comment activity, GitHub repository interest snapshots, and a compact attention/demand summary are included as public attention and contribution proxies; they do not measure general search-query interest.</p>
           </div>
           <div>
             <h3>Best next source</h3>
@@ -363,16 +363,16 @@
           </div>
           <div>
             <h3>Collection step</h3>
-            <p>Keep Stack Overflow, Wikimedia, npm package downloads, GitHub PR activity, and GitHub review-comment activity, then add another developer-community source if available.</p>
+            <p>Keep Stack Overflow, Wikimedia, npm and Packagist package snapshots, GitHub PR activity, and GitHub review-comment activity, then add another developer-community source if a stable public source is available.</p>
           </div>
           <div>
             <h3>Target tables</h3>
-            <p class="targets"><code>developer_interest_quarterly</code></p>
+            <p class="targets"><code>developer_interest_quarterly</code> <code>packagist_package_snapshot</code></p>
           </div>
         </div>
         <div class="success">
           <b>Done when</b>
-          <span>Quarterly developer-attention rows that combine help questions, public attention, package use, and contribution activity.</span>
+          <span>Developer-attention rows that combine help questions, public attention, package use, Composer ecosystem usage, and contribution activity.</span>
         </div>
       </article>
     </section>

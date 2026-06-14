@@ -146,7 +146,7 @@
     </nav>
 
     <section class="grid metrics" aria-label="Database summary">
-      <div class="metric"><h3>Tables</h3><strong>93</strong><span>SQLite tables in the report database.</span></div>
+      <div class="metric"><h3>Tables</h3><strong>94</strong><span>SQLite tables in the report database.</span></div>
       <div class="metric"><h3>Local sources</h3><strong>19</strong><span>Imported files with SHA-256 hashes.</span></div>
       <div class="metric"><h3>Tickets/issues</h3><strong>97.1k</strong><span>Core Trac tickets plus Gutenberg issues.</span></div>
       <div class="metric"><h3>Pull requests</h3><strong>12.1k</strong><span>wordpress-develop GitHub PR records.</span></div>
@@ -218,6 +218,11 @@
         <article class="family-card">
           <strong><code>major_plugin_*</code></strong>
           <p>Major plugin installs, historical snapshots, support counts, and downloads.</p>
+        </article>
+
+        <article class="family-card">
+          <strong><code>packagist_package_snapshot</code></strong>
+          <p>Current Composer package downloads, favorites, dependents, and release timestamps.</p>
         </article>
         </div>
       </div>
@@ -308,6 +313,7 @@
 <div class="table-chip"><code>npm_wordpress_downloads_monthly</code><span>624 rows</span></div>
 <div class="table-chip"><code>npm_wordpress_downloads_quarterly</code><span>208 rows</span></div>
 <div class="table-chip"><code>open_backlog_age_summary</code><span>12 rows</span></div>
+<div class="table-chip"><code>packagist_package_snapshot</code><span>11 rows</span></div>
 <div class="table-chip"><code>plugin_directory_activity_sample</code><span>13.3k rows</span></div>
 <div class="table-chip"><code>plugin_maintenance_summary</code><span>1 rows</span></div>
 <div class="table-chip"><code>plugin_stale_popular_sample</code><span>41 rows</span></div>
@@ -490,7 +496,7 @@
           <b>Best next source</b>
           <p>Stack Exchange API question totals, Wikimedia Pageviews API, npm package downloads, GitHub PR/repository/review activity, and broader developer-community sources</p>
           <b>Current coverage</b>
-          <p>Quarterly Stack Overflow tag volume, Wikimedia pageviews, npm @wordpress package downloads, wordpress-develop PR and line review-comment activity, GitHub repository interest snapshots, and a compact attention/demand summary are included as public attention and contribution proxies; they do not measure general search-query interest.</p>
+          <p>Quarterly Stack Overflow tag volume, Wikimedia pageviews, npm @wordpress package downloads, Packagist Composer package snapshots, wordpress-develop PR and line review-comment activity, GitHub repository interest snapshots, and a compact attention/demand summary are included as public attention and contribution proxies; they do not measure general search-query interest.</p>
         </article>
 
         <article class="gap-card">

@@ -178,6 +178,7 @@ def render():
         ("builtwith_*", "Current new-site proxy, tier snapshot, and ecommerce history."),
         ("make_core_*", "Make/Core posts, comments, dev notes, authors, and release tags."),
         ("major_plugin_*", "Major plugin installs, historical snapshots, support counts, and downloads."),
+        ("packagist_package_snapshot", "Current Composer package downloads, favorites, dependents, and release timestamps."),
     ]
 
     html_doc = f"""<!doctype html>

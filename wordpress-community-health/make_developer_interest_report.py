@@ -237,6 +237,11 @@ def main():
             if table_exists(conn, "npm_wordpress_downloads_quarterly")
             else []
         )
+        packagist = (
+            rows(conn, "SELECT * FROM packagist_package_snapshot ORDER BY CAST(downloads_monthly AS REAL) DESC, package")
+            if table_exists(conn, "packagist_package_snapshot")
+            else []
+        )
         repo_interest = (
             rows(conn, "SELECT * FROM github_repo_interest_snapshot ORDER BY full_name")
             if table_exists(conn, "github_repo_interest_snapshot")
@@ -270,6 +275,10 @@ def main():
     latest_npm_rows = [row for row in npm if row.get("quarter") == latest_npm_quarter]
     latest_npm_total = sum(num(row.get("downloads")) for row in latest_npm_rows)
     top_npm_package = max(latest_npm_rows, key=lambda row: num(row.get("downloads")), default={})
+    packagist_monthly_total = sum(num(row.get("downloads_monthly")) for row in packagist)
+    packagist_dependents = sum(num(row.get("dependents")) for row in packagist)
+    top_packagist_package = max(packagist, key=lambda row: num(row.get("downloads_monthly")), default={})
+    packagist_collected = top_packagist_package.get("collected_at", "")[:10] if top_packagist_package else "not collected"
     repo_star_total = sum(num(row.get("stars")) for row in repo_interest)
     repo_fork_total = sum(num(row.get("forks")) for row in repo_interest)
     top_repo = max(repo_interest, key=lambda row: num(row.get("stars")), default={})
@@ -401,6 +410,12 @@ def main():
                 "green",
             ),
             metric_card(
+                "Packagist monthly",
+                compact(packagist_monthly_total),
+                f"{compact(packagist_dependents)} dependents across selected packages",
+                "green",
+            ),
+            metric_card(
                 "GitHub repo interest",
                 compact(repo_star_total),
                 f"{compact(repo_fork_total)} forks across {compact(len(repo_interest))} tracked repos",
@@ -460,6 +475,12 @@ def main():
                 "green",
             ),
             signal_row(
+                "Composer ecosystem activity is visible",
+                f"The largest selected Packagist package by monthly downloads is {top_packagist_package.get('label', 'n/a')}. Treat this as PHP package usage, not developer headcount.",
+                compact(top_packagist_package.get("downloads_monthly")),
+                "green",
+            ),
+            signal_row(
                 "Repository interest remains visible",
                 f"Selected GitHub repositories include {top_repo.get('full_name', 'n/a')} plus Core, WP-CLI, WooCommerce, and Jetpack. This is a current snapshot, not a trend.",
                 f"{compact(repo_star_total)} stars",
@@ -475,6 +496,17 @@ def main():
     )
 
     gap_note = gap[0].get("note") if gap else "The developer-interest source is still a proxy-led signal."
+    packagist_rows = "".join(
+        f"""
+        <div class="package-row">
+          <div>
+            <strong>{esc(row.get("label"))}</strong>
+            <span>{esc(row.get("category"))} · {esc(row.get("package"))}</span>
+          </div>
+          <b>{esc(compact(row.get("downloads_monthly")))}</b>
+        </div>"""
+        for row in packagist[:8]
+    )
 
     html_doc = f"""<!doctype html>
 <html lang="en">
@@ -526,13 +558,19 @@ def main():
     .signal-row span {{ display:block; color:var(--muted); font-size:14px; margin-top:3px; }}
     .signal-row b {{ white-space:nowrap; font-size:19px; }}
     .callout {{ margin-top:14px; padding:14px; border:1px solid var(--line); border-left:5px solid var(--amber); border-radius:8px; background:#fffaf0; color:#7c4a03; }}
+    .package-list {{ display:grid; gap:9px; margin-top:12px; }}
+    .package-row {{ display:flex; justify-content:space-between; gap:12px; align-items:center; border:1px solid var(--line); border-radius:8px; padding:11px 12px; background:#fbfdff; }}
+    .package-row strong {{ display:block; line-height:1.2; }}
+    .package-row span {{ color:var(--muted); font-size:13px; overflow-wrap:anywhere; }}
+    .package-row b {{ white-space:nowrap; font-size:18px; }}
     .footer-note {{ margin-top:18px; font-size:13px; }}
     @media (max-width:960px) {{
       main {{ padding:24px 14px 36px; }}
       .metrics, .grid, .charts {{ grid-template-columns:1fr; }}
       .metric {{ min-height:auto; }}
       .signal-row {{ align-items:flex-start; flex-direction:column; }}
-      .signal-row b {{ white-space:normal; }}
+      .signal-row b, .package-row b {{ white-space:normal; }}
+      .package-row {{ align-items:flex-start; flex-direction:column; }}
     }}
   </style>
 </head>
@@ -564,13 +602,20 @@ def main():
 {stack_chart}
 {wiki_chart}
 {npm_chart}
+    <article class="chart-card">
+      <h2>Composer package snapshot</h2>
+      <p>Current Packagist monthly downloads for selected WordPress packages and developer tooling. This is package usage, not people.</p>
+      <div class="package-list">
+{packagist_rows}
+      </div>
+    </article>
 {pr_chart}
 {review_chart}
 {hn_chart}
 {jobs_chart}
   </section>
 
-  <p class="footer-note">Rows come from <code>stack_overflow_tag_quarterly</code>, <code>wikimedia_pageviews_quarterly</code>, <code>npm_wordpress_downloads_quarterly</code>, <code>github_repo_interest_snapshot</code> collected {esc(repo_collected)}, <code>hn_hiring_wordpress_quarterly</code>, <code>wordpress_jobs_board_snapshots</code>, <code>github_pr_quarterly</code>, <code>github_pr_review_comments_quarterly</code>, and <code>attention_demand_summary</code>. Integrity check: <code>{esc(integrity)}</code>.</p>
+  <p class="footer-note">Rows come from <code>stack_overflow_tag_quarterly</code>, <code>wikimedia_pageviews_quarterly</code>, <code>npm_wordpress_downloads_quarterly</code>, <code>packagist_package_snapshot</code> collected {esc(packagist_collected)}, <code>github_repo_interest_snapshot</code> collected {esc(repo_collected)}, <code>hn_hiring_wordpress_quarterly</code>, <code>wordpress_jobs_board_snapshots</code>, <code>github_pr_quarterly</code>, <code>github_pr_review_comments_quarterly</code>, and <code>attention_demand_summary</code>. Integrity check: <code>{esc(integrity)}</code>.</p>
 </main>
 </body>
 </html>

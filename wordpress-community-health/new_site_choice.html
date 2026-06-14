@@ -16,6 +16,7 @@
       --green:#159957;
       --amber:#b7791f;
       --violet:#7c3aed;
+      --red:#c2410c;
     }
     * { box-sizing:border-box; }
     body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
@@ -44,6 +45,7 @@
     .metric p, .panel p, .chart-card p, .note { color:var(--muted); font-size:14px; }
     .grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:14px; align-items:start; }
     .panel, .chart-card, .signal-panel { padding:18px; min-width:0; }
+    .full { grid-column:1 / -1; }
     .signals { display:grid; gap:9px; margin-top:12px; }
     .signal-row { display:flex; justify-content:space-between; gap:14px; align-items:center; border-left:5px solid var(--blue); background:#fbfdff; border-radius:8px; padding:12px; }
     .signal-row.green { border-left-color:var(--green); }
@@ -58,6 +60,15 @@
     .bar-label strong { white-space:nowrap; }
     .bar { height:10px; border-radius:999px; background:#e8eef5; overflow:hidden; }
     .bar span { display:block; height:100%; border-radius:inherit; }
+    .momentum-stack { display:grid; gap:11px; margin-top:14px; }
+    .momentum-row { display:grid; grid-template-columns:minmax(120px,.8fr) minmax(110px,1fr) 88px; gap:10px; align-items:center; }
+    .momentum-row strong, .momentum-row span { display:block; }
+    .momentum-row span { color:var(--muted); font-size:13px; }
+    .momentum-row b { text-align:right; white-space:nowrap; }
+    .momentum-track { height:10px; border-radius:999px; background:#e8eef5; overflow:hidden; }
+    .momentum-track span { display:block; height:100%; border-radius:inherit; background:var(--green); }
+    .momentum-row.loss .momentum-track span { background:var(--amber); }
+    .momentum-row.flat .momentum-track span { background:var(--muted); }
     .chart-card svg { width:100%; height:auto; display:block; margin-top:10px; }
     .gridline { stroke:#e8eef5; stroke-width:1; }
     .axis { font-size:11px; fill:var(--muted); }
@@ -80,6 +91,8 @@
       .metrics { grid-template-columns:1fr; }
       .signal-row { display:block; }
       .signal-row b { display:block; margin-top:5px; }
+      .momentum-row { grid-template-columns:1fr; gap:5px; }
+      .momentum-row b { text-align:left; }
     }
   </style>
 </head>
@@ -187,7 +200,7 @@
           <div><strong>Trend context</strong><span>HTTP Archive recurring share shows WordPress lower than 2020 while still far ahead.</span></div>
           <div><strong>Best next source</strong><span>A first-seen cohort export would turn this from a proxy page into true new-site history.</span></div>
         </div>
-        <p class="footer-note">Current report includes BuiltWith current Net New Pipeline, HTTP Archive monthly origin counts, quarterly derived tracked-share history, rank-tier detected-origin adoption, a compact new-site choice summary, and a dedicated new-site choice companion view; not a multi-year newly created site cohort. SQLite integrity check: <code>ok</code>.</p>
+        <p class="footer-note">Current report includes BuiltWith current Net New Pipeline, HTTP Archive monthly origin counts, quarterly derived tracked-share history, builder momentum summaries, rank-tier detected-origin adoption, a compact new-site choice summary, and a dedicated new-site choice companion view; not a multi-year newly created site cohort. SQLite integrity check: <code>ok</code>.</p>
       </div>
     </section>
 
@@ -199,28 +212,28 @@
 <line x1="58" x2="732" y1="260.0" y2="260.0" class="gridline" />
 <text x="49" y="264.0" class="axis" text-anchor="end">0.0%</text>
 <line x1="58" x2="732" y1="153.0" y2="153.0" class="gridline" />
-<text x="49" y="157.0" class="axis" text-anchor="end">48.8%</text>
+<text x="49" y="157.0" class="axis" text-anchor="end">49.1%</text>
 <line x1="58" x2="732" y1="46.0" y2="46.0" class="gridline" />
-<text x="49" y="50.0" class="axis" text-anchor="end">97.5%</text>
-<path d="M58.0,65.5 L85.0,66.9 L111.9,69.1 L138.9,69.8 L165.8,71.3 L192.8,71.3 L219.8,73.5 L246.7,73.5 L273.7,73.5 L300.6,73.5 L327.6,75.0 L354.6,75.7 L381.5,75.7 L408.5,77.9 L435.4,77.9 L462.4,80.1 L489.4,80.1 L516.3,80.8 L543.3,80.8 L570.2,83.0 L597.2,83.0 L624.2,84.5 L651.1,85.2 L678.1,86.7 L705.0,86.7 L732.0,87.8" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
-<circle cx="732.0" cy="87.8" r="4" fill="#2563eb" />
-<path d="M58.0,249.0 L85.0,246.8 L111.9,246.8 L138.9,246.1 L165.8,244.6 L192.8,246.1 L219.8,244.6 L246.7,244.6 L273.7,244.6 L300.6,244.6 L327.6,246.8 L354.6,245.4 L381.5,244.6 L408.5,244.6 L435.4,244.6 L462.4,242.4 L489.4,242.4 L516.3,242.4 L543.3,243.2 L570.2,239.5 L597.2,240.3 L624.2,240.3 L651.1,238.8 L678.1,236.6 L705.0,236.6 L732.0,235.9" fill="none" stroke="#159957" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
-<circle cx="732.0" cy="235.9" r="4" fill="#159957" />
-<path d="M58.0,255.6 L85.0,255.6 L111.9,254.9 L138.9,253.4 L165.8,254.1 L192.8,253.4 L219.8,252.7 L246.7,252.7 L273.7,252.0 L300.6,251.2 L327.6,250.5 L354.6,251.2 L381.5,249.8 L408.5,249.0 L435.4,249.0 L462.4,249.0 L489.4,249.0 L516.3,249.0 L543.3,249.0 L570.2,249.0 L597.2,249.0 L624.2,249.0 L651.1,249.0 L678.1,249.0 L705.0,249.0 L732.0,249.0" fill="none" stroke="#b7791f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
-<circle cx="732.0" cy="249.0" r="4" fill="#b7791f" />
-<path d="M58.0,255.6 L85.0,255.6 L111.9,255.6 L138.9,255.6 L165.8,255.6 L192.8,255.6 L219.8,255.6 L246.7,255.6 L273.7,255.6 L300.6,255.6 L327.6,255.6 L354.6,255.6 L381.5,255.6 L408.5,255.6 L435.4,255.6 L462.4,255.6 L489.4,255.6 L516.3,255.6 L543.3,255.6 L570.2,255.6 L597.2,255.6 L624.2,255.6 L651.1,255.6 L678.1,255.6 L705.0,255.6 L732.0,255.6" fill="none" stroke="#64748b" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
-<circle cx="732.0" cy="255.6" r="4" fill="#64748b" />
-<path d="M58.0,260.0 L85.0,260.0 L111.9,260.0 L138.9,260.0 L165.8,260.0 L192.8,260.0 L219.8,260.0 L246.7,260.0 L273.7,260.0 L300.6,260.0 L327.6,260.0 L354.6,260.0 L381.5,257.8 L408.5,257.8 L435.4,257.8 L462.4,257.8 L489.4,257.8 L516.3,257.8 L543.3,257.8 L570.2,257.8 L597.2,257.8 L624.2,257.8 L651.1,257.8 L678.1,257.8 L705.0,257.8 L732.0,257.8" fill="none" stroke="#7c3aed" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
-<circle cx="732.0" cy="257.8" r="4" fill="#7c3aed" />
+<text x="49" y="50.0" class="axis" text-anchor="end">98.2%</text>
+<path d="M58.0,65.5 L85.0,67.2 L111.9,69.7 L138.9,70.5 L165.8,70.8 L192.8,71.6 L219.8,73.1 L246.7,73.3 L273.7,73.7 L300.6,74.2 L327.6,74.7 L354.6,75.7 L381.5,76.6 L408.5,77.7 L435.4,78.9 L462.4,80.2 L489.4,80.4 L516.3,81.2 L543.3,80.8 L570.2,83.3 L597.2,83.5 L624.2,84.4 L651.1,85.4 L678.1,86.7 L705.0,87.0 L732.0,88.0" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="732.0" cy="88.0" r="4" fill="#2563eb" />
+<path d="M58.0,247.8 L85.0,245.9 L111.9,245.4 L138.9,245.0 L165.8,244.4 L192.8,244.7 L219.8,244.5 L246.7,244.2 L273.7,244.0 L300.6,244.3 L327.6,245.3 L354.6,244.2 L381.5,244.0 L408.5,243.8 L435.4,243.3 L462.4,241.4 L489.4,241.6 L516.3,241.2 L543.3,241.7 L570.2,239.1 L597.2,238.9 L624.2,238.3 L651.1,238.0 L678.1,235.6 L705.0,235.9 L732.0,235.3" fill="none" stroke="#159957" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="732.0" cy="235.3" r="4" fill="#159957" />
+<path d="M58.0,254.7 L85.0,254.7 L111.9,253.3 L138.9,253.0 L165.8,253.3 L192.8,252.6 L219.8,251.6 L246.7,251.4 L273.7,251.2 L300.6,250.5 L327.6,249.1 L354.6,249.4 L381.5,249.1 L408.5,248.3 L435.4,247.9 L462.4,248.5 L489.4,248.5 L516.3,248.2 L543.3,248.3 L570.2,248.5 L597.2,248.8 L624.2,248.5 L651.1,247.9 L678.1,248.9 L705.0,248.8 L732.0,248.5" fill="none" stroke="#b7791f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="732.0" cy="248.5" r="4" fill="#b7791f" />
+<path d="M58.0,255.3 L85.0,255.5 L111.9,255.1 L138.9,255.0 L165.8,254.9 L192.8,254.6 L219.8,254.6 L246.7,255.1 L273.7,255.2 L300.6,255.1 L327.6,255.1 L354.6,255.0 L381.5,254.7 L408.5,254.7 L435.4,254.7 L462.4,254.8 L489.4,254.6 L516.3,254.5 L543.3,254.4 L570.2,254.6 L597.2,254.3 L624.2,254.4 L651.1,254.3 L678.1,254.5 L705.0,254.3 L732.0,254.2" fill="none" stroke="#64748b" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="732.0" cy="254.2" r="4" fill="#64748b" />
+<path d="M58.0,258.9 L85.0,258.9 L111.9,258.8 L138.9,258.7 L165.8,258.7 L192.8,258.6 L219.8,258.3 L246.7,258.2 L273.7,258.1 L300.6,258.0 L327.6,258.0 L354.6,257.8 L381.5,257.7 L408.5,257.6 L435.4,257.4 L462.4,257.3 L489.4,257.1 L516.3,257.0 L543.3,256.9 L570.2,256.8 L597.2,256.6 L624.2,256.5 L651.1,256.5 L678.1,256.4 L705.0,256.2 L732.0,256.2" fill="none" stroke="#7c3aed" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="732.0" cy="256.2" r="4" fill="#7c3aed" />
 <text x="58" y="292" class="axis">2020-Q1</text>
 <text x="732" y="292" class="axis" text-anchor="end">2026-Q2</text>
 </svg>
 <div class="legend">
-<span><i style="background:#2563eb"></i>WordPress <b>78.5%</b></span>
-<span><i style="background:#159957"></i>Shopify <b>11.0%</b></span>
-<span><i style="background:#b7791f"></i>Wix <b>5.0%</b></span>
-<span><i style="background:#64748b"></i>Squarespace <b>2.0%</b></span>
-<span><i style="background:#7c3aed"></i>Webflow <b>1.0%</b></span>
+<span><i style="background:#2563eb"></i>WordPress <b>79.0%</b></span>
+<span><i style="background:#159957"></i>Shopify <b>11.3%</b></span>
+<span><i style="background:#b7791f"></i>Wix <b>5.3%</b></span>
+<span><i style="background:#64748b"></i>Squarespace <b>2.7%</b></span>
+<span><i style="background:#7c3aed"></i>Webflow <b>1.7%</b></span>
 </div>
 </article>
       <article class="chart-card">
@@ -325,7 +338,56 @@
 <text x="692" y="24" class="chart-end" text-anchor="end">60.6%</text>
 </svg>
 </article>
+
       <article class="panel">
+        <h2>Tracked-share momentum</h2>
+        <p>HTTP Archive quarterly tracked-share change from 2020-Q1 to 2026-Q2. This is a recurring crawl proxy, not first-seen site creation.</p>
+        <div class="momentum-stack">
+        <div class="momentum-row loss">
+          <div>
+            <strong>WordPress</strong>
+            <span>79.0% latest tracked share</span>
+          </div>
+          <div class="momentum-track"><span style="width:100.0%"></span></div>
+          <b>-10.3 pts</b>
+        </div>
+        <div class="momentum-row gain">
+          <div>
+            <strong>Shopify</strong>
+            <span>11.3% latest tracked share</span>
+          </div>
+          <div class="momentum-track"><span style="width:55.5%"></span></div>
+          <b>+5.7 pts</b>
+        </div>
+        <div class="momentum-row gain">
+          <div>
+            <strong>Wix</strong>
+            <span>5.3% latest tracked share</span>
+          </div>
+          <div class="momentum-track"><span style="width:27.5%"></span></div>
+          <b>+2.8 pts</b>
+        </div>
+        <div class="momentum-row gain">
+          <div>
+            <strong>Squarespace</strong>
+            <span>2.7% latest tracked share</span>
+          </div>
+          <div class="momentum-track"><span style="width:5.0%"></span></div>
+          <b>+0.5 pts</b>
+        </div>
+        <div class="momentum-row gain">
+          <div>
+            <strong>Webflow</strong>
+            <span>1.7% latest tracked share</span>
+          </div>
+          <div class="momentum-track"><span style="width:12.0%"></span></div>
+          <b>+1.2 pts</b>
+        </div></div>
+      </article>
+    </section>
+
+    <section class="grid" style="margin-top:14px">
+      <article class="panel full">
         <h2>HTTP Archive current rank tiers</h2>
         <p>Latest mobile-crawl WordPress share among the five tracked technologies within each HTTP Archive rank tier.</p>
         <div class="bar-stack">

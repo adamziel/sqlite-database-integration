@@ -61,6 +61,14 @@ def rows(conn, sql, params=()):
     return [dict(row) for row in conn.execute(sql, params).fetchall()]
 
 
+def table_exists(conn, table):
+    row = conn.execute(
+        "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?",
+        (table,),
+    ).fetchone()
+    return bool(row)
+
+
 def nav_html():
     return "\n".join(
         [
@@ -273,6 +281,37 @@ def rank_snapshot(rows_):
     return "".join(bars)
 
 
+def momentum_panel(rows_):
+    if not rows_:
+        return ""
+    ordered = [row for row in rows_ if row.get("technology")]
+    max_abs = max([abs(num(row.get("tracked_share_change_pts"))) for row in ordered] or [1])
+    items = []
+    for row in ordered:
+        change = num(row.get("tracked_share_change_pts"))
+        width = 0 if max_abs <= 0 or change == 0 else max(2, min(100, abs(change) / max_abs * 100))
+        tone = "gain" if change > 0 else "loss" if change < 0 else "flat"
+        items.append(
+            f"""
+        <div class="momentum-row {esc(tone)}">
+          <div>
+            <strong>{esc(row.get("technology"))}</strong>
+            <span>{esc(pct(row.get("latest_mobile_tracked_share_pct")))} latest tracked share</span>
+          </div>
+          <div class="momentum-track"><span style="width:{width:.1f}%"></span></div>
+          <b>{esc(signed_pts(change))}</b>
+        </div>"""
+        )
+    first = ordered[0].get("first_label", "") if ordered else ""
+    latest = ordered[0].get("latest_label", "") if ordered else ""
+    return f"""
+      <article class="panel">
+        <h2>Tracked-share momentum</h2>
+        <p>HTTP Archive quarterly tracked-share change from {esc(first)} to {esc(latest)}. This is a recurring crawl proxy, not first-seen site creation.</p>
+        <div class="momentum-stack">{''.join(items)}</div>
+      </article>"""
+
+
 def main():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
@@ -301,6 +340,19 @@ def main():
             FROM http_archive_rank_adoption_snapshot
             ORDER BY CAST(rank_order AS INTEGER), technology
             """,
+        )
+        momentum = (
+            rows(
+                conn,
+                """
+                SELECT *
+                FROM builder_momentum_summary
+                WHERE technology IN ('WordPress','Shopify','Wix','Squarespace','Webflow')
+                ORDER BY CAST(latest_mobile_tracked_share_pct AS REAL) DESC
+                """,
+            )
+            if table_exists(conn, "builder_momentum_summary")
+            else []
         )
         gap = rows(conn, "SELECT * FROM source_gaps WHERE signal='new_site_share_history'")
     finally:
@@ -435,6 +487,7 @@ def main():
       --green:#159957;
       --amber:#b7791f;
       --violet:#7c3aed;
+      --red:#c2410c;
     }}
     * {{ box-sizing:border-box; }}
     body {{ margin:0; background:var(--paper); color:var(--ink); font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }}
@@ -463,6 +516,7 @@ def main():
     .metric p, .panel p, .chart-card p, .note {{ color:var(--muted); font-size:14px; }}
     .grid {{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:14px; align-items:start; }}
     .panel, .chart-card, .signal-panel {{ padding:18px; min-width:0; }}
+    .full {{ grid-column:1 / -1; }}
     .signals {{ display:grid; gap:9px; margin-top:12px; }}
     .signal-row {{ display:flex; justify-content:space-between; gap:14px; align-items:center; border-left:5px solid var(--blue); background:#fbfdff; border-radius:8px; padding:12px; }}
     .signal-row.green {{ border-left-color:var(--green); }}
@@ -477,6 +531,15 @@ def main():
     .bar-label strong {{ white-space:nowrap; }}
     .bar {{ height:10px; border-radius:999px; background:#e8eef5; overflow:hidden; }}
     .bar span {{ display:block; height:100%; border-radius:inherit; }}
+    .momentum-stack {{ display:grid; gap:11px; margin-top:14px; }}
+    .momentum-row {{ display:grid; grid-template-columns:minmax(120px,.8fr) minmax(110px,1fr) 88px; gap:10px; align-items:center; }}
+    .momentum-row strong, .momentum-row span {{ display:block; }}
+    .momentum-row span {{ color:var(--muted); font-size:13px; }}
+    .momentum-row b {{ text-align:right; white-space:nowrap; }}
+    .momentum-track {{ height:10px; border-radius:999px; background:#e8eef5; overflow:hidden; }}
+    .momentum-track span {{ display:block; height:100%; border-radius:inherit; background:var(--green); }}
+    .momentum-row.loss .momentum-track span {{ background:var(--amber); }}
+    .momentum-row.flat .momentum-track span {{ background:var(--muted); }}
     .chart-card svg {{ width:100%; height:auto; display:block; margin-top:10px; }}
     .gridline {{ stroke:#e8eef5; stroke-width:1; }}
     .axis {{ font-size:11px; fill:var(--muted); }}
@@ -499,6 +562,8 @@ def main():
       .metrics {{ grid-template-columns:1fr; }}
       .signal-row {{ display:block; }}
       .signal-row b {{ display:block; margin-top:5px; }}
+      .momentum-row {{ grid-template-columns:1fr; gap:5px; }}
+      .momentum-row b {{ text-align:left; }}
     }}
   </style>
 </head>
@@ -541,7 +606,11 @@ def main():
 
     <section class="grid" style="margin-top:14px">
       {tier_chart}
-      <article class="panel">
+      {momentum_panel(momentum)}
+    </section>
+
+    <section class="grid" style="margin-top:14px">
+      <article class="panel full">
         <h2>HTTP Archive current rank tiers</h2>
         <p>Latest mobile-crawl WordPress share among the five tracked technologies within each HTTP Archive rank tier.</p>
         <div class="bar-stack">{rank_snapshot(rank_rows)}</div>

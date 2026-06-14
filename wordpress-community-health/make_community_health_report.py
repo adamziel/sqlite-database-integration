@@ -434,6 +434,15 @@ def num(value, default=0):
         return default
 
 
+def fnum(value, default=0.0):
+    if value in (None, ""):
+        return default
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
 def pct(value, digits=1):
     if value is None or math.isnan(value):
         return "n/a"
@@ -940,9 +949,9 @@ def derive_http_archive_tracked_share_quarterly(monthly_rows):
                 "avg_mobile_origins": round(sum(num(item.get("mobile_origins")) for item in items) / month_count, 2),
                 "avg_desktop_origins": round(sum(num(item.get("desktop_origins")) for item in items) / month_count, 2),
                 "avg_total_origins": round(sum(num(item.get("total_origins")) for item in items) / month_count, 2),
-                "avg_mobile_tracked_share_pct": round(sum(num(item.get("mobile_tracked_share_pct")) for item in items) / month_count, 4),
-                "avg_desktop_tracked_share_pct": round(sum(num(item.get("desktop_tracked_share_pct")) for item in items) / month_count, 4),
-                "avg_total_tracked_share_pct": round(sum(num(item.get("total_tracked_share_pct")) for item in items) / month_count, 4),
+                "avg_mobile_tracked_share_pct": round(sum(fnum(item.get("mobile_tracked_share_pct")) for item in items) / month_count, 4),
+                "avg_desktop_tracked_share_pct": round(sum(fnum(item.get("desktop_tracked_share_pct")) for item in items) / month_count, 4),
+                "avg_total_tracked_share_pct": round(sum(fnum(item.get("total_tracked_share_pct")) for item in items) / month_count, 4),
                 "latest_month": latest.get("date", ""),
                 "latest_mobile_origins": latest.get("mobile_origins", ""),
                 "latest_mobile_tracked_share_pct": latest.get("mobile_tracked_share_pct", ""),
@@ -951,6 +960,64 @@ def derive_http_archive_tracked_share_quarterly(monthly_rows):
                 "collected_at": collected_at,
             }
         )
+    return rows
+
+
+def derive_builder_momentum_summary(quarterly_rows):
+    grouped = defaultdict(list)
+    for row in quarterly_rows or []:
+        if (row.get("rank") or "ALL") != "ALL" or (row.get("geo") or "ALL") != "ALL":
+            continue
+        technology = row.get("technology") or ""
+        if not technology:
+            continue
+        grouped[technology].append(row)
+
+    rows = []
+    collected_at = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
+    for technology, items in sorted(grouped.items()):
+        ordered = sorted(items, key=lambda row: row.get("quarter", ""))
+        if not ordered:
+            continue
+        first = ordered[0]
+        latest = ordered[-1]
+        previous = ordered[-5] if len(ordered) >= 5 else first
+        first_share = fnum(first.get("avg_mobile_tracked_share_pct"))
+        latest_share = fnum(latest.get("avg_mobile_tracked_share_pct"))
+        previous_share = fnum(previous.get("avg_mobile_tracked_share_pct"))
+        first_origins = fnum(first.get("avg_mobile_origins"))
+        latest_origins = fnum(latest.get("avg_mobile_origins"))
+        total_change = latest_share - first_share
+        latest_year_change = latest_share - previous_share
+        if total_change <= -1:
+            direction = "lower"
+        elif total_change >= 1:
+            direction = "higher"
+        else:
+            direction = "flat"
+        rows.append(
+            {
+                "technology": technology,
+                "first_quarter": first.get("quarter", ""),
+                "first_label": first.get("label", ""),
+                "latest_quarter": latest.get("quarter", ""),
+                "latest_label": latest.get("label", ""),
+                "comparison_quarter": previous.get("quarter", ""),
+                "comparison_label": previous.get("label", ""),
+                "first_mobile_tracked_share_pct": round(first_share, 4),
+                "latest_mobile_tracked_share_pct": round(latest_share, 4),
+                "tracked_share_change_pts": round(total_change, 4),
+                "latest_year_change_pts": round(latest_year_change, 4),
+                "first_avg_mobile_origins": round(first_origins, 2),
+                "latest_avg_mobile_origins": round(latest_origins, 2),
+                "avg_mobile_origin_change_pct": round((latest_origins - first_origins) / first_origins * 100, 2) if first_origins else 0,
+                "direction": direction,
+                "source": "Derived from HTTP Archive tracked-share quarterly rows",
+                "source_url": HTTP_ARCHIVE_TECH_REPORT_URL,
+                "collected_at": collected_at,
+            }
+        )
+    rows.sort(key=lambda row: fnum(row.get("latest_mobile_tracked_share_pct")), reverse=True)
     return rows
 
 
@@ -4326,7 +4393,7 @@ def build_database(data, fetched):
                 "new_site_share_history",
                 "partial",
                 "BuiltWith historical trends or HTTP Archive cohort queries",
-                "Current report includes BuiltWith current Net New Pipeline, HTTP Archive monthly origin counts, quarterly derived tracked-share history, rank-tier detected-origin adoption, a compact new-site choice summary, and a dedicated new-site choice companion view; not a multi-year newly created site cohort.",
+                "Current report includes BuiltWith current Net New Pipeline, HTTP Archive monthly origin counts, quarterly derived tracked-share history, builder momentum summaries, rank-tier detected-origin adoption, a compact new-site choice summary, and a dedicated new-site choice companion view; not a multi-year newly created site cohort.",
             )
         )
     else:
@@ -5607,7 +5674,7 @@ def source_status_rows(fetched):
         ("Open backlog age buckets", "covered" if fetched.get("open_backlog_age_summary") else "missing", "Current open Core/Gutenberg backlog by last-activity age bucket"),
         ("W3Techs adoption", "covered" if fetched.get("market_share") else "missing", "All-site usage and CMS market-share yearly trends"),
         ("HTTP Archive/Web Almanac", "covered", "2025 CMS adoption snapshot and high-traffic context"),
-        ("HTTP Archive Technology Report API", "covered" if fetched.get("http_archive_adoption_monthly") else "missing", "Monthly origin counts, quarterly derived tracked-share trend, and rank-tier detected-origin adoption for WordPress, Shopify, Wix, Squarespace, and Webflow"),
+        ("HTTP Archive Technology Report API", "covered" if fetched.get("http_archive_adoption_monthly") else "missing", "Monthly origin counts, quarterly derived tracked-share trend, builder momentum summaries, and rank-tier detected-origin adoption for WordPress, Shopify, Wix, Squarespace, and Webflow"),
         ("HTTP Archive Core Web Vitals", "covered" if fetched.get("http_archive_cwv_monthly") else "missing", "Monthly good Core Web Vitals rates by technology from the HTTP Archive Technology Report API"),
         ("BuiltWith ecommerce history", "covered" if fetched.get("builtwith_technology_history") else "missing", "Shopify and WooCommerce live-site counts by traffic tier"),
         ("BuiltWith traffic tiers", "covered" if fetched.get("builtwith_tier_share_snapshot") else "missing", "Current WordPress share by traffic tier across tracked CMS/builder technologies"),
@@ -5645,12 +5712,17 @@ def source_status_rows(fetched):
         (
             "Newly detected sites",
             "partial" if SOURCE_FILES["builtwith_new_site_snapshot"].exists() else "missing",
-            "Current BuiltWith Net New Pipeline snapshot plus HTTP Archive monthly origin counts, quarterly derived tracked-share trend, rank-tier detected-origin adoption, and a dedicated new-site choice companion view; multi-year new-site creation still needs paid BuiltWith or cohort queries",
+            "Current BuiltWith Net New Pipeline snapshot plus HTTP Archive monthly origin counts, quarterly derived tracked-share trend, builder momentum summaries, rank-tier detected-origin adoption, and a dedicated new-site choice companion view; multi-year new-site creation still needs paid BuiltWith or cohort queries",
         ),
         (
             "New-site choice summary",
             "covered" if fetched.get("new_site_choice_summary") else "missing",
             "Compact current proxy readout across BuiltWith 30/90-day pipeline, HTTP Archive tracked share, and traffic-tier presence",
+        ),
+        (
+            "Builder momentum summary",
+            "covered" if fetched.get("builder_momentum_summary") else "missing",
+            "Derived HTTP Archive quarterly tracked-share change by builder technology",
         ),
         (
             "Support forums",
@@ -8046,6 +8118,9 @@ def main():
     )
     fetched["http_archive_tracked_share_quarterly"] = derive_http_archive_tracked_share_quarterly(
         fetched["http_archive_tracked_share_monthly"]
+    )
+    fetched["builder_momentum_summary"] = derive_builder_momentum_summary(
+        fetched["http_archive_tracked_share_quarterly"]
     )
     fetched["http_archive_rank_adoption_snapshot"] = fetch_http_archive_rank_adoption_snapshot(args.skip_network)
     fetched["http_archive_cwv_monthly"] = fetch_http_archive_cwv_monthly(args.skip_network)

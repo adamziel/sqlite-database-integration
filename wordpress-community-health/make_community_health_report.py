@@ -56,6 +56,7 @@ SOURCE_FILES = {
 
 SKIP_NETWORK_DB_FALLBACK_TABLES = [
     "market_share",
+    "http_archive_adoption_monthly",
     "wikimedia_pageviews_monthly",
     "wikimedia_pageviews_quarterly",
     "hn_hiring_wordpress_quarterly",
@@ -98,6 +99,15 @@ SKIP_NETWORK_DB_FALLBACK_TABLES = [
 W3TECHS_USAGE_URL = "https://w3techs.com/technologies/history_overview/content_management/all/y"
 W3TECHS_MARKET_SHARE_URL = "https://w3techs.com/technologies/history_overview/content_management/ms/y"
 HTTP_ARCHIVE_CMS_URL = "https://almanac.httparchive.org/en/2025/cms"
+HTTP_ARCHIVE_TECH_REPORT_URL = "https://httparchive.org/reports/techreport/tech"
+HTTP_ARCHIVE_API_BASE = "https://cdn.httparchive.org/v1"
+HTTP_ARCHIVE_ADOPTION_TECHNOLOGIES = [
+    {"technology": "WordPress", "label": "WordPress", "color": "#2563eb"},
+    {"technology": "Shopify", "label": "Shopify", "color": "#16a34a"},
+    {"technology": "Wix", "label": "Wix", "color": "#f59e0b"},
+    {"technology": "Squarespace", "label": "Squarespace", "color": "#64748b"},
+    {"technology": "Webflow", "label": "Webflow", "color": "#0891b2"},
+]
 BUILTWITH_TECHNOLOGIES = [
     {"technology": "Shopify", "category": "eCommerce", "source_url": "https://trends.builtwith.com/ecommerce/Shopify"},
     {"technology": "WooCommerce", "category": "eCommerce", "source_url": "https://trends.builtwith.com/ecommerce/WooCommerce"},
@@ -662,6 +672,91 @@ def parse_w3techs_history(url, metric_name, skip_network=False):
     except Exception as exc:
         eprint(f"w3techs fetch failed for {metric_name}: {exc}")
         return fallback
+
+
+def http_archive_adoption_cache_path():
+    return CACHE / "http-archive-adoption-monthly.json"
+
+
+def read_cached_http_archive_adoption():
+    path = http_archive_adoption_cache_path()
+    if path.exists():
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            payload = {}
+        rows = payload.get("rows") if isinstance(payload, dict) else payload
+        if isinstance(rows, list):
+            return rows
+    return read_existing_table("http_archive_adoption_monthly")
+
+
+def write_cached_http_archive_adoption(rows, source_url):
+    CACHE.mkdir(parents=True, exist_ok=True)
+    http_archive_adoption_cache_path().write_text(
+        json.dumps(
+            {
+                "collected_at": dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z"),
+                "source_url": source_url,
+                "rows": rows,
+            },
+            indent=2,
+            sort_keys=True,
+        ),
+        encoding="utf-8",
+    )
+
+
+def http_archive_adoption_url(start="2020-01-01"):
+    technologies = ",".join(row["technology"] for row in HTTP_ARCHIVE_ADOPTION_TECHNOLOGIES)
+    params = {
+        "technology": technologies,
+        "geo": "ALL",
+        "rank": "ALL",
+        "start": start,
+    }
+    return f"{HTTP_ARCHIVE_API_BASE}/adoption?{urllib.parse.urlencode(params)}"
+
+
+def fetch_http_archive_adoption_monthly(skip_network=False):
+    fallback = read_cached_http_archive_adoption()
+    if skip_network and fallback:
+        return fallback
+    if skip_network:
+        return []
+    source_url = http_archive_adoption_url()
+    try:
+        payload, _headers = fetch_with_retries(fetch_json, source_url, "HTTP Archive adoption", attempts=3, delay=1.5)
+    except Exception as exc:
+        eprint(f"HTTP Archive adoption fetch failed: {exc}")
+        return fallback
+    rows = []
+    tech_lookup = {row["technology"]: row for row in HTTP_ARCHIVE_ADOPTION_TECHNOLOGIES}
+    for item in payload if isinstance(payload, list) else []:
+        technology = str(item.get("technology") or "")
+        adoption = item.get("adoption") or {}
+        date_value = str(item.get("date") or "")
+        if technology not in tech_lookup or not parse_iso(date_value):
+            continue
+        desktop = num(adoption.get("desktop"))
+        mobile = num(adoption.get("mobile"))
+        rows.append(
+            {
+                "date": date_value,
+                "technology": technology,
+                "desktop_origins": desktop,
+                "mobile_origins": mobile,
+                "total_origins": desktop + mobile,
+                "geo": "ALL",
+                "rank": "ALL",
+                "source_url": source_url,
+                "source": "HTTP Archive Technology Report API adoption endpoint",
+            }
+        )
+    rows.sort(key=lambda row: (row["date"], row["technology"]))
+    if rows:
+        write_cached_http_archive_adoption(rows, source_url)
+    return rows or fallback
 
 
 def quarter_ranges(start, end):
@@ -3280,7 +3375,7 @@ def build_database(data, fetched):
                 "new_site_share_history",
                 "partial",
                 "BuiltWith historical trends or HTTP Archive cohort queries",
-                "Current report includes BuiltWith current Net New Pipeline and live-site history, not a multi-year newly created site trend.",
+                "Current report includes BuiltWith current Net New Pipeline plus HTTP Archive monthly detected-origin adoption; not a multi-year newly created site trend.",
             )
         )
     else:
@@ -4343,6 +4438,7 @@ def source_status_rows(fetched):
         ("Open backlog age buckets", "covered" if fetched.get("open_backlog_age_summary") else "missing", "Current open Core/Gutenberg backlog by last-activity age bucket"),
         ("W3Techs adoption", "covered" if fetched.get("market_share") else "missing", "All-site usage and CMS market-share yearly trends"),
         ("HTTP Archive/Web Almanac", "covered", "2025 CMS adoption snapshot and high-traffic context"),
+        ("HTTP Archive Technology Report API", "covered" if fetched.get("http_archive_adoption_monthly") else "missing", "Monthly detected-origin adoption for WordPress, Shopify, Wix, Squarespace, and Webflow"),
         ("BuiltWith ecommerce history", "covered" if fetched.get("builtwith_technology_history") else "missing", "Shopify and WooCommerce live-site counts by traffic tier"),
         ("BuiltWith traffic tiers", "covered" if fetched.get("builtwith_tier_share_snapshot") else "missing", "Current WordPress share by traffic tier across tracked CMS/builder technologies"),
         ("Stack Overflow tag volume", "covered" if fetched.get("stack_overflow_tag_quarterly") else "missing", "Quarterly public developer-attention proxy from Stack Exchange API tag totals"),
@@ -4372,7 +4468,7 @@ def source_status_rows(fetched):
         (
             "Newly detected sites",
             "partial" if SOURCE_FILES["builtwith_new_site_snapshot"].exists() else "missing",
-            "Current BuiltWith Net New Pipeline snapshot plus live-site history; multi-year new-site trend still needs paid BuiltWith or HTTP Archive cohort queries",
+            "Current BuiltWith Net New Pipeline snapshot plus HTTP Archive monthly detected-origin adoption; multi-year new-site creation still needs paid BuiltWith or cohort queries",
         ),
         (
             "Support forums",
@@ -4401,6 +4497,7 @@ def build_report(data, fetched):
     github_prs = data["github_prs"]
     classifications = data["classification_trend"]
     market_rows = fetched.get("market_share", [])
+    http_archive_adoption = fetched.get("http_archive_adoption_monthly", [])
     stack_overflow_tags = fetched.get("stack_overflow_tag_quarterly", [])
     wikimedia_pageviews_q = fetched.get("wikimedia_pageviews_quarterly", [])
     hn_hiring_q = fetched.get("hn_hiring_wordpress_quarterly", [])
@@ -4821,6 +4918,40 @@ def build_report(data, fetched):
                 "points": sorted((r["date"], r["value"]) for r in market_rows if r["metric"] == "cms_market_share" and r["technology"] == tech),
             }
         )
+    http_archive_adoption_series = [
+        {
+            "label": row["label"],
+            "color": row["color"],
+            "points": sorted(
+                (item["date"], num(item.get("mobile_origins")))
+                for item in http_archive_adoption
+                if item.get("technology") == row["technology"]
+            ),
+        }
+        for row in HTTP_ARCHIVE_ADOPTION_TECHNOLOGIES
+    ]
+    http_archive_dates = sorted({row.get("date", "") for row in http_archive_adoption if row.get("date")})
+    http_archive_latest_date = http_archive_dates[-1] if http_archive_dates else ""
+    http_archive_first_date = http_archive_dates[0] if http_archive_dates else ""
+    http_archive_latest_rows = {
+        technology: max(
+            [row for row in http_archive_adoption if row.get("technology") == technology],
+            key=lambda row: row.get("date", ""),
+            default={},
+        )
+        for technology in [row["technology"] for row in HTTP_ARCHIVE_ADOPTION_TECHNOLOGIES]
+    }
+    http_wp_latest = http_archive_latest_rows.get("WordPress", {})
+    http_next_peer = max(
+        [row for tech, row in http_archive_latest_rows.items() if tech != "WordPress"],
+        key=lambda row: num(row.get("mobile_origins")),
+        default={},
+    )
+    http_peer_ratio = (
+        num(http_wp_latest.get("mobile_origins")) / num(http_next_peer.get("mobile_origins"))
+        if num(http_next_peer.get("mobile_origins"))
+        else 0
+    )
     stack_overflow_tag_series = [
         {
             "label": tag_config["label"],
@@ -5644,6 +5775,19 @@ p {{ margin:0 0 12px; }}
       {svg_line_chart("Share among CMS sites", "W3Techs yearly CMS market-share trend.", market_cms_series, y_suffix="%")}
     </div>
     <div class="grid-2">
+      {svg_line_chart("HTTP Archive mobile origins", "Monthly mobile-crawl origin counts from the HTTP Archive Technology Report API. This is independent crawl coverage, not newly created sites.", http_archive_adoption_series)}
+      <div class="card">
+        <h3>HTTP Archive readout</h3>
+        <p>HTTP Archive adds a monthly crawl-based adoption view. It is useful for direction and comparison, but it counts detected origins in the crawl rather than new site creation.</p>
+        <div class="stats">
+          {stat_card("WordPress origins", compact(num(http_wp_latest.get("mobile_origins"))), http_archive_latest_date or "not fetched", "good" if http_wp_latest else "watch")}
+          {stat_card("Next peer", compact(num(http_next_peer.get("mobile_origins"))), http_next_peer.get("technology", "not fetched"), "soft" if http_next_peer else "watch")}
+          {stat_card("WP vs next", f"{http_peer_ratio:.1f}x" if http_peer_ratio else "n/a", "mobile origins", "soft")}
+          {stat_card("Monthly rows", compact(len(http_archive_adoption)), f"{http_archive_first_date} to {http_archive_latest_date}" if http_archive_dates else "not fetched", "good" if http_archive_adoption else "watch")}
+        </div>
+      </div>
+    </div>
+    <div class="grid-2">
       {svg_line_chart("Stack Overflow developer attention", "Quarterly Stack Overflow questions by tag from the Stack Exchange API. This is a developer-help signal, not general web search demand.", stack_overflow_tag_series)}
       <div class="card">
         <h3>Developer-interest readout</h3>
@@ -5910,7 +6054,7 @@ p {{ margin:0 0 12px; }}
 
   <section class="footer">
     <p>Generated {dt.datetime.now(dt.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')} from local Core/Gutenberg exports and public sources.</p>
-    <p>Sources: <a href="{W3TECHS_USAGE_URL}">W3Techs usage trend</a>, <a href="{W3TECHS_MARKET_SHARE_URL}">W3Techs CMS market-share trend</a>, <a href="{HTTP_ARCHIVE_CMS_URL}">HTTP Archive Web Almanac CMS 2025</a>, <a href="{STACK_EXCHANGE_DOCS_URL}">Stack Exchange API</a>, <a href="{WIKIMEDIA_PAGEVIEWS_DOCS_URL}">Wikimedia Pageviews API</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="{PLUGIN_DOWNLOADS_DOCS_URL}">WordPress.org plugin download stats</a>, <a href="{WORDPRESS_JOBS_URL}">WordPress Jobs board</a>, <a href="{WAYBACK_CDX_API}">Internet Archive CDX API</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="{EVENTS_WORDPRESS_URL}">WordPress Events</a>, <a href="{TRANSLATE_LOCALES_URL}">Translate WordPress</a>, <a href="{MAKE_CORE_API}">Make/Core posts API</a>, <a href="{MAKE_CORE_COMMENTS_API}">Make/Core comments API</a>, <a href="https://wordpress.org/support/view/all-topics/">WordPress.org support forums</a>, <a href="https://trends.builtwith.com/cms/WordPress">BuiltWith technology pages</a>, <a href="https://github.com/WordPress/gutenberg/issues">Gutenberg GitHub issues</a>, <a href="{FTTF_PLEDGES_URL}">Five for the Future pledges</a>, <a href="{RELEASE_ARCHIVE_URL}">WordPress release archive</a>, and <a href="{CREDITS_API}">Core credits API</a>.</p>
+    <p>Sources: <a href="{W3TECHS_USAGE_URL}">W3Techs usage trend</a>, <a href="{W3TECHS_MARKET_SHARE_URL}">W3Techs CMS market-share trend</a>, <a href="{HTTP_ARCHIVE_CMS_URL}">HTTP Archive Web Almanac CMS 2025</a>, <a href="{HTTP_ARCHIVE_TECH_REPORT_URL}">HTTP Archive Technology Report API</a>, <a href="{STACK_EXCHANGE_DOCS_URL}">Stack Exchange API</a>, <a href="{WIKIMEDIA_PAGEVIEWS_DOCS_URL}">Wikimedia Pageviews API</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="{PLUGIN_DOWNLOADS_DOCS_URL}">WordPress.org plugin download stats</a>, <a href="{WORDPRESS_JOBS_URL}">WordPress Jobs board</a>, <a href="{WAYBACK_CDX_API}">Internet Archive CDX API</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="{EVENTS_WORDPRESS_URL}">WordPress Events</a>, <a href="{TRANSLATE_LOCALES_URL}">Translate WordPress</a>, <a href="{MAKE_CORE_API}">Make/Core posts API</a>, <a href="{MAKE_CORE_COMMENTS_API}">Make/Core comments API</a>, <a href="https://wordpress.org/support/view/all-topics/">WordPress.org support forums</a>, <a href="https://trends.builtwith.com/cms/WordPress">BuiltWith technology pages</a>, <a href="https://github.com/WordPress/gutenberg/issues">Gutenberg GitHub issues</a>, <a href="{FTTF_PLEDGES_URL}">Five for the Future pledges</a>, <a href="{RELEASE_ARCHIVE_URL}">WordPress release archive</a>, and <a href="{CREDITS_API}">Core credits API</a>.</p>
   </section>
 </main>
 </body>
@@ -5932,6 +6076,7 @@ def main():
     fetched["market_share"] = []
     fetched["market_share"].extend(parse_w3techs_history(W3TECHS_USAGE_URL, "all_sites_usage", args.skip_network))
     fetched["market_share"].extend(parse_w3techs_history(W3TECHS_MARKET_SHARE_URL, "cms_market_share", args.skip_network))
+    fetched["http_archive_adoption_monthly"] = fetch_http_archive_adoption_monthly(args.skip_network)
     fetched["builtwith_technology_snapshots"], fetched["builtwith_technology_history"] = fetch_builtwith_technology_signals(
         args.skip_network
     )

@@ -363,6 +363,18 @@ def pct(value, digits=1):
     return f"{value:.{digits}f}%"
 
 
+def per_100(value, digits=2):
+    if value is None:
+        return "n/a"
+    try:
+        value = float(value)
+    except (TypeError, ValueError):
+        return "n/a"
+    if math.isnan(value):
+        return "n/a"
+    return f"{value:.{digits}f} / 100"
+
+
 def compact(value):
     if value is None:
         return "n/a"
@@ -1066,6 +1078,8 @@ def aggregate_hn_hiring_quarterly(monthly_rows):
                 "php_comments": php,
                 "agency_comments": agency,
                 "wordpress_or_woocommerce_per_100_comments": round(wp_or_woo / hiring_comments * 100, 2) if hiring_comments else 0,
+                "php_per_100_comments": round(php / hiring_comments * 100, 2) if hiring_comments else 0,
+                "agency_per_100_comments": round(agency / hiring_comments * 100, 2) if hiring_comments else 0,
                 "story_ids": ",".join(str(row.get("story_id") or "") for row in rows if row.get("story_id")),
                 "source_urls": ",".join(str(row.get("source_url") or "") for row in rows if row.get("source_url")),
                 "source": "Hacker News monthly Who is hiring? thread top-level comments",
@@ -1104,6 +1118,56 @@ def fetch_hn_hiring_wordpress_quarterly(skip_network=False):
     if monthly_rows:
         write_cached_hn_hiring_monthly(monthly_rows)
     return aggregate_hn_hiring_quarterly(monthly_rows)
+
+
+def derive_hn_hiring_demand_summary(rows):
+    ordered = sorted(
+        [row for row in rows if row.get("quarter")],
+        key=lambda row: row.get("quarter", ""),
+    )
+    if not ordered:
+        return []
+    latest_four = ordered[-4:]
+    windows = [
+        ("all_time", "All parsed HN hiring history", ordered),
+        ("pre_2024", "Before 2024", [row for row in ordered if row.get("quarter", "") < "2024-01-01"]),
+        ("since_2024", "Since 2024", [row for row in ordered if row.get("quarter", "") >= "2024-01-01"]),
+        ("latest_4q", "Latest four quarters", latest_four),
+        ("latest_quarter", f"Latest quarter ({quarter_label(ordered[-1].get('quarter', ''))})", [ordered[-1]]),
+    ]
+    collected_at = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
+    summary = []
+    for window, label, window_rows in windows:
+        if not window_rows:
+            continue
+        hiring_comments = sum(num(row.get("hiring_comments")) for row in window_rows)
+        wp_or_woo = sum(num(row.get("wordpress_or_woocommerce_comments")) for row in window_rows)
+        php = sum(num(row.get("php_comments")) for row in window_rows)
+        agency = sum(num(row.get("agency_comments")) for row in window_rows)
+        first_quarter = min(row.get("quarter", "") for row in window_rows if row.get("quarter"))
+        latest_quarter = max(row.get("quarter", "") for row in window_rows if row.get("quarter"))
+        summary.append(
+            {
+                "window": window,
+                "label": label,
+                "quarter_count": len(window_rows),
+                "first_quarter": first_quarter,
+                "latest_quarter": latest_quarter,
+                "quarter_range": f"{quarter_label(first_quarter)} to {quarter_label(latest_quarter)}",
+                "months_with_thread": sum(num(row.get("months_with_thread")) for row in window_rows),
+                "hiring_comments": hiring_comments,
+                "wordpress_or_woocommerce_comments": wp_or_woo,
+                "wordpress_or_woocommerce_per_100_comments": round(wp_or_woo / hiring_comments * 100, 2) if hiring_comments else 0,
+                "php_comments": php,
+                "php_per_100_comments": round(php / hiring_comments * 100, 2) if hiring_comments else 0,
+                "agency_comments": agency,
+                "agency_per_100_comments": round(agency / hiring_comments * 100, 2) if hiring_comments else 0,
+                "source": "Hacker News monthly Who is hiring? thread top-level comments",
+                "source_url": HN_HIRING_SOURCE_URL,
+                "collected_at": collected_at,
+            }
+        )
+    return summary
 
 
 def vip_case_studies_cache_path():
@@ -2777,7 +2841,7 @@ def build_database(data, fetched):
             "job_demand",
             "partial",
             "Hacker News monthly Who is hiring? threads plus hiring-platform exports",
-            "HN Who is hiring WordPress/WooCommerce mention counts are included from 2012 onward as a narrow startup-hiring proxy; broader job-board demand still needs a labor-market source.",
+            "HN Who is hiring WordPress/WooCommerce, PHP, and agency/studio mention counts are included from 2012 onward as narrow startup-hiring proxies; broader job-board demand still needs a labor-market source.",
         )
     )
     if not fetched.get("enterprise_vip_case_studies"):
@@ -3745,7 +3809,7 @@ def source_status_rows(fetched):
         ("BuiltWith traffic tiers", "covered" if fetched.get("builtwith_tier_share_snapshot") else "missing", "Current WordPress share by traffic tier across tracked CMS/builder technologies"),
         ("Stack Overflow tag volume", "covered" if fetched.get("stack_overflow_tag_quarterly") else "missing", "Quarterly public developer-attention proxy from Stack Exchange API tag totals"),
         ("Wikimedia pageviews", "covered" if fetched.get("wikimedia_pageviews_quarterly") else "missing", "Quarterly en.wikipedia article pageviews as a public-interest proxy, not search-query volume"),
-        ("HN hiring mentions", "partial" if fetched.get("hn_hiring_wordpress_quarterly") else "missing", "WordPress/WooCommerce mentions in monthly Hacker News Who is hiring threads from 2012 onward; not a broad job-board index"),
+        ("HN hiring mentions", "partial" if fetched.get("hn_hiring_wordpress_quarterly") else "missing", "WordPress/WooCommerce, PHP, and agency/studio mentions in monthly Hacker News Who is hiring threads from 2012 onward; not a broad job-board index"),
         ("Enterprise adoption signal", "covered" if fetched.get("enterprise_vip_case_studies") else "missing", "Current public WordPress VIP case-study snapshot with industries and use cases"),
         ("WordPress.org plugin/theme directories", "covered" if fetched.get("directory_snapshots") else "missing", "Current plugin and theme counts"),
         ("Plugin/theme directory activity", "covered" if fetched.get("directory_activity_snapshots") else "missing", "Current new, updated, and popular samples from WordPress.org directory APIs"),
@@ -3797,6 +3861,7 @@ def build_report(data, fetched):
     stack_overflow_tags = fetched.get("stack_overflow_tag_quarterly", [])
     wikimedia_pageviews_q = fetched.get("wikimedia_pageviews_quarterly", [])
     hn_hiring_q = fetched.get("hn_hiring_wordpress_quarterly", [])
+    hn_hiring_summary = fetched.get("hn_hiring_demand_summary", [])
     enterprise_vip_cases = fetched.get("enterprise_vip_case_studies", [])
     wordcamps = fetched.get("wordcamps", [])
     wordcamp_yearly = fetched.get("wordcamp_yearly", [])
@@ -4300,14 +4365,27 @@ def build_report(data, fetched):
             "points": point_series(hn_hiring_q, "quarter", "agency_comments"),
         },
     ]
-    hn_hiring_share_series = [
+    hn_hiring_rate_series = [
         {
             "label": "WP/Woo mentions per 100 posts",
             "color": COLORS["wordpress"],
             "points": point_series(hn_hiring_q, "quarter", "wordpress_or_woocommerce_per_100_comments"),
+        },
+        {
+            "label": "PHP mentions per 100 posts",
+            "color": COLORS["purple"],
+            "points": point_series(hn_hiring_q, "quarter", "php_per_100_comments"),
+        },
+        {
+            "label": "Agency/studio mentions per 100 posts",
+            "color": COLORS["orange"],
+            "points": point_series(hn_hiring_q, "quarter", "agency_per_100_comments"),
         }
     ]
     latest_hn_hiring = max(hn_hiring_q, key=lambda row: row.get("quarter", ""), default={})
+    hn_hiring_summary_by_window = {row.get("window"): row for row in hn_hiring_summary}
+    hn_since_2024 = hn_hiring_summary_by_window.get("since_2024", {})
+    hn_latest_4q = hn_hiring_summary_by_window.get("latest_4q", {})
     hn_hiring_months = sum(num(row.get("months_with_thread")) for row in hn_hiring_q)
     hn_hiring_first = min([row.get("quarter", "") for row in hn_hiring_q if row.get("quarter")], default="")
     hn_hiring_latest = max([row.get("quarter", "") for row in hn_hiring_q if row.get("quarter")], default="")
@@ -4315,6 +4393,12 @@ def build_report(data, fetched):
         f"{quarter_label(hn_hiring_first)} to {quarter_label(hn_hiring_latest)}"
         if hn_hiring_first and hn_hiring_latest
         else "not fetched"
+    )
+    hn_demand_mentions_max = max(
+        num(hn_latest_4q.get("wordpress_or_woocommerce_comments")),
+        num(hn_latest_4q.get("php_comments")),
+        num(hn_latest_4q.get("agency_comments")),
+        1,
     )
     enterprise_recent_cases = sum(1 for row in enterprise_vip_cases if str(row.get("date", "")) >= "2024-01-01")
     enterprise_industry_counts = Counter()
@@ -4967,16 +5051,26 @@ p {{ margin:0 0 12px; }}
     </div>
     <div class="grid-2">
       {svg_line_chart("HN Who is hiring mentions", "Quarterly top-level comments in Hacker News monthly Who is hiring threads that mention WordPress, WooCommerce, PHP, or agencies/studios.", hn_hiring_series)}
-      {svg_line_chart("WP/Woo hiring mention share", "Mentions per 100 top-level Who is hiring comments.", hn_hiring_share_series)}
+      {svg_line_chart("HN hiring mentions per 100 comments", "Quarterly mention rates within Hacker News monthly Who is hiring threads. This normalizes for thread size.", hn_hiring_rate_series)}
     </div>
     <div class="card">
       <h3>Hiring-proxy readout</h3>
-      <p>This is a narrow startup-hiring proxy from HN threads, not a complete job-market view. It is useful mainly as a directional developer-demand signal.</p>
+      <p>This is a narrow startup-hiring proxy from HN threads, not a complete job-market view. Direct WordPress/WooCommerce mentions are small; PHP and agency/studio mentions give useful adjacent context.</p>
       <div class="stats">
-        {stat_card("Latest WP/Woo mentions", compact(num(latest_hn_hiring.get("wordpress_or_woocommerce_comments"))), latest_hn_hiring.get("label", "not fetched"), "soft")}
-        {stat_card("Per 100 posts", pct(float(latest_hn_hiring.get("wordpress_or_woocommerce_per_100_comments") or 0)), "WP/Woo mentions in latest quarter", "soft")}
+        {stat_card("Since 2024 WP/Woo rate", per_100(hn_since_2024.get("wordpress_or_woocommerce_per_100_comments")), hn_since_2024.get("quarter_range", "not fetched"), "soft")}
+        {stat_card("Latest 4Q WP/Woo", compact(num(hn_latest_4q.get("wordpress_or_woocommerce_comments"))), per_100(hn_latest_4q.get("wordpress_or_woocommerce_per_100_comments")), "watch")}
+        {stat_card("Latest 4Q PHP", compact(num(hn_latest_4q.get("php_comments"))), per_100(hn_latest_4q.get("php_per_100_comments")), "soft")}
+        {stat_card("Latest 4Q agency/studio", compact(num(hn_latest_4q.get("agency_comments"))), per_100(hn_latest_4q.get("agency_per_100_comments")), "soft")}
         {stat_card("Thread coverage", compact(hn_hiring_months), "monthly hiring threads parsed", "good" if hn_hiring_months else "watch")}
         {stat_card("Coverage range", hn_hiring_range_label, "HN monthly threads", "soft")}
+      </div>
+      <div class="grid-2">
+        <div>
+          {horizontal_count_metric("Latest 4Q WP/Woo mentions", num(hn_latest_4q.get("wordpress_or_woocommerce_comments")), hn_demand_mentions_max, COLORS["wordpress"], "")}
+          {horizontal_count_metric("Latest 4Q PHP mentions", num(hn_latest_4q.get("php_comments")), hn_demand_mentions_max, COLORS["purple"], "")}
+          {horizontal_count_metric("Latest 4Q agency/studio mentions", num(hn_latest_4q.get("agency_comments")), hn_demand_mentions_max, COLORS["orange"], "")}
+        </div>
+        <p class="small-note">Summary rows are stored in SQLite as <code>hn_hiring_demand_summary</code>, with all-time, pre-2024, since-2024, latest-four-quarter, and latest-quarter windows.</p>
       </div>
     </div>
     <div class="grid-2">
@@ -5245,6 +5339,9 @@ def main():
     )
     if args.skip_network:
         apply_skip_network_db_fallback(fetched)
+    fetched["hn_hiring_demand_summary"] = derive_hn_hiring_demand_summary(
+        fetched.get("hn_hiring_wordpress_quarterly", [])
+    )
 
     build_database(data, fetched)
     build_report(data, fetched)

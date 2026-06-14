@@ -5888,6 +5888,19 @@ p {{ margin:0 0 12px; }}
 .evidence-strength-card.good {{ border-left-color:var(--green); }}
 .evidence-strength-card.soft {{ border-left-color:var(--blue); }}
 .evidence-strength-card.watch {{ border-left-color:var(--orange); }}
+.goal-map {{ display:grid; gap:10px; margin-top:16px; }}
+.goal-row {{ display:grid; grid-template-columns:minmax(160px,1.1fr) minmax(135px,.7fr) minmax(260px,2fr); gap:14px; align-items:start; border:1px solid var(--line); border-left:6px solid var(--blue); border-radius:8px; padding:13px 14px; background:#fff; }}
+.goal-row strong {{ display:block; line-height:1.2; }}
+.goal-row p {{ margin:3px 0 0; color:var(--muted); font-size:13px; line-height:1.35; }}
+.goal-status {{ display:inline-flex; align-items:center; width:max-content; border-radius:999px; padding:4px 9px; font-size:12px; font-weight:800; }}
+.goal-row.good {{ border-left-color:var(--green); }}
+.goal-row.good .goal-status {{ background:#dcfce7; color:#166534; }}
+.goal-row.soft {{ border-left-color:var(--blue); }}
+.goal-row.soft .goal-status {{ background:#dbeafe; color:#1e40af; }}
+.goal-row.watch {{ border-left-color:var(--orange); }}
+.goal-row.watch .goal-status {{ background:#fef3c7; color:#92400e; }}
+.goal-row.partial {{ border-left-color:#ef4444; }}
+.goal-row.partial .goal-status {{ background:#fee2e2; color:#991b1b; }}
 .link-list {{ display:grid; gap:8px; margin-top:12px; }}
 .link-list a {{ line-height:1.25; }}
 .link-list code {{ display:block; white-space:normal; overflow-wrap:anywhere; line-height:1.35; }}
@@ -5896,6 +5909,7 @@ p {{ margin:0 0 12px; }}
 @media (max-width:900px) {{
   h1 {{ font-size:34px; }}
   .lane-grid, .answer-grid, .grid-2, .stats, .decision-stats, .status-grid, .readout-grid, .evidence-strength-grid {{ grid-template-columns:1fr; }}
+  .goal-row {{ grid-template-columns:1fr; }}
   .page {{ padding:24px 16px 48px; }}
 }}
 </style>
@@ -5910,6 +5924,7 @@ p {{ margin:0 0 12px; }}
     <a href="#participation">Participation</a>
     <a href="#load">Project Load</a>
     <a href="#market">Market Position</a>
+    <a href="#goal-map">Coverage Map</a>
     <a href="#coverage">Source Coverage</a>
     <a href="#readout">Decision Readout</a>
   </nav>
@@ -6739,6 +6754,53 @@ p {{ margin:0 0 12px; }}
       {stat_card("Theme directory", compact(theme_count), "current WordPress.org API result", "good")}
       {stat_card("WordCamp records", compact(len(wordcamps)), "WordCamp Central records fetched", "good")}
       {stat_card("Five for the Future", compact(num(fttf_snapshot.get("pledges_fetched"))), "current pledges fetched", "good")}
+    </div>
+  </section>
+
+  <section id="goal-map" class="section">
+    <h2>Goal Coverage Map</h2>
+    <p class="callout">This is the quick read on how much weight to put on each part of the report. The strongest areas have direct quarterly data. Softer areas use snapshots or public proxies because a full historical market export is not available here.</p>
+    <div class="goal-map" aria-label="Goal coverage map">
+      <div class="goal-row good">
+        <div><strong>Ticket flow and backlog</strong><p>Core Trac, Gutenberg issues, and wordpress-develop PRs.</p></div>
+        <div><span class="goal-status">Strong</span></div>
+        <div><p>Use for new vs closed work, net flow, open backlog, response time, close time, stale share, and reopened rate.</p></div>
+      </div>
+      <div class="goal-row good">
+        <div><strong>Participation funnel</strong><p>Reporters, first-time people, repeat people, PR authors, and contributor depth.</p></div>
+        <div><span class="goal-status">Strong</span></div>
+        <div><p>Use for whether participation is broadening or narrowing. The current answer is fewer new tracker reporters, while PR flow is steadier.</p></div>
+      </div>
+      <div class="goal-row good">
+        <div><strong>Bug and feature mix</strong><p>Classified Core and Gutenberg tickets/issues.</p></div>
+        <div><span class="goal-status">Strong</span></div>
+        <div><p>Use the separate bug, feature-request, enhancement, task, and all-ticket views instead of a stacked total.</p></div>
+      </div>
+      <div class="goal-row soft">
+        <div><strong>Ecosystem participation</strong><p>Props, committers, Make/Core, WordCamps, translations, Five for the Future, plugins, and themes.</p></div>
+        <div><span class="goal-status">Directional</span></div>
+        <div><p>Good for showing activity outside ticket trackers. Some series are historical; others are current snapshots.</p></div>
+      </div>
+      <div class="goal-row good">
+        <div><strong>Installed market position</strong><p>W3Techs, HTTP Archive, BuiltWith traffic tiers, WordPress.org stats.</p></div>
+        <div><span class="goal-status">Strong</span></div>
+        <div><p>Use for whether WordPress is still widely used. It is still the default CMS, but recent share signals are softer.</p></div>
+      </div>
+      <div class="goal-row watch">
+        <div><strong>New-site choice</strong><p>BuiltWith 30/90-day pipeline plus recurring HTTP Archive origin counts.</p></div>
+        <div><span class="goal-status">Current proxy</span></div>
+        <div><p>Use for current direction only. It is not a multi-year newly created site cohort.</p></div>
+      </div>
+      <div class="goal-row partial">
+        <div><strong>Demand and mindshare</strong><p>Stack Overflow, Wikimedia, HN hiring, and WordPress Jobs snapshots.</p></div>
+        <div><span class="goal-status">Partial proxy</span></div>
+        <div><p>Useful for public/developer attention, but not a replacement for Google Trends or a broad hiring-platform export.</p></div>
+      </div>
+      <div class="goal-row watch">
+        <div><strong>Support load</strong><p>Current WordPress.org support queues and major-plugin support counts.</p></div>
+        <div><span class="goal-status">Snapshot</span></div>
+        <div><p>Use for where support load sits now. A full historical forum export would make trend claims stronger.</p></div>
+      </div>
     </div>
   </section>
 

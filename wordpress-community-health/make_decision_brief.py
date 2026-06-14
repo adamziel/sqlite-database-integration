@@ -168,6 +168,16 @@ def question_card(tone, heading, answer, body, source):
       </article>"""
 
 
+def matrix_card(tone, heading, lead, body, metric):
+    return f"""
+      <article class="matrix-card {esc(tone)}">
+        <h3>{esc(heading)}</h3>
+        <strong>{esc(lead)}</strong>
+        <p>{esc(body)}</p>
+        <span>{esc(metric)}</span>
+      </article>"""
+
+
 def main():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
@@ -279,6 +289,32 @@ def main():
         ]
     )
 
+    matrix = "".join(
+        [
+            matrix_card(
+                "good",
+                "Good default when",
+                "Reach, ownership, and ecosystem depth matter.",
+                "WordPress still has the largest installed CMS footprint and a broad plugin/theme/community surface.",
+                f"{pct(wp_all)} of all sites, {pct(wp_cms)} of CMS sites",
+            ),
+            matrix_card(
+                "soft",
+                "Plan for slower entry when",
+                "You depend on fresh public contributors or public help-channel growth.",
+                "First-time tracker participation and public help-question volume are lower than earlier periods.",
+                f"First-time reporter retention: Core {pct(core_first_retention)}, Gutenberg {pct(gut_first_retention)}",
+            ),
+            matrix_card(
+                "watch",
+                "Use one more source when",
+                "The decision mostly depends on new-site demand, search interest, or hiring demand.",
+                "The report has useful public proxies, but the ideal sources are first-seen site cohorts, search-provider exports, and broad hiring-platform exports.",
+                f"Current BuiltWith 90-day proxy: {pct(builtwith_90_share)} WordPress share",
+            ),
+        ]
+    )
+
     html_text = f"""<!doctype html>
 <html lang="en">
 <head>
@@ -322,6 +358,14 @@ def main():
     .question-card.watch {{ border-left-color:var(--amber); }}
     .question-card.slower {{ border-left-color:var(--red); }}
     .question-card.soft {{ border-left-color:var(--blue); }}
+    .matrix-grid {{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin:12px 0 22px; }}
+    .matrix-card {{ background:var(--panel); border:1px solid var(--line); border-top:5px solid var(--blue); border-radius:8px; padding:16px; min-width:0; }}
+    .matrix-card.good {{ border-top-color:var(--green); }}
+    .matrix-card.watch {{ border-top-color:var(--amber); }}
+    .matrix-card.soft {{ border-top-color:var(--red); }}
+    .matrix-card strong {{ display:block; color:var(--ink); font-size:21px; line-height:1.16; margin-bottom:8px; }}
+    .matrix-card p {{ margin-bottom:11px; }}
+    .matrix-card span {{ display:block; color:#475569; font-size:13px; font-weight:800; }}
     .metric {{ font-size:32px; font-weight:800; line-height:1; margin:4px 0 8px; }}
     .metric small {{ display:block; color:var(--muted); font-size:13px; font-weight:650; margin-top:6px; line-height:1.3; }}
     .pill {{ display:inline-block; border-radius:999px; padding:4px 9px; background:#eef4ff; color:var(--blue); font-size:12px; font-weight:750; text-transform:uppercase; letter-spacing:.06em; }}
@@ -336,7 +380,7 @@ def main():
     th, td {{ text-align:left; border-bottom:1px solid var(--line); padding:10px 8px; vertical-align:top; overflow-wrap:anywhere; }}
     th {{ color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.06em; }}
     .footer {{ margin-top:24px; color:var(--muted); font-size:13px; }}
-    @media (max-width:860px) {{ main {{ padding:24px 14px 36px; }} .answer, .cards, .two, .lanes {{ grid-template-columns:1fr; }} }}
+    @media (max-width:860px) {{ main {{ padding:24px 14px 36px; }} .answer, .cards, .two, .lanes, .matrix-grid {{ grid-template-columns:1fr; }} }}
   </style>
 </head>
 <body>
@@ -384,6 +428,13 @@ def main():
 
   <section class="grid cards">
 {cards}
+  </section>
+
+  <section>
+    <h2>Decision Matrix</h2>
+    <div class="matrix-grid">
+{matrix}
+    </div>
   </section>
 
   <section>

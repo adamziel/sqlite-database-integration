@@ -14,15 +14,23 @@
     h3 { margin:0 0 6px; font-size:15px; color:var(--muted); text-transform:uppercase; letter-spacing:.07em; }
     p { margin:0 0 12px; color:var(--muted); }
     a { color:var(--blue); }
-    .lede { max-width:860px; font-size:18px; }
+    .lede { max-width:900px; font-size:18px; }
     .hero { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:22px; }
     .answer { display:grid; grid-template-columns:1.2fr .8fr; gap:18px; align-items:start; margin-top:18px; }
     .verdict { border-left:6px solid var(--amber); background:#fffaf0; border-radius:8px; padding:16px; }
     .verdict strong { display:block; color:var(--ink); font-size:28px; line-height:1.12; margin-bottom:8px; }
     .grid { display:grid; gap:14px; }
-    .cards { grid-template-columns:repeat(4,minmax(0,1fr)); margin:20px 0; }
+    .cards { grid-template-columns:repeat(3,minmax(0,1fr)); margin:20px 0; }
     .two { grid-template-columns:1fr 1fr; }
     .card { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px; }
+    .nav { display:flex; flex-wrap:wrap; gap:8px; margin:18px 0 0; }
+    .nav a { border:1px solid var(--line); border-radius:999px; padding:7px 11px; background:#fbfdff; color:var(--muted); font-size:13px; text-decoration:none; }
+    .lanes { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin:20px 0 6px; }
+    .lane { background:var(--panel); border:1px solid var(--line); border-top:5px solid var(--blue); border-radius:8px; padding:15px; }
+    .lane.good { border-top-color:var(--green); }
+    .lane.watch { border-top-color:var(--amber); }
+    .lane strong { display:block; color:var(--ink); margin-bottom:7px; font-size:18px; }
+    .lane p { margin-bottom:0; font-size:14px; }
     .question-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:12px; margin:12px 0 22px; }
     .question-card { background:var(--panel); border:1px solid var(--line); border-left:5px solid var(--blue); border-radius:8px; padding:15px; min-height:172px; }
     .question-card h3 { margin-bottom:6px; }
@@ -47,7 +55,7 @@
     th, td { text-align:left; border-bottom:1px solid var(--line); padding:10px 8px; vertical-align:top; overflow-wrap:anywhere; }
     th { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.06em; }
     .footer { margin-top:24px; color:var(--muted); font-size:13px; }
-    @media (max-width:860px) { main { padding:24px 14px 36px; } .answer, .cards, .two { grid-template-columns:1fr; } }
+    @media (max-width:860px) { main { padding:24px 14px 36px; } .answer, .cards, .two, .lanes { grid-template-columns:1fr; } }
   </style>
 </head>
 <body>
@@ -55,19 +63,42 @@
   <section class="hero">
     <span class="pill">Decision brief</span>
     <h1>WordPress is still the default CMS, but the signals are softer.</h1>
-    <p class="lede">Use WordPress as a strong default when installed reach, ecosystem depth, and open-source control matter. Treat growth and new-site momentum as softer: the report shows fewer new tracker reporters and more visible builder pressure.</p>
+    <p class="lede">Use WordPress as a strong default when installed reach, ecosystem depth, and open-source control matter. Treat growth and new-site momentum as slower: the report shows fewer new tracker reporters and more visible builder pressure, while ecosystem and package activity remain broad.</p>
+    <nav class="nav" aria-label="Report links">
+      <a href="index.html#decision-questions">Full report</a>
+      <a href="new_site_choice.html">New-site choice</a>
+      <a href="developer_interest.html">Developer interest</a>
+      <a href="ecosystem_activity.html">Ecosystem activity</a>
+      <a href="project_load.html">Project load</a>
+      <a href="source_gap_plan.html">Source gaps</a>
+    </nav>
     <div class="answer">
       <div class="verdict">
         <strong>Decision readout: still healthy, with slower entry.</strong>
-        <p>WordPress remains dominant on installed-share evidence and has broad ecosystem activity. The work queue is closer to balanced than the backlog size alone suggests. The softer areas are new participant entry, older backlog, and incomplete direct evidence for new-site share, search interest, and broad job demand.</p>
+        <p>WordPress remains dominant on installed-share evidence and has broad ecosystem activity. The work queue is closer to balanced than the backlog size alone suggests. The slower areas are new participant entry, older backlog, and direct evidence for new-site share, search interest, and broad job demand.</p>
       </div>
       <div class="card">
         <h3>Evidence strength</h3>
-        <p><b>Strong:</b> installed share, ticket flow, backlog, release/community activity.</p>
-        <p><b>Useful proxy:</b> BuiltWith pipeline, HTTP Archive tracked share, Stack Overflow, HN hiring, Jobs board.</p>
-        <p><b>Still partial:</b> true new-site cohorts, Google Trends, broad labor-market exports, long support history.</p>
+        <p><b>Strong:</b> installed share, ticket flow, PRs, backlog, release/community activity, plugin/theme directory snapshots.</p>
+        <p><b>Useful proxy:</b> BuiltWith pipeline, HTTP Archive tracked share, Stack Overflow, Wikimedia, npm package downloads, HN hiring, Jobs board.</p>
+        <p><b>Still partial:</b> true multi-year newly created-site cohorts, search-provider exports, broad hiring-platform exports, long support history.</p>
       </div>
     </div>
+  </section>
+
+  <section class="lanes" aria-label="Evidence lanes">
+    <article class="lane">
+      <strong>Project data says: mostly keeping up.</strong>
+      <p>Core and Gutenberg flow is close to balanced since 2024, but open backlog age is still high.</p>
+    </article>
+    <article class="lane good">
+      <strong>Ecosystem data says: still active.</strong>
+      <p>Release credits, Make/Core, events, translations, plugin/theme samples, support queues, and npm packages are now in the SQLite-backed report.</p>
+    </article>
+    <article class="lane watch">
+      <strong>Market data says: dominant, slower.</strong>
+      <p>Installed share is still large, while recent share direction and first-time tracker participation are weaker than earlier periods.</p>
+    </article>
   </section>
 
   <section class="grid cards">
@@ -91,6 +122,16 @@
       <div class="metric">67.4%<small>tracked BuiltWith 90-day pipeline</small></div>
       <div class="bar"><span class="blue" style="width:67.4%"></span></div>
     </div>
+    <div class="card">
+      <h3>Package activity</h3>
+      <div class="metric">21.0M<small>Q2 2026 tracked @wordpress npm downloads</small></div>
+      <div class="bar"><span class="purple" style="width:78%"></span></div>
+    </div>
+    <div class="card">
+      <h3>Theme directory</h3>
+      <div class="metric">834<small>distinct sampled themes in current browse views</small></div>
+      <div class="bar"><span class="green" style="width:64%"></span></div>
+    </div>
   </section>
 
   <section>
@@ -111,7 +152,7 @@
       <article class="question-card slower">
         <h3>Participation?</h3>
         <strong>Fewer new reporters.</strong>
-        <p>Core first-time reporter retention is 66.2% of the 2021-2023 average; Gutenberg is 69.5%. PR creation is higher.</p>
+        <p>Core first-time reporter retention is 66.2% of the 2021-2023 average; Gutenberg is 69.5%. PR creation and npm package activity are still visible.</p>
         <span class="source">Core Trac + Gutenberg + PRs</span>
       </article>
       <article class="question-card soft">
@@ -135,13 +176,13 @@
       <article class="question-card watch">
         <h3>Builders gaining?</h3>
         <strong>Some share, yes.</strong>
-        <p>HTTP Archive tracked share has WordPress at 78.9%, -10.8 pts since 2020-01-01; WordPress still leads the current tracked BuiltWith 90-day pipeline at 67.4%.</p>
+        <p>HTTP Archive tracked share has WordPress at 78.9%, down 10.8 points since 2020-01-01; WordPress still leads the current tracked BuiltWith 90-day pipeline at 67.4%.</p>
         <span class="source">HTTP Archive + BuiltWith proxy</span>
       </article>
     </div>
   </section>
 
-  <p class="footer">Sources and full charts: <a href="index.html#decision-questions">full report decision questions</a>, <a href="progress_summary.html">progress summary</a>, <a href="project_load.html">project load</a>, <a href="market_position.html">market position</a>, <a href="contributor_depth.html">contributor depth</a>, <a href="ecosystem_activity.html">ecosystem activity</a>, <a href="goal_audit.html">goal audit</a>, <a href="data_inventory.html">data inventory</a>, <a href="source_gap_plan.html">source gap plan</a>, and <a href="refresh_runbook.html">refresh runbook</a>.</p>
+  <p class="footer">Sources and full charts: <a href="index.html#decision-questions">full report decision questions</a>, <a href="progress_summary.html">progress summary</a>, <a href="project_load.html">project load</a>, <a href="market_position.html">market position</a>, <a href="new_site_choice.html">new-site choice</a>, <a href="search_interest.html">search interest</a>, <a href="developer_interest.html">developer interest</a>, <a href="job_demand.html">job demand</a>, <a href="support_load.html">support load</a>, <a href="contributor_depth.html">contributor depth</a>, <a href="ecosystem_activity.html">ecosystem activity</a>, <a href="goal_audit.html">goal audit</a>, <a href="data_inventory.html">data inventory</a>, <a href="source_gap_plan.html">source gap plan</a>, and <a href="refresh_runbook.html">refresh runbook</a>.</p>
 </main>
 </body>
 </html>

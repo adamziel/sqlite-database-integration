@@ -130,7 +130,7 @@ def render():
             "Popularity and likelihood to choose WordPress",
             "Installed share, CMS share, newly detected sites, traffic tiers, peer builders, demand signals, plugins, WooCommerce, enterprise.",
             "Mixed",
-            "Installed-share and CMS-share evidence is direct. Newly detected sites, search interest, and broad job demand are presented with public proxies, including compact new-site and attention/demand summaries, and clearly labeled as partial.",
+            "Installed-share and CMS-share evidence is direct. Newly detected sites, search interest, and broad job demand are presented with public proxies, including compact new-site choice, search-interest, and attention/demand summaries, and clearly labeled as partial.",
             "partial",
         ),
         audit_row(
@@ -303,6 +303,7 @@ HTML_TEMPLATE = """<!doctype html>
         <a href="progress_summary.html">Progress summary</a>
         <a href="project_load.html">Project load</a>
         <a href="market_position.html">Market position</a>
+        <a href="new_site_choice.html">New-site choice</a>
         <a href="search_interest.html">Search interest</a>
         <a href="developer_interest.html">Developer interest</a>
         <a href="job_demand.html">Job demand</a>

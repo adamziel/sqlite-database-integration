@@ -49,6 +49,11 @@ HTML_ARTIFACTS = {
         "Decision lanes",
         "Current new-site proxy",
     ],
+    "new_site_choice.html": [
+        "WordPress new-site choice",
+        "Recurring tracked share over time",
+        "BuiltWith 90-day newly found sites",
+    ],
     "developer_interest.html": [
         "WordPress developer interest",
         "Developer-help questions",
@@ -255,6 +260,7 @@ def main():
         run_step([sys.executable, "make_contributor_depth_report.py"])
         run_step([sys.executable, "make_ecosystem_activity_report.py"])
         run_step([sys.executable, "make_market_position_report.py"])
+        run_step([sys.executable, "make_new_site_choice_report.py"])
         run_step([sys.executable, "make_developer_interest_report.py"])
         run_step([sys.executable, "make_job_demand_report.py"])
         run_step([sys.executable, "make_search_interest_report.py"])

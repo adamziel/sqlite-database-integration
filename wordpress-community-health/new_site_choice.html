@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WordPress New-Site Choice</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink:#172033;
+      --muted:#637083;
+      --line:#d9e1ea;
+      --paper:#f6f8fb;
+      --panel:#fff;
+      --blue:#2563eb;
+      --green:#159957;
+      --amber:#b7791f;
+      --violet:#7c3aed;
+    }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    main { max-width:1180px; margin:0 auto; padding:36px 22px 48px; }
+    h1 { margin:0 0 8px; font-size:clamp(32px,4vw,52px); line-height:1.05; letter-spacing:0; }
+    h2 { margin:0 0 12px; font-size:23px; line-height:1.15; letter-spacing:0; }
+    h3 { margin:0 0 8px; font-size:12px; text-transform:uppercase; letter-spacing:0; color:var(--muted); }
+    p { margin:0; }
+    a { color:var(--blue); }
+    code { font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:13px; overflow-wrap:anywhere; }
+    .lede { max-width:920px; color:var(--muted); font-size:18px; margin-bottom:18px; }
+    .nav { display:flex; flex-wrap:wrap; gap:8px; margin:18px 0 22px; }
+    .nav a { border:1px solid var(--line); border-radius:999px; padding:7px 11px; background:#fbfdff; color:var(--blue); font-size:13px; font-weight:650; text-decoration:none; }
+    .metrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin:22px 0; }
+    .metric, .panel, .chart-card, .signal-panel {
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:8px;
+      box-shadow:0 1px 2px rgba(15,23,42,.04);
+    }
+    .metric { padding:16px; border-top:5px solid var(--blue); }
+    .metric.green { border-top-color:var(--green); }
+    .metric.amber { border-top-color:var(--amber); }
+    .metric.violet { border-top-color:var(--violet); }
+    .metric strong { display:block; font-size:31px; line-height:1; margin:5px 0 7px; }
+    .metric p, .panel p, .chart-card p, .note { color:var(--muted); font-size:14px; }
+    .grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:14px; align-items:start; }
+    .panel, .chart-card, .signal-panel { padding:18px; min-width:0; }
+    .signals { display:grid; gap:9px; margin-top:12px; }
+    .signal-row { display:flex; justify-content:space-between; gap:14px; align-items:center; border-left:5px solid var(--blue); background:#fbfdff; border-radius:8px; padding:12px; }
+    .signal-row.green { border-left-color:var(--green); }
+    .signal-row.amber { border-left-color:var(--amber); }
+    .signal-row.violet { border-left-color:var(--violet); }
+    .signal-row strong, .signal-row span { display:block; }
+    .signal-row span { color:var(--muted); font-size:13px; }
+    .signal-row b { font-size:20px; white-space:nowrap; }
+    .bar-stack { display:grid; gap:11px; margin-top:14px; }
+    .bar-label { display:flex; justify-content:space-between; gap:8px; font-size:13px; margin-bottom:4px; }
+    .bar-label span { color:var(--muted); }
+    .bar-label strong { white-space:nowrap; }
+    .bar { height:10px; border-radius:999px; background:#e8eef5; overflow:hidden; }
+    .bar span { display:block; height:100%; border-radius:inherit; }
+    .chart-card svg { width:100%; height:auto; display:block; margin-top:10px; }
+    .gridline { stroke:#e8eef5; stroke-width:1; }
+    .axis { font-size:11px; fill:var(--muted); }
+    .chart-end { font-size:13px; font-weight:800; fill:var(--ink); }
+    .legend { display:flex; flex-wrap:wrap; gap:8px 14px; margin-top:10px; color:var(--muted); font-size:13px; }
+    .legend span { display:inline-flex; align-items:center; gap:6px; }
+    .legend i { width:10px; height:10px; border-radius:50%; display:inline-block; }
+    .legend b { color:var(--ink); }
+    .readout { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-top:14px; }
+    .readout div { border:1px solid var(--line); border-radius:8px; padding:12px; background:#fbfdff; }
+    .readout strong { display:block; margin-bottom:5px; }
+    .readout span { color:var(--muted); font-size:14px; }
+    .footer-note { margin-top:14px; background:#eef4ff; border:1px solid #cfe0ff; border-radius:8px; padding:14px 16px; color:#244067; }
+    @media (max-width:980px) {
+      .metrics { grid-template-columns:1fr 1fr; }
+      .grid, .readout { grid-template-columns:1fr; }
+    }
+    @media (max-width:640px) {
+      main { padding:24px 14px 36px; }
+      .metrics { grid-template-columns:1fr; }
+      .signal-row { display:block; }
+      .signal-row b { display:block; margin-top:5px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>WordPress new-site choice</h1>
+    <p class="lede">A compact view of whether new or newly detected sites still point toward WordPress. It combines BuiltWith current newly found-site counts with recurring HTTP Archive crawl signals and traffic-tier context stored in SQLite.</p>
+    <nav class="nav">
+      <a href="index.html#market">Market Position</a>
+      <a href="market_position.html">Market position</a>
+      <a href="new_site_choice.html">New-site choice</a>
+      <a href="search_interest.html">Search interest</a>
+      <a href="developer_interest.html">Developer interest</a>
+      <a href="job_demand.html">Job demand</a>
+      <a href="support_load.html">Support load</a>
+      <a href="project_load.html">Project load</a>
+      <a href="ecosystem_activity.html">Ecosystem activity</a>
+      <a href="contributor_depth.html">Contributor depth</a>
+      <a href="progress_summary.html">Progress summary</a>
+      <a href="decision_brief.html">Decision brief</a>
+      <a href="goal_audit.html">Goal audit</a>
+      <a href="data_inventory.html">Data inventory</a>
+      <a href="source_gap_plan.html">Source gap plan</a>
+    </nav>
+
+    <section class="metrics" aria-label="New-site choice summary">
+
+      <article class="metric green">
+        <h3>90-day newly found share</h3>
+        <strong>67.4%</strong>
+        <p>BuiltWith tracked pipeline; 2.4M WordPress sites</p>
+      </article>
+      <article class="metric green">
+        <h3>30-day newly found share</h3>
+        <strong>60.4%</strong>
+        <p>BuiltWith tracked pipeline; 615.4k WordPress sites</p>
+      </article>
+      <article class="metric blue">
+        <h3>HTTP Archive share</h3>
+        <strong>78.9%</strong>
+        <p>latest recurring mobile crawl, 2026-05-01</p>
+      </article>
+      <article class="metric amber">
+        <h3>HTTP Archive change</h3>
+        <strong>-10.8 pts</strong>
+        <p>WordPress tracked-share change since 2020-01</p>
+      </article>
+      <article class="metric violet">
+        <h3>Top 1M tracked share</h3>
+        <strong>77.3%</strong>
+        <p>BuiltWith current traffic-tier snapshot</p>
+      </article>
+      <article class="metric violet">
+        <h3>Long-tail tracked share</h3>
+        <strong>60.6%</strong>
+        <p>BuiltWith current outside-Top-1M snapshot</p>
+      </article>
+    </section>
+
+    <section class="grid">
+      <div class="signal-panel">
+        <h2>Decision lanes</h2>
+        <p class="note">Use these lanes as the short version before reading the charts.</p>
+        <div class="signals">
+        <div class="signal-row green">
+          <div>
+            <strong>WordPress still leads the current pipeline</strong>
+            <span>BuiltWith 90-day newly found counts show WordPress 3.34x the next tracked peer.</span>
+          </div>
+          <b>67.4%</b>
+        </div>
+        <div class="signal-row amber">
+          <div>
+            <strong>The shorter window is lower</strong>
+            <span>The 30-day tracked share is below the 90-day tracked share, so the freshest current proxy is softer.</span>
+          </div>
+          <b>-6.9 pts</b>
+        </div>
+        <div class="signal-row amber">
+          <div>
+            <strong>Recurring crawl share is lower than 2020</strong>
+            <span>HTTP Archive tracked share still leads, but it is below the first stored month.</span>
+          </div>
+          <b>-10.8 pts</b>
+        </div>
+        <div class="signal-row violet">
+          <div>
+            <strong>High-traffic presence remains strong</strong>
+            <span>BuiltWith current Top 1M tracked share stays well above every peer builder in the tracked set.</span>
+          </div>
+          <b>77.3%</b>
+        </div>
+        <div class="signal-row blue">
+          <div>
+            <strong>True new-site history is still incomplete</strong>
+            <span>This page uses current newly found-site counts plus recurring crawl share until a first-seen cohort source is added.</span>
+          </div>
+          <b>Partial</b>
+        </div></div>
+      </div>
+      <div class="panel">
+        <h2>How to read this</h2>
+        <div class="readout">
+          <div><strong>Current pipeline</strong><span>BuiltWith newly found-site counts show WordPress still first among tracked peers.</span></div>
+          <div><strong>Trend context</strong><span>HTTP Archive recurring share shows WordPress lower than 2020 while still far ahead.</span></div>
+          <div><strong>Best next source</strong><span>A first-seen cohort export would turn this from a proxy page into true new-site history.</span></div>
+        </div>
+        <p class="footer-note">Current report includes BuiltWith current Net New Pipeline, HTTP Archive monthly origin counts, derived tracked-share history, rank-tier detected-origin adoption, a compact new-site choice summary, and a dedicated new-site choice companion view; not a multi-year newly created site cohort. SQLite integrity check: <code>ok</code>.</p>
+      </div>
+    </section>
+
+    <section class="grid" style="margin-top:14px">
+      <article class="chart-card">
+<h2>Recurring tracked share over time</h2>
+<p>HTTP Archive monthly mobile-crawl share among WordPress, Shopify, Wix, Squarespace, and Webflow. This is not a first-seen new-site cohort.</p>
+<svg viewBox="0 0 760 310" role="img" aria-label="Recurring tracked share over time">
+<line x1="58" x2="732" y1="260.0" y2="260.0" class="gridline" />
+<text x="49" y="264.0" class="axis" text-anchor="end">0.0%</text>
+<line x1="58" x2="732" y1="153.0" y2="153.0" class="gridline" />
+<text x="49" y="157.0" class="axis" text-anchor="end">49.3%</text>
+<line x1="58" x2="732" y1="46.0" y2="46.0" class="gridline" />
+<text x="49" y="50.0" class="axis" text-anchor="end">98.6%</text>
+<path d="M58.0,65.5 L66.9,66.9 L75.7,66.4 L84.6,66.7 L93.5,67.5 L102.3,69.7 L111.2,70.3 L120.1,70.1 L128.9,70.9 L137.8,71.2 L146.7,71.2 L155.6,71.4 L164.4,71.3 L173.3,71.7 L182.2,71.8 L191.0,71.8 L199.9,72.4 L208.8,73.0 L217.6,74.0 L226.5,73.8 L235.4,73.9 L244.2,74.0 L253.1,74.0 L262.0,74.2 L270.8,74.4 L279.7,74.6 L288.6,74.5 L297.4,75.2 L306.3,74.8 L315.2,74.9 L324.1,75.3 L332.9,75.6 L341.8,75.6 L350.7,75.8 L359.5,76.6 L368.4,77.0 L377.3,77.2 L386.1,77.4 L395.0,77.6 L403.9,78.1 L412.7,78.5 L421.6,78.9 L430.5,79.4 L439.3,79.7 L448.2,79.7 L457.1,80.0 L465.9,81.0 L474.8,81.7 L483.7,81.2 L492.6,80.9 L501.4,81.3 L510.3,81.7 L519.2,81.9 L528.0,82.3 L536.9,82.6 L545.8,79.3 L554.6,82.9 L563.5,83.0 L572.4,84.0 L581.2,85.0 L590.1,84.2 L599.0,84.2 L607.8,84.4 L616.7,84.8 L625.6,85.0 L634.4,85.6 L643.3,86.2 L652.2,86.5 L661.1,85.7 L669.9,86.2 L678.8,87.4 L687.7,88.6 L696.5,87.4 L705.4,87.5 L714.3,88.1 L723.1,88.5 L732.0,88.8" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="732.0" cy="88.8" r="4" fill="#2563eb" />
+<path d="M58.0,248.6 L66.9,247.6 L75.7,247.4 L84.6,246.7 L93.5,246.3 L102.3,245.0 L111.2,245.2 L120.1,245.4 L128.9,245.8 L137.8,245.6 L146.7,244.9 L155.6,244.5 L164.4,244.4 L173.3,244.4 L182.2,244.6 L191.0,244.6 L199.9,244.9 L208.8,244.8 L217.6,244.5 L226.5,244.4 L235.4,244.8 L244.2,244.6 L253.1,244.3 L262.0,243.9 L270.8,244.0 L279.7,243.9 L288.6,244.2 L297.4,244.1 L306.3,244.5 L315.2,244.6 L324.1,245.1 L332.9,245.7 L341.8,245.3 L350.7,245.0 L359.5,244.1 L368.4,243.7 L377.3,244.2 L386.1,243.9 L395.0,244.1 L403.9,243.9 L412.7,243.9 L421.6,243.8 L430.5,243.6 L439.3,243.4 L448.2,243.1 L457.1,242.4 L465.9,241.3 L474.8,240.7 L483.7,241.4 L492.6,241.8 L501.4,241.6 L510.3,241.4 L519.2,241.3 L528.0,241.1 L536.9,241.0 L545.8,243.8 L554.6,240.6 L563.5,240.3 L572.4,239.0 L581.2,238.1 L590.1,239.0 L599.0,239.2 L607.8,238.9 L616.7,238.6 L625.6,238.4 L634.4,238.4 L643.3,238.3 L652.2,238.3 L661.1,237.8 L669.9,237.1 L678.8,235.6 L687.7,234.4 L696.5,236.0 L705.4,236.4 L714.3,235.7 L723.1,235.5 L732.0,235.3" fill="none" stroke="#159957" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="732.0" cy="235.3" r="4" fill="#159957" />
+<path d="M58.0,254.9 L66.9,254.4 L75.7,254.8 L84.6,255.2 L93.5,254.8 L102.3,254.2 L111.2,253.6 L120.1,253.6 L128.9,252.7 L137.8,252.6 L146.7,253.2 L155.6,253.4 L164.4,253.7 L173.3,253.2 L182.2,253.0 L191.0,253.1 L199.9,252.5 L208.8,252.2 L217.6,251.7 L226.5,251.8 L235.4,251.3 L244.2,251.3 L253.1,251.5 L262.0,251.4 L270.8,251.4 L279.7,251.3 L288.6,251.1 L297.4,250.9 L306.3,250.5 L315.2,250.3 L324.1,249.5 L332.9,248.7 L341.8,249.2 L350.7,249.4 L359.5,249.5 L368.4,249.3 L377.3,249.1 L386.1,249.2 L395.0,248.9 L403.9,248.7 L412.7,248.3 L421.6,248.1 L430.5,247.9 L439.3,247.8 L448.2,248.1 L457.1,248.4 L465.9,248.7 L474.8,248.5 L483.7,248.6 L492.6,248.5 L501.4,248.4 L510.3,248.4 L519.2,248.2 L528.0,248.2 L536.9,248.0 L545.8,248.8 L554.6,248.2 L563.5,248.4 L572.4,248.6 L581.2,248.6 L590.1,248.8 L599.0,248.8 L607.8,248.9 L616.7,248.8 L625.6,248.7 L634.4,248.2 L643.3,247.7 L652.2,247.4 L661.1,248.7 L669.9,248.9 L678.8,249.2 L687.7,248.9 L696.5,249.0 L705.4,248.7 L714.3,248.8 L723.1,248.6 L732.0,248.5" fill="none" stroke="#b7791f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="732.0" cy="248.5" r="4" fill="#b7791f" />
+<path d="M58.0,255.1 L66.9,255.3 L75.7,255.6 L84.6,255.7 L93.5,255.5 L102.3,255.3 L111.2,255.1 L120.1,255.1 L128.9,255.0 L137.8,254.9 L146.7,255.0 L155.6,255.0 L164.4,255.0 L173.3,255.0 L182.2,254.9 L191.0,254.9 L199.9,254.6 L208.8,254.5 L217.6,254.5 L226.5,254.6 L235.4,254.8 L244.2,254.9 L253.1,255.1 L262.0,255.3 L270.8,255.2 L279.7,255.2 L288.6,255.1 L297.4,254.9 L306.3,255.2 L315.2,255.2 L324.1,255.2 L332.9,255.1 L341.8,255.0 L350.7,254.9 L359.5,255.0 L368.4,255.1 L377.3,254.8 L386.1,254.8 L395.0,254.7 L403.9,254.7 L412.7,254.8 L421.6,254.7 L430.5,254.7 L439.3,254.7 L448.2,254.8 L457.1,254.8 L465.9,254.8 L474.8,254.8 L483.7,254.6 L492.6,254.6 L501.4,254.6 L510.3,254.6 L519.2,254.6 L528.0,254.5 L536.9,254.5 L545.8,254.4 L554.6,254.4 L563.5,254.5 L572.4,254.6 L581.2,254.7 L590.1,254.4 L599.0,254.4 L607.8,254.3 L616.7,254.4 L625.6,254.4 L634.4,254.4 L643.3,254.3 L652.2,254.4 L661.1,254.4 L669.9,254.5 L678.8,254.5 L687.7,254.6 L696.5,254.4 L705.4,254.2 L714.3,254.2 L723.1,254.2 L732.0,254.2" fill="none" stroke="#64748b" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="732.0" cy="254.2" r="4" fill="#64748b" />
+<path d="M58.0,259.0 L66.9,258.9 L75.7,258.9 L84.6,258.9 L93.5,258.9 L102.3,258.8 L111.2,258.8 L120.1,258.8 L128.9,258.8 L137.8,258.7 L146.7,258.7 L155.6,258.7 L164.4,258.6 L173.3,258.8 L182.2,258.7 L191.0,258.7 L199.9,258.6 L208.8,258.5 L217.6,258.3 L226.5,258.3 L235.4,258.3 L244.2,258.2 L253.1,258.2 L262.0,258.2 L270.8,258.1 L279.7,258.1 L288.6,258.0 L297.4,258.0 L306.3,258.0 L315.2,258.0 L324.1,258.1 L332.9,258.0 L341.8,257.9 L350.7,257.9 L359.5,257.8 L368.4,257.8 L377.3,257.8 L386.1,257.7 L395.0,257.7 L403.9,257.6 L412.7,257.6 L421.6,257.5 L430.5,257.5 L439.3,257.5 L448.2,257.4 L457.1,257.3 L465.9,257.3 L474.8,257.3 L483.7,257.2 L492.6,257.2 L501.4,257.1 L510.3,257.0 L519.2,257.0 L528.0,257.0 L536.9,256.9 L545.8,256.8 L554.6,256.8 L563.5,256.8 L572.4,256.8 L581.2,256.7 L590.1,256.6 L599.0,256.6 L607.8,256.6 L616.7,256.5 L625.6,256.5 L634.4,256.5 L643.3,256.5 L652.2,256.5 L661.1,256.4 L669.9,256.4 L678.8,256.4 L687.7,256.4 L696.5,256.3 L705.4,256.2 L714.3,256.2 L723.1,256.3 L732.0,256.3" fill="none" stroke="#7c3aed" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="732.0" cy="256.3" r="4" fill="#7c3aed" />
+<text x="58" y="292" class="axis">2020-01</text>
+<text x="732" y="292" class="axis" text-anchor="end">2026-05</text>
+</svg>
+<div class="legend">
+<span><i style="background:#2563eb"></i>WordPress <b>78.9%</b></span>
+<span><i style="background:#159957"></i>Shopify <b>11.4%</b></span>
+<span><i style="background:#b7791f"></i>Wix <b>5.3%</b></span>
+<span><i style="background:#64748b"></i>Squarespace <b>2.7%</b></span>
+<span><i style="background:#7c3aed"></i>Webflow <b>1.7%</b></span>
+</div>
+</article>
+      <article class="chart-card">
+<h2>Detected mobile origins over time</h2>
+<p>HTTP Archive recurring mobile-crawl origin counts. Use it for direction, not exact market sizing.</p>
+<svg viewBox="0 0 760 310" role="img" aria-label="Detected mobile origins over time">
+<line x1="58" x2="732" y1="260.0" y2="260.0" class="gridline" />
+<text x="49" y="264.0" class="axis" text-anchor="end">0</text>
+<line x1="58" x2="732" y1="153.0" y2="153.0" class="gridline" />
+<text x="49" y="157.0" class="axis" text-anchor="end">1.9M</text>
+<line x1="58" x2="732" y1="46.0" y2="46.0" class="gridline" />
+<text x="49" y="50.0" class="axis" text-anchor="end">3.8M</text>
+<path d="M58.0,201.9 L66.9,189.8 L75.7,190.2 L84.6,189.5 L93.5,186.5 L102.3,180.1 L111.2,171.3 L120.1,173.6 L128.9,162.4 L137.8,160.9 L146.7,167.0 L155.6,161.9 L164.4,157.1 L173.3,158.9 L182.2,152.2 L191.0,155.4 L199.9,149.7 L208.8,150.1 L217.6,152.0 L226.5,154.7 L235.4,149.0 L244.2,147.0 L253.1,143.5 L262.0,146.7 L270.8,140.4 L279.7,143.0 L288.6,137.3 L297.4,139.6 L306.3,127.7 L315.2,128.1 L324.1,106.6 L332.9,73.4 L341.8,75.4 L350.7,77.0 L359.5,77.4 L368.4,82.5 L377.3,69.3 L386.1,71.9 L395.0,68.7 L403.9,72.5 L412.7,66.6 L421.6,67.4 L430.5,68.2 L439.3,65.5 L448.2,66.7 L457.1,69.3 L465.9,70.4 L474.8,81.5 L483.7,73.6 L492.6,71.8 L501.4,73.8 L510.3,72.7 L519.2,73.8 L528.0,75.6 L536.9,76.3 L545.8,80.5 L554.6,73.2 L563.5,74.0 L572.4,79.4 L581.2,91.3 L590.1,83.5 L599.0,80.7 L607.8,84.5 L616.7,87.6 L625.6,87.9 L634.4,90.0 L643.3,87.0 L652.2,81.7 L661.1,82.8 L669.9,85.8 L678.8,88.2 L687.7,98.5 L696.5,93.1 L705.4,89.3 L714.3,93.4 L723.1,94.0 L732.0,95.7" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="732.0" cy="95.7" r="4" fill="#2563eb" />
+<path d="M58.0,256.6 L66.9,255.5 L75.7,255.5 L84.6,255.1 L93.5,254.8 L102.3,253.7 L111.2,253.1 L120.1,253.3 L128.9,252.7 L137.8,252.5 L146.7,252.6 L155.6,251.9 L164.4,251.5 L173.3,251.6 L182.2,251.2 L191.0,251.5 L199.9,251.1 L208.8,251.1 L217.6,251.0 L226.5,251.2 L235.4,250.9 L244.2,250.7 L253.1,250.1 L262.0,250.2 L270.8,249.7 L279.7,249.8 L288.6,249.6 L297.4,249.6 L306.3,248.9 L315.2,249.0 L324.1,247.6 L332.9,245.5 L341.8,245.3 L350.7,245.1 L359.5,244.2 L368.4,244.2 L377.3,243.5 L386.1,243.5 L395.0,243.4 L403.9,243.5 L412.7,242.9 L421.6,242.8 L430.5,242.5 L439.3,242.0 L448.2,241.9 L457.1,241.4 L465.9,240.2 L474.8,240.6 L483.7,240.6 L492.6,240.9 L501.4,240.9 L510.3,240.5 L519.2,240.5 L528.0,240.4 L536.9,240.4 L545.8,243.9 L554.6,239.6 L563.5,239.3 L572.4,238.5 L581.2,238.9 L590.1,238.9 L599.0,238.8 L607.8,238.9 L616.7,238.9 L625.6,238.8 L634.4,238.9 L643.3,238.4 L652.2,237.7 L661.1,237.4 L669.9,237.0 L678.8,235.7 L687.7,235.9 L696.5,236.8 L705.4,236.6 L714.3,236.5 L723.1,236.3 L732.0,236.3" fill="none" stroke="#159957" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="732.0" cy="236.3" r="4" fill="#159957" />
+<path d="M58.0,258.5 L66.9,258.0 L75.7,258.1 L84.6,258.2 L93.5,258.0 L102.3,257.6 L111.2,257.0 L120.1,257.1 L128.9,256.2 L137.8,256.1 L146.7,256.7 L155.6,256.6 L164.4,256.6 L173.3,256.3 L182.2,256.0 L191.0,256.1 L199.9,255.6 L208.8,255.4 L217.6,255.2 L226.5,255.4 L235.4,254.8 L244.2,254.7 L253.1,254.7 L262.0,254.8 L270.8,254.5 L279.7,254.5 L288.6,254.1 L297.4,254.0 L306.3,253.2 L315.2,253.1 L324.1,251.3 L332.9,248.5 L341.8,249.2 L350.7,249.5 L359.5,249.5 L368.4,249.7 L377.3,248.7 L386.1,248.9 L395.0,248.4 L403.9,248.3 L412.7,247.5 L421.6,247.3 L430.5,247.1 L439.3,246.8 L448.2,247.3 L457.1,247.7 L465.9,248.0 L474.8,248.5 L483.7,248.1 L492.6,247.9 L501.4,247.9 L510.3,247.8 L519.2,247.7 L528.0,247.7 L536.9,247.5 L545.8,248.9 L554.6,247.6 L563.5,247.8 L572.4,248.3 L581.2,249.0 L590.1,248.7 L599.0,248.5 L607.8,248.9 L616.7,248.9 L625.6,248.9 L634.4,248.5 L643.3,247.8 L652.2,247.1 L661.1,248.6 L669.9,248.9 L678.8,249.2 L687.7,249.6 L696.5,249.4 L705.4,248.8 L714.3,249.1 L723.1,248.9 L732.0,249.0" fill="none" stroke="#b7791f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="732.0" cy="249.0" r="4" fill="#b7791f" />
+<path d="M58.0,259.7 L66.9,259.6 L75.7,259.6 L84.6,259.6 L93.5,259.6 L102.3,259.5 L111.2,259.4 L120.1,259.5 L128.9,259.4 L137.8,259.3 L146.7,259.4 L155.6,259.3 L164.4,259.3 L173.3,259.4 L182.2,259.3 L191.0,259.3 L199.9,259.2 L208.8,259.1 L217.6,259.0 L226.5,259.1 L235.4,259.0 L244.2,258.9 L253.1,258.9 L262.0,258.9 L270.8,258.8 L279.7,258.8 L288.6,258.7 L297.4,258.7 L306.3,258.6 L315.2,258.6 L324.1,258.4 L332.9,258.0 L341.8,257.9 L350.7,257.9 L359.5,257.8 L368.4,257.9 L377.3,257.7 L386.1,257.7 L395.0,257.6 L403.9,257.6 L412.7,257.4 L421.6,257.4 L430.5,257.3 L439.3,257.3 L448.2,257.2 L457.1,257.2 L465.9,257.1 L474.8,257.3 L483.7,257.1 L492.6,257.0 L501.4,257.0 L510.3,256.9 L519.2,256.9 L528.0,256.8 L536.9,256.8 L545.8,256.9 L554.6,256.7 L563.5,256.7 L572.4,256.7 L581.2,256.9 L590.1,256.6 L599.0,256.5 L607.8,256.6 L616.7,256.6 L625.6,256.6 L634.4,256.6 L643.3,256.5 L652.2,256.4 L661.1,256.4 L669.9,256.4 L678.8,256.4 L687.7,256.6 L696.5,256.4 L705.4,256.3 L714.3,256.3 L723.1,256.4 L732.0,256.4" fill="none" stroke="#7c3aed" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="732.0" cy="256.4" r="4" fill="#7c3aed" />
+<text x="58" y="292" class="axis">2020-01</text>
+<text x="732" y="292" class="axis" text-anchor="end">2026-05</text>
+</svg>
+<div class="legend">
+<span><i style="background:#2563eb"></i>WordPress <b>2.9M</b></span>
+<span><i style="background:#159957"></i>Shopify <b>423.6k</b></span>
+<span><i style="background:#b7791f"></i>Wix <b>197.1k</b></span>
+<span><i style="background:#7c3aed"></i>Webflow <b>64.2k</b></span>
+</div>
+</article>
+    </section>
+
+    <section class="grid" style="margin-top:14px">
+
+      <article class="panel">
+        <h2>BuiltWith 90-day newly found sites</h2>
+        <p>Current Net New Pipeline counts where the public page exposes them. Squarespace is omitted because the fetched page did not expose comparable counts.</p>
+        <div class="bar-stack">
+        <div class="barline">
+          <div class="bar-label"><span>WordPress</span><strong>2.4M</strong></div>
+          <div class="bar"><span style="width:100.0%;background:#2563eb"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>Shopify</span><strong>726.1k</strong></div>
+          <div class="bar"><span style="width:30.0%;background:#159957"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>Wix</span><strong>403.9k</strong></div>
+          <div class="bar"><span style="width:16.7%;background:#b7791f"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>Webflow</span><strong>43.7k</strong></div>
+          <div class="bar"><span style="width:2.0%;background:#7c3aed"></span></div>
+        </div></div>
+      </article>
+
+      <article class="panel">
+        <h2>BuiltWith 30-day newly found sites</h2>
+        <p>A shorter current window from the same public BuiltWith pages.</p>
+        <div class="bar-stack">
+        <div class="barline">
+          <div class="bar-label"><span>WordPress</span><strong>615.4k</strong></div>
+          <div class="bar"><span style="width:100.0%;background:#2563eb"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>Shopify</span><strong>263.7k</strong></div>
+          <div class="bar"><span style="width:42.8%;background:#159957"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>Wix</span><strong>128.1k</strong></div>
+          <div class="bar"><span style="width:20.8%;background:#b7791f"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>Webflow</span><strong>11.1k</strong></div>
+          <div class="bar"><span style="width:2.0%;background:#7c3aed"></span></div>
+        </div></div>
+      </article>
+    </section>
+
+    <section class="grid" style="margin-top:14px">
+      <article class="chart-card">
+<h2>BuiltWith traffic-tier profile</h2>
+<p>WordPress share among tracked CMS/builder technologies in each current BuiltWith traffic tier.</p>
+<svg viewBox="0 0 720 260" role="img" aria-label="BuiltWith traffic-tier profile">
+<line x1="54" x2="692" y1="210.0" y2="210.0" class="gridline" />
+<text x="45" y="214.0" class="axis" text-anchor="end">0%</text>
+<line x1="54" x2="692" y1="127.0" y2="127.0" class="gridline" />
+<text x="45" y="131.0" class="axis" text-anchor="end">50%</text>
+<line x1="54" x2="692" y1="44.0" y2="44.0" class="gridline" />
+<text x="45" y="48.0" class="axis" text-anchor="end">100%</text>
+<path d="M54.0,92.8 L213.5,81.0 L373.0,75.8 L532.5,81.6 L692.0,109.4" fill="none" stroke="#7c3aed" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="54.0" cy="92.8" r="4" fill="#7c3aed" />
+<text x="54.0" y="242" class="axis" text-anchor="middle">Top 1k</text>
+<circle cx="213.5" cy="81.0" r="4" fill="#7c3aed" />
+<text x="213.5" y="242" class="axis" text-anchor="middle">Top 10k</text>
+<circle cx="373.0" cy="75.8" r="4" fill="#7c3aed" />
+<text x="373.0" y="242" class="axis" text-anchor="middle">Top 100k</text>
+<circle cx="532.5" cy="81.6" r="4" fill="#7c3aed" />
+<text x="532.5" y="242" class="axis" text-anchor="middle">Top 1M</text>
+<circle cx="692.0" cy="109.4" r="4" fill="#7c3aed" />
+<text x="692.0" y="242" class="axis" text-anchor="middle">Long tail</text>
+<text x="692" y="24" class="chart-end" text-anchor="end">60.6%</text>
+</svg>
+</article>
+      <article class="panel">
+        <h2>HTTP Archive current rank tiers</h2>
+        <p>Latest mobile-crawl WordPress share among the five tracked technologies within each HTTP Archive rank tier.</p>
+        <div class="bar-stack">
+        <div class="barline">
+          <div class="bar-label"><span>Top 1k</span><strong>90.0%</strong></div>
+          <div class="bar"><span style="width:90.0%;background:#2563eb"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>Top 10k</span><strong>93.4%</strong></div>
+          <div class="bar"><span style="width:93.4%;background:#2563eb"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>Top 100k</span><strong>81.1%</strong></div>
+          <div class="bar"><span style="width:81.1%;background:#2563eb"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>Top 1M</span><strong>70.6%</strong></div>
+          <div class="bar"><span style="width:70.6%;background:#2563eb"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>Top 10M</span><strong>78.5%</strong></div>
+          <div class="bar"><span style="width:78.5%;background:#2563eb"></span></div>
+        </div></div>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

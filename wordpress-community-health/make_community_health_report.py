@@ -3898,7 +3898,7 @@ def build_database(data, fetched):
                 "new_site_share_history",
                 "partial",
                 "BuiltWith historical trends or HTTP Archive cohort queries",
-                "Current report includes BuiltWith current Net New Pipeline, HTTP Archive monthly origin counts, derived tracked-share history, rank-tier detected-origin adoption, and a compact new-site choice summary; not a multi-year newly created site cohort.",
+                "Current report includes BuiltWith current Net New Pipeline, HTTP Archive monthly origin counts, derived tracked-share history, rank-tier detected-origin adoption, a compact new-site choice summary, and a dedicated new-site choice companion view; not a multi-year newly created site cohort.",
             )
         )
     else:
@@ -5214,7 +5214,7 @@ def source_status_rows(fetched):
         (
             "Newly detected sites",
             "partial" if SOURCE_FILES["builtwith_new_site_snapshot"].exists() else "missing",
-            "Current BuiltWith Net New Pipeline snapshot plus HTTP Archive monthly origin counts, derived tracked-share trend, and rank-tier detected-origin adoption; multi-year new-site creation still needs paid BuiltWith or cohort queries",
+            "Current BuiltWith Net New Pipeline snapshot plus HTTP Archive monthly origin counts, derived tracked-share trend, rank-tier detected-origin adoption, and a dedicated new-site choice companion view; multi-year new-site creation still needs paid BuiltWith or cohort queries",
         ),
         (
             "New-site choice summary",
@@ -6488,7 +6488,7 @@ p {{ margin:0 0 12px; }}
     </article>
     <article class="lane-card market">
       <h3><span class="lane-dot"></span>Adoption and demand signals</h3>
-      <p>W3Techs, HTTP Archive, BuiltWith, Stack Overflow, Wikimedia, Hacker News, jobs, and plugin history show market position and demand proxies. See the <a href="market_position.html">market position view</a> for the compact decision readout, the <a href="search_interest.html">search interest view</a> for public-attention proxies, the <a href="developer_interest.html">developer interest view</a> for help-seeking and PR activity, and the <a href="job_demand.html">job demand view</a> for hiring proxies.</p>
+      <p>W3Techs, HTTP Archive, BuiltWith, Stack Overflow, Wikimedia, Hacker News, jobs, and plugin history show market position and demand proxies. See the <a href="market_position.html">market position view</a> for the compact decision readout, the <a href="new_site_choice.html">new-site choice view</a> for current pipeline and crawl proxies, the <a href="search_interest.html">search interest view</a> for public-attention proxies, the <a href="developer_interest.html">developer interest view</a> for help-seeking and PR activity, and the <a href="job_demand.html">job demand view</a> for hiring proxies.</p>
       <ul class="lane-list">
         <li>Best for installed share, CMS share, traffic-tier presence, current newly found-site proxy, and demand direction.</li>
         <li>Search and broad job-market demand remain partial; current proxies are labeled as such.</li>
@@ -7211,7 +7211,7 @@ p {{ margin:0 0 12px; }}
     </div>
     <div class="card">
       <h3>New-site choice proxy readout</h3>
-      <p>Compact current-direction summary from BuiltWith newly found-site counts, HTTP Archive tracked-share history, and BuiltWith traffic-tier presence. This is still a proxy, not a multi-year new-site cohort.</p>
+      <p>Compact current-direction summary from BuiltWith newly found-site counts, HTTP Archive tracked-share history, and BuiltWith traffic-tier presence. See the <a href="new_site_choice.html">new-site choice view</a> for the easier visual readout.</p>
       <div class="stats">
         {''.join(new_site_summary_cards)}
       </div>
@@ -7467,6 +7467,7 @@ p {{ margin:0 0 12px; }}
         <a href="progress_summary.html">Progress summary</a>
         <a href="project_load.html">Project load</a>
         <a href="market_position.html">Market position</a>
+        <a href="new_site_choice.html">New-site choice</a>
         <a href="search_interest.html">Search interest</a>
         <a href="developer_interest.html">Developer interest</a>
         <a href="job_demand.html">Job demand</a>

@@ -58,6 +58,7 @@ SKIP_NETWORK_DB_FALLBACK_TABLES = [
     "market_share",
     "http_archive_adoption_monthly",
     "http_archive_rank_adoption_snapshot",
+    "wporg_ecosystem_stats_snapshot",
     "wikimedia_pageviews_monthly",
     "wikimedia_pageviews_quarterly",
     "hn_hiring_wordpress_quarterly",
@@ -122,6 +123,11 @@ BUILTWITH_TECHNOLOGIES = [
 ]
 PLUGIN_API = "https://api.wordpress.org/plugins/info/1.2/?action=query_plugins&request[page]=1&request[per_page]=1"
 THEME_API = "https://api.wordpress.org/themes/info/1.2/?action=query_themes&request[page]=1&request[per_page]=1"
+WPORG_STATS_URLS = {
+    "wordpress_version": "https://api.wordpress.org/stats/wordpress/1.0/",
+    "php_version": "https://api.wordpress.org/stats/php/1.0/",
+    "database_version": "https://api.wordpress.org/stats/mysql/1.0/",
+}
 PLUGIN_INFO_API = "https://api.wordpress.org/plugins/info/1.2/"
 PLUGIN_DOWNLOADS_API = "https://api.wordpress.org/stats/plugin/1.0/downloads.php"
 PLUGIN_DOWNLOADS_DOCS_URL = "https://codex.wordpress.org/WordPress.org_API#Plugin_Download_Stats"
@@ -853,6 +859,100 @@ def fetch_http_archive_rank_adoption_snapshot(skip_network=False):
     rows.sort(key=lambda row: (num(row["rank_order"]), row["technology"]))
     if rows:
         write_cached_http_archive_rank_adoption(rows)
+    return rows or fallback
+
+
+def wporg_ecosystem_stats_cache_path():
+    return CACHE / "wporg-ecosystem-stats-snapshot.json"
+
+
+def read_cached_wporg_ecosystem_stats():
+    path = wporg_ecosystem_stats_cache_path()
+    if path.exists():
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            payload = {}
+        rows = payload.get("rows") if isinstance(payload, dict) else payload
+        if isinstance(rows, list):
+            return rows
+    return read_existing_table("wporg_ecosystem_stats_snapshot")
+
+
+def write_cached_wporg_ecosystem_stats(rows):
+    CACHE.mkdir(parents=True, exist_ok=True)
+    wporg_ecosystem_stats_cache_path().write_text(
+        json.dumps(
+            {
+                "collected_at": dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z"),
+                "source_urls": WPORG_STATS_URLS,
+                "rows": rows,
+            },
+            indent=2,
+            sort_keys=True,
+        ),
+        encoding="utf-8",
+    )
+
+
+def database_version_family(label):
+    label = str(label or "")
+    if label.startswith("MariaDB"):
+        return "MariaDB"
+    if label.startswith("MySQL"):
+        return "MySQL"
+    if label.startswith("Percona"):
+        return "Percona"
+    if re.match(r"^\d", label):
+        return "MySQL"
+    return "Other"
+
+
+def wporg_stat_family(metric, label):
+    if metric == "database_version":
+        return database_version_family(label)
+    if metric == "php_version":
+        return f"PHP {str(label).split('.')[0]}"
+    if metric == "wordpress_version":
+        return f"WordPress {str(label).split('.')[0]}"
+    return ""
+
+
+def fetch_wporg_ecosystem_stats_snapshot(skip_network=False):
+    fallback = read_cached_wporg_ecosystem_stats()
+    if skip_network and fallback:
+        return fallback
+    if skip_network:
+        return []
+    snapshot_date = live_snapshot_date()
+    rows = []
+    for metric, source_url in WPORG_STATS_URLS.items():
+        try:
+            payload, _headers = fetch_with_retries(fetch_json, source_url, f"WordPress.org stats {metric}", attempts=3, delay=1.5)
+        except Exception as exc:
+            eprint(f"WordPress.org ecosystem stats fetch failed for {metric}: {exc}")
+            continue
+        if not isinstance(payload, dict):
+            continue
+        for label, share in payload.items():
+            try:
+                share_pct = float(share)
+            except (TypeError, ValueError):
+                continue
+            rows.append(
+                {
+                    "snapshot_date": snapshot_date,
+                    "metric": metric,
+                    "label": str(label),
+                    "family": wporg_stat_family(metric, label),
+                    "share_pct": round(share_pct, 3),
+                    "source_url": source_url,
+                    "source": "WordPress.org stats API current distribution snapshot",
+                }
+            )
+    rows.sort(key=lambda row: (row["metric"], -float(row["share_pct"]), row["label"]))
+    if rows:
+        write_cached_wporg_ecosystem_stats(rows)
     return rows or fallback
 
 
@@ -4544,6 +4644,7 @@ def source_status_rows(fetched):
         ("WordPress Jobs board", "partial" if fetched.get("wordpress_jobs_board_snapshots") else "missing", "Open-listing snapshots from jobs.wordpress.net current page and annual Internet Archive captures; WordPress-specific, not a broad hiring-platform index"),
         ("Enterprise adoption signal", "covered" if fetched.get("enterprise_vip_case_studies") else "missing", "Current public WordPress VIP case-study snapshot with industries and use cases"),
         ("WordPress.org plugin/theme directories", "covered" if fetched.get("directory_snapshots") else "missing", "Current plugin and theme counts"),
+        ("WordPress.org ecosystem stats", "covered" if fetched.get("wporg_ecosystem_stats_snapshot") else "missing", "Current WordPress, PHP, and database version distribution from WordPress.org stats APIs"),
         ("Plugin/theme directory activity", "covered" if fetched.get("directory_activity_snapshots") else "missing", "Current new, updated, and popular samples from WordPress.org directory APIs"),
         (
             "Major plugin install base",
@@ -4597,6 +4698,7 @@ def build_report(data, fetched):
     market_rows = fetched.get("market_share", [])
     http_archive_adoption = fetched.get("http_archive_adoption_monthly", [])
     http_archive_rank_adoption = fetched.get("http_archive_rank_adoption_snapshot", [])
+    wporg_ecosystem_stats = fetched.get("wporg_ecosystem_stats_snapshot", [])
     stack_overflow_tags = fetched.get("stack_overflow_tag_quarterly", [])
     wikimedia_pageviews_q = fetched.get("wikimedia_pageviews_quarterly", [])
     hn_hiring_q = fetched.get("hn_hiring_wordpress_quarterly", [])
@@ -5085,6 +5187,28 @@ def build_report(data, fetched):
     http_rank_latest_date = max([row.get("date", "") for row in http_rank_summary if row.get("date")] or [""])
     http_rank_max_wp = max([num(row.get("wp_mobile_origins")) for row in http_rank_summary] or [1])
     http_rank_top1m = next((row for row in http_rank_summary if row.get("rank") == "Top 1M"), {})
+    wporg_stats_by_metric = defaultdict(list)
+    for row in wporg_ecosystem_stats:
+        wporg_stats_by_metric[row.get("metric")].append(row)
+    top_wp_versions = sorted(wporg_stats_by_metric.get("wordpress_version", []), key=lambda row: float(row.get("share_pct") or 0), reverse=True)[:8]
+    top_php_versions = sorted(wporg_stats_by_metric.get("php_version", []), key=lambda row: float(row.get("share_pct") or 0), reverse=True)[:8]
+    db_family_share = Counter()
+    for row in wporg_stats_by_metric.get("database_version", []):
+        db_family_share[row.get("family") or "Other"] += float(row.get("share_pct") or 0)
+    db_family_rows = [
+        {"family": family, "share_pct": round(share, 1)}
+        for family, share in sorted(db_family_share.items(), key=lambda item: item[1], reverse=True)
+    ]
+    top_wp_version = top_wp_versions[0] if top_wp_versions else {}
+    top_php_version = top_php_versions[0] if top_php_versions else {}
+    php_81_plus_share = sum(
+        float(row.get("share_pct") or 0)
+        for row in wporg_stats_by_metric.get("php_version", [])
+        if re.match(r"^8\.[1-9]", str(row.get("label") or ""))
+    )
+    mariadb_share = db_family_share.get("MariaDB", 0)
+    mysql_share = db_family_share.get("MySQL", 0)
+    wporg_stats_snapshot_date = max([row.get("snapshot_date", "") for row in wporg_ecosystem_stats if row.get("snapshot_date")] or [""])
     stack_overflow_tag_series = [
         {
             "label": tag_config["label"],
@@ -5968,6 +6092,29 @@ p {{ margin:0 0 12px; }}
       </div>
     </div>
     <div class="grid-2">
+      <div class="card">
+        <h3>WordPress.org install mix</h3>
+        <p>Current WordPress.org stats API distribution. This is an installed-base snapshot from update checks, not a history of new sites.</p>
+        <div class="stats">
+          {stat_card("Top WP version", str(top_wp_version.get("label", "n/a")), pct(float(top_wp_version.get("share_pct") or 0)), "good" if top_wp_version else "watch")}
+          {stat_card("Top PHP version", str(top_php_version.get("label", "n/a")), pct(float(top_php_version.get("share_pct") or 0)), "soft" if top_php_version else "watch")}
+          {stat_card("PHP 8.1+", pct(php_81_plus_share), "reported installs", "soft")}
+          {stat_card("Snapshot", wporg_stats_snapshot_date or "not fetched", "WordPress.org stats API", "soft")}
+        </div>
+        {''.join(horizontal_metric(f"WordPress {row.get('label')}", float(row.get("share_pct") or 0), 100, COLORS["wordpress"]) for row in top_wp_versions[:6])}
+      </div>
+      <div class="card">
+        <h3>Hosting runtime mix</h3>
+        <p>Current PHP and database distribution from WordPress.org stats. This adds deployment-context evidence for performance and compatibility decisions.</p>
+        {''.join(horizontal_metric(f"PHP {row.get('label')}", float(row.get("share_pct") or 0), 100, COLORS["green"] if str(row.get("label", "")).startswith("8.") else COLORS["orange"]) for row in top_php_versions[:6])}
+        {''.join(horizontal_metric(str(row.get("family")), float(row.get("share_pct") or 0), 100, COLORS["purple"] if row.get("family") == "MariaDB" else COLORS["core"]) for row in db_family_rows)}
+        <div class="stats">
+          {stat_card("MariaDB", pct(mariadb_share), "database share", "soft")}
+          {stat_card("MySQL", pct(mysql_share), "database share", "soft")}
+        </div>
+      </div>
+    </div>
+    <div class="grid-2">
       {svg_line_chart("Stack Overflow developer attention", "Quarterly Stack Overflow questions by tag from the Stack Exchange API. This is a developer-help signal, not general web search demand.", stack_overflow_tag_series)}
       <div class="card">
         <h3>Developer-interest readout</h3>
@@ -6276,6 +6423,7 @@ def main():
     fetched["market_share"].extend(parse_w3techs_history(W3TECHS_MARKET_SHARE_URL, "cms_market_share", args.skip_network))
     fetched["http_archive_adoption_monthly"] = fetch_http_archive_adoption_monthly(args.skip_network)
     fetched["http_archive_rank_adoption_snapshot"] = fetch_http_archive_rank_adoption_snapshot(args.skip_network)
+    fetched["wporg_ecosystem_stats_snapshot"] = fetch_wporg_ecosystem_stats_snapshot(args.skip_network)
     fetched["builtwith_technology_snapshots"], fetched["builtwith_technology_history"] = fetch_builtwith_technology_signals(
         args.skip_network
     )

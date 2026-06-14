@@ -106,7 +106,7 @@
 <body>
   <main>
     <h1>WordPress relevance report progress</h1>
-    <p class="lede">This is the working state as of June 14, 2026. The active direction is the WordPress Community & Adoption Health report, not the SQLite benchmark runner. The public report opens with a decision scorecard, a Decision Questions checklist, visible data-source strength, a SQLite-generated decision brief, and this SQLite-generated progress summary.</p>
+    <p class="lede">This is the working state as of June 14, 2026. The active direction is the WordPress Community & Adoption Health report, not the SQLite benchmark runner. The public report opens with a decision scorecard, a Decision Questions checklist, an Evidence Map, visible data-source strength, a SQLite-generated decision brief, and this SQLite-generated progress summary.</p>
 
     <section class="grid cards">
 
@@ -122,6 +122,13 @@
         <div class="metric">97k <small>items</small></div>
         <p class="note">65k Core Trac tickets plus 32k Gutenberg GitHub issues are loaded for quarterly analysis.</p>
         <div class="bar green"><span style="width:96%"></span></div>
+      </div>
+
+      <div class="card">
+        <h3>Evidence Map</h3>
+        <div class="metric">8 <small>rows</small></div>
+        <p class="note">Decision-question evidence rows label each answer as direct, mixed, or proxy-backed.</p>
+        <div class="bar green"><span style="width:72%"></span></div>
       </div>
 
       <div class="card">
@@ -148,6 +155,10 @@
       <a class="linkcard green" href="index.html#decision-questions">
         <strong>Decision Questions</strong>
         <span>Seven plain-English answers mapped to the exact questions from goal.md.</span>
+      </a>
+      <a class="linkcard green" href="index.html#evidence-map">
+        <strong>Evidence Map</strong>
+        <span>Decision answers labeled as direct, mixed, or proxy-backed, with next-source guidance.</span>
       </a>
       <a class="linkcard " href="index.html#goal-map">
         <strong>Goal coverage map</strong>
@@ -245,6 +256,10 @@
             <div><p>Added <code>make_decision_brief.py</code> so installed share, current new-site proxy, closure ratios, first-time reporter retention, backlog age, contributor concentration, npm package downloads, and theme sample counts regenerate from SQLite.</p></div>
           </div>
           <div class="item">
+            <div class="date">Evidence map</div>
+            <div><p>Added <code>decision_question_evidence</code>, a SQLite-backed map that labels each decision answer as direct, mixed, or proxy-backed evidence.</p></div>
+          </div>
+          <div class="item">
             <div class="date">Progress summary</div>
             <div><p>Added <code>make_progress_summary.py</code> so this progress page is regenerated from SQLite counts and the current report artifact list.</p></div>
           </div>
@@ -267,7 +282,7 @@
           <li>Quarterly Gutenberg GitHub issue history.</li>
           <li>Bug vs feature request trends for Core and Gutenberg.</li>
           <li>Contributor concentration, first-time vs repeat reporters, and maintainer participation.</li>
-          <li>Top-level evidence lanes and a visual decision readout with direct answers to the seven goal questions.</li>
+          <li>Top-level evidence lanes, an Evidence Map, and a visual decision readout with direct answers to the seven goal questions.</li>
         </ul>
         <div class="pillrow">
           <span class="pill">community_health.sqlite</span>
@@ -275,6 +290,8 @@
           <span class="pill">index.html</span>
           <span class="pill">community_health.sqlite.gz</span>
           <span class="pill">Decision Questions</span>
+          <span class="pill">Evidence Map</span>
+          <span class="pill">decision_question_evidence</span>
           <span class="pill">make_decision_brief.py</span>
           <span class="pill">make_progress_summary.py</span>
           <span class="pill">scorecard</span>
@@ -301,6 +318,11 @@
           <div class="statecard green">
             <strong>Market position</strong>
             <span>Implemented with all-site/CMS share, HTTP Archive, BuiltWith, traffic tiers, competitor signals, and compact demand summaries.</span>
+          </div>
+
+          <div class="statecard green">
+            <strong>Decision evidence</strong>
+            <span>8 Evidence Map rows stored in SQLite.</span>
           </div>
 
           <div class="statecard green">
@@ -349,13 +371,13 @@
           <div class="coveragecard green">
             <span class="badge green">Covered</span>
             <strong>Decision questions</strong>
-            <p><a href="index.html#decision-questions">Seven plain-English answer cards</a> plus final evidence-strength and decision readout sections.</p>
+            <p><a href="index.html#decision-questions">Seven plain-English answer cards</a> plus the <a href="index.html#evidence-map">Evidence Map</a> backed by <code>decision_question_evidence</code>.</p>
           </div>
 
           <div class="coveragecard green">
             <span class="badge green">Covered</span>
             <strong>Short visual decision readout</strong>
-            <p>Relevance Scorecard, Goal Coverage Map, generated Decision Brief, and final Decision Readout.</p>
+            <p>Relevance Scorecard, Evidence Map, Goal Coverage Map, generated Decision Brief, and final Decision Readout.</p>
           </div>
 
           <div class="coveragecard green">

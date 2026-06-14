@@ -99,6 +99,7 @@ def main():
         integrity = one(conn, "PRAGMA integrity_check", default="missing")
         table_total = one(conn, "SELECT COUNT(*) FROM sqlite_master WHERE type='table'")
         source_file_count = table_count(conn, "source_files")
+        decision_rows = table_count(conn, "decision_question_evidence")
         source_gaps = rows(conn, "SELECT * FROM source_gaps ORDER BY signal") if table_exists(conn, "source_gaps") else []
         partial_count = sum(1 for row in source_gaps if row.get("status") == "partial")
 
@@ -112,12 +113,14 @@ def main():
             "Support topics sampled": table_count(conn, "support_forum_topics"),
             "Plugin sample rows": table_count(conn, "plugin_directory_activity_sample"),
             "Theme sample rows": table_count(conn, "theme_directory_activity_sample"),
+            "Decision evidence rows": decision_rows,
         }
         max_key_count = max(key_counts.values() or [1])
 
         companion_pages = [
-            ("Main report", "index.html", "Three-view decision report: participation, project load, and market position."),
-            ("Decision brief", "decision_brief.html", "Short shareable readout for deciding what the evidence says."),
+            ("Main report", "index.html", "Three-view decision report with scorecard, Evidence Map, participation, project load, and market position."),
+            ("Evidence Map", "index.html#evidence-map", "Decision questions labeled as direct, mixed, or proxy-backed evidence."),
+            ("Decision brief", "decision_brief.html", "Short shareable readout with the same Evidence Map."),
             ("Project load", "project_load.html", "Backlog, closures, category mix, response, and close-time views."),
             ("Market position", "market_position.html", "Installed share, tracked share, new-site proxy, and demand signals."),
             ("New-site choice", "new_site_choice.html", "Builder comparison and newly found-site proxy."),
@@ -159,6 +162,7 @@ def main():
             timeline_item("Market", "Adoption and builder context", "Added W3Techs, HTTP Archive, BuiltWith, traffic-tier, new-site proxy, WooCommerce, and enterprise-adoption signals."),
             timeline_item("Ecosystem", "Activity outside trackers", "Added release credits, committers, Make/Core posts and comments, WordCamps, Events, Translate, Five for the Future, support, plugin, and theme sources."),
             timeline_item("Demand", "Developer and search proxies", "Added Stack Overflow, Wikimedia, autocomplete query intent, npm, Packagist, GitHub topic search, HN hiring, Remote OK, Remotive, and WordPress Jobs signals."),
+            timeline_item("Decision evidence", "Evidence map", "Added a SQLite-backed decision_question_evidence table and visual Evidence Map so each decision answer is labeled as direct, mixed, or proxy-backed."),
             timeline_item("Packaging", "Refreshable report set", "Generated focused companion pages, a data inventory, source gap plan, goal audit, refresh validation, and a compressed SQLite download."),
         ]
     )
@@ -187,7 +191,7 @@ def main():
     .lede {{ max-width:880px; font-size:18px; margin-bottom:18px; }}
     .nav {{ display:flex; flex-wrap:wrap; gap:8px; margin:18px 0 22px; }}
     .nav a {{ border:1px solid var(--line); border-radius:999px; padding:7px 11px; background:#fbfdff; text-decoration:none; font-weight:700; font-size:13px; color:var(--muted); }}
-    .metrics {{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin:22px 0; }}
+    .metrics {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:12px; margin:22px 0; }}
     .metric, .section {{ background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px; box-shadow:0 1px 2px rgba(15,23,42,.04); }}
     .metric {{ border-top:5px solid var(--blue); min-height:132px; }}
     .metric.green {{ border-top-color:var(--green); }}
@@ -230,9 +234,10 @@ def main():
 <body>
 <main>
   <h1>WordPress relevance report: work so far</h1>
-  <p class="lede">A compact status page for the report package: what has been built, what evidence is now stored in SQLite, and which source areas still need fuller historical exports.</p>
+  <p class="lede">A compact status page for the report package: what has been built, what evidence is now stored in SQLite, how the Evidence Map supports decisions, and which source areas still need fuller historical exports.</p>
   <nav class="nav">
     <a href="index.html">Main report</a>
+    <a href="index.html#evidence-map">Evidence Map</a>
     <a href="decision_brief.html">Decision brief</a>
     <a href="progress_summary.html">Progress summary</a>
     <a href="goal_audit.html">Goal audit</a>
@@ -243,6 +248,7 @@ def main():
 
   <section class="metrics" aria-label="Work summary metrics">
     {metric_card("SQLite tables", compact(table_total), "current report database", "green")}
+    {metric_card("Decision rows", compact(decision_rows), "stored in decision_question_evidence", "green")}
     {metric_card("Imported files", compact(source_file_count), "tracked with SHA-256 hashes", "blue")}
     {metric_card("Partial source areas", compact(partial_count), "explicitly listed in source_gaps", "amber")}
     {metric_card("Integrity", integrity, "SQLite PRAGMA integrity_check", "green" if integrity == "ok" else "amber")}

@@ -22,7 +22,7 @@
     .lede { max-width:880px; font-size:18px; margin-bottom:18px; }
     .nav { display:flex; flex-wrap:wrap; gap:8px; margin:18px 0 22px; }
     .nav a { border:1px solid var(--line); border-radius:999px; padding:7px 11px; background:#fbfdff; text-decoration:none; font-weight:700; font-size:13px; color:var(--muted); }
-    .metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin:22px 0; }
+    .metrics { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:12px; margin:22px 0; }
     .metric, .section { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px; box-shadow:0 1px 2px rgba(15,23,42,.04); }
     .metric { border-top:5px solid var(--blue); min-height:132px; }
     .metric.green { border-top-color:var(--green); }
@@ -65,9 +65,10 @@
 <body>
 <main>
   <h1>WordPress relevance report: work so far</h1>
-  <p class="lede">A compact status page for the report package: what has been built, what evidence is now stored in SQLite, and which source areas still need fuller historical exports.</p>
+  <p class="lede">A compact status page for the report package: what has been built, what evidence is now stored in SQLite, how the Evidence Map supports decisions, and which source areas still need fuller historical exports.</p>
   <nav class="nav">
     <a href="index.html">Main report</a>
+    <a href="index.html#evidence-map">Evidence Map</a>
     <a href="decision_brief.html">Decision brief</a>
     <a href="progress_summary.html">Progress summary</a>
     <a href="goal_audit.html">Goal audit</a>
@@ -82,6 +83,12 @@
         <h3>SQLite tables</h3>
         <strong>101</strong>
         <p>current report database</p>
+      </article>
+
+      <article class="metric green">
+        <h3>Decision rows</h3>
+        <strong>8</strong>
+        <p>stored in decision_question_evidence</p>
       </article>
 
       <article class="metric blue">
@@ -157,6 +164,14 @@
         </div>
 
         <div class="timeline-item">
+          <div class="timeline-date">Decision evidence</div>
+          <div>
+            <strong>Evidence map</strong>
+            <p>Added a SQLite-backed decision_question_evidence table and visual Evidence Map so each decision answer is labeled as direct, mixed, or proxy-backed.</p>
+          </div>
+        </div>
+
+        <div class="timeline-item">
           <div class="timeline-date">Packaging</div>
           <div>
             <strong>Refreshable report set</strong>
@@ -214,6 +229,11 @@
           <div class="bar-label"><span>Theme sample rows</span><b>900 rows</b></div>
           <div class="bar-track"><i class="blue" style="width:2.0%"></i></div>
         </div>
+
+        <div class="bar-row">
+          <div class="bar-label"><span>Decision evidence rows</span><b>8 rows</b></div>
+          <div class="bar-track"><i class="blue" style="width:2.0%"></i></div>
+        </div>
       </div>
     </article>
   </section>
@@ -225,12 +245,17 @@
 
         <a class="page-link" href="index.html">
           <strong>Main report</strong>
-          <span>Three-view decision report: participation, project load, and market position.</span>
+          <span>Three-view decision report with scorecard, Evidence Map, participation, project load, and market position.</span>
+        </a>
+
+        <a class="page-link" href="index.html#evidence-map">
+          <strong>Evidence Map</strong>
+          <span>Decision questions labeled as direct, mixed, or proxy-backed evidence.</span>
         </a>
 
         <a class="page-link" href="decision_brief.html">
           <strong>Decision brief</strong>
-          <span>Short shareable readout for deciding what the evidence says.</span>
+          <span>Short shareable readout with the same Evidence Map.</span>
         </a>
 
         <a class="page-link" href="project_load.html">

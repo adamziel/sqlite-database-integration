@@ -194,6 +194,7 @@ def main():
         gut_count = value(conn, "SELECT COUNT(*) FROM gutenberg_issues")
         source_gaps = value(conn, "SELECT COUNT(*) FROM source_gaps")
         partial_gaps = value(conn, "SELECT COUNT(*) FROM source_gaps WHERE status='partial'")
+        decision_rows = value(conn, "SELECT COUNT(*) FROM decision_question_evidence")
         npm_quarter = value(conn, "SELECT MAX(quarter) FROM npm_wordpress_downloads_quarterly", default="")
         npm_downloads = value(
             conn,
@@ -210,6 +211,7 @@ def main():
         [
             link_card("Relevance scorecard", "Short decision view: still in a good place, with softer momentum.", "index.html#scorecard", "green"),
             link_card("Decision Questions", "Seven plain-English answers mapped to the exact questions from goal.md.", "index.html#decision-questions", "green"),
+            link_card("Evidence Map", "Decision answers labeled as direct, mixed, or proxy-backed, with next-source guidance.", "index.html#evidence-map", "green"),
             link_card("Goal coverage map", "Separates strong quarterly evidence from snapshots and proxies.", "index.html#goal-map"),
             link_card("Project load", "Compact flow, backlog age, response, closure, and category readout.", "project_load.html", "amber"),
             link_card("Contributor depth", "Drive-by, repeat, regular, and sustained participation readout.", "contributor_depth.html", "green"),
@@ -237,6 +239,7 @@ def main():
             timeline_item("Adoption", "Added W3Techs, HTTP Archive, BuiltWith, WordPress.org runtime stats, Stack Overflow, Wikimedia, autocomplete query-intent snapshots, Packagist Composer package snapshots, GitHub topic-search breadth, Hacker News hiring threads, Remote OK and Remotive current jobs, WordPress Jobs snapshots, compact new-site summaries, and attention/demand proxy summaries."),
             timeline_item("Companions", 'Added focused pages for <a href="project_load.html">Project Load</a>, <a href="market_position.html">Market Position</a>, <a href="new_site_choice.html">New-site Choice</a>, <a href="search_interest.html">Search Interest</a>, <a href="developer_interest.html">Developer Interest</a>, <a href="job_demand.html">Job Demand</a>, <a href="support_load.html">Support Load</a>, <a href="contributor_depth.html">Contributor Depth</a>, <a href="ecosystem_activity.html">Ecosystem Activity</a>, and <a href="source_gap_plan.html">Source Gap Plan</a>.'),
             timeline_item("Decision brief", "Added <code>make_decision_brief.py</code> so installed share, current new-site proxy, closure ratios, first-time reporter retention, backlog age, contributor concentration, npm package downloads, and theme sample counts regenerate from SQLite."),
+            timeline_item("Evidence map", "Added <code>decision_question_evidence</code>, a SQLite-backed map that labels each decision answer as direct, mixed, or proxy-backed evidence."),
             timeline_item("Progress summary", "Added <code>make_progress_summary.py</code> so this progress page is regenerated from SQLite counts and the current report artifact list."),
             timeline_item("Refresh", "Updated <code>refresh_report_artifacts.py</code> so the main report, focused companion pages, generated decision brief, generated progress summary, source gap plan, goal audit, and data inventory can be rebuilt and validated in order."),
             timeline_item("Publishing", 'Published the GitHub Pages report as <a href="index.html">index.html</a>, with <a href="community_health.sqlite.gz">community_health.sqlite.gz</a> for the supporting database export.'),
@@ -248,6 +251,7 @@ def main():
             ("Ticket participation", "Implemented with quarterly charts."),
             ("Project load", "Implemented with flow, backlog, response, closure, reopen, and age charts."),
             ("Market position", "Implemented with all-site/CMS share, HTTP Archive, BuiltWith, traffic tiers, competitor signals, and compact demand summaries."),
+            ("Decision evidence", f"{compact(decision_rows)} Evidence Map rows stored in SQLite."),
             ("Refreshability", "Generated companion pages, source metadata, source gaps, and a compressed database export."),
         ]
     )
@@ -259,8 +263,8 @@ def main():
             ("Bug, feature request, and all-ticket views", "Separate Core and Gutenberg line charts plus open-backlog category summaries.", "Covered"),
             ("Community outside tickets", "Release credits, committers, Make/Core, WordCamp, Events, Translate, Five for the Future, support snapshots and answer summaries, plugin/theme directory, plugin and theme search breadth, stale popular plugins, and enterprise case studies.", "Covered with snapshots"),
             ("Market position and adoption", "W3Techs installed share, HTTP Archive origin and tracked-share trends, BuiltWith pipeline/tier data, plugin install/download history, WooCommerce, and compact new-site plus attention/demand proxy summaries.", "Covered with proxies for new-site and demand history"),
-            ("Decision questions", '<a href="index.html#decision-questions">Seven plain-English answer cards</a> plus final evidence-strength and decision readout sections.', "Covered"),
-            ("Short visual decision readout", "Relevance Scorecard, Goal Coverage Map, generated Decision Brief, and final Decision Readout.", "Covered"),
+            ("Decision questions", '<a href="index.html#decision-questions">Seven plain-English answer cards</a> plus the <a href="index.html#evidence-map">Evidence Map</a> backed by <code>decision_question_evidence</code>.', "Covered"),
+            ("Short visual decision readout", "Relevance Scorecard, Evidence Map, Goal Coverage Map, generated Decision Brief, and final Decision Readout.", "Covered"),
             ("Refresh metadata", "SQLite source hashes, source_gaps, generated data inventory, generated decision brief, generated progress summary, generator scripts, cached public-source tables, and compressed DB export.", "Covered"),
             ("Remaining ideal sources", "True multi-year new-site cohorts, Google Trends or equivalent, multi-year labor-market exports, fuller support-forum history, and another developer-community source if a stable public source is available.", "Partial by design"),
         ]
@@ -377,11 +381,12 @@ def main():
 <body>
   <main>
     <h1>WordPress relevance report progress</h1>
-    <p class="lede">This is the working state as of June 14, 2026. The active direction is the WordPress Community & Adoption Health report, not the SQLite benchmark runner. The public report opens with a decision scorecard, a Decision Questions checklist, visible data-source strength, a SQLite-generated decision brief, and this SQLite-generated progress summary.</p>
+    <p class="lede">This is the working state as of June 14, 2026. The active direction is the WordPress Community & Adoption Health report, not the SQLite benchmark runner. The public report opens with a decision scorecard, a Decision Questions checklist, an Evidence Map, visible data-source strength, a SQLite-generated decision brief, and this SQLite-generated progress summary.</p>
 
     <section class="grid cards">
 {card("Database", compact(table_count), "tables", "SQLite stores imported ticket data, fetched ecosystem data, theme breadth, npm, Packagist, GitHub topic snapshots, job-board snapshots, source hashes, generated summaries, and known source gaps.", "green", 92)}
 {card("Ticket records", compact(ticket_total), "items", f"{compact(core_count)} Core Trac tickets plus {compact(gut_count)} Gutenberg GitHub issues are loaded for quarterly analysis.", "green", 96)}
+{card("Evidence Map", compact(decision_rows), "rows", "Decision-question evidence rows label each answer as direct, mixed, or proxy-backed.", "green", 72)}
 {card("Package signal", compact(npm_downloads), quarter_label(npm_quarter), "Tracked @wordpress npm package downloads add developer/package activity beyond help-question volume.", "green", 78)}
 {card("Known gaps", compact(partial_gaps), f"of {compact(source_gaps)} partial", "Remaining ideal sources are true new-site history, search-provider data, broad hiring demand, longer support history, and another stable developer-community source.", "amber", 35)}
     </section>
@@ -406,7 +411,7 @@ def main():
           <li>Quarterly Gutenberg GitHub issue history.</li>
           <li>Bug vs feature request trends for Core and Gutenberg.</li>
           <li>Contributor concentration, first-time vs repeat reporters, and maintainer participation.</li>
-          <li>Top-level evidence lanes and a visual decision readout with direct answers to the seven goal questions.</li>
+          <li>Top-level evidence lanes, an Evidence Map, and a visual decision readout with direct answers to the seven goal questions.</li>
         </ul>
         <div class="pillrow">
           <span class="pill">community_health.sqlite</span>
@@ -414,6 +419,8 @@ def main():
           <span class="pill">index.html</span>
           <span class="pill">community_health.sqlite.gz</span>
           <span class="pill">Decision Questions</span>
+          <span class="pill">Evidence Map</span>
+          <span class="pill">decision_question_evidence</span>
           <span class="pill">make_decision_brief.py</span>
           <span class="pill">make_progress_summary.py</span>
           <span class="pill">scorecard</span>

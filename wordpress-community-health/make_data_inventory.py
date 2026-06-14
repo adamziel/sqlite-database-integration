@@ -183,6 +183,7 @@ def render():
         ("theme_search_snapshot", "Current WordPress.org theme search-result counts and top matching themes by site category."),
         ("packagist_package_snapshot", "Current Composer package downloads, favorites, dependents, and release timestamps."),
         ("github_repo_search_snapshot", "Current GitHub repository-search totals and top matching repositories for selected WordPress ecosystem topics."),
+        ("remotive_*", "Current Remotive job snapshot with term summaries and matching rows."),
     ]
 
     html_doc = f"""<!doctype html>

@@ -227,6 +227,16 @@ def main():
             if table_exists(conn, "remoteok_matching_jobs_snapshot")
             else []
         )
+        remotive_terms = (
+            rows(conn, "SELECT * FROM remotive_job_signal_snapshot ORDER BY CAST(matching_jobs AS REAL) DESC, term")
+            if table_exists(conn, "remotive_job_signal_snapshot")
+            else []
+        )
+        remotive_matches = (
+            rows(conn, "SELECT * FROM remotive_matching_jobs_snapshot ORDER BY publication_date DESC, job_id DESC")
+            if table_exists(conn, "remotive_matching_jobs_snapshot")
+            else []
+        )
         gap = rows(conn, "SELECT * FROM source_gaps WHERE signal='job_demand'")
     finally:
         conn.close()
@@ -247,6 +257,13 @@ def main():
     remoteok_total = num(remoteok_wp.get("total_jobs") or (remoteok_terms[0].get("total_jobs") if remoteok_terms else 0))
     remoteok_wp_or_woo = num(remoteok_wp.get("matching_jobs")) + num(remoteok_woo.get("matching_jobs"))
     remoteok_collected = remoteok_wp.get("collected_at") or (remoteok_terms[0].get("collected_at") if remoteok_terms else "")
+    remotive_by_term = {row.get("term"): row for row in remotive_terms}
+    remotive_wp = remotive_by_term.get("wordpress", {})
+    remotive_woo = remotive_by_term.get("woocommerce", {})
+    remotive_php = remotive_by_term.get("php", {})
+    remotive_total = num(remotive_wp.get("total_jobs") or (remotive_terms[0].get("total_jobs") if remotive_terms else 0))
+    remotive_wp_or_woo = num(remotive_wp.get("matching_jobs")) + num(remotive_woo.get("matching_jobs"))
+    remotive_collected = remotive_wp.get("collected_at") or (remotive_terms[0].get("collected_at") if remotive_terms else "")
 
     latest_jobs_date = latest_jobs.get("snapshot_date", "")
     latest_categories = [
@@ -296,6 +313,12 @@ def main():
                 f"{compact(remoteok_total)} current Remote OK jobs scanned",
                 "amber" if remoteok_terms else "violet",
             ),
+            metric_card(
+                "Remotive WP/Woo",
+                compact(remotive_wp_or_woo),
+                f"{compact(remotive_total)} current Remotive jobs scanned",
+                "amber" if remotive_terms else "violet",
+            ),
         ]
     )
 
@@ -341,6 +364,17 @@ def main():
         )
         for row in remoteok_terms
     )
+    remotive_max = max([num(row.get("matching_jobs")) for row in remotive_terms] or [1])
+    remotive_rows = "".join(
+        bar_row(
+            str(row.get("label") or row.get("term") or ""),
+            row.get("matching_jobs"),
+            remotive_max,
+            COLORS["amber"] if row.get("term") in {"wordpress", "woocommerce"} else COLORS["violet"],
+            f" of {compact(row.get('total_jobs'))}",
+        )
+        for row in remotive_terms
+    )
 
     gap_note = gap[0].get("note") if gap else "The job-demand source is a proxy-led signal."
     hn_change = f"{pct(hn_attention.get('change_pct'))} vs {hn_attention.get('baseline_period', 'baseline')}"
@@ -366,9 +400,15 @@ def main():
                 "green",
             ),
             signal_row(
-                "Broad remote board is not showing WordPress demand",
-                "The current Remote OK public API snapshot has no WordPress or WooCommerce matches in the scanned jobs.",
+                "Remote OK shows a small WP signal" if remoteok_wp_or_woo else "Remote OK is low for WP/Woo",
+                "The current Remote OK public API snapshot has WordPress or WooCommerce matches in the scanned jobs." if remoteok_wp_or_woo else "The current Remote OK public API snapshot has no WordPress or WooCommerce matches in the scanned jobs.",
                 f"{compact(remoteok_wp_or_woo)} of {compact(remoteok_total)}",
+                "amber",
+            ),
+            signal_row(
+                "Remotive shows a small WP signal" if remotive_wp_or_woo else "Remotive is low for WP/Woo",
+                "The current Remotive public API snapshot has WordPress or WooCommerce matches in the scanned jobs." if remotive_wp_or_woo else "The current Remotive public API snapshot has no WordPress or WooCommerce matches in the scanned jobs.",
+                f"{compact(remotive_wp_or_woo)} of {compact(remotive_total)}",
                 "amber",
             ),
             signal_row(
@@ -449,7 +489,7 @@ def main():
 <body>
 <main>
   <h1>WordPress job demand</h1>
-  <p class="lede">A compact readout of job-demand proxies already stored in SQLite: Hacker News Who is hiring mention rates, WordPress/WooCommerce and PHP mentions, agency/studio mentions, and jobs.wordpress.net archived snapshots.</p>
+  <p class="lede">A compact readout of job-demand proxies already stored in SQLite: Hacker News Who is hiring mention rates, WordPress/WooCommerce and PHP mentions, agency/studio mentions, jobs.wordpress.net snapshots, and current Remote OK plus Remotive term scans.</p>
 {nav_html()}
 
   <section class="metrics" aria-label="Job demand summary">
@@ -465,7 +505,7 @@ def main():
     </article>
     <article class="section">
       <h2>How to read this</h2>
-      <p>This page separates WordPress-specific jobs board snapshots from broader hiring-thread mentions and a current <a href="https://remoteok.com/">Remote OK</a> public API snapshot. It helps show direction, but it is narrower than a multi-year labor-market export.</p>
+      <p>This page separates WordPress-specific jobs board snapshots from broader hiring-thread mentions and current <a href="https://remoteok.com/">Remote OK</a> plus <a href="https://remotive.com/">Remotive</a> public API snapshots. It helps show direction, but it is narrower than a multi-year labor-market export.</p>
       <p class="callout">{esc(gap_note)}</p>
     </article>
   </section>
@@ -488,9 +528,16 @@ def main():
 {remoteok_rows}
       </div>
     </article>
+    <article class="chart-card">
+      <h2>Remotive current term matches</h2>
+      <p>Current Remotive public API snapshot scanned for WordPress, WooCommerce, PHP, hosted-builder, CMS, and agency/studio terms.</p>
+      <div class="bar-stack">
+{remotive_rows}
+      </div>
+    </article>
   </section>
 
-  <p class="footer-note">Rows come from <code>hn_hiring_wordpress_quarterly</code>, <code>hn_hiring_demand_summary</code>, <code>remoteok_job_signal_snapshot</code>, <code>remoteok_matching_jobs_snapshot</code>, <code>wordpress_jobs_board_snapshots</code>, <code>wordpress_jobs_board_category_snapshots</code>, and <code>attention_demand_summary</code>. Remote OK source snapshot collected {esc(remoteok_collected[:10])}. Integrity check: <code>{esc(integrity)}</code>.</p>
+  <p class="footer-note">Rows come from <code>hn_hiring_wordpress_quarterly</code>, <code>hn_hiring_demand_summary</code>, <code>remoteok_job_signal_snapshot</code>, <code>remoteok_matching_jobs_snapshot</code>, <code>remotive_job_signal_snapshot</code>, <code>remotive_matching_jobs_snapshot</code>, <code>wordpress_jobs_board_snapshots</code>, <code>wordpress_jobs_board_category_snapshots</code>, and <code>attention_demand_summary</code>. Remote OK source snapshot collected {esc(remoteok_collected[:10])}; Remotive source snapshot collected {esc(remotive_collected[:10])}. Integrity check: <code>{esc(integrity)}</code>.</p>
 </main>
 </body>
 </html>

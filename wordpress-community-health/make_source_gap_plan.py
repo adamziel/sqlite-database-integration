@@ -35,7 +35,7 @@ PLAN = {
         "next_step": "Import a labor-market export such as Lightcast, Indeed/Hiring Lab, LinkedIn, or a comparable source.",
         "target_tables": ["job_demand_quarterly"],
         "success": "Quarterly WordPress, PHP, CMS, Shopify, Wix, Squarespace, and Webflow demand rows.",
-        "why": "Separates WordPress-specific demand from narrower HN and jobs.wordpress.net proxies.",
+        "why": "Separates WordPress-specific demand from narrower HN, Remote OK, Remotive, and jobs.wordpress.net proxies.",
     },
     "support_forum_history": {
         "label": "Support history",

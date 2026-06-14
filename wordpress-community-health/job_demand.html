@@ -67,7 +67,7 @@
 <body>
 <main>
   <h1>WordPress job demand</h1>
-  <p class="lede">A compact readout of job-demand proxies already stored in SQLite: Hacker News Who is hiring mention rates, WordPress/WooCommerce and PHP mentions, agency/studio mentions, and jobs.wordpress.net archived snapshots.</p>
+  <p class="lede">A compact readout of job-demand proxies already stored in SQLite: Hacker News Who is hiring mention rates, WordPress/WooCommerce and PHP mentions, agency/studio mentions, jobs.wordpress.net snapshots, and current Remote OK plus Remotive term scans.</p>
     <nav class="nav">
       <a href="index.html#market">Market Position</a>
       <a href="market_position.html">Market position</a>
@@ -117,6 +117,11 @@
         <strong>0</strong>
         <p>100 current Remote OK jobs scanned</p>
       </article>
+      <article class="metric amber">
+        <h3>Remotive WP/Woo</h3>
+        <strong>3</strong>
+        <p>32 current Remotive jobs scanned</p>
+      </article>
   </section>
 
   <section class="grid">
@@ -147,10 +152,17 @@
         </div>
         <div class="signal-row amber">
           <div>
-            <strong>Broad remote board is not showing WordPress demand</strong>
+            <strong>Remote OK is low for WP/Woo</strong>
             <span>The current Remote OK public API snapshot has no WordPress or WooCommerce matches in the scanned jobs.</span>
           </div>
           <b>0 of 100</b>
+        </div>
+        <div class="signal-row amber">
+          <div>
+            <strong>Remotive shows a small WP signal</strong>
+            <span>The current Remotive public API snapshot has WordPress or WooCommerce matches in the scanned jobs.</span>
+          </div>
+          <b>3 of 32</b>
         </div>
         <div class="signal-row violet">
           <div>
@@ -163,8 +175,8 @@
     </article>
     <article class="section">
       <h2>How to read this</h2>
-      <p>This page separates WordPress-specific jobs board snapshots from broader hiring-thread mentions and a current <a href="https://remoteok.com/">Remote OK</a> public API snapshot. It helps show direction, but it is narrower than a multi-year labor-market export.</p>
-      <p class="callout">HN Who is hiring WordPress/WooCommerce, PHP, and agency/studio mention counts, Remote OK current remote-job term counts, WordPress Jobs board open-listing snapshots, a compact proxy-direction summary, and a job-demand companion view are included; broader multi-year labor-market demand still needs a hiring-platform time series.</p>
+      <p>This page separates WordPress-specific jobs board snapshots from broader hiring-thread mentions and current <a href="https://remoteok.com/">Remote OK</a> plus <a href="https://remotive.com/">Remotive</a> public API snapshots. It helps show direction, but it is narrower than a multi-year labor-market export.</p>
+      <p class="callout">HN Who is hiring WordPress/WooCommerce, PHP, and agency/studio mention counts, Remote OK and Remotive current remote-job term counts, WordPress Jobs board open-listing snapshots, a compact proxy-direction summary, and a job-demand companion view are included; broader multi-year labor-market demand still needs a hiring-platform time series.</p>
     </article>
   </section>
 
@@ -317,9 +329,52 @@
         </div>
       </div>
     </article>
+    <article class="chart-card">
+      <h2>Remotive current term matches</h2>
+      <p>Current Remotive public API snapshot scanned for WordPress, WooCommerce, PHP, hosted-builder, CMS, and agency/studio terms.</p>
+      <div class="bar-stack">
+
+        <div class="barline">
+          <div class="bar-label"><span>PHP</span><strong>13 of 32</strong></div>
+          <div class="bar"><span style="width:100.0%;background:#7c3aed"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>Agency/studio</span><strong>7 of 32</strong></div>
+          <div class="bar"><span style="width:53.8%;background:#7c3aed"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>Shopify</span><strong>3 of 32</strong></div>
+          <div class="bar"><span style="width:23.1%;background:#7c3aed"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>WordPress</span><strong>3 of 32</strong></div>
+          <div class="bar"><span style="width:23.1%;background:#b7791f"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>CMS</span><strong>2 of 32</strong></div>
+          <div class="bar"><span style="width:15.4%;background:#7c3aed"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>Squarespace</span><strong>1 of 32</strong></div>
+          <div class="bar"><span style="width:7.7%;background:#7c3aed"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>Wix</span><strong>1 of 32</strong></div>
+          <div class="bar"><span style="width:7.7%;background:#7c3aed"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>Webflow</span><strong>0 of 32</strong></div>
+          <div class="bar"><span style="width:0.0%;background:#7c3aed"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>WooCommerce</span><strong>0 of 32</strong></div>
+          <div class="bar"><span style="width:0.0%;background:#b7791f"></span></div>
+        </div>
+      </div>
+    </article>
   </section>
 
-  <p class="footer-note">Rows come from <code>hn_hiring_wordpress_quarterly</code>, <code>hn_hiring_demand_summary</code>, <code>remoteok_job_signal_snapshot</code>, <code>remoteok_matching_jobs_snapshot</code>, <code>wordpress_jobs_board_snapshots</code>, <code>wordpress_jobs_board_category_snapshots</code>, and <code>attention_demand_summary</code>. Remote OK source snapshot collected 2026-06-14. Integrity check: <code>ok</code>.</p>
+  <p class="footer-note">Rows come from <code>hn_hiring_wordpress_quarterly</code>, <code>hn_hiring_demand_summary</code>, <code>remoteok_job_signal_snapshot</code>, <code>remoteok_matching_jobs_snapshot</code>, <code>remotive_job_signal_snapshot</code>, <code>remotive_matching_jobs_snapshot</code>, <code>wordpress_jobs_board_snapshots</code>, <code>wordpress_jobs_board_category_snapshots</code>, and <code>attention_demand_summary</code>. Remote OK source snapshot collected 2026-06-14; Remotive source snapshot collected 2026-06-14. Integrity check: <code>ok</code>.</p>
 </main>
 </body>
 </html>

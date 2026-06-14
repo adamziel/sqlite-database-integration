@@ -147,7 +147,7 @@
     </nav>
 
     <section class="grid metrics" aria-label="Database summary">
-      <div class="metric"><h3>Tables</h3><strong>97</strong><span>SQLite tables in the report database.</span></div>
+      <div class="metric"><h3>Tables</h3><strong>99</strong><span>SQLite tables in the report database.</span></div>
       <div class="metric"><h3>Local sources</h3><strong>19</strong><span>Imported files with SHA-256 hashes.</span></div>
       <div class="metric"><h3>Tickets/issues</h3><strong>97.1k</strong><span>Core Trac tickets plus Gutenberg issues.</span></div>
       <div class="metric"><h3>Pull requests</h3><strong>12.1k</strong><span>wordpress-develop GitHub PR records.</span></div>
@@ -239,6 +239,11 @@
         <article class="family-card">
           <strong><code>github_repo_search_snapshot</code></strong>
           <p>Current GitHub repository-search totals and top matching repositories for selected WordPress ecosystem topics.</p>
+        </article>
+
+        <article class="family-card">
+          <strong><code>remotive_*</code></strong>
+          <p>Current Remotive job snapshot with term summaries and matching rows.</p>
         </article>
         </div>
       </div>
@@ -337,6 +342,8 @@
 <div class="table-chip"><code>plugin_stale_popular_sample</code><span>41 rows</span></div>
 <div class="table-chip"><code>remoteok_job_signal_snapshot</code><span>9 rows</span></div>
 <div class="table-chip"><code>remoteok_matching_jobs_snapshot</code><span>15 rows</span></div>
+<div class="table-chip"><code>remotive_job_signal_snapshot</code><span>9 rows</span></div>
+<div class="table-chip"><code>remotive_matching_jobs_snapshot</code><span>23 rows</span></div>
 <div class="table-chip"><code>search_query_intent_summary</code><span>7 rows</span></div>
 <div class="table-chip"><code>search_query_suggestions</code><span>70 rows</span></div>
 <div class="table-chip"><code>source_files</code><span>19 rows</span></div>
@@ -522,9 +529,9 @@
           <span class="status">partial</span>
           <strong>Job Demand</strong>
           <b>Best next source</b>
-          <p>Hacker News monthly Who is hiring? threads, Remote OK current jobs, plus hiring-platform exports</p>
+          <p>Hacker News monthly Who is hiring? threads, Remote OK and Remotive current jobs, plus hiring-platform exports</p>
           <b>Current coverage</b>
-          <p>HN Who is hiring WordPress/WooCommerce, PHP, and agency/studio mention counts, Remote OK current remote-job term counts, WordPress Jobs board open-listing snapshots, a compact proxy-direction summary, and a job-demand companion view are included; broader multi-year labor-market demand still needs a hiring-platform time series.</p>
+          <p>HN Who is hiring WordPress/WooCommerce, PHP, and agency/studio mention counts, Remote OK and Remotive current remote-job term counts, WordPress Jobs board open-listing snapshots, a compact proxy-direction summary, and a job-demand companion view are included; broader multi-year labor-market demand still needs a hiring-platform time series.</p>
         </article>
 
         <article class="gap-card">

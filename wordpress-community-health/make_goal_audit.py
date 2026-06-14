@@ -70,7 +70,7 @@ GAP_SUMMARIES = {
     ),
     "job_demand": (
         "Hiring demand",
-        "HN hiring threads, Remote OK current jobs, and WordPress Jobs snapshots are in.",
+        "HN hiring threads, Remote OK and Remotive current jobs, and WordPress Jobs snapshots are in.",
         "Add a broad hiring-platform export.",
     ),
     "new_site_share_history": (

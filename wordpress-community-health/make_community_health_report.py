@@ -3042,14 +3042,21 @@ def build_report(data, fetched):
 
     core_created_prev = average(core_q, "created", "2021-01-01", "2024-01-01")
     core_created_recent = average(core_q, "created", "2024-01-01")
+    core_closed_recent = average(core_q, "closed", "2024-01-01")
     core_first_prev = average(core_q, "first_time_reporters", "2021-01-01", "2024-01-01")
     core_first_recent = average(core_q, "first_time_reporters", "2024-01-01")
     gut_created_prev = average(gut_q, "created", "2021-01-01", "2024-01-01")
     gut_created_recent = average(gut_q, "created", "2024-01-01")
+    gut_closed_recent = average(gut_q, "closed", "2024-01-01")
     gut_first_prev = average(gut_q, "first_time_creators", "2021-01-01", "2024-01-01")
     gut_first_recent = average(gut_q, "first_time_creators", "2024-01-01")
     pr_created_prev = average(github_q, "created", "2021-01-01", "2024-01-01")
     pr_created_recent = average(github_q, "created", "2024-01-01")
+    core_first_retention = core_first_recent / core_first_prev * 100 if core_first_prev else 0
+    gut_first_retention = gut_first_recent / gut_first_prev * 100 if gut_first_prev else 0
+    pr_flow_ratio = pr_created_recent / pr_created_prev * 100 if pr_created_prev else 0
+    core_closure_ratio = core_closed_recent / core_created_recent * 100 if core_created_recent else 0
+    gut_closure_ratio = gut_closed_recent / gut_created_recent * 100 if gut_created_recent else 0
 
     core_close_age, core_reopened, core_closed_ids = compute_close_age_core(core_tickets, core_events)
     gut_close_age = compute_close_age_gutenberg(gut_jsonl)
@@ -3421,10 +3428,14 @@ p {{ margin:0 0 12px; }}
 .covered .pill {{ background:#dcfce7; color:#166534; }}
 .partial .pill {{ background:#fef3c7; color:#92400e; }}
 .missing .pill {{ background:#fee2e2; color:#991b1b; }}
+.readout-grid {{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin-top:14px; }}
+.readout-card {{ border:1px solid var(--line); border-radius:8px; padding:16px; background:#fff; }}
+.readout-card strong {{ display:block; font-size:24px; line-height:1.15; margin-bottom:8px; }}
+.readout-card p {{ color:var(--muted); }}
 .footer {{ color:var(--muted); font-size:13px; margin-top:32px; border-top:1px solid var(--line); padding-top:18px; }}
 @media (max-width:900px) {{
   h1 {{ font-size:34px; }}
-  .answer-grid, .grid-2, .stats, .status-grid {{ grid-template-columns:1fr; }}
+  .answer-grid, .grid-2, .stats, .status-grid, .readout-grid {{ grid-template-columns:1fr; }}
   .page {{ padding:24px 16px 48px; }}
 }}
 </style>
@@ -3440,6 +3451,7 @@ p {{ margin:0 0 12px; }}
     <a href="#load">Project Load</a>
     <a href="#market">Market Position</a>
     <a href="#coverage">Source Coverage</a>
+    <a href="#readout">Decision Readout</a>
   </nav>
 
   <section class="answer-grid">
@@ -3926,6 +3938,41 @@ p {{ margin:0 0 12px; }}
     <p class="callout">The SQLite database stores imported source tables, fetched ecosystem/adoption records, file hashes, and explicit source gaps. Download: <a href="community_health.sqlite.gz">community_health.sqlite.gz</a>.</p>
     <div class="status-grid">
       {''.join(f'<div class="status {status}"><span class="pill">{html.escape(status)}</span><b>{html.escape(name)}</b><span>{html.escape(note)}</span></div>' for name, status, note in source_status_rows(fetched))}
+    </div>
+  </section>
+
+  <section id="readout" class="section">
+    <h2>Decision Readout</h2>
+    <p class="callout">Short version: WordPress is still widely chosen, adoption is softer than the recent high-water mark, ticket participation has fewer new reporters, and project load is closer to balanced than the backlog size alone suggests.</p>
+    <div class="readout-grid">
+      <div class="readout-card">
+        <strong>Community health: active, narrower entry funnel</strong>
+        <p>Core and Gutenberg still get steady participation, but fewer first-time reporters are entering the trackers than in 2021-2023. Code review activity is not showing the same drop.</p>
+        {horizontal_metric("Core first-time reporter retention", core_first_retention, 100, COLORS["red"])}
+        {horizontal_metric("Gutenberg first-time creator retention", gut_first_retention, 100, COLORS["red"])}
+        {horizontal_metric("PR creation vs 2021-2023", pr_flow_ratio, max(160, pr_flow_ratio), COLORS["green"])}
+      </div>
+      <div class="readout-card">
+        <strong>Project load: mostly keeping up, backlog still aged</strong>
+        <p>Since 2024, Core closures are slightly above new tickets on average, and Gutenberg is near balanced with a recent cleanup quarter. The remaining open backlog still contains a large older share.</p>
+        {horizontal_metric("Core closure balance since 2024", core_closure_ratio, max(140, core_closure_ratio, gut_closure_ratio), COLORS["core"])}
+        {horizontal_metric("Gutenberg closure balance since 2024", gut_closure_ratio, max(140, core_closure_ratio, gut_closure_ratio), COLORS["gutenberg"])}
+        {horizontal_metric("Core stale open share", core_stale_pct, 100, COLORS["orange"])}
+        {horizontal_metric("Gutenberg stale open share", gut_stale_pct, 100, COLORS["orange"])}
+      </div>
+      <div class="readout-card">
+        <strong>Market position: dominant, recently softer</strong>
+        <p>{html.escape(adoption_detail)} BuiltWith's current 90-day pipeline still shows WordPress with the largest tracked new-site count among WordPress, Shopify, Wix, and Webflow.</p>
+        {horizontal_metric("W3Techs all-site share", float(wp_usage_latest["value"]) if wp_usage_latest else 0, 100, COLORS["wordpress"])}
+        {horizontal_metric("W3Techs CMS share", float(wp_cms_latest["value"]) if wp_cms_latest else 0, 100, COLORS["wordpress"])}
+        {horizontal_metric("Tracked 90-day new-site share", builtwith_wp_90_share, 100, COLORS["green"])}
+      </div>
+    </div>
+    <div class="stats">
+      {stat_card("Still widely chosen?", "Yes", f"{pct(wp_usage_latest['value']) if wp_usage_latest else 'n/a'} of all sites; {pct(wp_cms_latest['value']) if wp_cms_latest else 'n/a'} of CMS sites", "good")}
+      {stat_card("Adoption direction", "Softer", f"{usage_delta:+.1f} all-site pts and {cms_delta:+.1f} CMS pts since Jan 2025" if usage_delta is not None and cms_delta is not None else "latest W3Techs trend fetched", "watch")}
+      {stat_card("Participation direction", "Fewer reporters", f"Core first-time reporters retained {pct(core_first_retention)} of the 2021-2023 average; Gutenberg retained {pct(gut_first_retention)}.", "watch")}
+      {stat_card("Keeping up?", "Mostly", f"Closure/new ratio since 2024: Core {pct(core_closure_ratio)}, Gutenberg {pct(gut_closure_ratio)}.", "soft")}
     </div>
   </section>
 

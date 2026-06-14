@@ -2892,6 +2892,7 @@ def build_derived_metrics(data):
         "contributor_depth_buckets": derive_contributor_depth(data),
         "contributor_concentration_summary": derive_contributor_concentration_summary(data),
         "category_open_backlog_summary": derive_category_open_backlog_summary(data),
+        "open_backlog_age_summary": derive_open_backlog_age_summary(data),
     }
 
 
@@ -3442,6 +3443,82 @@ def derive_category_open_backlog_summary(data):
     return rows
 
 
+def derive_open_backlog_age_summary(data):
+    bucket_defs = [
+        ("0-90 days", 1, 0, 90),
+        ("91-365 days", 2, 91, 365),
+        ("1-2 years", 3, 366, 730),
+        ("2-5 years", 4, 731, 1825),
+        ("5+ years", 5, 1826, None),
+        ("unknown", 6, None, None),
+    ]
+
+    def bucket_for(days):
+        if days is None:
+            return "unknown"
+        for label, _order, min_days, max_days in bucket_defs:
+            if min_days is None:
+                continue
+            if days >= min_days and (max_days is None or days <= max_days):
+                return label
+        return "unknown"
+
+    source_defs = [
+        ("Core", data.get("core_tickets", []), "status", "modified_at", lambda row: str(row.get("status") or "").lower() != "closed"),
+        ("Gutenberg", data.get("gutenberg_issues_jsonl", []), "state", "updated_at", lambda row: str(row.get("state") or "").lower() == "open"),
+    ]
+    rows = []
+    for source, source_rows, status_field, activity_field, is_open in source_defs:
+        buckets = {
+            label: {
+                "source": source,
+                "age_bucket": label,
+                "bucket_order": order,
+                "open_count": 0,
+                "bug_count": 0,
+                "feature_request_count": 0,
+                "enhancement_count": 0,
+                "unknown_activity_count": 0,
+            }
+            for label, order, _min_days, _max_days in bucket_defs
+        }
+        open_rows = [row for row in source_rows if is_open(row)]
+        for row in open_rows:
+            last_activity = parse_iso(row.get(activity_field))
+            days = max(0, int((END - last_activity).total_seconds() // 86400)) if last_activity else None
+            bucket = buckets[bucket_for(days)]
+            bucket["open_count"] += 1
+            if days is None:
+                bucket["unknown_activity_count"] += 1
+            if source == "Core":
+                ticket_type = str(row.get("type") or "").lower()
+                if ticket_type == "defect (bug)":
+                    bucket["bug_count"] += 1
+                elif ticket_type == "feature request":
+                    bucket["feature_request_count"] += 1
+                elif ticket_type == "enhancement":
+                    bucket["enhancement_count"] += 1
+            else:
+                labels = str(row.get("labels") or "").lower()
+                if "type: bug" in labels or "bug" in labels:
+                    bucket["bug_count"] += 1
+                if "type: feature" in labels or "feature" in labels:
+                    bucket["feature_request_count"] += 1
+                if "type: enhancement" in labels or "enhancement" in labels:
+                    bucket["enhancement_count"] += 1
+        open_total = len(open_rows)
+        for label, order, _min_days, _max_days in bucket_defs:
+            row = dict(buckets[label])
+            row["open_total"] = open_total
+            row["open_share_pct"] = round(row["open_count"] / open_total * 100, 2) if open_total else 0
+            row["snapshot_at"] = END.isoformat().replace("+00:00", "Z")
+            row["activity_field"] = activity_field
+            row["status_field"] = status_field
+            row["source_note"] = "Currently open backlog bucketed by age since last activity/update"
+            rows.append(row)
+    return rows
+
+
 def stale_open_share_core(core_tickets):
     cutoff = END - dt.timedelta(days=365)
     open_rows = [row for row in core_tickets if (row.get("status") or "").lower() != "closed"]
@@ -3520,6 +3597,7 @@ def source_status_rows(fetched):
         ("Contributor concentration", "covered" if fetched.get("contributor_concentration_summary") else "missing", "Top 10, 25, and 50 contributor work share across Core, Gutenberg, and PR activity"),
         ("Ticket category classification", "covered", "Bug, feature request, enhancement, task, and other categories"),
         ("Open category backlog", "covered" if fetched.get("category_open_backlog_summary") else "missing", "Open bug, enhancement, feature-request, and other category composition"),
+        ("Open backlog age buckets", "covered" if fetched.get("open_backlog_age_summary") else "missing", "Current open Core/Gutenberg backlog by last-activity age bucket"),
         ("W3Techs adoption", "covered" if fetched.get("market_share") else "missing", "All-site usage and CMS market-share yearly trends"),
         ("HTTP Archive/Web Almanac", "covered", "2025 CMS adoption snapshot and high-traffic context"),
         ("BuiltWith ecommerce history", "covered" if fetched.get("builtwith_technology_history") else "missing", "Shopify and WooCommerce live-site counts by traffic tier"),
@@ -3615,6 +3693,7 @@ def build_report(data, fetched):
     contributor_depth = fetched.get("contributor_depth_buckets", [])
     contributor_concentration_summary = fetched.get("contributor_concentration_summary", [])
     category_open_backlog = fetched.get("category_open_backlog_summary", [])
+    open_backlog_age = fetched.get("open_backlog_age_summary", [])
 
     core_latest = current_latest(core_q)
     gut_latest = current_latest(gut_q)
@@ -3894,6 +3973,23 @@ def build_report(data, fetched):
         (float(row.get("open_category_share_pct") or 0) for row in gut_open_category_rows if row.get("category") == "bug"),
         0,
     )
+    core_open_age_rows = sorted(
+        [row for row in open_backlog_age if row.get("source") == "Core"],
+        key=lambda row: num(row.get("bucket_order")),
+    )
+    gut_open_age_rows = sorted(
+        [row for row in open_backlog_age if row.get("source") == "Gutenberg"],
+        key=lambda row: num(row.get("bucket_order")),
+    )
+    open_age_max = max([num(row.get("open_count")) for row in core_open_age_rows + gut_open_age_rows] or [1])
+    core_open_2y_plus = sum(
+        num(row.get("open_count")) for row in core_open_age_rows if row.get("age_bucket") in {"2-5 years", "5+ years"}
+    )
+    gut_open_2y_plus = sum(
+        num(row.get("open_count")) for row in gut_open_age_rows if row.get("age_bucket") in {"2-5 years", "5+ years"}
+    )
+    core_open_2y_share = core_open_2y_plus / core_open * 100 if core_open else 0
+    gut_open_2y_share = gut_open_2y_plus / gut_open * 100 if gut_open else 0
 
     market_usage_series = []
     market_cms_series = []
@@ -4541,6 +4637,26 @@ p {{ margin:0 0 12px; }}
           {horizontal_count_metric("Latest Core reopens per 100 closes", float(latest_core_reopen.get("reopened_events_per_100_closed") or 0), max_reopen_rate, COLORS["core"], " /100 closes")}
           {horizontal_count_metric("Latest Gutenberg reopens per 100 closes", float(latest_gut_timeline.get("reopened_events_per_100_closed") or 0), max_reopen_rate, COLORS["red"], " /100 closes")}
         </div>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Core open backlog age</h3>
+        <p>Currently open Trac tickets grouped by time since last modification.</p>
+        <div class="stats">
+          {stat_card("Open tickets", compact(core_open), "current Core backlog", "soft")}
+          {stat_card("2+ years", compact(core_open_2y_plus), f"{pct(core_open_2y_share)} of open tickets", "watch")}
+        </div>
+        {''.join(horizontal_count_metric(str(row.get('age_bucket', '')), num(row.get("open_count")), open_age_max, COLORS["orange"] if row.get("age_bucket") in {"2-5 years", "5+ years"} else COLORS["core"], " open") for row in core_open_age_rows)}
+      </div>
+      <div class="card">
+        <h3>Gutenberg open backlog age</h3>
+        <p>Currently open GitHub issues grouped by time since last update.</p>
+        <div class="stats">
+          {stat_card("Open issues", compact(gut_open), "current Gutenberg backlog", "soft")}
+          {stat_card("2+ years", compact(gut_open_2y_plus), f"{pct(gut_open_2y_share)} of open issues", "watch")}
+        </div>
+        {''.join(horizontal_count_metric(str(row.get('age_bucket', '')), num(row.get("open_count")), open_age_max, COLORS["orange"] if row.get("age_bucket") in {"2-5 years", "5+ years"} else COLORS["gutenberg"], " open") for row in gut_open_age_rows)}
       </div>
     </div>
     {svg_line_chart("Large ticket categories by quarter", "Combined Core plus Gutenberg classified issue/ticket categories since 2021.", cat_series)}

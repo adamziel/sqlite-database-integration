@@ -57,6 +57,10 @@ SOURCE_FILES = {
 W3TECHS_USAGE_URL = "https://w3techs.com/technologies/history_overview/content_management/all/y"
 W3TECHS_MARKET_SHARE_URL = "https://w3techs.com/technologies/history_overview/content_management/ms/y"
 HTTP_ARCHIVE_CMS_URL = "https://almanac.httparchive.org/en/2025/cms"
+BUILTWITH_TECHNOLOGIES = [
+    {"technology": "Shopify", "category": "eCommerce", "source_url": "https://trends.builtwith.com/ecommerce/Shopify"},
+    {"technology": "WooCommerce", "category": "eCommerce", "source_url": "https://trends.builtwith.com/ecommerce/WooCommerce"},
+]
 PLUGIN_API = "https://api.wordpress.org/plugins/info/1.2/?action=query_plugins&request[page]=1&request[per_page]=1"
 THEME_API = "https://api.wordpress.org/themes/info/1.2/?action=query_themes&request[page]=1&request[per_page]=1"
 PLUGIN_INFO_API = "https://api.wordpress.org/plugins/info/1.2/"
@@ -414,6 +418,19 @@ def write_cached_w3techs_history(metric_name, rows):
     w3techs_cache_path(metric_name).write_text(json.dumps(rows, ensure_ascii=True, sort_keys=True), encoding="utf-8")
 
 
+def read_existing_table(table_name):
+    if not DB_PATH.exists():
+        return []
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        rows = [dict(row) for row in conn.execute(f'SELECT * FROM "{table_name}"')]
+        conn.close()
+        return rows
+    except sqlite3.Error:
+        return []
+
+
 def parse_w3techs_history(url, metric_name, skip_network=False):
     fallback = read_cached_w3techs_history(metric_name)
     if skip_network:
@@ -447,6 +464,151 @@ def parse_w3techs_history(url, metric_name, skip_network=False):
     except Exception as exc:
         eprint(f"w3techs fetch failed for {metric_name}: {exc}")
         return fallback
+
+
+def builtwith_cache_path(technology):
+    slug = re.sub(r"[^A-Za-z0-9]+", "-", technology).strip("-").lower()
+    return CACHE / f"builtwith-{slug}.html"
+
+
+def fetch_builtwith_page(technology, source_url, skip_network=False):
+    cache_path = builtwith_cache_path(technology)
+    if skip_network and cache_path.exists():
+        return cache_path.read_text(encoding="utf-8", errors="replace")
+    if skip_network:
+        return ""
+    try:
+        body, _headers = fetch_text(source_url)
+        if len(body) > 1000:
+            CACHE.mkdir(parents=True, exist_ok=True)
+            cache_path.write_text(body, encoding="utf-8")
+        return body
+    except Exception as exc:
+        eprint(f"BuiltWith fetch failed for {technology}: {exc}")
+        if cache_path.exists():
+            return cache_path.read_text(encoding="utf-8", errors="replace")
+        return ""
+
+
+def builtwith_count_after_label(body, label):
+    pattern = rf">{re.escape(label)}<.*?<div class=\"col-5[^>]*\">.*?<a[^>]*>\s*([\d,]+)\s*</a>"
+    match = re.search(pattern, body, re.S)
+    return parse_count(match.group(1)) if match else 0
+
+
+def extract_balanced_json(text, start_index):
+    brace_start = text.find("{", start_index)
+    if brace_start < 0:
+        return ""
+    depth = 0
+    in_string = False
+    escape = False
+    for index in range(brace_start, len(text)):
+        char = text[index]
+        if in_string:
+            if escape:
+                escape = False
+            elif char == "\\":
+                escape = True
+            elif char == '"':
+                in_string = False
+            continue
+        if char == '"':
+            in_string = True
+        elif char == "{":
+            depth += 1
+        elif char == "}":
+            depth -= 1
+            if depth == 0:
+                return text[brace_start : index + 1]
+    return ""
+
+
+def parse_builtwith_history_dataset(body):
+    start = body.find('dataset: {"source"')
+    if start < 0:
+        return []
+    raw_json = extract_balanced_json(body, start)
+    if not raw_json:
+        return []
+    try:
+        data = json.loads(raw_json)
+    except json.JSONDecodeError:
+        return []
+    source = data.get("source") or []
+    if len(source) < 2:
+        return []
+    headers = [str(item) for item in source[0]]
+    rows = []
+    for item in source[1:]:
+        if not item or len(item) != len(headers):
+            continue
+        row = dict(zip(headers, item))
+        date_value = row.get("Date")
+        if not parse_iso(date_value):
+            continue
+        rows.append(
+            {
+                "date": date_value,
+                "top_1k": num(row.get("Top 1k")),
+                "top_10k": num(row.get("Top 10k")),
+                "top_100k": num(row.get("Top 100k")),
+                "top_1m": num(row.get("Top 1m")),
+                "entire_internet": num(row.get("Entire Internet")),
+            }
+        )
+    return rows
+
+
+def parse_builtwith_page(technology, category, source_url, body):
+    snapshot = {
+        "collected_at": dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
+        "technology": technology,
+        "category": category,
+        "source_url": source_url,
+        "total_live": builtwith_count_after_label(body, "Total Live"),
+        "new_last_7_days": builtwith_count_after_label(body, "Last 7 Days"),
+        "new_last_14_days": builtwith_count_after_label(body, "Last 14 Days"),
+        "new_last_month": builtwith_count_after_label(body, "Last Month"),
+        "new_last_3_months": builtwith_count_after_label(body, "Last 3 Months"),
+        "top_1m": builtwith_count_after_label(body, "Top 1m"),
+        "top_100k": builtwith_count_after_label(body, "Top 100k"),
+        "top_10k": builtwith_count_after_label(body, "Top 10k"),
+        "top_1000": builtwith_count_after_label(body, "Top 1000"),
+        "source_note": "BuiltWith public technology page exposes live totals, recent detections, traffic tiers, and a historical live-site dataset.",
+    }
+    history = []
+    for row in parse_builtwith_history_dataset(body):
+        row.update(
+            {
+                "technology": technology,
+                "category": category,
+                "source_url": source_url,
+                "collected_at": snapshot["collected_at"],
+            }
+        )
+        history.append(row)
+    return snapshot, history
+
+
+def fetch_builtwith_technology_signals(skip_network=False):
+    fallback_snapshots = read_existing_table("builtwith_technology_snapshots")
+    fallback_history = read_existing_table("builtwith_technology_history")
+    snapshots = []
+    history_rows = []
+    for config in BUILTWITH_TECHNOLOGIES:
+        body = fetch_builtwith_page(config["technology"], config["source_url"], skip_network)
+        if not body:
+            continue
+        snapshot, history = parse_builtwith_page(config["technology"], config["category"], config["source_url"], body)
+        if snapshot.get("total_live") or history:
+            snapshots.append(snapshot)
+            history_rows.extend(history)
+    if not snapshots:
+        snapshots = fallback_snapshots
+    if not history_rows:
+        history_rows = fallback_history
+    return snapshots, history_rows
 
 
 def fetch_wordpress_directory_snapshots(skip_network=False):
@@ -1553,7 +1715,7 @@ def build_database(data, fetched):
                 "new_site_share_history",
                 "partial",
                 "BuiltWith historical trends or HTTP Archive cohort queries",
-                "Current report includes a BuiltWith current Net New Pipeline snapshot, not a multi-year newly created site trend.",
+                "Current report includes BuiltWith current Net New Pipeline and live-site history, not a multi-year newly created site trend.",
             )
         )
     else:
@@ -2120,6 +2282,7 @@ def source_status_rows(fetched):
         ("Ticket category classification", "covered", "Bug, feature request, enhancement, task, and other categories"),
         ("W3Techs adoption", "covered" if fetched.get("market_share") else "missing", "All-site usage and CMS market-share yearly trends"),
         ("HTTP Archive/Web Almanac", "covered", "2025 CMS adoption snapshot and high-traffic context"),
+        ("BuiltWith ecommerce history", "covered" if fetched.get("builtwith_technology_history") else "missing", "Shopify and WooCommerce live-site counts by traffic tier"),
         ("WordPress.org plugin/theme directories", "covered" if fetched.get("directory_snapshots") else "missing", "Current plugin and theme counts"),
         ("Plugin/theme directory activity", "covered" if fetched.get("directory_activity_snapshots") else "missing", "Current new, updated, and popular samples from WordPress.org directory APIs"),
         ("WordCamp Central", "covered" if fetched.get("wordcamps") else "missing", "Historical WordCamp event records and anticipated-attendance fields where available"),
@@ -2135,7 +2298,7 @@ def source_status_rows(fetched):
         (
             "Newly detected sites",
             "partial" if SOURCE_FILES["builtwith_new_site_snapshot"].exists() else "missing",
-            "Current BuiltWith Net New Pipeline snapshot; historical trend still needs paid BuiltWith or HTTP Archive cohort queries",
+            "Current BuiltWith Net New Pipeline snapshot plus live-site history; multi-year new-site trend still needs paid BuiltWith or HTTP Archive cohort queries",
         ),
         (
             "Support forums",
@@ -2187,6 +2350,8 @@ def build_report(data, fetched):
     support_monthly = fetched.get("support_forum_activity_monthly", [])
     support_age_buckets = fetched.get("support_forum_age_buckets", [])
     builtwith_new_sites = data["builtwith_new_site_snapshot"]
+    builtwith_technology_snapshots = fetched.get("builtwith_technology_snapshots", [])
+    builtwith_technology_history = fetched.get("builtwith_technology_history", [])
 
     core_latest = current_latest(core_q)
     gut_latest = current_latest(gut_q)
@@ -2314,6 +2479,43 @@ def build_report(data, fetched):
     builtwith_wp_90_share = builtwith_wp_90 / builtwith_total_90 * 100 if builtwith_total_90 else 0
     builtwith_wp_30_share = builtwith_wp_30 / builtwith_total_30 * 100 if builtwith_total_30 else 0
     builtwith_top_tiers = ["top_1000", "top_10k", "top_100k", "top_1m"]
+    builtwith_live_by_tech = {row.get("technology"): row for row in builtwith_technology_snapshots}
+    builtwith_live_rows = [row for row in builtwith_technology_snapshots if num(row.get("total_live")) > 0]
+    builtwith_live_max = max([num(row.get("total_live")) for row in builtwith_live_rows] or [1])
+    builtwith_history_techs = [
+        ("Shopify", COLORS["shopify"]),
+        ("WooCommerce", COLORS["purple"]),
+    ]
+    builtwith_total_live_series = [
+        {
+            "label": tech,
+            "color": color,
+            "points": sorted(
+                (row["date"], num(row.get("entire_internet")))
+                for row in builtwith_technology_history
+                if row.get("technology") == tech and row.get("date") >= "2010-01-01"
+            ),
+        }
+        for tech, color in builtwith_history_techs
+    ]
+    builtwith_top1m_series = [
+        {
+            "label": tech,
+            "color": color,
+            "points": sorted(
+                (row["date"], num(row.get("top_1m")))
+                for row in builtwith_technology_history
+                if row.get("technology") == tech and row.get("date") >= "2010-01-01"
+            ),
+        }
+        for tech, color in builtwith_history_techs
+    ]
+    woocommerce_builtwith = builtwith_live_by_tech.get("WooCommerce", {})
+    woocommerce_plugin = max(
+        [row for row in plugin_activity_rows if row.get("slug") == "woocommerce"],
+        key=lambda row: num(row.get("active_installs")),
+        default={},
+    )
 
     classification_by_source_cat = defaultdict(int)
     for row in classifications:
@@ -2820,6 +3022,29 @@ p {{ margin:0 0 12px; }}
       </div>
     </div>
     <div class="grid-2">
+      {svg_line_chart("BuiltWith ecommerce live sites", "Historical live-site counts from BuiltWith ecommerce technology pages. This is installed-site presence, not new-site creation.", builtwith_total_live_series)}
+      {svg_line_chart("BuiltWith ecommerce Top 1M presence", "Historical live-site counts among the Top 1M traffic tier.", builtwith_top1m_series)}
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <h3>WooCommerce ecommerce signal</h3>
+        <p>WooCommerce appears in both BuiltWith ecommerce tracking and the WordPress.org plugin directory.</p>
+        <div class="stats">
+          {stat_card("BuiltWith live", compact(num(woocommerce_builtwith.get("total_live"))), "WooCommerce ecommerce page", "good")}
+          {stat_card("BuiltWith 90 days", compact(num(woocommerce_builtwith.get("new_last_3_months"))), "recently found sites", "good")}
+          {stat_card("Top 1M", compact(num(woocommerce_builtwith.get("top_1m"))), "BuiltWith traffic tier", "soft")}
+          {stat_card("Plugin installs", compact(num(woocommerce_plugin.get("active_installs"))), "WordPress.org active installs", "good")}
+        </div>
+        {horizontal_count_metric("WooCommerce live sites", num(woocommerce_builtwith.get("total_live")), builtwith_live_max, COLORS["purple"], "")}
+        {horizontal_count_metric("WooCommerce Top 1M", num(woocommerce_builtwith.get("top_1m")), max([num(row.get("top_1m")) for row in builtwith_live_rows] or [1]), COLORS["purple"], "")}
+      </div>
+      <div class="card">
+        <h3>BuiltWith ecommerce footprint</h3>
+        <p>Current live-site totals from the fetched BuiltWith ecommerce pages.</p>
+        {''.join(horizontal_count_metric(str(row.get("technology", "")), num(row.get("total_live")), builtwith_live_max, COLORS.get(str(row.get("technology", "")).lower(), COLORS["purple"] if row.get("technology") == "WooCommerce" else COLORS["neutral"]), "") for row in sorted(builtwith_live_rows, key=lambda item: num(item.get("total_live")), reverse=True))}
+      </div>
+    </div>
+    <div class="grid-2">
       <div class="card">
         <h3>Plugin directory activity</h3>
         <p>Current WordPress.org plugin directory browse samples. The 90-day counts show a prefix when the API sample hit the page cap before passing 90 days.</p>
@@ -2901,6 +3126,9 @@ def main():
     fetched["market_share"] = []
     fetched["market_share"].extend(parse_w3techs_history(W3TECHS_USAGE_URL, "all_sites_usage", args.skip_network))
     fetched["market_share"].extend(parse_w3techs_history(W3TECHS_MARKET_SHARE_URL, "cms_market_share", args.skip_network))
+    fetched["builtwith_technology_snapshots"], fetched["builtwith_technology_history"] = fetch_builtwith_technology_signals(
+        args.skip_network
+    )
     fetched["directory_snapshots"] = fetch_wordpress_directory_snapshots(args.skip_network)
     (
         fetched["directory_activity_snapshots"],

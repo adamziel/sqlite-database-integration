@@ -371,8 +371,44 @@ def parse_w3techs_hist_rows(body):
     return rows
 
 
+def w3techs_cache_path(metric_name):
+    return CACHE / f"w3techs-{metric_name}.json"
+
+
+def read_cached_w3techs_history(metric_name):
+    cache_path = w3techs_cache_path(metric_name)
+    if cache_path.exists():
+        try:
+            rows = json.loads(cache_path.read_text(encoding="utf-8"))
+            if isinstance(rows, list):
+                return rows
+        except (json.JSONDecodeError, OSError):
+            return []
+    if DB_PATH.exists():
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            conn.row_factory = sqlite3.Row
+            rows = [
+                dict(row)
+                for row in conn.execute(
+                    "SELECT metric, date, technology, value, source_url FROM market_share WHERE metric = ?",
+                    (metric_name,),
+                )
+            ]
+            conn.close()
+            return rows
+        except sqlite3.Error:
+            return []
+    return []
+
+
+def write_cached_w3techs_history(metric_name, rows):
+    CACHE.mkdir(parents=True, exist_ok=True)
+    w3techs_cache_path(metric_name).write_text(json.dumps(rows, ensure_ascii=True, sort_keys=True), encoding="utf-8")
+
+
 def parse_w3techs_history(url, metric_name, skip_network=False):
-    fallback = []
+    fallback = read_cached_w3techs_history(metric_name)
     if skip_network:
         return fallback
     try:
@@ -398,6 +434,8 @@ def parse_w3techs_history(url, metric_name, skip_network=False):
                             "source_url": url,
                         }
                     )
+        if rows:
+            write_cached_w3techs_history(metric_name, rows)
         return rows
     except Exception as exc:
         eprint(f"w3techs fetch failed for {metric_name}: {exc}")
@@ -673,6 +711,73 @@ def fetch_wordcamps(skip_network=False):
             break
         page += 1
         time.sleep(0.05)
+    return rows
+
+
+def parse_attendee_estimate(value):
+    raw = strip_html(value)
+    if not raw:
+        return 0
+    numbers = [int(match.replace(",", "")) for match in re.findall(r"\d[\d,]*", raw)]
+    if not numbers:
+        return 0
+    if len(numbers) >= 2 and re.search(r"[-–—]| to ", raw, flags=re.I):
+        return round(sum(numbers[:2]) / 2)
+    return numbers[0]
+
+
+def boolish(value):
+    return str(value or "").strip().lower() in {"1", "true", "yes", "y", "on"}
+
+
+def derive_wordcamp_yearly(wordcamps):
+    buckets = defaultdict(
+        lambda: {
+            "events": 0,
+            "events_with_attendance_estimate": 0,
+            "anticipated_attendance": 0,
+            "virtual_events": 0,
+            "regions": set(),
+        }
+    )
+    for row in wordcamps:
+        started = parse_iso(row.get("start_date"))
+        if not started:
+            continue
+        year = f"{started.year:04d}-01-01"
+        bucket = buckets[year]
+        bucket["events"] += 1
+        try:
+            raw = json.loads(row.get("raw_json") or "{}")
+        except json.JSONDecodeError:
+            raw = {}
+        estimate = parse_attendee_estimate(raw.get("Number of Anticipated Attendees"))
+        if estimate:
+            bucket["events_with_attendance_estimate"] += 1
+            bucket["anticipated_attendance"] += estimate
+        if boolish(raw.get("Virtual event only")):
+            bucket["virtual_events"] += 1
+        region = strip_html(raw.get("Host region"))
+        if region:
+            bucket["regions"].add(region)
+    rows = []
+    for year, values in sorted(buckets.items()):
+        events = values["events"]
+        with_estimate = values["events_with_attendance_estimate"]
+        rows.append(
+            {
+                "year": year,
+                "label": str(parse_iso(year).year),
+                "events": events,
+                "events_with_attendance_estimate": with_estimate,
+                "attendance_estimate_coverage_pct": round(with_estimate / events * 100, 2) if events else 0,
+                "anticipated_attendance": values["anticipated_attendance"],
+                "virtual_events": values["virtual_events"],
+                "in_person_or_unspecified_events": events - values["virtual_events"],
+                "regions": len(values["regions"]),
+                "source": "WordCamp Central API Number of Anticipated Attendees field",
+            }
+        )
     return rows
 
 
@@ -1901,7 +2006,7 @@ def source_status_rows(fetched):
         ("HTTP Archive/Web Almanac", "covered", "2025 CMS adoption snapshot and high-traffic context"),
         ("WordPress.org plugin/theme directories", "covered" if fetched.get("directory_snapshots") else "missing", "Current plugin and theme counts"),
         ("Plugin/theme directory activity", "covered" if fetched.get("directory_activity_snapshots") else "missing", "Current new, updated, and popular samples from WordPress.org directory APIs"),
-        ("WordCamp Central", "covered" if fetched.get("wordcamps") else "missing", "Historical WordCamp event records"),
+        ("WordCamp Central", "covered" if fetched.get("wordcamps") else "missing", "Historical WordCamp event records and anticipated-attendance fields where available"),
         ("WordPress Events", "covered" if fetched.get("wp_events") else "missing", "Current upcoming Meetup and WordCamp events"),
         ("Translate WordPress", "covered" if fetched.get("translation_locale_snapshot") else "missing", "Current locale team profile counts and Core dev translation status"),
         ("Make/Core posts", "covered" if fetched.get("make_core_posts") else "missing", "Post counts and author IDs"),
@@ -1939,6 +2044,7 @@ def build_report(data, fetched):
     classifications = data["classification_trend"]
     market_rows = fetched.get("market_share", [])
     wordcamps = fetched.get("wordcamps", [])
+    wordcamp_yearly = fetched.get("wordcamp_yearly", [])
     wp_event_snapshots = fetched.get("wp_event_snapshots", [])
     wp_events = fetched.get("wp_events", [])
     make_posts = fetched.get("make_core_posts", [])
@@ -2010,6 +2116,15 @@ def build_report(data, fetched):
     dev_note_quarter_points = point_series(make_dev_note_quarterly, "quarter", "dev_notes", "2008-01-01")
     dev_note_author_points = point_series(make_dev_note_quarterly, "quarter", "unique_authors", "2008-01-01")
     wordcamp_years = count_by_year(wordcamps, "start_date")
+    wordcamp_attendance_points = point_series(wordcamp_yearly, "year", "anticipated_attendance", "2006-01-01")
+    wordcamp_attendance_coverage_points = point_series(wordcamp_yearly, "year", "events_with_attendance_estimate", "2006-01-01")
+    latest_wordcamp_year = max(wordcamp_yearly, key=lambda row: row.get("year", "")) if wordcamp_yearly else {}
+    latest_complete_wordcamp_year = max(
+        [row for row in wordcamp_yearly if row.get("year", "") <= f"{END.year - 1:04d}-01-01"],
+        key=lambda row: row.get("year", ""),
+    ) if wordcamp_yearly else {}
+    max_wordcamp_year_events = max([num(row.get("events")) for row in wordcamp_yearly] or [1])
+    max_wordcamp_year_attendance = max([num(row.get("anticipated_attendance")) for row in wordcamp_yearly] or [1])
     translation_snapshot = translation_snapshots[0] if translation_snapshots else {}
     top_translation_locales = sorted(translation_locales, key=lambda row: num(row.get("contributors")), reverse=True)[:8]
     max_translation_contributors = max([num(row.get("contributors")) for row in top_translation_locales] or [0])
@@ -2313,6 +2428,24 @@ p {{ margin:0 0 12px; }}
         </div>
         {horizontal_metric("Top 10 commenters since 2024", make_comment_conc_recent["top10"], 100, COLORS["community"])}
         {horizontal_metric("Top 25 commenters since 2024", make_comment_conc_recent["top25"], 100, COLORS["core"])}
+      </div>
+    </div>
+    <div class="grid-2">
+      {svg_line_chart("WordCamp anticipated attendance by year", "Summed Number of Anticipated Attendees from WordCamp Central records. Current and future years are incomplete.", [
+          {"label": "Anticipated attendees", "color": COLORS["community"], "points": wordcamp_attendance_points},
+      ])}
+      <div class="card">
+        <h3>WordCamp attendance coverage</h3>
+        <p>Attendance is not populated on every record. This uses the API's anticipated-attendee field when present.</p>
+        <div class="stats">
+          {stat_card("Latest full year", compact(num(latest_complete_wordcamp_year.get("anticipated_attendance"))), f"{latest_complete_wordcamp_year.get('label', '')} anticipated", "soft")}
+          {stat_card("Events with estimate", compact(num(latest_complete_wordcamp_year.get("events_with_attendance_estimate"))), f"{compact(num(latest_complete_wordcamp_year.get('events')))} events in {latest_complete_wordcamp_year.get('label', '')}", "soft")}
+          {stat_card("Latest record year", compact(num(latest_wordcamp_year.get("anticipated_attendance"))), f"{latest_wordcamp_year.get('label', '')} scheduled/recorded", "soft")}
+          {stat_card("Coverage", pct(float(latest_complete_wordcamp_year.get("attendance_estimate_coverage_pct") or 0)), "latest full year", "soft")}
+        </div>
+        {horizontal_count_metric("Events in latest full year", num(latest_complete_wordcamp_year.get("events")), max_wordcamp_year_events, COLORS["gutenberg"], "")}
+        {horizontal_count_metric("Events with attendee estimate", num(latest_complete_wordcamp_year.get("events_with_attendance_estimate")), max_wordcamp_year_events, COLORS["community"], "")}
+        {horizontal_count_metric("Anticipated attendance", num(latest_complete_wordcamp_year.get("anticipated_attendance")), max_wordcamp_year_attendance, COLORS["orange"], "")}
       </div>
     </div>
     <div class="grid-2">
@@ -2638,6 +2771,7 @@ def main():
         fetched["theme_directory_activity_sample"],
     ) = fetch_directory_activity(args.skip_network)
     fetched["wordcamps"] = fetch_wordcamps(args.skip_network)
+    fetched["wordcamp_yearly"] = derive_wordcamp_yearly(fetched["wordcamps"])
     fetched["wp_event_snapshots"], fetched["wp_events"] = fetch_wordpress_events(args.skip_network)
     (
         fetched["translation_snapshots"],

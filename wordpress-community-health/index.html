@@ -34,7 +34,27 @@ p { margin:0 0 12px; }
 .lede { max-width:820px; color:#344054; font-size:18px; }
 .nav { display:flex; flex-wrap:wrap; gap:10px; margin:24px 0 18px; }
 .nav a { text-decoration:none; color:var(--ink); border:1px solid var(--line); padding:8px 12px; border-radius:999px; background:#fff; }
+.lane-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin:18px 0 24px; }
+.lane-card { border:1px solid var(--line); border-radius:8px; padding:16px; background:#fff; }
+.lane-card h3 { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+.lane-dot { width:11px; height:11px; border-radius:50%; display:inline-block; background:var(--blue); flex:0 0 auto; }
+.lane-card.ticket .lane-dot { background:var(--blue); }
+.lane-card.ecosystem .lane-dot { background:var(--green); }
+.lane-card.market .lane-dot { background:var(--orange); }
+.lane-card p { color:var(--muted); margin-bottom:10px; }
+.lane-list { display:grid; gap:7px; margin:0; padding:0; list-style:none; color:#334155; font-size:14px; }
+.lane-list li { display:flex; gap:8px; }
+.lane-list li::before { content:""; width:6px; height:6px; border-radius:50%; background:#b8c2d1; margin-top:.65em; flex:0 0 auto; }
 .answer-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; margin:24px 0 26px; }
+.question-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:12px; margin:18px 0 24px; }
+.question-card { border:1px solid var(--line); border-left:5px solid var(--blue); border-radius:8px; padding:14px 15px; background:#fff; min-height:148px; }
+.question-card strong { display:block; font-size:22px; line-height:1.15; margin:5px 0 7px; }
+.question-card p { color:var(--muted); margin:0; }
+.question-card .tag { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.07em; font-weight:800; }
+.question-card.good { border-left-color:var(--green); }
+.question-card.watch { border-left-color:var(--orange); }
+.question-card.soft { border-left-color:var(--blue); }
+.question-card.slower { border-left-color:var(--red); }
 .signal { border:1px solid var(--line); border-top:5px solid var(--slate); padding:16px; border-radius:8px; min-height:178px; background:#fff; }
 .signal strong { display:block; font-size:21px; line-height:1.15; margin-bottom:8px; }
 .signal p { color:var(--muted); margin:0; }
@@ -45,6 +65,7 @@ p { margin:0 0 12px; }
 .section { margin-top:22px; padding-top:8px; }
 .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:18px; align-items:start; }
 .stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin:14px 0 18px; }
+.decision-stats { grid-template-columns:repeat(5,minmax(0,1fr)); }
 .stat { border:1px solid var(--line); border-radius:8px; padding:14px; background:var(--soft); }
 .stat-label { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.06em; font-weight:700; }
 .stat-value { font-size:28px; font-weight:800; margin:4px 0; }
@@ -80,10 +101,12 @@ p { margin:0 0 12px; }
 .readout-card p { color:var(--muted); }
 .link-list { display:grid; gap:8px; margin-top:12px; }
 .link-list a { line-height:1.25; }
+.link-list code { display:block; white-space:normal; overflow-wrap:anywhere; line-height:1.35; }
+.watchlist-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px; margin-top:12px; }
 .footer { color:var(--muted); font-size:13px; margin-top:32px; border-top:1px solid var(--line); padding-top:18px; }
 @media (max-width:900px) {
   h1 { font-size:34px; }
-  .answer-grid, .grid-2, .stats, .status-grid, .readout-grid { grid-template-columns:1fr; }
+  .lane-grid, .answer-grid, .grid-2, .stats, .decision-stats, .status-grid, .readout-grid { grid-template-columns:1fr; }
   .page { padding:24px 16px 48px; }
 }
 </style>
@@ -101,6 +124,33 @@ p { margin:0 0 12px; }
     <a href="#coverage">Source Coverage</a>
     <a href="#readout">Decision Readout</a>
   </nav>
+
+  <section class="lane-grid" aria-label="Evidence lanes">
+    <article class="lane-card ticket">
+      <h3><span class="lane-dot"></span>Ticket-derived signals</h3>
+      <p>Core Trac, Gutenberg GitHub issues, and wordpress-develop PRs explain project participation and maintenance load.</p>
+      <ul class="lane-list">
+        <li>Best for new/closed flow, backlog, response time, bug/feature mix, and contributor concentration.</li>
+        <li>Not enough by itself to say whether people are choosing WordPress for new sites.</li>
+      </ul>
+    </article>
+    <article class="lane-card ecosystem">
+      <h3><span class="lane-dot"></span>Ecosystem signals</h3>
+      <p>WordPress.org APIs, Make/Core, WordCamp, Events, Translate, Five for the Future, and support snapshots show community activity outside trackers.</p>
+      <ul class="lane-list">
+        <li>Best for release credits, committers, events, translation, support load, plugin/theme activity, and pledged work.</li>
+        <li>Mostly snapshots or release-level series, so they complement rather than replace ticket trends.</li>
+      </ul>
+    </article>
+    <article class="lane-card market">
+      <h3><span class="lane-dot"></span>Adoption and demand signals</h3>
+      <p>W3Techs, HTTP Archive, BuiltWith, Stack Overflow, Wikimedia, Hacker News, jobs, and plugin history show market position and demand proxies.</p>
+      <ul class="lane-list">
+        <li>Best for installed share, CMS share, traffic-tier presence, current newly found-site proxy, and demand direction.</li>
+        <li>Search and broad job-market demand remain partial; current proxies are labeled as such.</li>
+      </ul>
+    </article>
+  </section>
 
   <section class="answer-grid">
     <article class="signal watch">
@@ -122,6 +172,44 @@ p { margin:0 0 12px; }
       <h3>Code review</h3>
       <strong>PR flow is higher</strong>
       <p>wordpress-develop PR creation averaged 413.8 per quarter in 2021-2023 and 632.5 since 2024.</p>
+    </article>
+  </section>
+
+  <section class="question-grid" aria-label="Plain-English decision answers">
+    <article class="question-card good">
+      <span class="tag">Still widely chosen?</span>
+      <strong>Yes.</strong>
+      <p>Installed-share evidence has WordPress at 41.5% of all sites and 59.3% of CMS sites.</p>
+    </article>
+    <article class="question-card watch">
+      <span class="tag">Adoption direction?</span>
+      <strong>Softer.</strong>
+      <p>W3Techs is down 2.1 all-site points and 2.7 CMS-share points since Jan 2025.</p>
+    </article>
+    <article class="question-card slower">
+      <span class="tag">Participation?</span>
+      <strong>Fewer new reporters.</strong>
+      <p>Core first-time reporter retention is 66.2% of the 2021-2023 average; Gutenberg is 69.5%. PR creation is higher.</p>
+    </article>
+    <article class="question-card soft">
+      <span class="tag">Keeping up?</span>
+      <strong>Mostly.</strong>
+      <p>Since 2024, closure/new ratios are Core 103.5% and Gutenberg 98.3%.</p>
+    </article>
+    <article class="question-card watch">
+      <span class="tag">Backlog age?</span>
+      <strong>Aged.</strong>
+      <p>Open stale share is Core 75.0% and Gutenberg 64.4%; 2+ year open share is Core 59.7% and Gutenberg 39.9%.</p>
+    </article>
+    <article class="question-card soft">
+      <span class="tag">Contributor spread?</span>
+      <strong>Broad entry, concentrated work.</strong>
+      <p>Since 2024, top-50 work share is Core 35.9%, Gutenberg 50.8%, and PRs 65.0%.</p>
+    </article>
+    <article class="question-card watch">
+      <span class="tag">Builders gaining?</span>
+      <strong>Some share, yes.</strong>
+      <p>Hosted builders are more visible in installed-share trends, while WordPress still leads the current tracked BuiltWith 90-day pipeline at 67.4%.</p>
     </article>
   </section>
 
@@ -1849,7 +1937,7 @@ p { margin:0 0 12px; }
 
   <section id="market" class="section">
     <h2>Market Position</h2>
-    <p class="callout">The market signal is: WordPress is still far ahead, but its share has flattened and recently declined while hosted builders gained small, distributed share. BuiltWith adds a current newly found-site snapshot, but not a historical new-site trend.</p>
+    <p class="callout">The market signal is: WordPress is still far ahead, but its share has flattened and recently declined while hosted builders gained small, distributed share. Read this section as three evidence layers: measured installed share, current newly found-site proxy, and demand/attention proxies.</p>
     <div class="stats">
       <div class="stat soft">
       <div class="stat-label">W3Techs all-site share</div>
@@ -1871,6 +1959,50 @@ p { margin:0 0 12px; }
       <div class="stat-value">about 58%</div>
       <div class="stat-note">HTTP Archive 2025</div>
     </div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Evidence map</h3>
+        <p>These signals answer different questions. Installed-share sources are the strongest adoption evidence. BuiltWith's 90-day pipeline is useful for current direction, but it is not a multi-year new-site cohort. Developer, hiring, and public-interest sources are demand proxies.</p>
+        <div class="stats">
+          <div class="stat good">
+      <div class="stat-label">Installed share</div>
+      <div class="stat-value">Strong</div>
+      <div class="stat-note">W3Techs + HTTP Archive</div>
+    </div>
+          <div class="stat soft">
+      <div class="stat-label">Current new-site proxy</div>
+      <div class="stat-value">Useful</div>
+      <div class="stat-note">BuiltWith 30/90-day pipeline</div>
+    </div>
+          <div class="stat soft">
+      <div class="stat-label">Demand proxies</div>
+      <div class="stat-value">Directional</div>
+      <div class="stat-note">SO, HN, jobs, pageviews</div>
+    </div>
+          <div class="stat watch">
+      <div class="stat-label">True new-site history</div>
+      <div class="stat-value">Partial</div>
+      <div class="stat-note">not yet multi-year</div>
+    </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Decision framing</h3>
+        <p>If the question is whether WordPress is still widely chosen, use W3Techs, HTTP Archive, and traffic-tier presence. If the question is whether new builders are choosing it right now, use BuiltWith cautiously and compare it with hosted-builder momentum. If the question is developer mindshare, use the demand proxies below.</p>
+        <div class="hmetric">
+      <div class="hmetric-top"><span>Installed-share confidence</span><strong>90.0%</strong></div>
+      <div class="bar"><span style="width:90.0%;background:#16a34a"></span></div>
+    </div>
+        <div class="hmetric">
+      <div class="hmetric-top"><span>Current new-site confidence</span><strong>62.0%</strong></div>
+      <div class="bar"><span style="width:62.0%;background:#2563eb"></span></div>
+    </div>
+        <div class="hmetric">
+      <div class="hmetric-top"><span>Demand-proxy confidence</span><strong>55.0%</strong></div>
+      <div class="bar"><span style="width:55.0%;background:#ea580c"></span></div>
+    </div>
+      </div>
     </div>
     <div class="grid-2">
       <svg class="chart" viewBox="0 0 980 330" role="img" aria-label="Share of all websites">
@@ -3361,6 +3493,52 @@ p { margin:0 0 12px; }
   <section id="coverage" class="section">
     <h2>Source Coverage</h2>
     <p class="callout">The SQLite database stores imported source tables, fetched ecosystem/adoption records, file hashes, and explicit source gaps. Download: <a href="community_health.sqlite.gz">community_health.sqlite.gz</a>.</p>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Refresh provenance</h3>
+        <p>The report is built from local ticket exports plus public-source fetches. The SQLite database stores source-file paths, row counts, and SHA-256 hashes for local imports, so a later refresh can verify whether the underlying exports changed.</p>
+        <div class="stats">
+          <div class="stat good">
+      <div class="stat-label">Local source files</div>
+      <div class="stat-value">19</div>
+      <div class="stat-note">265.5k imported rows</div>
+    </div>
+          <div class="stat good">
+      <div class="stat-label">Fetched tables</div>
+      <div class="stat-value">54</div>
+      <div class="stat-note">71.6k fetched/derived rows</div>
+    </div>
+          <div class="stat good">
+      <div class="stat-label">Covered signals</div>
+      <div class="stat-value">37</div>
+      <div class="stat-note">source coverage cards</div>
+    </div>
+          <div class="stat watch">
+      <div class="stat-label">Partial signals</div>
+      <div class="stat-value">5</div>
+      <div class="stat-note">explicitly labeled</div>
+    </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Refresh path</h3>
+        <p>Run the report generator to refresh public sources, or use cached data when validating layout and wording. The supporting fetch scripts keep Core response metrics, Gutenberg timelines, and support snapshots reproducible.</p>
+        <div class="link-list">
+          <code>python3 make_community_health_report.py</code>
+          <code>python3 make_community_health_report.py --skip-network</code>
+          <code>fetch_core_response_metrics.py</code>
+          <code>fetch_gutenberg_timeline_metrics.py</code>
+          <code>fetch_support_forum_snapshot.py</code>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Partial-source watchlist</h3>
+      <p>These are the main places where the report uses a proxy or snapshot instead of a full historical source.</p>
+      <div class="watchlist-grid">
+        <div class="status partial"><span class="pill">partial</span><b>HN hiring mentions</b><span>WordPress/WooCommerce, PHP, and agency/studio mentions in monthly Hacker News Who is hiring threads from 2012 onward; not a broad job-board index</span></div><div class="status partial"><span class="pill">partial</span><b>WordPress Jobs board</b><span>Open-listing snapshots from jobs.wordpress.net current page and annual Internet Archive captures; WordPress-specific, not a broad hiring-platform index</span></div><div class="status partial"><span class="pill">partial</span><b>Newly detected sites</b><span>Current BuiltWith Net New Pipeline snapshot plus HTTP Archive monthly and rank-tier detected-origin adoption; multi-year new-site creation still needs paid BuiltWith or cohort queries</span></div><div class="status partial"><span class="pill">partial</span><b>Support forums</b><span>Current WordPress.org support queue snapshot with forum, status, last-activity, and age buckets; historical trend still needs a fuller export</span></div><div class="status partial"><span class="pill">partial</span><b>Search interest and job demand</b><span>General web search trends and broad hiring-platform time series are not included; Wikimedia, Stack Overflow, and HN are narrower public/developer/demand proxies</span></div>
+      </div>
+    </div>
     <div class="status-grid">
       <div class="status covered"><span class="pill">covered</span><b>Core Trac tickets</b><span>64k tickets, status history, types, components, reporters</span></div><div class="status covered"><span class="pill">covered</span><b>Core first-response activity</b><span>Trac RSS first non-reporter activity for 2021-2026 tickets</span></div><div class="status covered"><span class="pill">covered</span><b>Gutenberg GitHub issues</b><span>32k issues with labels, state, authors, close dates</span></div><div class="status covered"><span class="pill">covered</span><b>Gutenberg response/reopen timelines</b><span>GitHub comment timestamps and reopened events</span></div><div class="status covered"><span class="pill">covered</span><b>wordpress-develop PRs</b><span>12k PRs with authors, dates, Trac links</span></div><div class="status covered"><span class="pill">covered</span><b>Project-member/outside split</b><span>Quarterly GitHub author_association split for Gutenberg issues and wordpress-develop PRs</span></div><div class="status covered"><span class="pill">covered</span><b>Contributor depth buckets</b><span>One-time, repeat, and sustained contributors across Core, Gutenberg, and PR activity</span></div><div class="status covered"><span class="pill">covered</span><b>Contributor concentration</b><span>Top 10, 25, and 50 contributor work share across Core, Gutenberg, and PR activity</span></div><div class="status covered"><span class="pill">covered</span><b>Ticket category classification</b><span>Bug, feature request, enhancement, task, and other categories</span></div><div class="status covered"><span class="pill">covered</span><b>Open category backlog</b><span>Open bug, enhancement, feature-request, and other category composition</span></div><div class="status covered"><span class="pill">covered</span><b>Open backlog age buckets</b><span>Current open Core/Gutenberg backlog by last-activity age bucket</span></div><div class="status covered"><span class="pill">covered</span><b>W3Techs adoption</b><span>All-site usage and CMS market-share yearly trends</span></div><div class="status covered"><span class="pill">covered</span><b>HTTP Archive/Web Almanac</b><span>2025 CMS adoption snapshot and high-traffic context</span></div><div class="status covered"><span class="pill">covered</span><b>HTTP Archive Technology Report API</b><span>Monthly and rank-tier detected-origin adoption for WordPress, Shopify, Wix, Squarespace, and Webflow</span></div><div class="status covered"><span class="pill">covered</span><b>HTTP Archive Core Web Vitals</b><span>Monthly good Core Web Vitals rates by technology from the HTTP Archive Technology Report API</span></div><div class="status covered"><span class="pill">covered</span><b>BuiltWith ecommerce history</b><span>Shopify and WooCommerce live-site counts by traffic tier</span></div><div class="status covered"><span class="pill">covered</span><b>BuiltWith traffic tiers</b><span>Current WordPress share by traffic tier across tracked CMS/builder technologies</span></div><div class="status covered"><span class="pill">covered</span><b>Stack Overflow tag volume</b><span>Quarterly public developer-attention proxy from Stack Exchange API tag totals</span></div><div class="status covered"><span class="pill">covered</span><b>Wikimedia pageviews</b><span>Quarterly en.wikipedia article pageviews as a public-interest proxy, not search-query volume</span></div><div class="status partial"><span class="pill">partial</span><b>HN hiring mentions</b><span>WordPress/WooCommerce, PHP, and agency/studio mentions in monthly Hacker News Who is hiring threads from 2012 onward; not a broad job-board index</span></div><div class="status partial"><span class="pill">partial</span><b>WordPress Jobs board</b><span>Open-listing snapshots from jobs.wordpress.net current page and annual Internet Archive captures; WordPress-specific, not a broad hiring-platform index</span></div><div class="status covered"><span class="pill">covered</span><b>Enterprise adoption signal</b><span>Current public WordPress VIP case-study snapshot with industries and use cases</span></div><div class="status covered"><span class="pill">covered</span><b>WordPress.org plugin/theme directories</b><span>Current plugin and theme counts</span></div><div class="status covered"><span class="pill">covered</span><b>WordPress.org ecosystem stats</b><span>Current WordPress, PHP, and database version distribution from WordPress.org stats APIs</span></div><div class="status covered"><span class="pill">covered</span><b>Plugin/theme directory activity</b><span>Current new, updated, and popular samples from WordPress.org directory APIs</span></div><div class="status covered"><span class="pill">covered</span><b>Major plugin install base</b><span>Current fixed-slug plugin API snapshot plus annual Wayback snapshots of archived WordPress.org plugin active-install buckets</span></div><div class="status covered"><span class="pill">covered</span><b>Major plugin support snapshot</b><span>Current WordPress.org plugin API support-thread and resolved-thread counts for the fixed major-plugin list</span></div><div class="status covered"><span class="pill">covered</span><b>Major plugin download trend</b><span>WordPress.org daily plugin download stats for the fixed major-plugin list, aggregated quarterly</span></div><div class="status covered"><span class="pill">covered</span><b>WordCamp Central</b><span>Historical WordCamp event records and anticipated-attendance fields where available</span></div><div class="status covered"><span class="pill">covered</span><b>WordPress Events</b><span>Current upcoming Meetup and WordCamp events</span></div><div class="status covered"><span class="pill">covered</span><b>Translate WordPress</b><span>Current locale team profile counts and Core dev translation status</span></div><div class="status covered"><span class="pill">covered</span><b>Make/Core posts</b><span>Post counts and author IDs</span></div><div class="status covered"><span class="pill">covered</span><b>Make/Core comments</b><span>Comment counts and commenter identities from Make/Core REST API</span></div><div class="status covered"><span class="pill">covered</span><b>Make/Core dev notes</b><span>Dev-note tagged posts by quarter and release</span></div><div class="status covered"><span class="pill">covered</span><b>Core release credits</b><span>WordPress.org credits API props by major release</span></div><div class="status covered"><span class="pill">covered</span><b>Core committers per release</b><span>GitHub tag-to-tag compare ranges by major release</span></div><div class="status covered"><span class="pill">covered</span><b>Core reopen rate</b><span>Quarterly Core Trac reopened status-change events</span></div><div class="status covered"><span class="pill">covered</span><b>Closure age summary</b><span>Median, p75, and p90 days-to-close by quarter for Core and Gutenberg</span></div><div class="status covered"><span class="pill">covered</span><b>Five for the Future</b><span>Current pledge organizations, hours, and listed profiles</span></div><div class="status partial"><span class="pill">partial</span><b>Newly detected sites</b><span>Current BuiltWith Net New Pipeline snapshot plus HTTP Archive monthly and rank-tier detected-origin adoption; multi-year new-site creation still needs paid BuiltWith or cohort queries</span></div><div class="status partial"><span class="pill">partial</span><b>Support forums</b><span>Current WordPress.org support queue snapshot with forum, status, last-activity, and age buckets; historical trend still needs a fuller export</span></div><div class="status partial"><span class="pill">partial</span><b>Search interest and job demand</b><span>General web search trends and broad hiring-platform time series are not included; Wikimedia, Stack Overflow, and HN are narrower public/developer/demand proxies</span></div>
     </div>
@@ -3368,7 +3546,7 @@ p { margin:0 0 12px; }
 
   <section id="readout" class="section">
     <h2>Decision Readout</h2>
-    <p class="callout">Short version: WordPress is still widely chosen, adoption is softer than the recent high-water mark, ticket participation has fewer new reporters, and project load is closer to balanced than the backlog size alone suggests.</p>
+    <p class="callout">Short version: WordPress is still widely chosen on installed-share evidence; current new-site and demand proxies are softer; ticket participation has fewer new reporters; project load is closer to balanced than the backlog size alone suggests.</p>
     <div class="readout-grid">
       <div class="readout-card">
         <strong>Community health: active, narrower entry funnel</strong>
@@ -3408,7 +3586,7 @@ p { margin:0 0 12px; }
       </div>
       <div class="readout-card">
         <strong>Market position: dominant, recently softer</strong>
-        <p>W3Techs has WordPress at 41.5% of all sites and 59.3% of CMS sites, down 2.1 and 2.7 points since Jan 2025. BuiltWith's current 90-day pipeline still shows WordPress with the largest tracked new-site count among WordPress, Shopify, Wix, and Webflow.</p>
+        <p>W3Techs has WordPress at 41.5% of all sites and 59.3% of CMS sites, down 2.1 and 2.7 points since Jan 2025. BuiltWith's current 90-day pipeline still shows WordPress with the largest tracked new-site count among WordPress, Shopify, Wix, and Webflow, but that is a current proxy rather than a historical new-site trend.</p>
         <div class="hmetric">
       <div class="hmetric-top"><span>W3Techs all-site share</span><strong>41.5%</strong></div>
       <div class="bar"><span style="width:41.5%;background:#2563eb"></span></div>
@@ -3423,7 +3601,7 @@ p { margin:0 0 12px; }
     </div>
       </div>
     </div>
-    <div class="stats">
+    <div class="stats decision-stats">
       <div class="stat good">
       <div class="stat-label">Still widely chosen?</div>
       <div class="stat-value">Yes</div>
@@ -3433,6 +3611,11 @@ p { margin:0 0 12px; }
       <div class="stat-label">Adoption direction</div>
       <div class="stat-value">Softer</div>
       <div class="stat-note">-2.1 all-site pts and -2.7 CMS pts since Jan 2025</div>
+    </div>
+      <div class="stat soft">
+      <div class="stat-label">New-site evidence</div>
+      <div class="stat-value">Current proxy</div>
+      <div class="stat-note">67.4% of tracked 90-day BuiltWith pipeline; no multi-year cohort yet</div>
     </div>
       <div class="stat watch">
       <div class="stat-label">Participation direction</div>
@@ -3448,7 +3631,7 @@ p { margin:0 0 12px; }
   </section>
 
   <section class="footer">
-    <p>Generated 2026-06-14 06:15 UTC from local Core/Gutenberg exports and public sources.</p>
+    <p>Generated 2026-06-14 14:39 UTC from local Core/Gutenberg exports and public sources.</p>
     <p>Sources: <a href="https://w3techs.com/technologies/history_overview/content_management/all/y">W3Techs usage trend</a>, <a href="https://w3techs.com/technologies/history_overview/content_management/ms/y">W3Techs CMS market-share trend</a>, <a href="https://almanac.httparchive.org/en/2025/cms">HTTP Archive Web Almanac CMS 2025</a>, <a href="https://httparchive.org/reports/techreport/tech">HTTP Archive Technology Report API</a>, <a href="https://api.stackexchange.com/docs/questions">Stack Exchange API</a>, <a href="https://doc.wikimedia.org/generated-data-platform/aqs/analytics-api/reference/page-views.html">Wikimedia Pageviews API</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="https://codex.wordpress.org/WordPress.org_API#Plugin_Download_Stats">WordPress.org plugin download stats</a>, <a href="https://jobs.wordpress.net/">WordPress Jobs board</a>, <a href="https://web.archive.org/cdx">Internet Archive CDX API</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="https://events.wordpress.org/">WordPress Events</a>, <a href="https://translate.wordpress.org/">Translate WordPress</a>, <a href="https://make.wordpress.org/core/wp-json/wp/v2/posts">Make/Core posts API</a>, <a href="https://make.wordpress.org/core/wp-json/wp/v2/comments">Make/Core comments API</a>, <a href="https://wordpress.org/support/view/all-topics/">WordPress.org support forums</a>, <a href="https://trends.builtwith.com/cms/WordPress">BuiltWith technology pages</a>, <a href="https://github.com/WordPress/gutenberg/issues">Gutenberg GitHub issues</a>, <a href="https://wordpress.org/five-for-the-future/pledges/">Five for the Future pledges</a>, <a href="https://wordpress.org/download/releases/">WordPress release archive</a>, and <a href="https://api.wordpress.org/core/credits/1.1/">Core credits API</a>.</p>
   </section>
 </main>

@@ -5669,6 +5669,26 @@ def build_report(data, fetched):
     if usage_delta is not None and cms_delta is not None:
         adoption_detail = f"W3Techs has WordPress at {pct(wp_usage_latest['value'])} of all sites and {pct(wp_cms_latest['value'])} of CMS sites, down {abs(usage_delta):.1f} and {abs(cms_delta):.1f} points since Jan 2025."
 
+    source_rows = source_status_rows(fetched)
+    source_status_counts = Counter(status for _name, status, _note in source_rows)
+    local_source_file_count = sum(1 for key, path in SOURCE_FILES.items() if path.exists() and data.get(key) is not None)
+    local_source_row_count = sum(
+        len(data.get(key, []))
+        for key, path in SOURCE_FILES.items()
+        if path.exists() and data.get(key) is not None
+    )
+    fetched_nonempty_tables = [
+        (name, rows)
+        for name, rows in fetched.items()
+        if isinstance(rows, list) and rows
+    ]
+    fetched_row_count = sum(len(rows) for _name, rows in fetched_nonempty_tables)
+    source_attention_rows = [
+        (name, status, note)
+        for name, status, note in source_rows
+        if status != "covered"
+    ][:5]
+
     html_doc = f"""<!doctype html>
 <html lang="en">
 <head>
@@ -5705,7 +5725,27 @@ p {{ margin:0 0 12px; }}
 .lede {{ max-width:820px; color:#344054; font-size:18px; }}
 .nav {{ display:flex; flex-wrap:wrap; gap:10px; margin:24px 0 18px; }}
 .nav a {{ text-decoration:none; color:var(--ink); border:1px solid var(--line); padding:8px 12px; border-radius:999px; background:#fff; }}
+.lane-grid {{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin:18px 0 24px; }}
+.lane-card {{ border:1px solid var(--line); border-radius:8px; padding:16px; background:#fff; }}
+.lane-card h3 {{ display:flex; align-items:center; gap:8px; margin-bottom:10px; }}
+.lane-dot {{ width:11px; height:11px; border-radius:50%; display:inline-block; background:var(--blue); flex:0 0 auto; }}
+.lane-card.ticket .lane-dot {{ background:var(--blue); }}
+.lane-card.ecosystem .lane-dot {{ background:var(--green); }}
+.lane-card.market .lane-dot {{ background:var(--orange); }}
+.lane-card p {{ color:var(--muted); margin-bottom:10px; }}
+.lane-list {{ display:grid; gap:7px; margin:0; padding:0; list-style:none; color:#334155; font-size:14px; }}
+.lane-list li {{ display:flex; gap:8px; }}
+.lane-list li::before {{ content:""; width:6px; height:6px; border-radius:50%; background:#b8c2d1; margin-top:.65em; flex:0 0 auto; }}
 .answer-grid {{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; margin:24px 0 26px; }}
+.question-grid {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:12px; margin:18px 0 24px; }}
+.question-card {{ border:1px solid var(--line); border-left:5px solid var(--blue); border-radius:8px; padding:14px 15px; background:#fff; min-height:148px; }}
+.question-card strong {{ display:block; font-size:22px; line-height:1.15; margin:5px 0 7px; }}
+.question-card p {{ color:var(--muted); margin:0; }}
+.question-card .tag {{ color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.07em; font-weight:800; }}
+.question-card.good {{ border-left-color:var(--green); }}
+.question-card.watch {{ border-left-color:var(--orange); }}
+.question-card.soft {{ border-left-color:var(--blue); }}
+.question-card.slower {{ border-left-color:var(--red); }}
 .signal {{ border:1px solid var(--line); border-top:5px solid var(--slate); padding:16px; border-radius:8px; min-height:178px; background:#fff; }}
 .signal strong {{ display:block; font-size:21px; line-height:1.15; margin-bottom:8px; }}
 .signal p {{ color:var(--muted); margin:0; }}
@@ -5716,6 +5756,7 @@ p {{ margin:0 0 12px; }}
 .section {{ margin-top:22px; padding-top:8px; }}
 .grid-2 {{ display:grid; grid-template-columns:1fr 1fr; gap:18px; align-items:start; }}
 .stats {{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin:14px 0 18px; }}
+.decision-stats {{ grid-template-columns:repeat(5,minmax(0,1fr)); }}
 .stat {{ border:1px solid var(--line); border-radius:8px; padding:14px; background:var(--soft); }}
 .stat-label {{ color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.06em; font-weight:700; }}
 .stat-value {{ font-size:28px; font-weight:800; margin:4px 0; }}
@@ -5751,10 +5792,12 @@ p {{ margin:0 0 12px; }}
 .readout-card p {{ color:var(--muted); }}
 .link-list {{ display:grid; gap:8px; margin-top:12px; }}
 .link-list a {{ line-height:1.25; }}
+.link-list code {{ display:block; white-space:normal; overflow-wrap:anywhere; line-height:1.35; }}
+.watchlist-grid {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px; margin-top:12px; }}
 .footer {{ color:var(--muted); font-size:13px; margin-top:32px; border-top:1px solid var(--line); padding-top:18px; }}
 @media (max-width:900px) {{
   h1 {{ font-size:34px; }}
-  .answer-grid, .grid-2, .stats, .status-grid, .readout-grid {{ grid-template-columns:1fr; }}
+  .lane-grid, .answer-grid, .grid-2, .stats, .decision-stats, .status-grid, .readout-grid {{ grid-template-columns:1fr; }}
   .page {{ padding:24px 16px 48px; }}
 }}
 </style>
@@ -5773,11 +5816,76 @@ p {{ margin:0 0 12px; }}
     <a href="#readout">Decision Readout</a>
   </nav>
 
+  <section class="lane-grid" aria-label="Evidence lanes">
+    <article class="lane-card ticket">
+      <h3><span class="lane-dot"></span>Ticket-derived signals</h3>
+      <p>Core Trac, Gutenberg GitHub issues, and wordpress-develop PRs explain project participation and maintenance load.</p>
+      <ul class="lane-list">
+        <li>Best for new/closed flow, backlog, response time, bug/feature mix, and contributor concentration.</li>
+        <li>Not enough by itself to say whether people are choosing WordPress for new sites.</li>
+      </ul>
+    </article>
+    <article class="lane-card ecosystem">
+      <h3><span class="lane-dot"></span>Ecosystem signals</h3>
+      <p>WordPress.org APIs, Make/Core, WordCamp, Events, Translate, Five for the Future, and support snapshots show community activity outside trackers.</p>
+      <ul class="lane-list">
+        <li>Best for release credits, committers, events, translation, support load, plugin/theme activity, and pledged work.</li>
+        <li>Mostly snapshots or release-level series, so they complement rather than replace ticket trends.</li>
+      </ul>
+    </article>
+    <article class="lane-card market">
+      <h3><span class="lane-dot"></span>Adoption and demand signals</h3>
+      <p>W3Techs, HTTP Archive, BuiltWith, Stack Overflow, Wikimedia, Hacker News, jobs, and plugin history show market position and demand proxies.</p>
+      <ul class="lane-list">
+        <li>Best for installed share, CMS share, traffic-tier presence, current newly found-site proxy, and demand direction.</li>
+        <li>Search and broad job-market demand remain partial; current proxies are labeled as such.</li>
+      </ul>
+    </article>
+  </section>
+
   <section class="answer-grid">
     {signal_card("Adoption", "Dominant, softer recently", adoption_detail, "watch")}
     {signal_card("Participation", "Fewer new reporters", f"Core first-time reporters averaged {compact(core_first_prev)} per quarter in 2021-2023 and {compact(core_first_recent)} since 2024. Gutenberg moved from {compact(gut_first_prev)} to {compact(gut_first_recent)}.", "slower")}
     {signal_card("Project load", "Closer to balanced", f"Since 2024, Core closures slightly exceed new tickets on average. Gutenberg is close to flat, with the latest sampled quarter closing {compact(num(gut_latest.get('closed')))} against {compact(num(gut_latest.get('created')))} new issues.", "soft")}
     {signal_card("Code review", "PR flow is higher", f"wordpress-develop PR creation averaged {compact(pr_created_prev)} per quarter in 2021-2023 and {compact(pr_created_recent)} since 2024.", "good")}
+  </section>
+
+  <section class="question-grid" aria-label="Plain-English decision answers">
+    <article class="question-card good">
+      <span class="tag">Still widely chosen?</span>
+      <strong>Yes.</strong>
+      <p>Installed-share evidence has WordPress at {pct(wp_usage_latest['value']) if wp_usage_latest else 'n/a'} of all sites and {pct(wp_cms_latest['value']) if wp_cms_latest else 'n/a'} of CMS sites.</p>
+    </article>
+    <article class="question-card watch">
+      <span class="tag">Adoption direction?</span>
+      <strong>Softer.</strong>
+      <p>{f"W3Techs is down {abs(usage_delta):.1f} all-site points and {abs(cms_delta):.1f} CMS-share points since Jan 2025." if usage_delta is not None and cms_delta is not None else "The latest installed-share trend is flatter than the historical climb."}</p>
+    </article>
+    <article class="question-card slower">
+      <span class="tag">Participation?</span>
+      <strong>Fewer new reporters.</strong>
+      <p>Core first-time reporter retention is {pct(core_first_retention)} of the 2021-2023 average; Gutenberg is {pct(gut_first_retention)}. PR creation is higher.</p>
+    </article>
+    <article class="question-card soft">
+      <span class="tag">Keeping up?</span>
+      <strong>Mostly.</strong>
+      <p>Since 2024, closure/new ratios are Core {pct(core_closure_ratio)} and Gutenberg {pct(gut_closure_ratio)}.</p>
+    </article>
+    <article class="question-card watch">
+      <span class="tag">Backlog age?</span>
+      <strong>Aged.</strong>
+      <p>Open stale share is Core {pct(core_stale_pct)} and Gutenberg {pct(gut_stale_pct)}; 2+ year open share is Core {pct(core_open_2y_share)} and Gutenberg {pct(gut_open_2y_share)}.</p>
+    </article>
+    <article class="question-card soft">
+      <span class="tag">Contributor spread?</span>
+      <strong>Broad entry, concentrated work.</strong>
+      <p>Since 2024, top-50 work share is Core {pct(conc_metric("Core Trac reporters", "since_2024", "top50_item_share_pct"))}, Gutenberg {pct(conc_metric("Gutenberg issue creators", "since_2024", "top50_item_share_pct"))}, and PRs {pct(conc_metric("wordpress-develop PR authors", "since_2024", "top50_item_share_pct"))}.</p>
+    </article>
+    <article class="question-card watch">
+      <span class="tag">Builders gaining?</span>
+      <strong>Some share, yes.</strong>
+      <p>Hosted builders are more visible in installed-share trends, while WordPress still leads the current tracked BuiltWith 90-day pipeline at {pct(builtwith_wp_90_share)}.</p>
+    </article>
   </section>
 
   <section class="stats">
@@ -6184,12 +6292,31 @@ p {{ margin:0 0 12px; }}
 
   <section id="market" class="section">
     <h2>Market Position</h2>
-    <p class="callout">The market signal is: WordPress is still far ahead, but its share has flattened and recently declined while hosted builders gained small, distributed share. BuiltWith adds a current newly found-site snapshot, but not a historical new-site trend.</p>
+    <p class="callout">The market signal is: WordPress is still far ahead, but its share has flattened and recently declined while hosted builders gained small, distributed share. Read this section as three evidence layers: measured installed share, current newly found-site proxy, and demand/attention proxies.</p>
     <div class="stats">
       {stat_card("W3Techs all-site share", pct(wp_usage_latest["value"]) if wp_usage_latest else "n/a", f"{wp_usage_latest['date'] if wp_usage_latest else 'not fetched'}", "soft")}
       {stat_card("W3Techs CMS share", pct(wp_cms_latest["value"]) if wp_cms_latest else "n/a", f"{wp_cms_latest['date'] if wp_cms_latest else 'not fetched'}", "soft")}
       {stat_card("HTTP Archive mobile CMS share", "64.3%", "WordPress in 2025 Web Almanac", "soft")}
       {stat_card("Top 10k CMS usage", "about 58%", "HTTP Archive 2025", "soft")}
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Evidence map</h3>
+        <p>These signals answer different questions. Installed-share sources are the strongest adoption evidence. BuiltWith's 90-day pipeline is useful for current direction, but it is not a multi-year new-site cohort. Developer, hiring, and public-interest sources are demand proxies.</p>
+        <div class="stats">
+          {stat_card("Installed share", "Strong", "W3Techs + HTTP Archive", "good")}
+          {stat_card("Current new-site proxy", "Useful", "BuiltWith 30/90-day pipeline", "soft")}
+          {stat_card("Demand proxies", "Directional", "SO, HN, jobs, pageviews", "soft")}
+          {stat_card("True new-site history", "Partial", "not yet multi-year", "watch")}
+        </div>
+      </div>
+      <div class="card">
+        <h3>Decision framing</h3>
+        <p>If the question is whether WordPress is still widely chosen, use W3Techs, HTTP Archive, and traffic-tier presence. If the question is whether new builders are choosing it right now, use BuiltWith cautiously and compare it with hosted-builder momentum. If the question is developer mindshare, use the demand proxies below.</p>
+        {horizontal_metric("Installed-share confidence", 90, 100, COLORS["green"])}
+        {horizontal_metric("Current new-site confidence", 62, 100, COLORS["core"])}
+        {horizontal_metric("Demand-proxy confidence", 55, 100, COLORS["orange"])}
+      </div>
     </div>
     <div class="grid-2">
       {svg_line_chart("Share of all websites", "W3Techs yearly usage trend. This includes sites with no known CMS.", market_usage_series, y_suffix="%")}
@@ -6505,14 +6632,44 @@ p {{ margin:0 0 12px; }}
   <section id="coverage" class="section">
     <h2>Source Coverage</h2>
     <p class="callout">The SQLite database stores imported source tables, fetched ecosystem/adoption records, file hashes, and explicit source gaps. Download: <a href="community_health.sqlite.gz">community_health.sqlite.gz</a>.</p>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Refresh provenance</h3>
+        <p>The report is built from local ticket exports plus public-source fetches. The SQLite database stores source-file paths, row counts, and SHA-256 hashes for local imports, so a later refresh can verify whether the underlying exports changed.</p>
+        <div class="stats">
+          {stat_card("Local source files", compact(local_source_file_count), f"{compact(local_source_row_count)} imported rows", "good")}
+          {stat_card("Fetched tables", compact(len(fetched_nonempty_tables)), f"{compact(fetched_row_count)} fetched/derived rows", "good")}
+          {stat_card("Covered signals", compact(source_status_counts.get("covered", 0)), "source coverage cards", "good")}
+          {stat_card("Partial signals", compact(source_status_counts.get("partial", 0)), "explicitly labeled", "watch")}
+        </div>
+      </div>
+      <div class="card">
+        <h3>Refresh path</h3>
+        <p>Run the report generator to refresh public sources, or use cached data when validating layout and wording. The supporting fetch scripts keep Core response metrics, Gutenberg timelines, and support snapshots reproducible.</p>
+        <div class="link-list">
+          <code>python3 make_community_health_report.py</code>
+          <code>python3 make_community_health_report.py --skip-network</code>
+          <code>fetch_core_response_metrics.py</code>
+          <code>fetch_gutenberg_timeline_metrics.py</code>
+          <code>fetch_support_forum_snapshot.py</code>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Partial-source watchlist</h3>
+      <p>These are the main places where the report uses a proxy or snapshot instead of a full historical source.</p>
+      <div class="watchlist-grid">
+        {''.join(f'<div class="status {status}"><span class="pill">{html.escape(status)}</span><b>{html.escape(name)}</b><span>{html.escape(note)}</span></div>' for name, status, note in source_attention_rows)}
+      </div>
+    </div>
     <div class="status-grid">
-      {''.join(f'<div class="status {status}"><span class="pill">{html.escape(status)}</span><b>{html.escape(name)}</b><span>{html.escape(note)}</span></div>' for name, status, note in source_status_rows(fetched))}
+      {''.join(f'<div class="status {status}"><span class="pill">{html.escape(status)}</span><b>{html.escape(name)}</b><span>{html.escape(note)}</span></div>' for name, status, note in source_rows)}
     </div>
   </section>
 
   <section id="readout" class="section">
     <h2>Decision Readout</h2>
-    <p class="callout">Short version: WordPress is still widely chosen, adoption is softer than the recent high-water mark, ticket participation has fewer new reporters, and project load is closer to balanced than the backlog size alone suggests.</p>
+    <p class="callout">Short version: WordPress is still widely chosen on installed-share evidence; current new-site and demand proxies are softer; ticket participation has fewer new reporters; project load is closer to balanced than the backlog size alone suggests.</p>
     <div class="readout-grid">
       <div class="readout-card">
         <strong>Community health: active, narrower entry funnel</strong>
@@ -6531,15 +6688,16 @@ p {{ margin:0 0 12px; }}
       </div>
       <div class="readout-card">
         <strong>Market position: dominant, recently softer</strong>
-        <p>{html.escape(adoption_detail)} BuiltWith's current 90-day pipeline still shows WordPress with the largest tracked new-site count among WordPress, Shopify, Wix, and Webflow.</p>
+        <p>{html.escape(adoption_detail)} BuiltWith's current 90-day pipeline still shows WordPress with the largest tracked new-site count among WordPress, Shopify, Wix, and Webflow, but that is a current proxy rather than a historical new-site trend.</p>
         {horizontal_metric("W3Techs all-site share", float(wp_usage_latest["value"]) if wp_usage_latest else 0, 100, COLORS["wordpress"])}
         {horizontal_metric("W3Techs CMS share", float(wp_cms_latest["value"]) if wp_cms_latest else 0, 100, COLORS["wordpress"])}
         {horizontal_metric("Tracked 90-day new-site share", builtwith_wp_90_share, 100, COLORS["green"])}
       </div>
     </div>
-    <div class="stats">
+    <div class="stats decision-stats">
       {stat_card("Still widely chosen?", "Yes", f"{pct(wp_usage_latest['value']) if wp_usage_latest else 'n/a'} of all sites; {pct(wp_cms_latest['value']) if wp_cms_latest else 'n/a'} of CMS sites", "good")}
       {stat_card("Adoption direction", "Softer", f"{usage_delta:+.1f} all-site pts and {cms_delta:+.1f} CMS pts since Jan 2025" if usage_delta is not None and cms_delta is not None else "latest W3Techs trend fetched", "watch")}
+      {stat_card("New-site evidence", "Current proxy", f"{pct(builtwith_wp_90_share)} of tracked 90-day BuiltWith pipeline; no multi-year cohort yet", "soft")}
       {stat_card("Participation direction", "Fewer reporters", f"Core first-time reporters retained {pct(core_first_retention)} of the 2021-2023 average; Gutenberg retained {pct(gut_first_retention)}.", "watch")}
       {stat_card("Keeping up?", "Mostly", f"Closure/new ratio since 2024: Core {pct(core_closure_ratio)}, Gutenberg {pct(gut_closure_ratio)}.", "soft")}
     </div>

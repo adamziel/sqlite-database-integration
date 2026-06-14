@@ -101,6 +101,7 @@ def nav_html():
             '      <a href="progress_summary.html">Progress summary</a>',
             '      <a href="decision_brief.html">Decision brief</a>',
             '      <a href="contributor_depth.html">Contributor depth</a>',
+            '      <a href="ecosystem_activity.html">Ecosystem activity</a>',
             '      <a href="goal_audit.html">Goal audit</a>',
             '      <a href="data_inventory.html">Data inventory</a>',
             '      <a href="refresh_runbook.html">Refresh runbook</a>',

@@ -39,6 +39,11 @@ HTML_ARTIFACTS = {
         "Depth ladders since 2024",
         "Core Trac reporters",
     ],
+    "ecosystem_activity.html": [
+        "WordPress ecosystem activity",
+        "Activity lanes",
+        "Make/Core discussion",
+    ],
     "decision_brief.html": [
         "Decision Questions",
         "WordPress is still the default CMS",
@@ -217,6 +222,7 @@ def main():
     if not ns.validate_only:
         run_step([sys.executable, "make_goal_audit.py"])
         run_step([sys.executable, "make_contributor_depth_report.py"])
+        run_step([sys.executable, "make_ecosystem_activity_report.py"])
         run_step([sys.executable, "make_source_gap_plan.py"])
         run_step([sys.executable, "make_data_inventory.py"])
 

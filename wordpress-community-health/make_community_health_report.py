@@ -6480,7 +6480,7 @@ p {{ margin:0 0 12px; }}
     </article>
     <article class="lane-card ecosystem">
       <h3><span class="lane-dot"></span>Ecosystem signals</h3>
-      <p>WordPress.org APIs, Make/Core, WordCamp, Events, Translate, Five for the Future, and support snapshots show community activity outside trackers.</p>
+      <p>WordPress.org APIs, Make/Core, WordCamp, Events, Translate, Five for the Future, and support snapshots show community activity outside trackers. See the <a href="ecosystem_activity.html">ecosystem activity view</a> for the compact digest.</p>
       <ul class="lane-list">
         <li>Best for release credits, committers, events, translation, support load, plugin/theme activity, and pledged work.</li>
         <li>Mostly snapshots or release-level series, so they complement rather than replace ticket trends.</li>
@@ -7466,6 +7466,7 @@ p {{ margin:0 0 12px; }}
         <a href="decision_brief.html">Decision brief</a>
         <a href="progress_summary.html">Progress summary</a>
         <a href="contributor_depth.html">Contributor depth</a>
+        <a href="ecosystem_activity.html">Ecosystem activity</a>
         <a href="goal_audit.html">Goal audit</a>
         <a href="data_inventory.html">Data inventory</a>
         <a href="source_gap_plan.html">Source gap plan</a>

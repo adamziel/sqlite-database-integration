@@ -294,7 +294,7 @@ HTML_TEMPLATE = """<!doctype html>
     </div>
     <div class="section">
       <h2>Useful Entry Points</h2>
-      <p>Use the full report for charts, the decision brief for sharing, contributor depth for participation shape, the data inventory when checking source coverage, and the source gap plan when choosing the next import.</p>
+      <p>Use the full report for charts, the decision brief for sharing, contributor depth for participation shape, ecosystem activity for non-ticket community channels, the data inventory when checking source coverage, and the source gap plan when choosing the next import.</p>
       <div class="links">
         <a href="index.html#decision-questions">Decision Questions</a>
         <a href="index.html#goal-map">Goal Coverage Map</a>
@@ -302,6 +302,7 @@ HTML_TEMPLATE = """<!doctype html>
         <a href="decision_brief.html">Decision brief</a>
         <a href="progress_summary.html">Progress summary</a>
         <a href="contributor_depth.html">Contributor depth</a>
+        <a href="ecosystem_activity.html">Ecosystem activity</a>
         <a href="data_inventory.html">Data inventory</a>
         <a href="source_gap_plan.html">Source gap plan</a>
         <a href="refresh_runbook.html">Refresh runbook</a>

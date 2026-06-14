@@ -252,7 +252,7 @@ HTML_TEMPLATE = """<!doctype html>
 <body>
 <main>
   <h1>WordPress report goal audit</h1>
-  <p class="lede">This page maps the current WordPress Community & Adoption Health report back to the active goal file. It is a quick proof map: what is covered directly, what is covered with public proxies or snapshots, and where the refresh metadata lives.</p>
+  <p class="lede">This page maps the current WordPress Community & Adoption Health report back to the active <code>goal.md</code> file. It is a quick proof map: what is covered directly, what is covered with public proxies or snapshots, and where the refresh metadata lives.</p>
 
   <section class="grid cards" aria-label="Audit summary">
     <div class="card">

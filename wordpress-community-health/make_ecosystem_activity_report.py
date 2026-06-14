@@ -46,6 +46,10 @@ def rows(conn, sql, params=()):
     return [dict(row) for row in conn.execute(sql, params).fetchall()]
 
 
+def table_exists(conn, name):
+    return bool(one(conn, "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (name,)))
+
+
 def latest(rows_, date_key):
     if not rows_:
         return {}
@@ -150,6 +154,23 @@ def signal_row(title, text, value, color="blue"):
         </div>"""
 
 
+def bar_row(label, value, max_value, color="green", suffix=""):
+    value = num(value)
+    max_value = max(1, num(max_value))
+    width = max(2, min(100, value / max_value * 100))
+    color_var = {
+        "blue": "var(--blue)",
+        "green": "var(--green)",
+        "amber": "var(--amber)",
+        "violet": "var(--violet)",
+    }.get(color, "var(--blue)")
+    return f"""
+        <div class="bar-row">
+          <div class="bar-label"><span>{esc(label)}</span><b>{esc(compact(value))}{esc(suffix)}</b></div>
+          <div class="bar-track"><span style="width:{width:.1f}%;background:{color_var}"></span></div>
+        </div>"""
+
+
 def main():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
@@ -167,6 +188,11 @@ def main():
         events = rows(conn, "SELECT * FROM wp_event_snapshots")
         plugin_maintenance = rows(conn, "SELECT * FROM plugin_maintenance_summary")
         theme_sample = rows(conn, "SELECT * FROM theme_directory_activity_sample")
+        plugin_search = (
+            rows(conn, "SELECT * FROM plugin_search_snapshot ORDER BY CAST(result_count AS REAL) DESC, label")
+            if table_exists(conn, "plugin_search_snapshot")
+            else []
+        )
     finally:
         conn.close()
 
@@ -193,6 +219,19 @@ def main():
     theme_commercial = sum(1 for row in theme_sample if str(row.get("is_commercial", "")).lower() == "true")
     theme_community = sum(1 for row in theme_sample if str(row.get("is_community", "")).lower() == "true")
     top_theme = max(theme_sample, key=lambda row: num(row.get("num_ratings")), default={})
+    plugin_search_max = max([num(row.get("result_count")) for row in plugin_search] or [1])
+    plugin_search_capped = sum(1 for row in plugin_search if num(row.get("results_capped")) > 0)
+    plugin_search_top = plugin_search[0] if plugin_search else {}
+    plugin_search_bars = "".join(
+        bar_row(
+            f"{row.get('label', '')}{'+' if num(row.get('results_capped')) else ''}",
+            row.get("result_count"),
+            plugin_search_max,
+            "green" if num(row.get("results_capped")) else "blue",
+            " results",
+        )
+        for row in plugin_search[:9]
+    )
 
     make_comment_points = [
         (row.get("quarter", "")[:4] + " Q" + str((int(row.get("quarter", "")[5:7] or 1) - 1) // 3 + 1), row.get("comments"))
@@ -217,6 +256,7 @@ def main():
             metric_card("Five for the Future hours", compact(latest_fttf.get("pledged_hours_per_week")), f"{compact(latest_fttf.get('pledges_fetched'))} pledges fetched", "violet"),
             metric_card("Support topics sampled", compact(latest_support.get("topics")), f"{pct(latest_support.get('resolved_share_pct'))} resolved in current queue", "amber"),
             metric_card("Plugin directory", compact(plugin_count), f"{compact(latest_directory_activity.get('plugins_added_30d'))} plugins added in 30 days", "green"),
+            metric_card("Plugin search breadth", compact(len(plugin_search)), f"{compact(plugin_search_capped)} terms at 10k cap", "green"),
             metric_card("Theme directory", compact(theme_count), f"{compact(theme_sample_size)} sampled themes, {compact(theme_commercial)} commercial flags", "violet"),
         ]
     )
@@ -233,6 +273,7 @@ def main():
             signal_row("Support queue", f"{compact(latest_support.get('participants'))} participants in current support snapshot", f"{pct(latest_support.get('unresolved_share_pct'))} unresolved", "amber"),
             signal_row("Plugin maintenance", f"Popular-plugin sample median update age is {num(latest_plugin_maintenance.get('median_days_since_update')):.0f} days", f"{compact(latest_plugin_maintenance.get('stale_2y_count'))} stale 2y", "green"),
             signal_row("Plugin directory activity", f"{compact(latest_directory_activity.get('plugins_added_30d'))} plugins added and {compact(latest_directory_activity.get('plugins_updated_30d'))} updated in 30 days", f"{compact(plugin_count)} plugins", "green"),
+            signal_row("Plugin ecosystem breadth", f"Selected plugin-directory searches are led by {plugin_search_top.get('label', 'n/a')}; + means the API result count hit the cap.", f"{compact(plugin_search_top.get('result_count'))} results", "green"),
             signal_row("Theme directory activity", f"{compact(theme_sample_size)} sampled themes across new, updated, and popular views; top rated-sample theme is {top_theme.get('name', 'n/a')}", f"{compact(theme_count)} themes", "violet"),
         ]
     )
@@ -310,6 +351,12 @@ def main():
     .readout div {{ border:1px solid var(--line); border-radius:8px; padding:12px; background:#fbfdff; }}
     .readout strong {{ display:block; margin-bottom:5px; }}
     .readout span {{ color:var(--muted); font-size:14px; }}
+    .bar-list {{ display:grid; gap:9px; margin-top:12px; }}
+    .bar-label {{ display:flex; justify-content:space-between; gap:12px; align-items:baseline; font-size:14px; }}
+    .bar-label span {{ color:var(--muted); }}
+    .bar-label b {{ white-space:nowrap; }}
+    .bar-track {{ height:9px; border-radius:999px; background:#e8eef5; overflow:hidden; }}
+    .bar-track span {{ display:block; height:100%; border-radius:inherit; }}
     .footer-note {{ margin-top:14px; background:#eef4ff; border:1px solid #cfe0ff; border-radius:8px; padding:14px 16px; color:#244067; }}
     @media (max-width:980px) {{
       .metrics {{ grid-template-columns:1fr 1fr; }}
@@ -320,6 +367,7 @@ def main():
       .metrics {{ grid-template-columns:1fr; }}
       .signal-row {{ display:block; }}
       .signal-row b {{ display:block; margin-top:5px; }}
+      .bar-label {{ display:block; }}
     }}
   </style>
 </head>
@@ -346,13 +394,21 @@ def main():
     </section>
 
     <section class="section" style="margin-top:14px">
+      <h2>Plugin ecosystem breadth</h2>
+      <p class="note">Current WordPress.org plugin search-result counts for selected ecosystem categories. A plus sign means the result count hit the API cap.</p>
+      <div class="bar-list">
+{plugin_search_bars}
+      </div>
+    </section>
+
+    <section class="section" style="margin-top:14px">
       <h2>How to read this</h2>
       <div class="readout">
         <div><strong>Community activity is wider than tickets.</strong><span>Release credits, discussion, events, translation, support, and directories show multiple active participation channels.</span></div>
         <div><strong>Some signals are snapshots.</strong><span>Events, support queues, plugin freshness, translation, and pledge counts are current-state views, while WordCamp, Make/Core, and release rows have historical shape.</span></div>
         <div><strong>Use this with tracker data.</strong><span>Fewer first-time reporters does not mean the whole ecosystem is inactive; it means tracker participation is softer than before.</span></div>
       </div>
-      <p class="footer-note">Rows come from existing SQLite tables including <code>wordcamp_yearly</code>, <code>make_core_comment_quarterly</code>, <code>make_core_dev_note_quarterly</code>, <code>core_release_credits</code>, <code>translation_snapshots</code>, <code>fttf_snapshots</code>, <code>support_forum_snapshot_summary</code>, <code>directory_activity_snapshots</code>, and <code>theme_directory_activity_sample</code>. Integrity check: <code>{esc(integrity)}</code>. Latest WordCamp row in the database is {esc(latest_wc_any.get("label", "n/a"))}; current and future years are partial. Theme sample flags include {compact(theme_commercial)} commercial and {compact(theme_community)} community themes.</p>
+      <p class="footer-note">Rows come from existing SQLite tables including <code>wordcamp_yearly</code>, <code>make_core_comment_quarterly</code>, <code>make_core_dev_note_quarterly</code>, <code>core_release_credits</code>, <code>translation_snapshots</code>, <code>fttf_snapshots</code>, <code>support_forum_snapshot_summary</code>, <code>directory_activity_snapshots</code>, <code>plugin_search_snapshot</code>, and <code>theme_directory_activity_sample</code>. Integrity check: <code>{esc(integrity)}</code>. Latest WordCamp row in the database is {esc(latest_wc_any.get("label", "n/a"))}; current and future years are partial. Theme sample flags include {compact(theme_commercial)} commercial and {compact(theme_community)} community themes.</p>
     </section>
   </main>
 </body>

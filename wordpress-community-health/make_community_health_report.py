@@ -83,6 +83,7 @@ SKIP_NETWORK_DB_FALLBACK_TABLES = [
     "new_site_choice_summary",
     "directory_snapshots",
     "directory_activity_snapshots",
+    "plugin_search_snapshot",
     "plugin_directory_activity_sample",
     "plugin_maintenance_summary",
     "plugin_stale_popular_sample",
@@ -255,6 +256,17 @@ PACKAGIST_WORDPRESS_PACKAGES = [
     {"package": "humanmade/s3-uploads", "label": "S3 Uploads", "category": "developer plugin"},
     {"package": "woocommerce/woocommerce", "label": "WooCommerce", "category": "commerce plugin"},
     {"package": "deliciousbrains/wp-background-processing", "label": "WP Background Processing", "category": "library"},
+]
+PLUGIN_SEARCH_TERMS = [
+    {"term": "woocommerce", "label": "WooCommerce", "category": "commerce"},
+    {"term": "elementor", "label": "Elementor", "category": "builder"},
+    {"term": "block editor", "label": "Block editor", "category": "editing"},
+    {"term": "forms", "label": "Forms", "category": "site features"},
+    {"term": "seo", "label": "SEO", "category": "marketing"},
+    {"term": "security", "label": "Security", "category": "operations"},
+    {"term": "performance", "label": "Performance", "category": "operations"},
+    {"term": "backup", "label": "Backup", "category": "operations"},
+    {"term": "ai", "label": "AI", "category": "emerging"},
 ]
 MAJOR_PLUGIN_SLUGS = [
     "woocommerce",
@@ -3230,6 +3242,102 @@ def fetch_wordpress_directory_snapshots(skip_network=False):
     return snapshots
 
 
+def plugin_search_cache_path():
+    return CACHE / "wporg-plugin-search-snapshot.json"
+
+
+def read_cached_plugin_search_snapshot():
+    path = plugin_search_cache_path()
+    if not path.exists():
+        return []
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return []
+    rows = payload.get("rows") if isinstance(payload, dict) else payload
+    return rows if isinstance(rows, list) else []
+
+
+def write_cached_plugin_search_snapshot(rows):
+    CACHE.mkdir(parents=True, exist_ok=True)
+    plugin_search_cache_path().write_text(
+        json.dumps(
+            {
+                "collected_at": dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z"),
+                "source_url": PLUGIN_INFO_API,
+                "rows": rows,
+            },
+            indent=2,
+            sort_keys=True,
+        ),
+        encoding="utf-8",
+    )
+
+
+def plugin_search_url(term):
+    params = [
+        ("action", "query_plugins"),
+        ("request[search]", term),
+        ("request[page]", 1),
+        ("request[per_page]", 1),
+        ("request[fields][description]", 0),
+        ("request[fields][sections]", 0),
+        ("request[fields][screenshots]", 0),
+        ("request[fields][tags]", 0),
+    ]
+    return f"{PLUGIN_INFO_API}?{urllib.parse.urlencode(params)}"
+
+
+def fetch_plugin_search_snapshot(skip_network=False):
+    cached_rows = read_cached_plugin_search_snapshot()
+    if cached_rows:
+        cached_dates = {str(row.get("collected_at", ""))[:10] for row in cached_rows if row.get("collected_at")}
+        today = dt.datetime.now(dt.timezone.utc).date().isoformat()
+        if skip_network or today in cached_dates:
+            return cached_rows
+    if skip_network:
+        return cached_rows
+
+    collected_at = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
+    rows = []
+    for config in PLUGIN_SEARCH_TERMS:
+        source_url = plugin_search_url(config["term"])
+        try:
+            data, _headers = fetch_json(source_url)
+        except Exception as exc:
+            eprint(f"WordPress.org plugin search failed for {config['term']}: {exc}")
+            continue
+        info = data.get("info", {}) if isinstance(data, dict) else {}
+        plugins = data.get("plugins", []) if isinstance(data, dict) else []
+        top = plugins[0] if plugins else {}
+        rows.append(
+            {
+                "snapshot_date": live_snapshot_date(),
+                "collected_at": collected_at,
+                "term": config["term"],
+                "label": config["label"],
+                "category": config["category"],
+                "result_count": num(info.get("results")),
+                "pages": num(info.get("pages")),
+                "results_capped": 1 if num(info.get("results")) >= 10000 else 0,
+                "top_slug": str(top.get("slug") or ""),
+                "top_name": strip_html(top.get("name")),
+                "top_author_name": wporg_author_name(top.get("author")) if top else "",
+                "top_active_installs": num(top.get("active_installs")),
+                "top_rating": num(top.get("rating")),
+                "top_num_ratings": num(top.get("num_ratings")),
+                "source": "WordPress.org plugin directory search snapshot",
+                "source_url": source_url,
+                "source_note": "Result counts are current search-result counts; some broad terms are capped by the WordPress.org API.",
+            }
+        )
+        time.sleep(0.05)
+    rows.sort(key=lambda row: (-num(row.get("result_count")), row.get("label", "")))
+    if rows:
+        write_cached_plugin_search_snapshot(rows)
+    return rows
+
+
 def live_snapshot_date():
     return dt.datetime.now(dt.timezone.utc).date().isoformat()
 
@@ -6133,6 +6241,7 @@ def source_status_rows(fetched):
         ("WordPress.org plugin/theme directories", "covered" if fetched.get("directory_snapshots") else "missing", "Current plugin and theme counts"),
         ("WordPress.org ecosystem stats", "covered" if fetched.get("wporg_ecosystem_stats_snapshot") else "missing", "Current WordPress, PHP, and database version distribution from WordPress.org stats APIs"),
         ("Plugin/theme directory activity", "covered" if fetched.get("directory_activity_snapshots") else "missing", "Current new, updated, and popular samples from WordPress.org directory APIs"),
+        ("Plugin ecosystem search breadth", "covered" if fetched.get("plugin_search_snapshot") else "missing", "Current WordPress.org plugin search-result counts and top matching plugins for selected ecosystem categories"),
         (
             "Major plugin install base",
             "covered" if fetched.get("major_plugin_install_snapshot") and fetched.get("major_plugin_install_history") else "partial" if fetched.get("major_plugin_install_snapshot") else "missing",
@@ -6237,6 +6346,7 @@ def build_report(data, fetched):
     fttf_pledges = fetched.get("fttf_pledges", [])
     directory = {row["metric"]: row for row in fetched.get("directory_snapshots", [])}
     directory_activity = fetched.get("directory_activity_snapshots", [])
+    plugin_search_rows = fetched.get("plugin_search_snapshot", [])
     plugin_activity_rows = fetched.get("plugin_directory_activity_sample", [])
     plugin_maintenance_summary = fetched.get("plugin_maintenance_summary", [])
     plugin_stale_popular_sample = fetched.get("plugin_stale_popular_sample", [])
@@ -7138,6 +7248,11 @@ def build_report(data, fetched):
     plugins_added_90_label = f"{compact(plugins_added_90)}" if plugins_added_complete else f">= {compact(plugins_added_90)}"
     plugins_updated_90_label = f"{compact(plugins_updated_90)}" if plugins_updated_complete else f">= {compact(plugins_updated_90)}"
     plugin_activity_max = max(plugins_added_90, plugins_updated_90, 1)
+    plugin_search_sorted = sorted(plugin_search_rows, key=lambda row: num(row.get("result_count")), reverse=True)
+    plugin_search_max = max([num(row.get("result_count")) for row in plugin_search_sorted] or [1])
+    plugin_search_capped = sum(1 for row in plugin_search_sorted if num(row.get("results_capped")) > 0)
+    plugin_search_top_installs = sum(num(row.get("top_active_installs")) for row in plugin_search_sorted)
+    plugin_search_snapshot_date = max([row.get("snapshot_date", "") for row in plugin_search_sorted if row.get("snapshot_date")] or ["not fetched"])
     popular_plugin_sample = max(1, num(directory_activity_snapshot.get("popular_plugin_sample_size")))
     popular_plugin_stale = num(directory_activity_snapshot.get("popular_plugin_stale_2y"))
     plugin_maintenance = plugin_maintenance_summary[0] if plugin_maintenance_summary else {}
@@ -8348,6 +8463,16 @@ p {{ margin:0 0 12px; }}
         {horizontal_count_metric("Plugins updated in sampled 90 days", plugins_updated_90, plugin_activity_max, COLORS["core"], "")}
       </div>
       <div class="card">
+        <h3>Plugin ecosystem breadth</h3>
+        <p>Current WordPress.org plugin search-result counts for selected site-builder, commerce, operations, and emerging categories. Broad terms can hit the API result cap.</p>
+        <div class="stats">
+          {stat_card("Search terms", compact(len(plugin_search_sorted)), "category probes", "soft")}
+          {stat_card("Capped terms", compact(plugin_search_capped), "10k result cap", "watch" if plugin_search_capped else "soft")}
+          {stat_card("Top-plugin installs", compact(plugin_search_top_installs), f"{plugin_search_snapshot_date} snapshot", "good" if plugin_search_sorted else "watch")}
+        </div>
+        {''.join(horizontal_count_metric(str(row.get("label", "")) + ("+" if num(row.get("results_capped")) else ""), num(row.get("result_count")), plugin_search_max, COLORS["green"] if num(row.get("results_capped")) else COLORS["core"], " results") for row in plugin_search_sorted[:8])}
+      </div>
+      <div class="card">
         <h3>Stale popular plugin sample</h3>
         <p>Popular plugin pages from the WordPress.org API. Stale here means last updated more than two years before the snapshot date.</p>
         <div class="stats">
@@ -8683,6 +8808,7 @@ def main():
         fetched["plugin_directory_activity_sample"],
         fetched["theme_directory_activity_sample"],
     ) = fetch_directory_activity(args.skip_network)
+    fetched["plugin_search_snapshot"] = fetch_plugin_search_snapshot(args.skip_network)
     fetched["major_plugin_install_snapshot"] = fetch_major_plugin_install_snapshot(args.skip_network)
     fetched["major_plugin_install_history"] = fetch_major_plugin_install_history(
         fetched["major_plugin_install_snapshot"], args.skip_network

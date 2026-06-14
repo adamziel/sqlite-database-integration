@@ -62,6 +62,12 @@
     .readout div { border:1px solid var(--line); border-radius:8px; padding:12px; background:#fbfdff; }
     .readout strong { display:block; margin-bottom:5px; }
     .readout span { color:var(--muted); font-size:14px; }
+    .bar-list { display:grid; gap:9px; margin-top:12px; }
+    .bar-label { display:flex; justify-content:space-between; gap:12px; align-items:baseline; font-size:14px; }
+    .bar-label span { color:var(--muted); }
+    .bar-label b { white-space:nowrap; }
+    .bar-track { height:9px; border-radius:999px; background:#e8eef5; overflow:hidden; }
+    .bar-track span { display:block; height:100%; border-radius:inherit; }
     .footer-note { margin-top:14px; background:#eef4ff; border:1px solid #cfe0ff; border-radius:8px; padding:14px 16px; color:#244067; }
     @media (max-width:980px) {
       .metrics { grid-template-columns:1fr 1fr; }
@@ -72,6 +78,7 @@
       .metrics { grid-template-columns:1fr; }
       .signal-row { display:block; }
       .signal-row b { display:block; margin-top:5px; }
+      .bar-label { display:block; }
     }
   </style>
 </head>
@@ -107,7 +114,7 @@
       </article>
       <article class="metric green">
         <h3>Make/Core commenters</h3>
-        <strong>123</strong>
+        <strong>124</strong>
         <p>Latest quarter: 2026-Q2</p>
       </article>
       <article class="metric violet">
@@ -117,8 +124,8 @@
       </article>
       <article class="metric green">
         <h3>Upcoming events</h3>
-        <strong>288</strong>
-        <p>268 Meetups, 20 WordCamps</p>
+        <strong>293</strong>
+        <p>273 Meetups, 20 WordCamps</p>
       </article>
       <article class="metric blue">
         <h3>Translation locales</h3>
@@ -138,12 +145,17 @@
       <article class="metric green">
         <h3>Plugin directory</h3>
         <strong>61.2k</strong>
-        <p>1,894 plugins added in 30 days</p>
+        <p>1,943 plugins added in 30 days</p>
+      </article>
+      <article class="metric green">
+        <h3>Plugin search breadth</h3>
+        <strong>9</strong>
+        <p>4 terms at 10k cap</p>
       </article>
       <article class="metric violet">
         <h3>Theme directory</h3>
-        <strong>8,337</strong>
-        <p>900 sampled themes, 204 commercial flags</p>
+        <strong>8,341</strong>
+        <p>900 sampled themes, 222 commercial flags</p>
       </article>
     </section>
 
@@ -162,9 +174,9 @@
         <div class="signal-row green">
           <div>
             <strong>Make/Core discussion</strong>
-            <span>188 comments on 40 posts in latest quarter</span>
+            <span>189 comments on 40 posts in latest quarter</span>
           </div>
-          <b>123 commenters</b>
+          <b>124 commenters</b>
         </div>
         <div class="signal-row violet">
           <div>
@@ -183,9 +195,9 @@
         <div class="signal-row green">
           <div>
             <strong>Events calendar</strong>
-            <span>147 unique Meetup groups in current events snapshot</span>
+            <span>152 unique Meetup groups in current events snapshot</span>
           </div>
-          <b>288 events</b>
+          <b>293 events</b>
         </div>
         <div class="signal-row blue">
           <div>
@@ -218,16 +230,23 @@
         <div class="signal-row green">
           <div>
             <strong>Plugin directory activity</strong>
-            <span>1,894 plugins added and 7,999 updated in 30 days</span>
+            <span>1,943 plugins added and 7,999 updated in 30 days</span>
           </div>
           <b>61.2k plugins</b>
+        </div>
+        <div class="signal-row green">
+          <div>
+            <strong>Plugin ecosystem breadth</strong>
+            <span>Selected plugin-directory searches are led by Forms; + means the API result count hit the cap.</span>
+          </div>
+          <b>10.0k results</b>
         </div>
         <div class="signal-row violet">
           <div>
             <strong>Theme directory activity</strong>
             <span>900 sampled themes across new, updated, and popular views; top rated-sample theme is Astra</span>
           </div>
-          <b>8,337 themes</b>
+          <b>8,341 themes</b>
         </div></div>
       </div>
       <div class="section">
@@ -240,11 +259,11 @@
 <text x="36" y="88.0" class="axis" text-anchor="end">320</text>
 <line x1="44" x2="500" y1="34.0" y2="34.0" class="spark-grid" />
 <text x="36" y="38.0" class="axis" text-anchor="end">640</text>
-<path d="M44.0,82.3 L79.1,71.0 L114.2,34.5 L149.2,83.1 L184.3,73.7 L219.4,66.8 L254.5,85.9 L289.5,92.6 L324.6,116.7 L359.7,117.3 L394.8,105.1 L429.8,93.1 L464.9,78.8 L500.0,104.6" fill="none" stroke="#159957" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
-<circle cx="500.0" cy="104.6" r="4" fill="#159957" />
+<path d="M44.0,82.3 L79.1,71.0 L114.2,34.5 L149.2,83.1 L184.3,73.7 L219.4,66.8 L254.5,85.9 L289.5,92.6 L324.6,116.7 L359.7,117.3 L394.8,105.1 L429.8,93.1 L464.9,78.8 L500.0,104.5" fill="none" stroke="#159957" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="500.0" cy="104.5" r="4" fill="#159957" />
 <text x="44" y="158" class="axis">2023 Q1</text>
 <text x="500" y="158" class="axis" text-anchor="end">2026 Q2</text>
-<text x="500" y="21" class="spark-end" text-anchor="end">188</text>
+<text x="500" y="21" class="spark-end" text-anchor="end">189</text>
 </svg>
 <svg class="spark" viewBox="0 0 520 168" role="img" aria-label="Make/Core dev notes by quarter">
 <text x="44" y="20" class="spark-title">Make/Core dev notes by quarter</text>
@@ -292,13 +311,57 @@
     </section>
 
     <section class="section" style="margin-top:14px">
+      <h2>Plugin ecosystem breadth</h2>
+      <p class="note">Current WordPress.org plugin search-result counts for selected ecosystem categories. A plus sign means the result count hit the API cap.</p>
+      <div class="bar-list">
+
+        <div class="bar-row">
+          <div class="bar-label"><span>Forms+</span><b>10.0k results</b></div>
+          <div class="bar-track"><span style="width:100.0%;background:var(--green)"></span></div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label"><span>Performance+</span><b>10.0k results</b></div>
+          <div class="bar-track"><span style="width:100.0%;background:var(--green)"></span></div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label"><span>Security+</span><b>10.0k results</b></div>
+          <div class="bar-track"><span style="width:100.0%;background:var(--green)"></span></div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label"><span>WooCommerce+</span><b>10.0k results</b></div>
+          <div class="bar-track"><span style="width:100.0%;background:var(--green)"></span></div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label"><span>SEO</span><b>6,449 results</b></div>
+          <div class="bar-track"><span style="width:64.5%;background:var(--blue)"></span></div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label"><span>Block editor</span><b>6,417 results</b></div>
+          <div class="bar-track"><span style="width:64.2%;background:var(--blue)"></span></div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label"><span>Elementor</span><b>4,867 results</b></div>
+          <div class="bar-track"><span style="width:48.7%;background:var(--blue)"></span></div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label"><span>AI</span><b>3,882 results</b></div>
+          <div class="bar-track"><span style="width:38.8%;background:var(--blue)"></span></div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label"><span>Backup</span><b>2,382 results</b></div>
+          <div class="bar-track"><span style="width:23.8%;background:var(--blue)"></span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" style="margin-top:14px">
       <h2>How to read this</h2>
       <div class="readout">
         <div><strong>Community activity is wider than tickets.</strong><span>Release credits, discussion, events, translation, support, and directories show multiple active participation channels.</span></div>
         <div><strong>Some signals are snapshots.</strong><span>Events, support queues, plugin freshness, translation, and pledge counts are current-state views, while WordCamp, Make/Core, and release rows have historical shape.</span></div>
         <div><strong>Use this with tracker data.</strong><span>Fewer first-time reporters does not mean the whole ecosystem is inactive; it means tracker participation is softer than before.</span></div>
       </div>
-      <p class="footer-note">Rows come from existing SQLite tables including <code>wordcamp_yearly</code>, <code>make_core_comment_quarterly</code>, <code>make_core_dev_note_quarterly</code>, <code>core_release_credits</code>, <code>translation_snapshots</code>, <code>fttf_snapshots</code>, <code>support_forum_snapshot_summary</code>, <code>directory_activity_snapshots</code>, and <code>theme_directory_activity_sample</code>. Integrity check: <code>ok</code>. Latest WordCamp row in the database is 2027; current and future years are partial. Theme sample flags include 204 commercial and 19 community themes.</p>
+      <p class="footer-note">Rows come from existing SQLite tables including <code>wordcamp_yearly</code>, <code>make_core_comment_quarterly</code>, <code>make_core_dev_note_quarterly</code>, <code>core_release_credits</code>, <code>translation_snapshots</code>, <code>fttf_snapshots</code>, <code>support_forum_snapshot_summary</code>, <code>directory_activity_snapshots</code>, <code>plugin_search_snapshot</code>, and <code>theme_directory_activity_sample</code>. Integrity check: <code>ok</code>. Latest WordCamp row in the database is 2027; current and future years are partial. Theme sample flags include 222 commercial and 18 community themes.</p>
     </section>
   </main>
 </body>

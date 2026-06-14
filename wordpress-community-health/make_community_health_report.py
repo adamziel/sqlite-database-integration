@@ -70,6 +70,7 @@ SKIP_NETWORK_DB_FALLBACK_TABLES = [
     "enterprise_vip_case_studies",
     "builtwith_technology_snapshots",
     "builtwith_technology_history",
+    "new_site_choice_summary",
     "directory_snapshots",
     "directory_activity_snapshots",
     "plugin_directory_activity_sample",
@@ -3897,7 +3898,7 @@ def build_database(data, fetched):
                 "new_site_share_history",
                 "partial",
                 "BuiltWith historical trends or HTTP Archive cohort queries",
-                "Current report includes BuiltWith current Net New Pipeline plus HTTP Archive monthly origin counts, derived tracked-share history, and rank-tier detected-origin adoption; not a multi-year newly created site cohort.",
+                "Current report includes BuiltWith current Net New Pipeline, HTTP Archive monthly origin counts, derived tracked-share history, rank-tier detected-origin adoption, and a compact new-site choice summary; not a multi-year newly created site cohort.",
             )
         )
     else:
@@ -4171,6 +4172,123 @@ def derive_builtwith_tier_share_snapshot(rows):
             }
         )
     return result
+
+
+def derive_new_site_choice_summary(builtwith_rows, http_share_rows, tier_rows):
+    rows = []
+    collected_at = max([row.get("collected_at", "") for row in builtwith_rows if row.get("collected_at")] or [""])
+
+    def add_row(signal, label, source_type, period, wordpress_value, tracked_total, unit, note, next_peer="", next_peer_value=0):
+        wordpress_value = float(wordpress_value or 0)
+        tracked_total = float(tracked_total or 0)
+        next_peer_value = float(next_peer_value or 0)
+        rows.append(
+            {
+                "signal": signal,
+                "label": label,
+                "source_type": source_type,
+                "period": period,
+                "wordpress_value": round(wordpress_value, 2),
+                "tracked_total": round(tracked_total, 2),
+                "wordpress_share_pct": round(wordpress_value / tracked_total * 100, 2) if tracked_total else 0,
+                "next_peer": next_peer,
+                "next_peer_value": round(next_peer_value, 2),
+                "wordpress_to_next_peer_ratio": round(wordpress_value / next_peer_value, 2) if next_peer_value else 0,
+                "unit": unit,
+                "note": note,
+                "collected_at": collected_at,
+            }
+        )
+
+    pipeline_rows = [row for row in builtwith_rows if num(row.get("new_last_3_months")) > 0]
+    if pipeline_rows:
+        tracked_total = sum(num(row.get("new_last_3_months")) for row in pipeline_rows)
+        wp_row = next((row for row in pipeline_rows if row.get("technology") == "WordPress"), {})
+        next_peer = max([row for row in pipeline_rows if row.get("technology") != "WordPress"], key=lambda row: num(row.get("new_last_3_months")), default={})
+        add_row(
+            "builtwith_90_day_pipeline",
+            "BuiltWith 90-day newly found pipeline",
+            "current_new_site_proxy",
+            "last 90 days",
+            num(wp_row.get("new_last_3_months")),
+            tracked_total,
+            "newly found sites",
+            "BuiltWith public Net New Pipeline across WordPress, Shopify, Wix, and Webflow. Squarespace does not expose comparable new-site counts on the fetched page.",
+            next_peer.get("technology", ""),
+            num(next_peer.get("new_last_3_months")),
+        )
+        tracked_30 = sum(num(row.get("new_last_month")) for row in pipeline_rows)
+        next_peer_30 = max([row for row in pipeline_rows if row.get("technology") != "WordPress"], key=lambda row: num(row.get("new_last_month")), default={})
+        add_row(
+            "builtwith_30_day_pipeline",
+            "BuiltWith 30-day newly found pipeline",
+            "current_new_site_proxy",
+            "last 30 days",
+            num(wp_row.get("new_last_month")),
+            tracked_30,
+            "newly found sites",
+            "Shorter current BuiltWith Net New Pipeline window across the tracked technologies with comparable public counts.",
+            next_peer_30.get("technology", ""),
+            num(next_peer_30.get("new_last_month")),
+        )
+
+    latest_http_date = max([row.get("date", "") for row in http_share_rows if row.get("date")] or [""])
+    first_http_date = min([row.get("date", "") for row in http_share_rows if row.get("date")] or [""])
+    if latest_http_date:
+        latest_rows = [row for row in http_share_rows if row.get("date") == latest_http_date]
+        wp_latest = next((row for row in latest_rows if row.get("technology") == "WordPress"), {})
+        next_peer = max([row for row in latest_rows if row.get("technology") != "WordPress"], key=lambda row: float(row.get("mobile_tracked_share_pct") or 0), default={})
+        add_row(
+            "http_archive_latest_tracked_share",
+            "HTTP Archive tracked share",
+            "recurring_detected_origin_proxy",
+            latest_http_date,
+            float(wp_latest.get("mobile_tracked_share_pct") or 0),
+            100,
+            "tracked share pct",
+            "Latest monthly HTTP Archive mobile detected-origin share among tracked WordPress and builder/ecommerce technologies.",
+            next_peer.get("technology", ""),
+            float(next_peer.get("mobile_tracked_share_pct") or 0),
+        )
+    if first_http_date and latest_http_date and first_http_date != latest_http_date:
+        first_wp = next((row for row in http_share_rows if row.get("date") == first_http_date and row.get("technology") == "WordPress"), {})
+        latest_wp = next((row for row in http_share_rows if row.get("date") == latest_http_date and row.get("technology") == "WordPress"), {})
+        add_row(
+            "http_archive_tracked_share_change",
+            "HTTP Archive tracked-share change",
+            "recurring_detected_origin_proxy",
+            f"{first_http_date} to {latest_http_date}",
+            float(latest_wp.get("mobile_tracked_share_pct") or 0) - float(first_wp.get("mobile_tracked_share_pct") or 0),
+            100,
+            "percentage-point change",
+            "Change in WordPress share among the tracked HTTP Archive technology set from first to latest fetched month.",
+        )
+
+    top1m = next((row for row in tier_rows if row.get("tier") == "top_1m"), {})
+    if top1m:
+        add_row(
+            "builtwith_top_1m_tracked_share",
+            "BuiltWith Top 1M tracked share",
+            "traffic_tier_presence",
+            "current snapshot",
+            float(top1m.get("wordpress_share_pct") or 0),
+            100,
+            "tracked share pct",
+            "Current BuiltWith traffic-tier share among WordPress, Shopify, Wix, Squarespace, and Webflow.",
+        )
+    long_tail = next((row for row in tier_rows if row.get("tier") == "long_tail"), {})
+    if long_tail:
+        add_row(
+            "builtwith_long_tail_tracked_share",
+            "BuiltWith long-tail tracked share",
+            "traffic_tier_presence",
+            "current snapshot",
+            float(long_tail.get("wordpress_share_pct") or 0),
+            100,
+            "tracked share pct",
+            "Current BuiltWith tracked share outside the Top 1M traffic tier.",
+        )
+    return rows
 
 
 def derive_support_forum_activity(topics):
@@ -5099,6 +5217,11 @@ def source_status_rows(fetched):
             "Current BuiltWith Net New Pipeline snapshot plus HTTP Archive monthly origin counts, derived tracked-share trend, and rank-tier detected-origin adoption; multi-year new-site creation still needs paid BuiltWith or cohort queries",
         ),
         (
+            "New-site choice summary",
+            "covered" if fetched.get("new_site_choice_summary") else "missing",
+            "Compact current proxy readout across BuiltWith 30/90-day pipeline, HTTP Archive tracked share, and traffic-tier presence",
+        ),
+        (
             "Support forums",
             "partial" if SOURCE_FILES["support_forum_topics"].exists() else "missing",
             "Current WordPress.org support queue snapshot with forum, status, last-activity, and age buckets; historical trend still needs a fuller export",
@@ -5181,6 +5304,7 @@ def build_report(data, fetched):
     support_unanswered_by_forum = fetched.get("support_forum_unanswered_by_forum", [])
     builtwith_new_sites = data["builtwith_new_site_snapshot"]
     builtwith_tier_share = fetched.get("builtwith_tier_share_snapshot", [])
+    new_site_choice_summary = fetched.get("new_site_choice_summary", [])
     builtwith_technology_snapshots = fetched.get("builtwith_technology_snapshots", [])
     builtwith_technology_history = fetched.get("builtwith_technology_history", [])
     contributor_depth = fetched.get("contributor_depth_buckets", [])
@@ -5420,6 +5544,57 @@ def build_report(data, fetched):
     builtwith_wp_30 = num(builtwith_by_tech.get("WordPress", {}).get("new_last_month"))
     builtwith_wp_90_share = builtwith_wp_90 / builtwith_total_90 * 100 if builtwith_total_90 else 0
     builtwith_wp_30_share = builtwith_wp_30 / builtwith_total_30 * 100 if builtwith_total_30 else 0
+    new_site_summary_by_signal = {row.get("signal"): row for row in new_site_choice_summary}
+    new_site_summary_rows = [
+        new_site_summary_by_signal[key]
+        for key in [
+            "builtwith_90_day_pipeline",
+            "builtwith_30_day_pipeline",
+            "http_archive_latest_tracked_share",
+            "http_archive_tracked_share_change",
+            "builtwith_top_1m_tracked_share",
+            "builtwith_long_tail_tracked_share",
+        ]
+        if key in new_site_summary_by_signal
+    ]
+    new_site_summary_cards = []
+    new_site_summary_bars = []
+    for row in new_site_summary_rows:
+        signal = str(row.get("signal") or "")
+        share_value = float(row.get("wordpress_share_pct") or 0)
+        wp_value = float(row.get("wordpress_value") or 0)
+        unit = str(row.get("unit") or "")
+        if signal == "http_archive_tracked_share_change":
+            card_value = f"{wp_value:+.1f} pts"
+            tone = "watch" if wp_value < 0 else "soft"
+            bar_value = abs(wp_value)
+            bar_max = max(10, bar_value)
+            suffix = " pts"
+        elif "tracked_share" in signal:
+            card_value = pct(wp_value)
+            tone = "good" if wp_value >= 70 else "soft"
+            bar_value = wp_value
+            bar_max = 100
+            suffix = "%"
+        else:
+            card_value = pct(share_value)
+            tone = "soft"
+            bar_value = share_value
+            bar_max = 100
+            suffix = "%"
+        note = str(row.get("period") or "")
+        if row.get("next_peer"):
+            note = f"{note}; next: {row.get('next_peer')} {compact(float(row.get('next_peer_value') or 0))}"
+        new_site_summary_cards.append(stat_card(str(row.get("label", "")), card_value, note, tone))
+        new_site_summary_bars.append(
+            horizontal_count_metric(
+                str(row.get("label", "")),
+                bar_value,
+                bar_max,
+                COLORS["green"] if tone == "good" else COLORS["core"] if tone == "soft" else COLORS["orange"],
+                suffix,
+            )
+        )
     builtwith_top_tiers = ["top_1000", "top_10k", "top_100k", "top_1m"]
     builtwith_tier_share_ordered = sorted(builtwith_tier_share, key=lambda row: num(row.get("tier_order")))
     builtwith_live_by_tech = {row.get("technology"): row for row in builtwith_technology_snapshots}
@@ -7034,6 +7209,19 @@ p {{ margin:0 0 12px; }}
         <div class="link-list">{''.join(f'<a href="{html.escape(str(row.get("link", "")))}">{html.escape(str(row.get("title", "")))}</a>' for row in latest_enterprise_cases)}</div>
       </div>
     </div>
+    <div class="card">
+      <h3>New-site choice proxy readout</h3>
+      <p>Compact current-direction summary from BuiltWith newly found-site counts, HTTP Archive tracked-share history, and BuiltWith traffic-tier presence. This is still a proxy, not a multi-year new-site cohort.</p>
+      <div class="stats">
+        {''.join(new_site_summary_cards)}
+      </div>
+      <div class="grid-2">
+        <div>
+          {''.join(new_site_summary_bars)}
+        </div>
+        <p class="small-note">Rows are stored in SQLite as <code>new_site_choice_summary</code>. Use this as a decision summary, then inspect the BuiltWith and HTTP Archive charts below for source context.</p>
+      </div>
+    </div>
     <div class="grid-2">
       <div class="card">
         <h3>Newly found site pipeline</h3>
@@ -7437,6 +7625,11 @@ def main():
     )
     if args.skip_network:
         apply_skip_network_db_fallback(fetched)
+    fetched["new_site_choice_summary"] = derive_new_site_choice_summary(
+        data.get("builtwith_new_site_snapshot", []),
+        fetched.get("http_archive_tracked_share_monthly", []),
+        fetched.get("builtwith_tier_share_snapshot", []),
+    )
     (
         fetched["plugin_maintenance_summary"],
         fetched["plugin_stale_popular_sample"],

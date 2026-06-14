@@ -66,6 +66,7 @@ SKIP_NETWORK_DB_FALLBACK_TABLES = [
     "hn_hiring_wordpress_quarterly",
     "wordpress_jobs_board_snapshots",
     "wordpress_jobs_board_category_snapshots",
+    "attention_demand_summary",
     "enterprise_vip_case_studies",
     "builtwith_technology_snapshots",
     "builtwith_technology_history",
@@ -1622,6 +1623,118 @@ def derive_hn_hiring_demand_summary(rows):
             }
         )
     return summary
+
+
+def derive_attention_demand_summary(stack_overflow_rows, wikimedia_rows, hn_summary_rows, jobs_rows):
+    rows = []
+    collected_at = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
+
+    def add_row(signal, label, source_type, latest_period, latest_value, baseline_period, baseline_value, unit, source_note):
+        latest_value = float(latest_value or 0)
+        baseline_value = float(baseline_value or 0)
+        change = latest_value - baseline_value
+        change_pct = change / baseline_value * 100 if baseline_value else 0
+        if baseline_value and change_pct <= -10:
+            direction = "lower"
+        elif baseline_value and change_pct >= 10:
+            direction = "higher"
+        elif baseline_value:
+            direction = "flat"
+        else:
+            direction = "no_baseline"
+        rows.append(
+            {
+                "signal": signal,
+                "label": label,
+                "source_type": source_type,
+                "latest_period": latest_period,
+                "latest_value": round(latest_value, 2),
+                "baseline_period": baseline_period,
+                "baseline_value": round(baseline_value, 2),
+                "change_value": round(change, 2),
+                "change_pct": round(change_pct, 2),
+                "direction": direction,
+                "unit": unit,
+                "source_note": source_note,
+                "collected_at": collected_at,
+            }
+        )
+
+    so_wp = [row for row in stack_overflow_rows if row.get("tag") == "wordpress"]
+    latest_so = max(so_wp, key=lambda row: row.get("quarter", ""), default={})
+    baseline_so = max([row for row in so_wp if row.get("quarter", "") < "2024-01-01"], key=lambda row: row.get("quarter", ""), default={})
+    if latest_so and baseline_so:
+        add_row(
+            "stack_overflow_wordpress_questions",
+            "Stack Overflow WordPress questions",
+            "developer_help_proxy",
+            quarter_label(latest_so.get("quarter", "")),
+            num(latest_so.get("question_count")),
+            quarter_label(baseline_so.get("quarter", "")),
+            num(baseline_so.get("question_count")),
+            "questions per quarter",
+            "Stack Exchange API quarterly WordPress tag question totals",
+        )
+
+    wiki_wp = [row for row in wikimedia_rows if row.get("article") == "WordPress"]
+    latest_wiki = max(wiki_wp, key=lambda row: row.get("quarter", ""), default={})
+    baseline_wiki = max([row for row in wiki_wp if row.get("quarter", "") < "2024-01-01"], key=lambda row: row.get("quarter", ""), default={})
+    if latest_wiki and baseline_wiki:
+        add_row(
+            "wikimedia_wordpress_pageviews",
+            "Wikipedia WordPress pageviews",
+            "public_attention_proxy",
+            quarter_label(latest_wiki.get("quarter", "")),
+            num(latest_wiki.get("views")),
+            quarter_label(baseline_wiki.get("quarter", "")),
+            num(baseline_wiki.get("views")),
+            "views per quarter",
+            "Wikimedia Pageviews API quarterly en.wikipedia WordPress article views",
+        )
+
+    hn_by_window = {row.get("window"): row for row in hn_summary_rows}
+    hn_latest = hn_by_window.get("latest_4q", {})
+    hn_baseline = hn_by_window.get("pre_2024", {})
+    if hn_latest and hn_baseline:
+        add_row(
+            "hn_wordpress_woocommerce_hiring_rate",
+            "HN WP/Woo hiring mention rate",
+            "hiring_proxy",
+            hn_latest.get("quarter_range", "latest four quarters"),
+            float(hn_latest.get("wordpress_or_woocommerce_per_100_comments") or 0),
+            hn_baseline.get("quarter_range", "pre-2024"),
+            float(hn_baseline.get("wordpress_or_woocommerce_per_100_comments") or 0),
+            "mentions per 100 comments",
+            "Hacker News monthly Who is hiring? top-level comments mentioning WordPress or WooCommerce",
+        )
+
+    jobs_ordered = sorted([row for row in jobs_rows if row.get("snapshot_date")], key=lambda row: row.get("snapshot_date", ""))
+    latest_jobs = jobs_ordered[-1] if jobs_ordered else {}
+    baseline_jobs = max([row for row in jobs_ordered if row.get("snapshot_date", "") < "2024-01-01"], key=lambda row: row.get("snapshot_date", ""), default={})
+    if latest_jobs and baseline_jobs:
+        add_row(
+            "wordpress_jobs_open_listings",
+            "WordPress Jobs open listings",
+            "wordpress_specific_jobs_proxy",
+            latest_jobs.get("snapshot_date", ""),
+            num(latest_jobs.get("total_jobs")),
+            baseline_jobs.get("snapshot_date", ""),
+            num(baseline_jobs.get("total_jobs")),
+            "open listings",
+            "jobs.wordpress.net current page plus annual Internet Archive snapshots",
+        )
+        add_row(
+            "wordpress_jobs_development_listings",
+            "WordPress Jobs development listings",
+            "wordpress_specific_jobs_proxy",
+            latest_jobs.get("snapshot_date", ""),
+            num(latest_jobs.get("development_jobs")),
+            baseline_jobs.get("snapshot_date", ""),
+            num(baseline_jobs.get("development_jobs")),
+            "open listings",
+            "jobs.wordpress.net current page plus annual Internet Archive snapshots",
+        )
+    return rows
 
 
 def wordpress_jobs_cache_path():
@@ -3845,7 +3958,7 @@ def build_database(data, fetched):
                 "developer_interest_proxy",
                 "partial",
                 "Stack Exchange API question totals by Stack Overflow tag plus Wikimedia Pageviews API",
-                "Quarterly Stack Overflow tag volume and Wikimedia pageviews are included as public attention proxies; they do not measure general search-query interest.",
+                "Quarterly Stack Overflow tag volume, Wikimedia pageviews, and a compact attention/demand summary are included as public attention proxies; they do not measure general search-query interest.",
             )
         )
     else:
@@ -3863,7 +3976,7 @@ def build_database(data, fetched):
                 "search_interest",
                 "partial",
                 "Google Trends or another search-interest provider",
-                "Wikimedia Pageviews API quarterly article-view trends are included as a public-interest proxy; true search-query interest still needs Google Trends or another search provider.",
+                "Wikimedia Pageviews API quarterly article-view trends and a compact attention/demand summary are included as public-interest proxies; true search-query interest still needs Google Trends or another search provider.",
             )
         )
     else:
@@ -3880,7 +3993,7 @@ def build_database(data, fetched):
             "job_demand",
             "partial",
             "Hacker News monthly Who is hiring? threads plus hiring-platform exports",
-            "HN Who is hiring WordPress/WooCommerce, PHP, and agency/studio mention counts plus WordPress Jobs board open-listing snapshots are included as narrow demand proxies; broader job-board demand still needs a labor-market source.",
+            "HN Who is hiring WordPress/WooCommerce, PHP, and agency/studio mention counts, WordPress Jobs board open-listing snapshots, and a compact proxy-direction summary are included; broader job-board demand still needs a labor-market source.",
         )
     )
     if not fetched.get("enterprise_vip_case_studies"):
@@ -4956,6 +5069,7 @@ def source_status_rows(fetched):
         ("Wikimedia pageviews", "covered" if fetched.get("wikimedia_pageviews_quarterly") else "missing", "Quarterly en.wikipedia article pageviews as a public-interest proxy, not search-query volume"),
         ("HN hiring mentions", "partial" if fetched.get("hn_hiring_wordpress_quarterly") else "missing", "WordPress/WooCommerce, PHP, and agency/studio mentions in monthly Hacker News Who is hiring threads from 2012 onward; not a broad job-board index"),
         ("WordPress Jobs board", "partial" if fetched.get("wordpress_jobs_board_snapshots") else "missing", "Open-listing snapshots from jobs.wordpress.net current page and annual Internet Archive captures; WordPress-specific, not a broad hiring-platform index"),
+        ("Attention and demand summary", "covered" if fetched.get("attention_demand_summary") else "missing", "Derived compact comparison of Stack Overflow, Wikimedia, HN hiring, and WordPress Jobs proxy direction"),
         ("Enterprise adoption signal", "covered" if fetched.get("enterprise_vip_case_studies") else "missing", "Current public WordPress VIP case-study snapshot with industries and use cases"),
         ("WordPress.org plugin/theme directories", "covered" if fetched.get("directory_snapshots") else "missing", "Current plugin and theme counts"),
         ("WordPress.org ecosystem stats", "covered" if fetched.get("wporg_ecosystem_stats_snapshot") else "missing", "Current WordPress, PHP, and database version distribution from WordPress.org stats APIs"),
@@ -5025,6 +5139,7 @@ def build_report(data, fetched):
     wikimedia_pageviews_q = fetched.get("wikimedia_pageviews_quarterly", [])
     hn_hiring_q = fetched.get("hn_hiring_wordpress_quarterly", [])
     hn_hiring_summary = fetched.get("hn_hiring_demand_summary", [])
+    attention_demand_summary = fetched.get("attention_demand_summary", [])
     wordpress_jobs_snapshots = fetched.get("wordpress_jobs_board_snapshots", [])
     wordpress_jobs_categories = fetched.get("wordpress_jobs_board_category_snapshots", [])
     enterprise_vip_cases = fetched.get("enterprise_vip_case_studies", [])
@@ -5790,6 +5905,41 @@ def build_report(data, fetched):
     latest_development_jobs = num(latest_jobs_snapshot.get("development_jobs"))
     latest_jobs_project_share = latest_project_jobs / latest_jobs_total * 100 if latest_jobs_total else 0
     latest_jobs_development_share = latest_development_jobs / latest_jobs_total * 100 if latest_jobs_total else 0
+    attention_rows = sorted(attention_demand_summary, key=lambda row: str(row.get("label", "")))
+    attention_change_max = max([abs(float(row.get("change_pct") or 0)) for row in attention_rows] or [1])
+
+    def attention_value(row, field):
+        value = float(row.get(field) or 0)
+        if "per 100" in str(row.get("unit", "")):
+            return f"{value:.2f}"
+        return compact(value)
+
+    def attention_tone(row):
+        direction = str(row.get("direction") or "")
+        if direction == "lower":
+            return "watch", COLORS["red"], "Lower"
+        if direction == "higher":
+            return "good", COLORS["green"], "Higher"
+        if direction == "flat":
+            return "soft", COLORS["core"], "Flat"
+        return "soft", COLORS["neutral"], "No baseline"
+
+    attention_stat_cards = []
+    attention_change_bars = []
+    for row in attention_rows:
+        tone, color, direction_label = attention_tone(row)
+        unit = str(row.get("unit") or "")
+        note = f"{attention_value(row, 'latest_value')} vs {attention_value(row, 'baseline_value')} {unit}"
+        attention_stat_cards.append(stat_card(str(row.get("label", "")), direction_label, note, tone))
+        attention_change_bars.append(
+            horizontal_count_metric(
+                f"{direction_label}: {row.get('label', '')}",
+                abs(float(row.get("change_pct") or 0)),
+                max(1, attention_change_max),
+                color,
+                "%",
+            )
+        )
     enterprise_recent_cases = sum(1 for row in enterprise_vip_cases if str(row.get("date", "")) >= "2024-01-01")
     enterprise_industry_counts = Counter()
     enterprise_use_case_counts = Counter()
@@ -6790,6 +6940,19 @@ p {{ margin:0 0 12px; }}
         </div>
       </div>
     </div>
+    <div class="card">
+      <h3>Attention and demand proxy readout</h3>
+      <p>Compact direction check across the report's public attention, developer-help, hiring, and WordPress-specific job-board proxies. These rows are directional; they do not replace Google Trends or a broad labor-market export.</p>
+      <div class="stats">
+        {''.join(attention_stat_cards)}
+      </div>
+      <div class="grid-2">
+        <div>
+          {''.join(attention_change_bars)}
+        </div>
+        <p class="small-note">Rows are stored in SQLite as <code>attention_demand_summary</code>. Baselines use the latest available pre-2024 quarter or archived snapshot where the source supports it.</p>
+      </div>
+    </div>
     <div class="grid-2">
       {svg_line_chart("Stack Overflow developer attention", "Quarterly Stack Overflow questions by tag from the Stack Exchange API. This is a developer-help signal, not general web search demand.", stack_overflow_tag_series)}
       <div class="card">
@@ -7280,6 +7443,12 @@ def main():
     ) = derive_plugin_maintenance_tables(fetched.get("plugin_directory_activity_sample", []))
     fetched["hn_hiring_demand_summary"] = derive_hn_hiring_demand_summary(
         fetched.get("hn_hiring_wordpress_quarterly", [])
+    )
+    fetched["attention_demand_summary"] = derive_attention_demand_summary(
+        fetched.get("stack_overflow_tag_quarterly", []),
+        fetched.get("wikimedia_pageviews_quarterly", []),
+        fetched.get("hn_hiring_demand_summary", []),
+        fetched.get("wordpress_jobs_board_snapshots", []),
     )
 
     build_database(data, fetched)

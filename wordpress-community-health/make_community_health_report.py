@@ -57,6 +57,7 @@ SOURCE_FILES = {
 SKIP_NETWORK_DB_FALLBACK_TABLES = [
     "market_share",
     "hn_hiring_wordpress_quarterly",
+    "enterprise_vip_case_studies",
     "builtwith_technology_snapshots",
     "builtwith_technology_history",
     "directory_snapshots",
@@ -114,6 +115,8 @@ STACK_EXCHANGE_DOCS_URL = "https://api.stackexchange.com/docs/questions"
 HN_SEARCH_API = "https://hn.algolia.com/api/v1/search"
 HN_ITEM_API = "https://hn.algolia.com/api/v1/items"
 HN_HIRING_SOURCE_URL = "https://news.ycombinator.com/submitted?id=whoishiring"
+WPVIP_CASE_STUDY_API = "https://wpvip.com/wp-json/wp/v2/case-study"
+WPVIP_CASE_STUDY_ARCHIVE_URL = "https://wpvip.com/case-studies/"
 STACK_OVERFLOW_TAG_START = dt.datetime(2021, 1, 1, tzinfo=dt.timezone.utc)
 STACK_OVERFLOW_TAGS = [
     {"tag": "wordpress", "label": "WordPress", "color": "#2563eb"},
@@ -872,6 +875,101 @@ def fetch_hn_hiring_wordpress_quarterly(skip_network=False):
     if monthly_rows:
         write_cached_hn_hiring_monthly(monthly_rows)
     return aggregate_hn_hiring_quarterly(monthly_rows)
+
+
+def vip_case_studies_cache_path():
+    return CACHE / "wpvip-case-studies.json"
+
+
+def read_cached_vip_case_studies():
+    path = vip_case_studies_cache_path()
+    if not path.exists():
+        return []
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return []
+    rows = payload.get("rows") if isinstance(payload, dict) else payload
+    return rows if isinstance(rows, list) else []
+
+
+def write_cached_vip_case_studies(rows):
+    CACHE.mkdir(parents=True, exist_ok=True)
+    vip_case_studies_cache_path().write_text(
+        json.dumps(
+            {
+                "collected_at": dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z"),
+                "source_url": WPVIP_CASE_STUDY_API,
+                "rows": rows,
+            },
+            indent=2,
+            sort_keys=True,
+        ),
+        encoding="utf-8",
+    )
+
+
+def embedded_terms(item, taxonomy):
+    terms = []
+    for group in item.get("_embedded", {}).get("wp:term", []):
+        if not isinstance(group, list):
+            continue
+        for term in group:
+            if term.get("taxonomy") == taxonomy:
+                name = strip_html(term.get("name"))
+                if name:
+                    terms.append(name)
+    return sorted(set(terms))
+
+
+def fetch_wordpress_vip_case_studies(skip_network=False):
+    fallback = read_cached_vip_case_studies()
+    if skip_network:
+        return fallback
+    rows = []
+    collected_at = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
+    page = 1
+    total = ""
+    total_pages = ""
+    try:
+        while True:
+            url = f"{WPVIP_CASE_STUDY_API}?{urllib.parse.urlencode({'per_page': 100, 'page': page, '_embed': 1})}"
+            data, headers = fetch_json(url)
+            if not isinstance(data, list):
+                break
+            total = headers.get("X-WP-Total", total)
+            total_pages = headers.get("X-WP-TotalPages", total_pages)
+            for item in data:
+                industries = embedded_terms(item, "industry")
+                use_cases = embedded_terms(item, "use-case")
+                tags = embedded_terms(item, "post_tag")
+                rows.append(
+                    {
+                        "id": item.get("id", ""),
+                        "slug": item.get("slug", ""),
+                        "title": strip_html((item.get("title") or {}).get("rendered", "")),
+                        "link": item.get("link", ""),
+                        "date": item.get("date", ""),
+                        "modified": item.get("modified", ""),
+                        "industries": " | ".join(industries),
+                        "use_cases": " | ".join(use_cases),
+                        "tags": " | ".join(tags),
+                        "source_url": WPVIP_CASE_STUDY_ARCHIVE_URL,
+                        "api_url": WPVIP_CASE_STUDY_API,
+                        "api_total": total,
+                        "api_total_pages": total_pages,
+                        "collected_at": collected_at,
+                    }
+                )
+            if not data or (total_pages and page >= int(total_pages)):
+                break
+            page += 1
+        if rows:
+            write_cached_vip_case_studies(rows)
+        return rows or fallback
+    except Exception as exc:
+        eprint(f"WordPress VIP case-study fetch failed: {exc}")
+        return fallback
 
 
 def builtwith_cache_path(technology):
@@ -2319,6 +2417,15 @@ def build_database(data, fetched):
             ),
         ]
     )
+    if not fetched.get("enterprise_vip_case_studies"):
+        gaps.append(
+            (
+                "enterprise_adoption",
+                "missing",
+                "Public enterprise customer or case-study source",
+                "The report needs a current enterprise adoption signal such as public WordPress VIP case studies.",
+            )
+        )
     if not fetched.get("fttf_pledges"):
         gaps.append(
             (
@@ -2989,6 +3096,7 @@ def source_status_rows(fetched):
         ("BuiltWith traffic tiers", "covered" if fetched.get("builtwith_tier_share_snapshot") else "missing", "Current WordPress share by traffic tier across tracked CMS/builder technologies"),
         ("Stack Overflow tag volume", "covered" if fetched.get("stack_overflow_tag_quarterly") else "missing", "Quarterly public developer-attention proxy from Stack Exchange API tag totals"),
         ("HN hiring mentions", "partial" if fetched.get("hn_hiring_wordpress_quarterly") else "missing", "WordPress/WooCommerce mentions in monthly Hacker News Who is hiring threads; not a broad job-board index"),
+        ("Enterprise adoption signal", "covered" if fetched.get("enterprise_vip_case_studies") else "missing", "Current public WordPress VIP case-study snapshot with industries and use cases"),
         ("WordPress.org plugin/theme directories", "covered" if fetched.get("directory_snapshots") else "missing", "Current plugin and theme counts"),
         ("Plugin/theme directory activity", "covered" if fetched.get("directory_activity_snapshots") else "missing", "Current new, updated, and popular samples from WordPress.org directory APIs"),
         ("Major plugin install base", "partial" if fetched.get("major_plugin_install_snapshot") else "missing", "Current fixed-slug plugin API snapshot; historical growth still requires archived snapshots"),
@@ -3036,6 +3144,7 @@ def build_report(data, fetched):
     market_rows = fetched.get("market_share", [])
     stack_overflow_tags = fetched.get("stack_overflow_tag_quarterly", [])
     hn_hiring_q = fetched.get("hn_hiring_wordpress_quarterly", [])
+    enterprise_vip_cases = fetched.get("enterprise_vip_case_studies", [])
     wordcamps = fetched.get("wordcamps", [])
     wordcamp_yearly = fetched.get("wordcamp_yearly", [])
     wp_event_snapshots = fetched.get("wp_event_snapshots", [])
@@ -3364,6 +3473,21 @@ def build_report(data, fetched):
     ]
     latest_hn_hiring = max(hn_hiring_q, key=lambda row: row.get("quarter", ""), default={})
     hn_hiring_months = sum(num(row.get("months_with_thread")) for row in hn_hiring_q)
+    enterprise_recent_cases = sum(1 for row in enterprise_vip_cases if str(row.get("date", "")) >= "2024-01-01")
+    enterprise_industry_counts = Counter()
+    enterprise_use_case_counts = Counter()
+    for row in enterprise_vip_cases:
+        for industry in str(row.get("industries") or "").split(" | "):
+            if industry:
+                enterprise_industry_counts[industry] += 1
+        for use_case in str(row.get("use_cases") or "").split(" | "):
+            if use_case:
+                enterprise_use_case_counts[use_case] += 1
+    top_enterprise_industries = enterprise_industry_counts.most_common(6)
+    top_enterprise_use_cases = enterprise_use_case_counts.most_common(6)
+    max_enterprise_industry_count = max([count for _name, count in top_enterprise_industries] or [1])
+    max_enterprise_use_case_count = max([count for _name, count in top_enterprise_use_cases] or [1])
+    latest_enterprise_cases = sorted(enterprise_vip_cases, key=lambda row: str(row.get("date", "")), reverse=True)[:5]
 
     plugin_count = num(directory.get("plugin_directory_plugins", {}).get("value"))
     theme_count = num(directory.get("theme_directory_themes", {}).get("value"))
@@ -3487,6 +3611,8 @@ p {{ margin:0 0 12px; }}
 .readout-card {{ border:1px solid var(--line); border-radius:8px; padding:16px; background:#fff; }}
 .readout-card strong {{ display:block; font-size:24px; line-height:1.15; margin-bottom:8px; }}
 .readout-card p {{ color:var(--muted); }}
+.link-list {{ display:grid; gap:8px; margin-top:12px; }}
+.link-list a {{ line-height:1.25; }}
 .footer {{ color:var(--muted); font-size:13px; margin-top:32px; border-top:1px solid var(--line); padding-top:18px; }}
 @media (max-width:900px) {{
   h1 {{ font-size:34px; }}
@@ -3876,6 +4002,23 @@ p {{ margin:0 0 12px; }}
     </div>
     <div class="grid-2">
       <div class="card">
+        <h3>Enterprise adoption snapshot</h3>
+        <p>Current public WordPress VIP case-study records. This is a curated enterprise evidence source, not a count of all enterprise WordPress sites.</p>
+        <div class="stats">
+          {stat_card("VIP case studies", compact(len(enterprise_vip_cases)), "public REST API rows", "good" if enterprise_vip_cases else "watch")}
+          {stat_card("Since 2024", compact(enterprise_recent_cases), "published case-study rows", "soft")}
+        </div>
+        {''.join(horizontal_count_metric(name, count, max_enterprise_industry_count, COLORS["core"], "") for name, count in top_enterprise_industries)}
+      </div>
+      <div class="card">
+        <h3>Recent enterprise case studies</h3>
+        <p>Latest public case-study posts from WordPress VIP. Use-case terms are sparse in the API, so industry mix is the better structured view.</p>
+        {''.join(horizontal_count_metric(name, count, max_enterprise_use_case_count, COLORS["purple"], "") for name, count in top_enterprise_use_cases)}
+        <div class="link-list">{''.join(f'<a href="{html.escape(str(row.get("link", "")))}">{html.escape(str(row.get("title", "")))}</a>' for row in latest_enterprise_cases)}</div>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
         <h3>Newly found site pipeline</h3>
         <p>BuiltWith public Net New Pipeline counts for the last 90 days. Squarespace's top-level CMS page does not expose new-site counts, so it is excluded from this share.</p>
         <div class="stats">
@@ -4069,6 +4212,7 @@ def main():
     )
     fetched["stack_overflow_tag_quarterly"] = fetch_stackoverflow_tag_quarterly(args.skip_network)
     fetched["hn_hiring_wordpress_quarterly"] = fetch_hn_hiring_wordpress_quarterly(args.skip_network)
+    fetched["enterprise_vip_case_studies"] = fetch_wordpress_vip_case_studies(args.skip_network)
     fetched["directory_snapshots"] = fetch_wordpress_directory_snapshots(args.skip_network)
     (
         fetched["directory_activity_snapshots"],

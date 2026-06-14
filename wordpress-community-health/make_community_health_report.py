@@ -378,6 +378,24 @@ def compact(value):
     return f"{value:.1f}"
 
 
+def category_label(value):
+    labels = {
+        "bug": "Bugs",
+        "enhancement": "Enhancements",
+        "feature_request": "Feature requests",
+        "task_maintenance": "Tasks",
+        "support_question": "Support questions",
+        "test_flake": "Test flakes",
+        "accessibility": "Accessibility",
+        "performance": "Performance",
+        "documentation": "Documentation",
+        "security": "Security",
+        "other": "Other",
+    }
+    value = str(value or "unknown")
+    return labels.get(value, value.replace("_", " ").title())
+
+
 def median(values):
     values = [v for v in values if v is not None]
     return statistics.median(values) if values else None
@@ -2873,6 +2891,7 @@ def build_derived_metrics(data):
         "support_forum_age_buckets": support_age,
         "contributor_depth_buckets": derive_contributor_depth(data),
         "contributor_concentration_summary": derive_contributor_concentration_summary(data),
+        "category_open_backlog_summary": derive_category_open_backlog_summary(data),
     }
 
 
@@ -3375,6 +3394,54 @@ def derive_contributor_concentration_summary(data):
     return rows
 
 
+def derive_category_open_backlog_summary(data):
+    sources = [
+        ("Core", data.get("classification_summary_core", [])),
+        ("Gutenberg", data.get("classification_summary_gutenberg", [])),
+    ]
+    rows = []
+    combined = defaultdict(lambda: {"total": 0, "open_count": 0})
+    for source, source_rows in sources:
+        source_open_total = sum(num(row.get("open_count")) for row in source_rows)
+        source_total = sum(num(row.get("total")) for row in source_rows)
+        for row in source_rows:
+            category = str(row.get("category") or "unknown")
+            total = num(row.get("total"))
+            open_count = num(row.get("open_count"))
+            combined[category]["total"] += total
+            combined[category]["open_count"] += open_count
+            rows.append(
+                {
+                    "source": source,
+                    "category": category,
+                    "total": total,
+                    "open_count": open_count,
+                    "source_open_total": source_open_total,
+                    "source_total": source_total,
+                    "open_category_share_pct": round(open_count / source_open_total * 100, 2) if source_open_total else 0,
+                    "category_open_rate_pct": round(open_count / total * 100, 2) if total else 0,
+                    "source_note": "Open classified backlog share by category from ticket/issue classification summaries",
+                }
+            )
+    combined_open_total = sum(value["open_count"] for value in combined.values())
+    combined_total = sum(value["total"] for value in combined.values())
+    for category, values in sorted(combined.items()):
+        rows.append(
+            {
+                "source": "Combined",
+                "category": category,
+                "total": values["total"],
+                "open_count": values["open_count"],
+                "source_open_total": combined_open_total,
+                "source_total": combined_total,
+                "open_category_share_pct": round(values["open_count"] / combined_open_total * 100, 2) if combined_open_total else 0,
+                "category_open_rate_pct": round(values["open_count"] / values["total"] * 100, 2) if values["total"] else 0,
+                "source_note": "Open classified backlog share by category from ticket/issue classification summaries",
+            }
+        )
+    return rows
+
+
 def stale_open_share_core(core_tickets):
     cutoff = END - dt.timedelta(days=365)
     open_rows = [row for row in core_tickets if (row.get("status") or "").lower() != "closed"]
@@ -3452,6 +3519,7 @@ def source_status_rows(fetched):
         ("Contributor depth buckets", "covered" if fetched.get("contributor_depth_buckets") else "missing", "One-time, repeat, and sustained contributors across Core, Gutenberg, and PR activity"),
         ("Contributor concentration", "covered" if fetched.get("contributor_concentration_summary") else "missing", "Top 10, 25, and 50 contributor work share across Core, Gutenberg, and PR activity"),
         ("Ticket category classification", "covered", "Bug, feature request, enhancement, task, and other categories"),
+        ("Open category backlog", "covered" if fetched.get("category_open_backlog_summary") else "missing", "Open bug, enhancement, feature-request, and other category composition"),
         ("W3Techs adoption", "covered" if fetched.get("market_share") else "missing", "All-site usage and CMS market-share yearly trends"),
         ("HTTP Archive/Web Almanac", "covered", "2025 CMS adoption snapshot and high-traffic context"),
         ("BuiltWith ecommerce history", "covered" if fetched.get("builtwith_technology_history") else "missing", "Shopify and WooCommerce live-site counts by traffic tier"),
@@ -3546,6 +3614,7 @@ def build_report(data, fetched):
     builtwith_technology_history = fetched.get("builtwith_technology_history", [])
     contributor_depth = fetched.get("contributor_depth_buckets", [])
     contributor_concentration_summary = fetched.get("contributor_concentration_summary", [])
+    category_open_backlog = fetched.get("category_open_backlog_summary", [])
 
     core_latest = current_latest(core_q)
     gut_latest = current_latest(gut_q)
@@ -3793,6 +3862,38 @@ def build_report(data, fetched):
         {"label": "Gutenberg bugs", "color": COLORS["red"], "points": category_points("gutenberg", "bug")},
         {"label": "Gutenberg feature requests", "color": COLORS["purple"], "points": category_points("gutenberg", "feature_request")},
     ]
+    category_colors = {
+        "bug": COLORS["red"],
+        "enhancement": COLORS["community"],
+        "feature_request": COLORS["purple"],
+        "task_maintenance": COLORS["neutral"],
+        "documentation": COLORS["core"],
+        "support_question": COLORS["orange"],
+        "other": COLORS["neutral"],
+    }
+    core_open_category_rows = sorted(
+        [row for row in category_open_backlog if row.get("source") == "Core"],
+        key=lambda row: num(row.get("open_count")),
+        reverse=True,
+    )
+    gut_open_category_rows = sorted(
+        [row for row in category_open_backlog if row.get("source") == "Gutenberg"],
+        key=lambda row: num(row.get("open_count")),
+        reverse=True,
+    )
+    category_open_max = max(
+        [num(row.get("open_count")) for row in core_open_category_rows + gut_open_category_rows] or [1]
+    )
+    core_open_total = sum(num(row.get("open_count")) for row in core_open_category_rows)
+    gut_open_total = sum(num(row.get("open_count")) for row in gut_open_category_rows)
+    core_bug_open_share = next(
+        (float(row.get("open_category_share_pct") or 0) for row in core_open_category_rows if row.get("category") == "bug"),
+        0,
+    )
+    gut_bug_open_share = next(
+        (float(row.get("open_category_share_pct") or 0) for row in gut_open_category_rows if row.get("category") == "bug"),
+        0,
+    )
 
     market_usage_series = []
     market_cms_series = []
@@ -4446,6 +4547,26 @@ p {{ margin:0 0 12px; }}
     <div class="grid-2">
       {svg_line_chart("Core bugs, feature requests, and all tickets", "Quarterly Trac tickets by classified category. All tickets are direct created-ticket counts.", core_category_series)}
       {svg_line_chart("Gutenberg bugs, feature requests, and all issues", "Quarterly GitHub issues by classified category. All issues are direct created-issue counts.", gut_category_series)}
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Core open backlog by category</h3>
+        <p>Open classified Trac tickets by category. Bars show open counts; percentages are category share of the open Core backlog.</p>
+        <div class="stats">
+          {stat_card("Open classified", compact(core_open_total), "Core Trac tickets", "soft")}
+          {stat_card("Bug share", pct(core_bug_open_share), "of open Core backlog", "watch")}
+        </div>
+        {''.join(horizontal_count_metric(f"{category_label(row.get('category'))} ({pct(float(row.get('open_category_share_pct') or 0))})", num(row.get("open_count")), category_open_max, category_colors.get(row.get("category"), COLORS["neutral"]), " open") for row in core_open_category_rows[:6])}
+      </div>
+      <div class="card">
+        <h3>Gutenberg open backlog by category</h3>
+        <p>Open classified GitHub issues by category. Bars show open counts; percentages are category share of the open Gutenberg backlog.</p>
+        <div class="stats">
+          {stat_card("Open classified", compact(gut_open_total), "Gutenberg issues", "soft")}
+          {stat_card("Bug share", pct(gut_bug_open_share), "of open Gutenberg backlog", "watch")}
+        </div>
+        {''.join(horizontal_count_metric(f"{category_label(row.get('category'))} ({pct(float(row.get('open_category_share_pct') or 0))})", num(row.get("open_count")), category_open_max, category_colors.get(row.get("category"), COLORS["neutral"]), " open") for row in gut_open_category_rows[:7])}
+      </div>
     </div>
   </section>
 

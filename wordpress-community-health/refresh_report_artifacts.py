@@ -1,14 +1,46 @@
 #!/usr/bin/env python3
 import argparse
+import re
 import shutil
 import sqlite3
 import subprocess
 import sys
+from html.parser import HTMLParser
 from pathlib import Path
 
 
 ROOT = Path("/Users/admin/wordpress_community_health")
 DB_PATH = ROOT / "community_health.sqlite"
+
+HTML_ARTIFACTS = {
+    "final_report.html": [
+        "Decision Questions",
+        "Goal Coverage Map",
+        "Source Coverage",
+        "Decision Readout",
+    ],
+    "goal_audit.html": [
+        "Requirement Coverage",
+        "Partial Signals Stored In SQLite",
+    ],
+    "data_inventory.html": [
+        "WordPress report data inventory",
+        "Goal audit",
+        "Partial-source gaps stored in SQLite",
+    ],
+    "decision_brief.html": [
+        "Decision Questions",
+        "WordPress is still the default CMS",
+    ],
+    "progress_summary.html": [
+        "WordPress relevance report progress",
+        "Goal audit",
+    ],
+    "refresh_runbook.html": [
+        "Refresh runbook",
+        "python3 refresh_report_artifacts.py",
+    ],
+}
 
 
 def free_mb(path):
@@ -28,6 +60,33 @@ def run_step(args):
     printable = " ".join(args)
     print(f"running: {printable}", flush=True)
     subprocess.run(args, cwd=ROOT, check=True)
+
+
+def validate_html_artifact(path, required_strings):
+    if not path.exists():
+        print(f"missing HTML artifact: {path}", file=sys.stderr)
+        return False
+    text = path.read_text(encoding="utf-8")
+    HTMLParser().feed(text)
+    missing = [needle for needle in required_strings if needle not in text]
+    if missing:
+        print(f"{path.name} missing required text: {', '.join(missing)}", file=sys.stderr)
+        return False
+    if "file://" in text:
+        print(f"{path.name} contains a local file:// link", file=sys.stderr)
+        return False
+    if re.search(r"\brisk\b", text, flags=re.I):
+        print(f"{path.name} contains avoided wording: risk", file=sys.stderr)
+        return False
+    return True
+
+
+def validate_artifacts():
+    ok = True
+    for name, required in HTML_ARTIFACTS.items():
+        ok = validate_html_artifact(ROOT / name, required) and ok
+    print(f"artifact validation: {'ok' if ok else 'failed'}", flush=True)
+    return ok
 
 
 def main():
@@ -53,6 +112,11 @@ def main():
         action="store_true",
         help="Run even when free disk is below --min-free-mb.",
     )
+    parser.add_argument(
+        "--validate-only",
+        action="store_true",
+        help="Validate the existing SQLite database and HTML artifacts without rebuilding them.",
+    )
     ns = parser.parse_args()
 
     current_free = free_mb(ROOT)
@@ -73,18 +137,21 @@ def main():
     if before != "ok":
         return 2
 
-    if not ns.skip_main_report:
+    if not ns.validate_only and not ns.skip_main_report:
         report_cmd = [sys.executable, "make_community_health_report.py"]
         if not ns.with_network:
             report_cmd.append("--skip-network")
         run_step(report_cmd)
 
-    run_step([sys.executable, "make_goal_audit.py"])
-    run_step([sys.executable, "make_data_inventory.py"])
+    if not ns.validate_only:
+        run_step([sys.executable, "make_goal_audit.py"])
+        run_step([sys.executable, "make_data_inventory.py"])
 
     after = integrity_check()
     print(f"sqlite integrity after: {after}", flush=True)
-    return 0 if after == "ok" else 2
+    if after != "ok":
+        return 2
+    return 0 if validate_artifacts() else 2
 
 
 if __name__ == "__main__":

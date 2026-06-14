@@ -401,6 +401,22 @@ def median(values):
     return statistics.median(values) if values else None
 
 
+def percentile(values, percentile_value):
+    values = sorted(v for v in values if v is not None)
+    if not values:
+        return None
+    if len(values) == 1:
+        return values[0]
+    rank = (len(values) - 1) * percentile_value
+    lower = math.floor(rank)
+    upper = math.ceil(rank)
+    if lower == upper:
+        return values[int(rank)]
+    lower_value = values[lower]
+    upper_value = values[upper]
+    return lower_value + (upper_value - lower_value) * (rank - lower)
+
+
 def sha256_file(path):
     h = hashlib.sha256()
     with path.open("rb") as f:
@@ -2893,6 +2909,7 @@ def build_derived_metrics(data):
         "contributor_concentration_summary": derive_contributor_concentration_summary(data),
         "category_open_backlog_summary": derive_category_open_backlog_summary(data),
         "open_backlog_age_summary": derive_open_backlog_age_summary(data),
+        "closure_age_summary": derive_closure_age_summary(data),
     }
 
 
@@ -3347,6 +3364,58 @@ def compute_close_age_gutenberg(gutenberg_jsonl):
     return [(q, median(v)) for q, v in sorted(by_quarter.items()) if median(v) is not None]
 
 
+def derive_closure_age_summary(data):
+    rows = []
+    core_tickets = data.get("core_tickets", [])
+    core_events = data.get("core_events", [])
+    created_by_id = {str(row.get("id")): parse_iso(row.get("created_at")) for row in core_tickets}
+    close_events = defaultdict(list)
+    core_by_quarter = defaultdict(list)
+    for event in core_events:
+        if event.get("event_type") != "closed":
+            continue
+        ticket_id = str(event.get("ticket_id"))
+        closed = parse_iso(event.get("event_at"))
+        if closed:
+            close_events[ticket_id].append(closed)
+    for ticket_id, closes in close_events.items():
+        created = created_by_id.get(ticket_id)
+        if not created or not closes:
+            continue
+        final_close = max(closes)
+        core_by_quarter[quarter_start(final_close.isoformat())].append((final_close - created).total_seconds() / 86400)
+
+    def add_rows(source, by_quarter, source_note):
+        for quarter, values in sorted(by_quarter.items()):
+            median_days = median(values)
+            p75_days = percentile(values, 0.75)
+            p90_days = percentile(values, 0.90)
+            rows.append(
+                {
+                    "source": source,
+                    "quarter": quarter,
+                    "label": quarter_label(quarter),
+                    "closed_count": len(values),
+                    "median_days_to_close": round(median_days, 2) if median_days is not None else "",
+                    "p75_days_to_close": round(p75_days, 2) if p75_days is not None else "",
+                    "p90_days_to_close": round(p90_days, 2) if p90_days is not None else "",
+                    "source_note": source_note,
+                }
+            )
+
+    add_rows("Core", core_by_quarter, "Core Trac final closed-event age from ticket creation to close event")
+
+    gutenberg_by_quarter = defaultdict(list)
+    for issue in data.get("gutenberg_issues_jsonl", []):
+        created = parse_iso(issue.get("created_at"))
+        closed = parse_iso(issue.get("closed_at"))
+        if not created or not closed:
+            continue
+        gutenberg_by_quarter[quarter_start(closed.isoformat())].append((closed - created).total_seconds() / 86400)
+    add_rows("Gutenberg", gutenberg_by_quarter, "Gutenberg GitHub issue age from created_at to closed_at")
+    return rows
+
+
 def contributor_concentration(rows, author_key, date_key=None, since=None):
     counts = Counter()
     for row in rows:
@@ -3619,6 +3688,7 @@ def source_status_rows(fetched):
         ("Core release credits", "covered" if fetched.get("core_release_credits") else "missing", "WordPress.org credits API props by major release"),
         ("Core committers per release", "covered" if fetched.get("core_release_committers") else "missing", "GitHub tag-to-tag compare ranges by major release"),
         ("Core reopen rate", "covered" if fetched.get("core_reopen_quarterly") else "missing", "Quarterly Core Trac reopened status-change events"),
+        ("Closure age summary", "covered" if fetched.get("closure_age_summary") else "missing", "Median, p75, and p90 days-to-close by quarter for Core and Gutenberg"),
         ("Five for the Future", "covered" if fetched.get("fttf_pledges") else "missing", "Current pledge organizations, hours, and listed profiles"),
         (
             "Newly detected sites",
@@ -3672,6 +3742,7 @@ def build_report(data, fetched):
     release_credits = fetched.get("core_release_credits", [])
     release_committers = fetched.get("core_release_committers", [])
     core_reopen_q = fetched.get("core_reopen_quarterly", [])
+    closure_age_summary = fetched.get("closure_age_summary", [])
     fttf_snapshots = fetched.get("fttf_snapshots", [])
     fttf_pledges = fetched.get("fttf_pledges", [])
     directory = {row["metric"]: row for row in fetched.get("directory_snapshots", [])}
@@ -3722,6 +3793,47 @@ def build_report(data, fetched):
     core_stale, core_open, core_stale_pct = stale_open_share_core(core_tickets)
     gut_stale, gut_open, gut_stale_pct = stale_open_share_gutenberg(gut_jsonl)
     reopened_pct = len(core_reopened) / len(core_closed_ids) * 100 if core_closed_ids else 0
+
+    def as_float(value, default=0.0):
+        try:
+            if value in (None, ""):
+                return default
+            return float(value)
+        except (TypeError, ValueError):
+            return default
+
+    closure_rows_by_source = {
+        source: sorted(
+            [row for row in closure_age_summary if row.get("source") == source],
+            key=lambda row: row.get("quarter", ""),
+        )
+        for source in ("Core", "Gutenberg")
+    }
+    latest_core_closure_age = closure_rows_by_source["Core"][-1] if closure_rows_by_source["Core"] else {}
+    latest_gut_closure_age = closure_rows_by_source["Gutenberg"][-1] if closure_rows_by_source["Gutenberg"] else {}
+    core_recent_closure_median = median(
+        [
+            as_float(row.get("median_days_to_close"))
+            for row in closure_rows_by_source["Core"]
+            if row.get("quarter", "") >= "2024-01-01"
+        ]
+    )
+    gut_recent_closure_median = median(
+        [
+            as_float(row.get("median_days_to_close"))
+            for row in closure_rows_by_source["Gutenberg"]
+            if row.get("quarter", "") >= "2024-01-01"
+        ]
+    )
+    max_latest_closure_days = max(
+        as_float(latest_core_closure_age.get("p90_days_to_close")),
+        as_float(latest_gut_closure_age.get("p90_days_to_close")),
+        as_float(latest_core_closure_age.get("median_days_to_close")),
+        as_float(latest_gut_closure_age.get("median_days_to_close")),
+        core_recent_closure_median or 0,
+        gut_recent_closure_median or 0,
+        1,
+    )
 
     concentration_by_key = {
         (row.get("source"), row.get("window")): row
@@ -4607,6 +4719,26 @@ p {{ margin:0 0 12px; }}
           {"label": "Gutenberg non-author comment", "color": COLORS["gutenberg"], "points": gut_first_response_points},
           {"label": "Gutenberg maintainer comment", "color": COLORS["prs"], "points": gut_maintainer_response_points},
       ], y_suffix="h")}
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Closure-age readout</h3>
+        <p>Latest closure quarter: median is the typical closed ticket or issue; p90 shows older work that was still being closed.</p>
+        <div class="stats">
+          {stat_card("Core median", f"{compact(as_float(latest_core_closure_age.get('median_days_to_close')))} days", latest_core_closure_age.get("label", "latest quarter"), "soft")}
+          {stat_card("Core p90", f"{compact(as_float(latest_core_closure_age.get('p90_days_to_close')))} days", f"{compact(num(latest_core_closure_age.get('closed_count')))} closed", "watch")}
+          {stat_card("Gutenberg median", f"{compact(as_float(latest_gut_closure_age.get('median_days_to_close')))} days", latest_gut_closure_age.get("label", "latest quarter"), "soft")}
+          {stat_card("Gutenberg p90", f"{compact(as_float(latest_gut_closure_age.get('p90_days_to_close')))} days", f"{compact(num(latest_gut_closure_age.get('closed_count')))} closed", "watch")}
+        </div>
+      </div>
+      <div class="card">
+        <h3>Recent closure speed</h3>
+        <p>Median of quarterly median days-to-close since 2024, which smooths out single cleanup pulses.</p>
+        {horizontal_count_metric("Core recent median", core_recent_closure_median or 0, max_latest_closure_days, COLORS["core"], " days")}
+        {horizontal_count_metric("Gutenberg recent median", gut_recent_closure_median or 0, max_latest_closure_days, COLORS["gutenberg"], " days")}
+        {horizontal_count_metric("Core latest p90", as_float(latest_core_closure_age.get("p90_days_to_close")), max_latest_closure_days, COLORS["orange"], " days")}
+        {horizontal_count_metric("Gutenberg latest p90", as_float(latest_gut_closure_age.get("p90_days_to_close")), max_latest_closure_days, COLORS["red"], " days")}
+      </div>
     </div>
     <div class="grid-2">
       {svg_line_chart("Reopen pressure by quarter", "Reopened events per 100 closed tickets or issues. Lower means fewer items coming back after closure.", [

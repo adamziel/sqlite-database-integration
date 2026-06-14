@@ -61,6 +61,7 @@ SKIP_NETWORK_DB_FALLBACK_TABLES = [
     "directory_snapshots",
     "directory_activity_snapshots",
     "plugin_directory_activity_sample",
+    "major_plugin_install_snapshot",
     "theme_directory_activity_sample",
     "wordcamps",
     "wordcamp_yearly",
@@ -117,6 +118,23 @@ STACK_OVERFLOW_TAGS = [
     {"tag": "wix", "label": "Wix", "color": "#f59e0b"},
     {"tag": "squarespace", "label": "Squarespace", "color": "#64748b"},
     {"tag": "webflow", "label": "Webflow", "color": "#0891b2"},
+]
+MAJOR_PLUGIN_SLUGS = [
+    "woocommerce",
+    "elementor",
+    "contact-form-7",
+    "wordpress-seo",
+    "classic-editor",
+    "akismet",
+    "jetpack",
+    "wordfence",
+    "all-in-one-wp-migration",
+    "really-simple-ssl",
+    "wpforms-lite",
+    "litespeed-cache",
+    "updraftplus",
+    "advanced-custom-fields",
+    "duplicate-post",
 ]
 CACHE = ROOT / "cache"
 
@@ -911,6 +929,113 @@ def normalize_plugin_item(item, browse, page, rank, source_url):
         "plugin_url": f"https://wordpress.org/plugins/{item.get('slug')}/" if item.get("slug") else "",
         "source_url": source_url,
     }
+
+
+def major_plugin_cache_path():
+    return CACHE / "major-plugin-install-snapshot.json"
+
+
+def read_cached_major_plugin_snapshot():
+    path = major_plugin_cache_path()
+    if not path.exists():
+        return []
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return []
+    rows = payload.get("rows") if isinstance(payload, dict) else payload
+    return rows if isinstance(rows, list) else []
+
+
+def write_cached_major_plugin_snapshot(rows):
+    CACHE.mkdir(parents=True, exist_ok=True)
+    major_plugin_cache_path().write_text(
+        json.dumps(
+            {
+                "collected_at": dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z"),
+                "source_url": PLUGIN_INFO_API,
+                "rows": rows,
+            },
+            indent=2,
+            sort_keys=True,
+        ),
+        encoding="utf-8",
+    )
+
+
+def plugin_information_url(slug):
+    params = [
+        ("action", "plugin_information"),
+        ("request[slug]", slug),
+        ("request[fields][description]", 0),
+        ("request[fields][sections]", 0),
+        ("request[fields][screenshots]", 0),
+        ("request[fields][tags]", 0),
+        ("request[fields][versions]", 0),
+        ("request[fields][contributors]", 0),
+        ("request[fields][active_installs]", 1),
+        ("request[fields][downloaded]", 1),
+        ("request[fields][last_updated]", 1),
+        ("request[fields][short_description]", 1),
+    ]
+    return f"{PLUGIN_INFO_API}?{urllib.parse.urlencode(params)}"
+
+
+def normalize_major_plugin_info(item, slug, rank, source_url):
+    last_updated = str(item.get("last_updated") or "")
+    last_updated_at = parse_wporg_datetime(last_updated)
+    return {
+        "snapshot_date": live_snapshot_date(),
+        "rank": rank,
+        "slug": str(item.get("slug") or slug),
+        "name": strip_html(item.get("name") or slug),
+        "author_name": wporg_author_name(item.get("author")),
+        "author_profile": wporg_author_profile(item),
+        "active_installs": num(item.get("active_installs")),
+        "downloaded": num(item.get("downloaded")),
+        "rating": num(item.get("rating")),
+        "num_ratings": num(item.get("num_ratings")),
+        "support_threads": num(item.get("support_threads")),
+        "support_threads_resolved": num(item.get("support_threads_resolved")),
+        "last_updated": last_updated,
+        "last_updated_date": last_updated_at.date().isoformat() if last_updated_at else "",
+        "version": str(item.get("version") or ""),
+        "requires": str(item.get("requires") or ""),
+        "requires_php": str(item.get("requires_php") or ""),
+        "tested": str(item.get("tested") or ""),
+        "plugin_url": f"https://wordpress.org/plugins/{item.get('slug') or slug}/",
+        "source_url": source_url,
+    }
+
+
+def fetch_major_plugin_install_snapshot(skip_network=False):
+    cached_rows = read_cached_major_plugin_snapshot()
+    if skip_network and cached_rows:
+        return cached_rows
+    if skip_network:
+        return []
+
+    rows_by_slug = {
+        row.get("slug"): dict(row)
+        for row in cached_rows
+        if isinstance(row, dict) and row.get("slug")
+    }
+    for index, slug in enumerate(MAJOR_PLUGIN_SLUGS, start=1):
+        source_url = plugin_information_url(slug)
+        try:
+            item, _headers = fetch_json(source_url)
+        except Exception as exc:
+            eprint(f"Major plugin fetch failed for {slug}: {exc}")
+            continue
+        if not isinstance(item, dict) or item.get("error"):
+            eprint(f"Major plugin fetch returned no plugin info for {slug}")
+            continue
+        rows_by_slug[slug] = normalize_major_plugin_info(item, slug, index, source_url)
+        time.sleep(0.08)
+    rows = [rows_by_slug[slug] for slug in MAJOR_PLUGIN_SLUGS if slug in rows_by_slug]
+    if rows:
+        write_cached_major_plugin_snapshot(rows)
+    return rows
 
 
 def normalize_theme_item(item, browse, page, rank, source_url):
@@ -2029,6 +2154,24 @@ def build_database(data, fetched):
                 "Needs current new, updated, and popular directory samples.",
             )
         )
+    if fetched.get("major_plugin_install_snapshot"):
+        gaps.append(
+            (
+                "major_plugin_install_base_growth",
+                "partial",
+                "WordPress.org plugin information API plus archived snapshots",
+                "Current major-plugin install-base snapshot is included; historical growth needs repeated snapshots or archived WordPress.org plugin metadata.",
+            )
+        )
+    else:
+        gaps.append(
+            (
+                "major_plugin_install_base_growth",
+                "missing",
+                "WordPress.org plugin information API plus archived snapshots",
+                "Needs current major-plugin install-base data and a historical snapshot source for growth.",
+            )
+        )
     if not fetched.get("make_core_dev_notes"):
         gaps.append(
             (
@@ -2573,6 +2716,7 @@ def source_status_rows(fetched):
         ("Stack Overflow tag volume", "covered" if fetched.get("stack_overflow_tag_quarterly") else "missing", "Quarterly public developer-attention proxy from Stack Exchange API tag totals"),
         ("WordPress.org plugin/theme directories", "covered" if fetched.get("directory_snapshots") else "missing", "Current plugin and theme counts"),
         ("Plugin/theme directory activity", "covered" if fetched.get("directory_activity_snapshots") else "missing", "Current new, updated, and popular samples from WordPress.org directory APIs"),
+        ("Major plugin install base", "partial" if fetched.get("major_plugin_install_snapshot") else "missing", "Current fixed-slug plugin API snapshot; historical growth still requires archived snapshots"),
         ("WordCamp Central", "covered" if fetched.get("wordcamps") else "missing", "Historical WordCamp event records and anticipated-attendance fields where available"),
         ("WordPress Events", "covered" if fetched.get("wp_events") else "missing", "Current upcoming Meetup and WordCamp events"),
         ("Translate WordPress", "covered" if fetched.get("translation_locale_snapshot") else "missing", "Current locale team profile counts and Core dev translation status"),
@@ -2637,6 +2781,7 @@ def build_report(data, fetched):
     directory = {row["metric"]: row for row in fetched.get("directory_snapshots", [])}
     directory_activity = fetched.get("directory_activity_snapshots", [])
     plugin_activity_rows = fetched.get("plugin_directory_activity_sample", [])
+    major_plugin_rows = fetched.get("major_plugin_install_snapshot", [])
     theme_activity_rows = fetched.get("theme_directory_activity_sample", [])
     support_topics = data["support_forum_topics"]
     support_views = data["support_forum_view_snapshots"]
@@ -2908,6 +3053,18 @@ def build_report(data, fetched):
         reverse=True,
     )[:8]
     max_popular_plugin_installs = max([num(row.get("active_installs")) for row in top_popular_plugins] or [1])
+    top_major_plugins = sorted(
+        major_plugin_rows,
+        key=lambda row: num(row.get("active_installs")),
+        reverse=True,
+    )
+    max_major_plugin_installs = max([num(row.get("active_installs")) for row in top_major_plugins] or [1])
+    total_major_plugin_installs = sum(num(row.get("active_installs")) for row in major_plugin_rows)
+    recently_updated_major_plugins = 0
+    for row in major_plugin_rows:
+        updated_at = parse_iso(row.get("last_updated_date"))
+        if updated_at and updated_at >= END - dt.timedelta(days=90):
+            recently_updated_major_plugins += 1
     top_popular_themes = sorted(
         [row for row in theme_activity_rows if row.get("browse") == "popular"],
         key=lambda row: num(row.get("num_ratings")),
@@ -3427,6 +3584,24 @@ p {{ margin:0 0 12px; }}
     </div>
     <div class="grid-2">
       <div class="card">
+        <h3>Major plugin install-base snapshot</h3>
+        <p>Fixed-slug WordPress.org plugin API snapshot for widely used plugins. Active installs are rounded and overlap across sites, so they show ecosystem reach, not unique adoption.</p>
+        <div class="stats">
+          {stat_card("Plugins tracked", compact(len(major_plugin_rows)), "fixed major-plugin list", "soft")}
+          {stat_card("Reported installs", compact(total_major_plugin_installs), "summed, overlapping active installs", "good")}
+          {stat_card("Updated 90 days", compact(recently_updated_major_plugins), "of tracked plugins", "soft")}
+        </div>
+        {''.join(horizontal_count_metric(str(row.get("name", "")), num(row.get("active_installs")), max_major_plugin_installs, COLORS["core"], " installs") for row in top_major_plugins[:8])}
+      </div>
+      <div class="card">
+        <h3>Install-base growth gap</h3>
+        <p>This covers the current major-plugin install base. Growth over time still needs repeated WordPress.org snapshots or a reliable archive of historical plugin metadata.</p>
+        {horizontal_count_metric("Current snapshot coverage", len(major_plugin_rows), max(1, len(MAJOR_PLUGIN_SLUGS)), COLORS["green"], " plugins")}
+        {horizontal_count_metric("Historical growth coverage", 0, 1, COLORS["orange"], "")}
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
         <h3>Theme directory browse sample</h3>
         <p>The theme API exposes browse lists but not add/update dates in the sampled rows, so this is a current directory shape snapshot rather than a trend.</p>
         <div class="stats">
@@ -3491,6 +3666,7 @@ def main():
         fetched["plugin_directory_activity_sample"],
         fetched["theme_directory_activity_sample"],
     ) = fetch_directory_activity(args.skip_network)
+    fetched["major_plugin_install_snapshot"] = fetch_major_plugin_install_snapshot(args.skip_network)
     fetched["wordcamps"] = fetch_wordcamps(args.skip_network)
     fetched["wordcamp_yearly"] = derive_wordcamp_yearly(fetched["wordcamps"])
     fetched["wp_event_snapshots"], fetched["wp_events"] = fetch_wordpress_events(args.skip_network)

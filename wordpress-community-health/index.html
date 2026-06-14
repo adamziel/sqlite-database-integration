@@ -1873,6 +1873,66 @@ p { margin:0 0 12px; }
     </div>
     <div class="grid-2">
       <div class="card">
+        <h3>Major plugin install-base snapshot</h3>
+        <p>Fixed-slug WordPress.org plugin API snapshot for widely used plugins. Active installs are rounded and overlap across sites, so they show ecosystem reach, not unique adoption.</p>
+        <div class="stats">
+          <div class="stat soft">
+      <div class="stat-label">Plugins tracked</div>
+      <div class="stat-value">15</div>
+      <div class="stat-note">fixed major-plugin list</div>
+    </div>
+          <div class="stat good">
+      <div class="stat-label">Reported installs</div>
+      <div class="stat-value">90.0M</div>
+      <div class="stat-note">summed, overlapping active installs</div>
+    </div>
+          <div class="stat soft">
+      <div class="stat-label">Updated 90 days</div>
+      <div class="stat-value">15</div>
+      <div class="stat-note">of tracked plugins</div>
+    </div>
+        </div>
+        <div class="hmetric">
+      <div class="hmetric-top"><span>Elementor Website Builder – more than just a page builder</span><strong>10.0M installs</strong></div>
+      <div class="bar"><span style="width:100.0%;background:#2563eb"></span></div>
+    </div><div class="hmetric">
+      <div class="hmetric-top"><span>Contact Form 7</span><strong>10.0M installs</strong></div>
+      <div class="bar"><span style="width:100.0%;background:#2563eb"></span></div>
+    </div><div class="hmetric">
+      <div class="hmetric-top"><span>Yoast SEO – Advanced SEO with real-time guidance and built-in AI</span><strong>10.0M installs</strong></div>
+      <div class="bar"><span style="width:100.0%;background:#2563eb"></span></div>
+    </div><div class="hmetric">
+      <div class="hmetric-top"><span>Classic Editor</span><strong>9.0M installs</strong></div>
+      <div class="bar"><span style="width:90.0%;background:#2563eb"></span></div>
+    </div><div class="hmetric">
+      <div class="hmetric-top"><span>WooCommerce</span><strong>7.0M installs</strong></div>
+      <div class="bar"><span style="width:70.0%;background:#2563eb"></span></div>
+    </div><div class="hmetric">
+      <div class="hmetric-top"><span>LiteSpeed Cache</span><strong>7.0M installs</strong></div>
+      <div class="bar"><span style="width:70.0%;background:#2563eb"></span></div>
+    </div><div class="hmetric">
+      <div class="hmetric-top"><span>Akismet Anti-spam: Spam Protection</span><strong>6.0M installs</strong></div>
+      <div class="bar"><span style="width:60.0%;background:#2563eb"></span></div>
+    </div><div class="hmetric">
+      <div class="hmetric-top"><span>WPForms – Easy Form Builder for WordPress – Contact Forms, Payment Forms, Surveys, &amp; More</span><strong>6.0M installs</strong></div>
+      <div class="bar"><span style="width:60.0%;background:#2563eb"></span></div>
+    </div>
+      </div>
+      <div class="card">
+        <h3>Install-base growth gap</h3>
+        <p>This covers the current major-plugin install base. Growth over time still needs repeated WordPress.org snapshots or a reliable archive of historical plugin metadata.</p>
+        <div class="hmetric">
+      <div class="hmetric-top"><span>Current snapshot coverage</span><strong>15 plugins</strong></div>
+      <div class="bar"><span style="width:100.0%;background:#16a34a"></span></div>
+    </div>
+        <div class="hmetric">
+      <div class="hmetric-top"><span>Historical growth coverage</span><strong>0</strong></div>
+      <div class="bar"><span style="width:2.0%;background:#ea580c"></span></div>
+    </div>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
         <h3>Theme directory browse sample</h3>
         <p>The theme API exposes browse lists but not add/update dates in the sampled rows, so this is a current directory shape snapshot rather than a trend.</p>
         <div class="stats">
@@ -1956,12 +2016,12 @@ p { margin:0 0 12px; }
     <h2>Source Coverage</h2>
     <p class="callout">The SQLite database stores imported source tables, fetched ecosystem/adoption records, file hashes, and explicit source gaps. Download: <a href="community_health.sqlite.gz">community_health.sqlite.gz</a>.</p>
     <div class="status-grid">
-      <div class="status covered"><span class="pill">covered</span><b>Core Trac tickets</b><span>64k tickets, status history, types, components, reporters</span></div><div class="status covered"><span class="pill">covered</span><b>Core first-response activity</b><span>Trac RSS first non-reporter activity for 2021-2026 tickets</span></div><div class="status covered"><span class="pill">covered</span><b>Gutenberg GitHub issues</b><span>32k issues with labels, state, authors, close dates</span></div><div class="status covered"><span class="pill">covered</span><b>Gutenberg response/reopen timelines</b><span>GitHub comment timestamps and reopened events</span></div><div class="status covered"><span class="pill">covered</span><b>wordpress-develop PRs</b><span>12k PRs with authors, dates, Trac links</span></div><div class="status covered"><span class="pill">covered</span><b>Contributor depth buckets</b><span>One-time, repeat, and sustained contributors across Core, Gutenberg, and PR activity</span></div><div class="status covered"><span class="pill">covered</span><b>Ticket category classification</b><span>Bug, feature request, enhancement, task, and other categories</span></div><div class="status covered"><span class="pill">covered</span><b>W3Techs adoption</b><span>All-site usage and CMS market-share yearly trends</span></div><div class="status covered"><span class="pill">covered</span><b>HTTP Archive/Web Almanac</b><span>2025 CMS adoption snapshot and high-traffic context</span></div><div class="status covered"><span class="pill">covered</span><b>BuiltWith ecommerce history</b><span>Shopify and WooCommerce live-site counts by traffic tier</span></div><div class="status covered"><span class="pill">covered</span><b>Stack Overflow tag volume</b><span>Quarterly public developer-attention proxy from Stack Exchange API tag totals</span></div><div class="status covered"><span class="pill">covered</span><b>WordPress.org plugin/theme directories</b><span>Current plugin and theme counts</span></div><div class="status covered"><span class="pill">covered</span><b>Plugin/theme directory activity</b><span>Current new, updated, and popular samples from WordPress.org directory APIs</span></div><div class="status covered"><span class="pill">covered</span><b>WordCamp Central</b><span>Historical WordCamp event records and anticipated-attendance fields where available</span></div><div class="status covered"><span class="pill">covered</span><b>WordPress Events</b><span>Current upcoming Meetup and WordCamp events</span></div><div class="status covered"><span class="pill">covered</span><b>Translate WordPress</b><span>Current locale team profile counts and Core dev translation status</span></div><div class="status covered"><span class="pill">covered</span><b>Make/Core posts</b><span>Post counts and author IDs</span></div><div class="status covered"><span class="pill">covered</span><b>Make/Core comments</b><span>Comment counts and commenter identities from Make/Core REST API</span></div><div class="status covered"><span class="pill">covered</span><b>Make/Core dev notes</b><span>Dev-note tagged posts by quarter and release</span></div><div class="status covered"><span class="pill">covered</span><b>Core release credits</b><span>WordPress.org credits API props by major release</span></div><div class="status covered"><span class="pill">covered</span><b>Core committers per release</b><span>GitHub tag-to-tag compare ranges by major release</span></div><div class="status covered"><span class="pill">covered</span><b>Core reopen rate</b><span>Quarterly Core Trac reopened status-change events</span></div><div class="status covered"><span class="pill">covered</span><b>Five for the Future</b><span>Current pledge organizations, hours, and listed profiles</span></div><div class="status partial"><span class="pill">partial</span><b>Newly detected sites</b><span>Current BuiltWith Net New Pipeline snapshot plus live-site history; multi-year new-site trend still needs paid BuiltWith or HTTP Archive cohort queries</span></div><div class="status partial"><span class="pill">partial</span><b>Support forums</b><span>Current WordPress.org support queue snapshot with forum, status, last-activity, and age buckets; historical trend still needs a fuller export</span></div><div class="status missing"><span class="pill">missing</span><b>Search interest and job demand</b><span>General web search trends and hiring-platform time series are not included; Stack Overflow tag volume is only a developer-attention proxy</span></div>
+      <div class="status covered"><span class="pill">covered</span><b>Core Trac tickets</b><span>64k tickets, status history, types, components, reporters</span></div><div class="status covered"><span class="pill">covered</span><b>Core first-response activity</b><span>Trac RSS first non-reporter activity for 2021-2026 tickets</span></div><div class="status covered"><span class="pill">covered</span><b>Gutenberg GitHub issues</b><span>32k issues with labels, state, authors, close dates</span></div><div class="status covered"><span class="pill">covered</span><b>Gutenberg response/reopen timelines</b><span>GitHub comment timestamps and reopened events</span></div><div class="status covered"><span class="pill">covered</span><b>wordpress-develop PRs</b><span>12k PRs with authors, dates, Trac links</span></div><div class="status covered"><span class="pill">covered</span><b>Contributor depth buckets</b><span>One-time, repeat, and sustained contributors across Core, Gutenberg, and PR activity</span></div><div class="status covered"><span class="pill">covered</span><b>Ticket category classification</b><span>Bug, feature request, enhancement, task, and other categories</span></div><div class="status covered"><span class="pill">covered</span><b>W3Techs adoption</b><span>All-site usage and CMS market-share yearly trends</span></div><div class="status covered"><span class="pill">covered</span><b>HTTP Archive/Web Almanac</b><span>2025 CMS adoption snapshot and high-traffic context</span></div><div class="status covered"><span class="pill">covered</span><b>BuiltWith ecommerce history</b><span>Shopify and WooCommerce live-site counts by traffic tier</span></div><div class="status covered"><span class="pill">covered</span><b>Stack Overflow tag volume</b><span>Quarterly public developer-attention proxy from Stack Exchange API tag totals</span></div><div class="status covered"><span class="pill">covered</span><b>WordPress.org plugin/theme directories</b><span>Current plugin and theme counts</span></div><div class="status covered"><span class="pill">covered</span><b>Plugin/theme directory activity</b><span>Current new, updated, and popular samples from WordPress.org directory APIs</span></div><div class="status partial"><span class="pill">partial</span><b>Major plugin install base</b><span>Current fixed-slug plugin API snapshot; historical growth still requires archived snapshots</span></div><div class="status covered"><span class="pill">covered</span><b>WordCamp Central</b><span>Historical WordCamp event records and anticipated-attendance fields where available</span></div><div class="status covered"><span class="pill">covered</span><b>WordPress Events</b><span>Current upcoming Meetup and WordCamp events</span></div><div class="status covered"><span class="pill">covered</span><b>Translate WordPress</b><span>Current locale team profile counts and Core dev translation status</span></div><div class="status covered"><span class="pill">covered</span><b>Make/Core posts</b><span>Post counts and author IDs</span></div><div class="status covered"><span class="pill">covered</span><b>Make/Core comments</b><span>Comment counts and commenter identities from Make/Core REST API</span></div><div class="status covered"><span class="pill">covered</span><b>Make/Core dev notes</b><span>Dev-note tagged posts by quarter and release</span></div><div class="status covered"><span class="pill">covered</span><b>Core release credits</b><span>WordPress.org credits API props by major release</span></div><div class="status covered"><span class="pill">covered</span><b>Core committers per release</b><span>GitHub tag-to-tag compare ranges by major release</span></div><div class="status covered"><span class="pill">covered</span><b>Core reopen rate</b><span>Quarterly Core Trac reopened status-change events</span></div><div class="status covered"><span class="pill">covered</span><b>Five for the Future</b><span>Current pledge organizations, hours, and listed profiles</span></div><div class="status partial"><span class="pill">partial</span><b>Newly detected sites</b><span>Current BuiltWith Net New Pipeline snapshot plus live-site history; multi-year new-site trend still needs paid BuiltWith or HTTP Archive cohort queries</span></div><div class="status partial"><span class="pill">partial</span><b>Support forums</b><span>Current WordPress.org support queue snapshot with forum, status, last-activity, and age buckets; historical trend still needs a fuller export</span></div><div class="status missing"><span class="pill">missing</span><b>Search interest and job demand</b><span>General web search trends and hiring-platform time series are not included; Stack Overflow tag volume is only a developer-attention proxy</span></div>
     </div>
   </section>
 
   <section class="footer">
-    <p>Generated 2026-06-14 01:50 UTC from local Core/Gutenberg exports and public sources.</p>
+    <p>Generated 2026-06-14 01:54 UTC from local Core/Gutenberg exports and public sources.</p>
     <p>Sources: <a href="https://w3techs.com/technologies/history_overview/content_management/all/y">W3Techs usage trend</a>, <a href="https://w3techs.com/technologies/history_overview/content_management/ms/y">W3Techs CMS market-share trend</a>, <a href="https://almanac.httparchive.org/en/2025/cms">HTTP Archive Web Almanac CMS 2025</a>, <a href="https://api.stackexchange.com/docs/questions">Stack Exchange API</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="https://events.wordpress.org/">WordPress Events</a>, <a href="https://translate.wordpress.org/">Translate WordPress</a>, <a href="https://make.wordpress.org/core/wp-json/wp/v2/posts">Make/Core posts API</a>, <a href="https://make.wordpress.org/core/wp-json/wp/v2/comments">Make/Core comments API</a>, <a href="https://wordpress.org/support/view/all-topics/">WordPress.org support forums</a>, <a href="https://trends.builtwith.com/cms/WordPress">BuiltWith technology pages</a>, <a href="https://github.com/WordPress/gutenberg/issues">Gutenberg GitHub issues</a>, <a href="https://wordpress.org/five-for-the-future/pledges/">Five for the Future pledges</a>, <a href="https://wordpress.org/download/releases/">WordPress release archive</a>, and <a href="https://api.wordpress.org/core/credits/1.1/">Core credits API</a>.</p>
   </section>
 </main>

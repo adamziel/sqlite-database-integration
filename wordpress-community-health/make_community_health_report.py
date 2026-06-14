@@ -6562,7 +6562,7 @@ p {{ margin:0 0 12px; }}
 .decision-stats {{ grid-template-columns:repeat(5,minmax(0,1fr)); }}
 .stat {{ border:1px solid var(--line); border-radius:8px; padding:14px; background:var(--soft); }}
 .stat-label {{ color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.06em; font-weight:700; }}
-.stat-value {{ font-size:28px; font-weight:800; margin:4px 0; }}
+.stat-value {{ font-size:28px; font-weight:800; line-height:1.05; margin:4px 0; overflow-wrap:anywhere; }}
 .stat-note {{ color:var(--muted); font-size:13px; }}
 .card {{ border:1px solid var(--line); border-radius:8px; padding:16px; background:#fff; }}
 .card .stats {{ grid-template-columns:repeat(2,minmax(0,1fr)); }}
@@ -6616,6 +6616,15 @@ p {{ margin:0 0 12px; }}
 .score-card.slower .score-chip {{ background:#fee2e2; color:#991b1b; }}
 .score-card.watch {{ border-top-color:var(--orange); }}
 .score-card.watch .score-chip {{ background:#fef3c7; color:#92400e; }}
+.decision-matrix {{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:14px 0 24px; }}
+.decision-matrix-card {{ border:1px solid var(--line); border-top:5px solid var(--blue); border-radius:8px; padding:15px; background:#fff; min-width:0; }}
+.decision-matrix-card.good {{ border-top-color:var(--green); }}
+.decision-matrix-card.slower {{ border-top-color:var(--red); }}
+.decision-matrix-card.watch {{ border-top-color:var(--orange); }}
+.decision-matrix-card span {{ display:block; color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.07em; font-weight:800; margin-bottom:7px; }}
+.decision-matrix-card strong {{ display:block; font-size:21px; line-height:1.16; margin-bottom:8px; }}
+.decision-matrix-card p {{ color:var(--muted); margin:0 0 10px; }}
+.decision-matrix-card b {{ display:block; color:#475569; font-size:13px; line-height:1.35; }}
 .goal-map {{ display:grid; gap:10px; margin-top:16px; }}
 .goal-row {{ display:grid; grid-template-columns:minmax(160px,1.1fr) minmax(135px,.7fr) minmax(260px,2fr); gap:14px; align-items:start; border:1px solid var(--line); border-left:6px solid var(--blue); border-radius:8px; padding:13px 14px; background:#fff; }}
 .goal-row strong {{ display:block; line-height:1.2; }}
@@ -6636,7 +6645,7 @@ p {{ margin:0 0 12px; }}
 .footer {{ color:var(--muted); font-size:13px; margin-top:32px; border-top:1px solid var(--line); padding-top:18px; }}
 @media (max-width:900px) {{
   h1 {{ font-size:34px; }}
-  .lane-grid, .answer-grid, .grid-2, .stats, .decision-stats, .status-grid, .readout-grid, .evidence-strength-grid, .score-grid {{ grid-template-columns:1fr; }}
+  .lane-grid, .answer-grid, .grid-2, .stats, .card .stats, .decision-stats, .status-grid, .readout-grid, .evidence-strength-grid, .score-grid, .decision-matrix {{ grid-template-columns:1fr; }}
   .goal-row {{ grid-template-columns:1fr; }}
   .page {{ padding:24px 16px 48px; }}
 }}
@@ -6654,6 +6663,7 @@ p {{ margin:0 0 12px; }}
     <a href="#market">Market Position</a>
     <a href="#decision-questions">Decision Questions</a>
     <a href="#scorecard">Scorecard</a>
+    <a href="#decision-matrix">Decision Matrix</a>
     <a href="#goal-map">Coverage Map</a>
     <a href="#coverage">Source Coverage</a>
     <a href="data_inventory.html">Data Inventory</a>
@@ -6730,6 +6740,30 @@ p {{ margin:0 0 12px; }}
         <b>Ecosystem base</b>
         <strong>{compact(plugin_count)} / {compact(theme_count)}</strong>
         <p>Current WordPress.org plugin and theme directory counts, plus active releases, events, translations, and pledges elsewhere in the report.</p>
+      </article>
+    </div>
+  </section>
+
+  <section id="decision-matrix" class="section">
+    <h2>Decision Matrix</h2>
+    <div class="decision-matrix" aria-label="How to use the WordPress relevance evidence">
+      <article class="decision-matrix-card good">
+        <span>Good default when</span>
+        <strong>Reach, ownership, and ecosystem depth matter.</strong>
+        <p>WordPress still has the largest installed CMS footprint and a broad plugin, theme, and community surface.</p>
+        <b>{pct(wp_usage_latest['value']) if wp_usage_latest else 'n/a'} of all sites; {pct(wp_cms_latest['value']) if wp_cms_latest else 'n/a'} of CMS sites.</b>
+      </article>
+      <article class="decision-matrix-card slower">
+        <span>Plan for slower entry when</span>
+        <strong>You depend on fresh public contributors or public help-channel growth.</strong>
+        <p>First-time tracker participation and public help-question volume are lower than earlier periods.</p>
+        <b>First-time reporter retention: Core {pct(core_first_retention)}, Gutenberg {pct(gut_first_retention)}.</b>
+      </article>
+      <article class="decision-matrix-card watch">
+        <span>Use one more source when</span>
+        <strong>The decision mostly depends on new-site demand, search interest, or hiring demand.</strong>
+        <p>The report has useful public proxies, but the ideal sources are first-seen site cohorts, search-provider exports, and broad hiring-platform exports.</p>
+        <b>Current BuiltWith 90-day proxy: {pct(builtwith_wp_90_share)} WordPress share.</b>
       </article>
     </div>
   </section>

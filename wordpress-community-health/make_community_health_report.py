@@ -57,6 +57,7 @@ SOURCE_FILES = {
 SKIP_NETWORK_DB_FALLBACK_TABLES = [
     "market_share",
     "http_archive_adoption_monthly",
+    "http_archive_tracked_share_monthly",
     "http_archive_rank_adoption_snapshot",
     "http_archive_cwv_monthly",
     "wporg_ecosystem_stats_snapshot",
@@ -772,6 +773,47 @@ def fetch_http_archive_adoption_monthly(skip_network=False):
     if rows:
         write_cached_http_archive_adoption(rows, source_url)
     return rows or fallback
+
+
+def derive_http_archive_tracked_share_monthly(adoption_rows):
+    grouped = defaultdict(list)
+    for row in adoption_rows or []:
+        key = (row.get("date"), row.get("rank") or "ALL", row.get("geo") or "ALL")
+        if not key[0]:
+            continue
+        grouped[key].append(row)
+
+    rows = []
+    collected_at = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
+    for (date, rank, geo), items in sorted(grouped.items()):
+        tracked_mobile = sum(num(item.get("mobile_origins")) for item in items)
+        tracked_desktop = sum(num(item.get("desktop_origins")) for item in items)
+        tracked_total = sum(num(item.get("total_origins")) for item in items)
+        for item in sorted(items, key=lambda value: str(value.get("technology") or "")):
+            mobile_origins = num(item.get("mobile_origins"))
+            desktop_origins = num(item.get("desktop_origins"))
+            total_origins = num(item.get("total_origins"))
+            rows.append(
+                {
+                    "date": date,
+                    "technology": item.get("technology", ""),
+                    "rank": rank,
+                    "geo": geo,
+                    "mobile_origins": mobile_origins,
+                    "desktop_origins": desktop_origins,
+                    "total_origins": total_origins,
+                    "tracked_mobile_origins": tracked_mobile,
+                    "tracked_desktop_origins": tracked_desktop,
+                    "tracked_total_origins": tracked_total,
+                    "mobile_tracked_share_pct": mobile_origins / tracked_mobile * 100 if tracked_mobile else 0,
+                    "desktop_tracked_share_pct": desktop_origins / tracked_desktop * 100 if tracked_desktop else 0,
+                    "total_tracked_share_pct": total_origins / tracked_total * 100 if tracked_total else 0,
+                    "source": "Derived from HTTP Archive Technology Report API monthly adoption rows",
+                    "source_url": HTTP_ARCHIVE_TECH_REPORT_URL,
+                    "collected_at": collected_at,
+                }
+            )
+    return rows
 
 
 def http_archive_rank_cache_path():
@@ -3669,7 +3711,7 @@ def build_database(data, fetched):
                 "new_site_share_history",
                 "partial",
                 "BuiltWith historical trends or HTTP Archive cohort queries",
-                "Current report includes BuiltWith current Net New Pipeline plus HTTP Archive monthly and rank-tier detected-origin adoption; not a multi-year newly created site trend.",
+                "Current report includes BuiltWith current Net New Pipeline plus HTTP Archive monthly origin counts, derived tracked-share history, and rank-tier detected-origin adoption; not a multi-year newly created site cohort.",
             )
         )
     else:
@@ -4732,7 +4774,7 @@ def source_status_rows(fetched):
         ("Open backlog age buckets", "covered" if fetched.get("open_backlog_age_summary") else "missing", "Current open Core/Gutenberg backlog by last-activity age bucket"),
         ("W3Techs adoption", "covered" if fetched.get("market_share") else "missing", "All-site usage and CMS market-share yearly trends"),
         ("HTTP Archive/Web Almanac", "covered", "2025 CMS adoption snapshot and high-traffic context"),
-        ("HTTP Archive Technology Report API", "covered" if fetched.get("http_archive_adoption_monthly") else "missing", "Monthly and rank-tier detected-origin adoption for WordPress, Shopify, Wix, Squarespace, and Webflow"),
+        ("HTTP Archive Technology Report API", "covered" if fetched.get("http_archive_adoption_monthly") else "missing", "Monthly origin counts, derived tracked-share trend, and rank-tier detected-origin adoption for WordPress, Shopify, Wix, Squarespace, and Webflow"),
         ("HTTP Archive Core Web Vitals", "covered" if fetched.get("http_archive_cwv_monthly") else "missing", "Monthly good Core Web Vitals rates by technology from the HTTP Archive Technology Report API"),
         ("BuiltWith ecommerce history", "covered" if fetched.get("builtwith_technology_history") else "missing", "Shopify and WooCommerce live-site counts by traffic tier"),
         ("BuiltWith traffic tiers", "covered" if fetched.get("builtwith_tier_share_snapshot") else "missing", "Current WordPress share by traffic tier across tracked CMS/builder technologies"),
@@ -4765,7 +4807,7 @@ def source_status_rows(fetched):
         (
             "Newly detected sites",
             "partial" if SOURCE_FILES["builtwith_new_site_snapshot"].exists() else "missing",
-            "Current BuiltWith Net New Pipeline snapshot plus HTTP Archive monthly and rank-tier detected-origin adoption; multi-year new-site creation still needs paid BuiltWith or cohort queries",
+            "Current BuiltWith Net New Pipeline snapshot plus HTTP Archive monthly origin counts, derived tracked-share trend, and rank-tier detected-origin adoption; multi-year new-site creation still needs paid BuiltWith or cohort queries",
         ),
         (
             "Support forums",
@@ -4795,6 +4837,7 @@ def build_report(data, fetched):
     classifications = data["classification_trend"]
     market_rows = fetched.get("market_share", [])
     http_archive_adoption = fetched.get("http_archive_adoption_monthly", [])
+    http_archive_tracked_share = fetched.get("http_archive_tracked_share_monthly", [])
     http_archive_rank_adoption = fetched.get("http_archive_rank_adoption_snapshot", [])
     http_archive_cwv = fetched.get("http_archive_cwv_monthly", [])
     wporg_ecosystem_stats = fetched.get("wporg_ecosystem_stats_snapshot", [])
@@ -5230,6 +5273,49 @@ def build_report(data, fetched):
         }
         for row in HTTP_ARCHIVE_ADOPTION_TECHNOLOGIES
     ]
+    http_archive_share_series = [
+        {
+            "label": row["label"],
+            "color": row["color"],
+            "points": sorted(
+                (item["date"], float(item.get("mobile_tracked_share_pct") or 0))
+                for item in http_archive_tracked_share
+                if item.get("technology") == row["technology"]
+            ),
+        }
+        for row in HTTP_ARCHIVE_ADOPTION_TECHNOLOGIES
+    ]
+    http_share_dates = sorted({row.get("date", "") for row in http_archive_tracked_share if row.get("date")})
+    http_share_first_date = http_share_dates[0] if http_share_dates else ""
+    http_share_latest_date = http_share_dates[-1] if http_share_dates else ""
+    http_share_latest_rows = [
+        row for row in http_archive_tracked_share
+        if row.get("date") == http_share_latest_date
+    ]
+    http_share_first_wp = next(
+        (
+            row for row in http_archive_tracked_share
+            if row.get("technology") == "WordPress" and row.get("date") == http_share_first_date
+        ),
+        {},
+    )
+    http_share_latest_wp = next(
+        (row for row in http_share_latest_rows if row.get("technology") == "WordPress"),
+        {},
+    )
+    http_share_latest_peer = max(
+        [row for row in http_share_latest_rows if row.get("technology") != "WordPress"],
+        key=lambda row: float(row.get("mobile_tracked_share_pct") or 0),
+        default={},
+    )
+    http_share_wp_delta = (
+        float(http_share_latest_wp.get("mobile_tracked_share_pct") or 0)
+        - float(http_share_first_wp.get("mobile_tracked_share_pct") or 0)
+        if http_share_latest_wp and http_share_first_wp
+        else None
+    )
+    http_share_latest_wp_label = pct(float(http_share_latest_wp.get("mobile_tracked_share_pct") or 0)) if http_share_latest_wp else "n/a"
+    http_share_wp_delta_label = f"{http_share_wp_delta:+.1f} pts" if http_share_wp_delta is not None else "n/a"
     http_archive_dates = sorted({row.get("date", "") for row in http_archive_adoption if row.get("date")})
     http_archive_latest_date = http_archive_dates[-1] if http_archive_dates else ""
     http_archive_first_date = http_archive_dates[0] if http_archive_dates else ""
@@ -5884,7 +5970,7 @@ p {{ margin:0 0 12px; }}
     <article class="question-card watch">
       <span class="tag">Builders gaining?</span>
       <strong>Some share, yes.</strong>
-      <p>Hosted builders are more visible in installed-share trends, while WordPress still leads the current tracked BuiltWith 90-day pipeline at {pct(builtwith_wp_90_share)}.</p>
+      <p>HTTP Archive tracked share has WordPress at {http_share_latest_wp_label}, {http_share_wp_delta_label} since {http_share_first_date or 'the first HTTP Archive month'}; WordPress still leads the current tracked BuiltWith 90-day pipeline at {pct(builtwith_wp_90_share)}.</p>
     </article>
   </section>
 
@@ -6336,6 +6422,19 @@ p {{ margin:0 0 12px; }}
       </div>
     </div>
     <div class="grid-2">
+      {svg_line_chart("Tracked technology share over time", "HTTP Archive mobile-crawl share among tracked WordPress and builder technologies. Recurring crawl signal; not a new-site cohort.", http_archive_share_series, y_suffix="%")}
+      <div class="card">
+        <h3>Builder-share readout</h3>
+        <p>This is not a new-site cohort, but it is a recurring crawl-based comparison of WordPress against hosted builders and ecommerce platforms in the same detected-origin dataset.</p>
+        <div class="stats">
+          {stat_card("Latest WP tracked share", pct(float(http_share_latest_wp.get("mobile_tracked_share_pct") or 0)), http_share_latest_date or "not fetched", "good" if http_share_latest_wp else "watch")}
+          {stat_card("Change since first month", f"{http_share_wp_delta:+.1f} pts" if http_share_wp_delta is not None else "n/a", f"{http_share_first_date} to {http_share_latest_date}" if http_share_dates else "not fetched", "watch" if http_share_wp_delta is not None and http_share_wp_delta < 0 else "soft")}
+          {stat_card("Largest current peer", pct(float(http_share_latest_peer.get("mobile_tracked_share_pct") or 0)), http_share_latest_peer.get("technology", "not fetched"), "soft" if http_share_latest_peer else "watch")}
+          {stat_card("Derived rows", compact(len(http_archive_tracked_share)), "stored in SQLite", "good" if http_archive_tracked_share else "watch")}
+        </div>
+      </div>
+    </div>
+    <div class="grid-2">
       {svg_line_chart("Good Core Web Vitals on mobile", "Monthly share of mobile origins passing Core Web Vitals in the HTTP Archive Technology Report API.", http_archive_cwv_series, y_suffix="%")}
       <div class="card">
         <h3>Experience-quality readout</h3>
@@ -6691,6 +6790,7 @@ p {{ margin:0 0 12px; }}
         <p>{html.escape(adoption_detail)} BuiltWith's current 90-day pipeline still shows WordPress with the largest tracked new-site count among WordPress, Shopify, Wix, and Webflow, but that is a current proxy rather than a historical new-site trend.</p>
         {horizontal_metric("W3Techs all-site share", float(wp_usage_latest["value"]) if wp_usage_latest else 0, 100, COLORS["wordpress"])}
         {horizontal_metric("W3Techs CMS share", float(wp_cms_latest["value"]) if wp_cms_latest else 0, 100, COLORS["wordpress"])}
+        {horizontal_metric("HTTP Archive tracked share", float(http_share_latest_wp.get("mobile_tracked_share_pct") or 0), 100, COLORS["wordpress"])}
         {horizontal_metric("Tracked 90-day new-site share", builtwith_wp_90_share, 100, COLORS["green"])}
       </div>
     </div>
@@ -6728,6 +6828,9 @@ def main():
     fetched["market_share"].extend(parse_w3techs_history(W3TECHS_USAGE_URL, "all_sites_usage", args.skip_network))
     fetched["market_share"].extend(parse_w3techs_history(W3TECHS_MARKET_SHARE_URL, "cms_market_share", args.skip_network))
     fetched["http_archive_adoption_monthly"] = fetch_http_archive_adoption_monthly(args.skip_network)
+    fetched["http_archive_tracked_share_monthly"] = derive_http_archive_tracked_share_monthly(
+        fetched["http_archive_adoption_monthly"]
+    )
     fetched["http_archive_rank_adoption_snapshot"] = fetch_http_archive_rank_adoption_snapshot(args.skip_network)
     fetched["http_archive_cwv_monthly"] = fetch_http_archive_cwv_monthly(args.skip_network)
     fetched["wporg_ecosystem_stats_snapshot"] = fetch_wporg_ecosystem_stats_snapshot(args.skip_network)

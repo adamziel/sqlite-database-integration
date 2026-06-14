@@ -2435,6 +2435,44 @@ def build_derived_metrics(data):
     }
 
 
+def derive_builtwith_tier_share_snapshot(rows):
+    if not rows:
+        return []
+    tier_defs = [
+        ("top_1000", "Top 1k", 1),
+        ("top_10k", "Top 10k", 2),
+        ("top_100k", "Top 100k", 3),
+        ("top_1m", "Top 1M", 4),
+        ("long_tail", "Long tail", 5),
+    ]
+    by_tech = {row.get("technology"): row for row in rows}
+    wordpress = by_tech.get("WordPress", {})
+    collected_at = max([row.get("collected_at", "") for row in rows] or [""])
+    result = []
+    for field, label, order in tier_defs:
+        if field == "long_tail":
+            tracked_total = sum(max(num(row.get("total_live")) - num(row.get("top_1m")), 0) for row in rows)
+            wordpress_count = max(num(wordpress.get("total_live")) - num(wordpress.get("top_1m")), 0)
+        else:
+            tracked_total = sum(num(row.get(field)) for row in rows)
+            wordpress_count = num(wordpress.get(field))
+        result.append(
+            {
+                "tier": field,
+                "label": label,
+                "tier_order": order,
+                "wordpress_count": wordpress_count,
+                "tracked_total": tracked_total,
+                "wordpress_share_pct": round(wordpress_count / tracked_total * 100, 2) if tracked_total else 0,
+                "tracked_technologies": ",".join(sorted(str(row.get("technology") or "") for row in rows if row.get("technology"))),
+                "collected_at": collected_at,
+                "source": "BuiltWith public technology pages current traffic-tier counts",
+                "source_url": "https://trends.builtwith.com/cms/WordPress",
+            }
+        )
+    return result
+
+
 def derive_support_forum_activity(topics):
     monthly = defaultdict(
         lambda: {
@@ -2914,6 +2952,7 @@ def source_status_rows(fetched):
         ("W3Techs adoption", "covered" if fetched.get("market_share") else "missing", "All-site usage and CMS market-share yearly trends"),
         ("HTTP Archive/Web Almanac", "covered", "2025 CMS adoption snapshot and high-traffic context"),
         ("BuiltWith ecommerce history", "covered" if fetched.get("builtwith_technology_history") else "missing", "Shopify and WooCommerce live-site counts by traffic tier"),
+        ("BuiltWith traffic tiers", "covered" if fetched.get("builtwith_tier_share_snapshot") else "missing", "Current WordPress share by traffic tier across tracked CMS/builder technologies"),
         ("Stack Overflow tag volume", "covered" if fetched.get("stack_overflow_tag_quarterly") else "missing", "Quarterly public developer-attention proxy from Stack Exchange API tag totals"),
         ("HN hiring mentions", "partial" if fetched.get("hn_hiring_wordpress_quarterly") else "missing", "WordPress/WooCommerce mentions in monthly Hacker News Who is hiring threads; not a broad job-board index"),
         ("WordPress.org plugin/theme directories", "covered" if fetched.get("directory_snapshots") else "missing", "Current plugin and theme counts"),
@@ -2992,6 +3031,7 @@ def build_report(data, fetched):
     support_monthly = fetched.get("support_forum_activity_monthly", [])
     support_age_buckets = fetched.get("support_forum_age_buckets", [])
     builtwith_new_sites = data["builtwith_new_site_snapshot"]
+    builtwith_tier_share = fetched.get("builtwith_tier_share_snapshot", [])
     builtwith_technology_snapshots = fetched.get("builtwith_technology_snapshots", [])
     builtwith_technology_history = fetched.get("builtwith_technology_history", [])
     contributor_depth = fetched.get("contributor_depth_buckets", [])
@@ -3135,6 +3175,7 @@ def build_report(data, fetched):
     builtwith_wp_90_share = builtwith_wp_90 / builtwith_total_90 * 100 if builtwith_total_90 else 0
     builtwith_wp_30_share = builtwith_wp_30 / builtwith_total_30 * 100 if builtwith_total_30 else 0
     builtwith_top_tiers = ["top_1000", "top_10k", "top_100k", "top_1m"]
+    builtwith_tier_share_ordered = sorted(builtwith_tier_share, key=lambda row: num(row.get("tier_order")))
     builtwith_live_by_tech = {row.get("technology"): row for row in builtwith_technology_snapshots}
     builtwith_live_rows = [row for row in builtwith_technology_snapshots if num(row.get("total_live")) > 0]
     builtwith_live_max = max([num(row.get("total_live")) for row in builtwith_live_rows] or [1])
@@ -3775,6 +3816,19 @@ p {{ margin:0 0 12px; }}
         {''.join(horizontal_count_metric(f"{tech} top 1M", num(row.get("top_1m")), max([num(r.get("top_1m")) for r in builtwith_new_sites] or [1]), COLORS.get(str(tech).lower(), COLORS["neutral"]), "") for tech, row in builtwith_by_tech.items())}
       </div>
     </div>
+    <div class="card">
+      <h3>WordPress share by site size tier</h3>
+      <p>BuiltWith current counts across WordPress, Shopify, Wix, Squarespace, and Webflow. Long tail means live sites outside the Top 1M tier.</p>
+      <div class="grid-2">
+        <div>
+          {''.join(horizontal_metric(str(row.get("label", "")), float(row.get("wordpress_share_pct") or 0), 100, COLORS["wordpress"]) for row in builtwith_tier_share_ordered)}
+        </div>
+        <div class="stats">
+          {stat_card("Top 1M share", pct(float(next((row.get("wordpress_share_pct") for row in builtwith_tier_share_ordered if row.get("tier") == "top_1m"), 0) or 0)), "among tracked technologies", "soft")}
+          {stat_card("Long-tail share", pct(float(next((row.get("wordpress_share_pct") for row in builtwith_tier_share_ordered if row.get("tier") == "long_tail"), 0) or 0)), "outside BuiltWith Top 1M", "soft")}
+        </div>
+      </div>
+    </div>
     <div class="grid-2">
       {svg_line_chart("BuiltWith ecommerce live sites", "Historical live-site counts from BuiltWith ecommerce technology pages. This is installed-site presence, not new-site creation.", builtwith_total_live_series)}
       {svg_line_chart("BuiltWith ecommerce Top 1M presence", "Historical live-site counts among the Top 1M traffic tier.", builtwith_top1m_series)}
@@ -3895,6 +3949,7 @@ def main():
     data = load_data()
     fetched = {}
     fetched.update(build_derived_metrics(data))
+    fetched["builtwith_tier_share_snapshot"] = derive_builtwith_tier_share_snapshot(data.get("builtwith_new_site_snapshot", []))
     fetched["market_share"] = []
     fetched["market_share"].extend(parse_w3techs_history(W3TECHS_USAGE_URL, "all_sites_usage", args.skip_network))
     fetched["market_share"].extend(parse_w3techs_history(W3TECHS_MARKET_SHARE_URL, "cms_market_share", args.skip_network))

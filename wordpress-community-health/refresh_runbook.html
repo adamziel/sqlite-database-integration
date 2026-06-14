@@ -45,8 +45,8 @@
       <div class="step warn"><b>1. Check space first.</b><br><code>df -h /Users/admin</code>. Stop if free space is under 500 MB.</div>
       <div class="step"><b>2. Validate the current DB.</b><br><code>sqlite3 community_health.sqlite "PRAGMA integrity_check; PRAGMA journal_mode;"</code>. Expected: <code>ok</code> and <code>delete</code>.</div>
       <div class="step"><b>3. Refresh one source family at a time.</b><br>Import or fetch a single partial signal, verify row counts, then regenerate with <code>--skip-network</code>.</div>
-      <div class="step"><b>4. Rebuild artifacts.</b><br><code>python3 make_community_health_report.py --skip-network</code>, then <code>python3 make_goal_audit.py</code>, then <code>python3 make_data_inventory.py</code>. Gzip the DB only after the HTML succeeds.</div>
-      <div class="step"><b>5. Publish Pages artifacts.</b><br>Copy <code>final_report.html</code>, <code>decision_brief.html</code>, <code>progress_summary.html</code>, <code>goal_audit.html</code>, <code>data_inventory.html</code>, <code>make_community_health_report.py</code>, <code>make_goal_audit.py</code>, <code>make_data_inventory.py</code>, and <code>community_health.sqlite.gz</code> into the Pages workspace, commit, push, and verify the public URL.</div>
+      <div class="step"><b>4. Rebuild artifacts.</b><br><code>python3 refresh_report_artifacts.py</code>. This runs <code>make_community_health_report.py --skip-network</code>, <code>make_goal_audit.py</code>, and <code>make_data_inventory.py</code> in order. Gzip the DB only after the HTML succeeds.</div>
+      <div class="step"><b>5. Publish Pages artifacts.</b><br>Copy <code>final_report.html</code>, <code>decision_brief.html</code>, <code>progress_summary.html</code>, <code>goal_audit.html</code>, <code>data_inventory.html</code>, <code>make_community_health_report.py</code>, <code>refresh_report_artifacts.py</code>, <code>make_goal_audit.py</code>, <code>make_data_inventory.py</code>, and <code>community_health.sqlite.gz</code> into the Pages workspace, commit, push, and verify the public URL.</div>
     </div>
   </section>
 
@@ -67,7 +67,7 @@
   <section>
     <h2>Do Not Re-Discover</h2>
     <p>The existing SQLite database already stores <code>source_files</code>, <code>source_gaps</code>, imported ticket exports, generated category summaries, public-source snapshots, and the derived HTTP Archive tracked-share table. Add new sources as separate tables, update <code>source_gaps</code> only when the new evidence materially improves a partial signal, and rerun <code>make_data_inventory.py</code> so the public inventory stays synchronized with SQLite.</p>
-    <p>Run <code>python3 make_goal_audit.py</code> whenever goal coverage, source counts, or partial-source labels change so <a href="goal_audit.html">goal_audit.html</a> stays synchronized with SQLite.</p>
+    <p>Run <code>python3 refresh_report_artifacts.py</code> whenever goal coverage, source counts, or partial-source labels change so <a href="goal_audit.html">goal_audit.html</a> and <a href="data_inventory.html">data_inventory.html</a> stay synchronized with SQLite.</p>
   </section>
 </main>
 </body>

@@ -87,6 +87,7 @@ HTML_ARTIFACTS = {
     "progress_summary.html": [
         "WordPress relevance report progress",
         "Goal audit",
+        "make_progress_summary.py",
     ],
     "refresh_runbook.html": [
         "Refresh runbook",
@@ -267,6 +268,7 @@ def main():
         run_step([sys.executable, "make_search_interest_report.py"])
         run_step([sys.executable, "make_support_load_report.py"])
         run_step([sys.executable, "make_decision_brief.py"])
+        run_step([sys.executable, "make_progress_summary.py"])
         run_step([sys.executable, "make_source_gap_plan.py"])
         run_step([sys.executable, "make_data_inventory.py"])
 

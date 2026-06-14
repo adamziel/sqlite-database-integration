@@ -60,8 +60,9 @@
     .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--green); }
     .dot.amber { background: var(--amber); }
     .dot.blue { background: var(--blue); }
-    table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 14px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 14px; table-layout: fixed; }
     th, td { text-align: left; border-bottom: 1px solid var(--line); padding: 9px 8px; vertical-align: top; }
+    th, td { overflow-wrap: anywhere; }
     th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
     @media (max-width: 820px) {
       main { padding: 24px 14px 36px; }
@@ -212,6 +213,17 @@
         <span class="pill">Next: broader hiring demand</span>
         <span class="pill">Later: add true multi-year new-site data if a source is available</span>
       </div>
+      <table>
+        <thead><tr><th>Partial signal</th><th>Best next source</th><th>Target table</th><th>Why it matters</th></tr></thead>
+        <tbody>
+          <tr><td>New-site share history</td><td>Paid BuiltWith trends export or HTTP Archive cohort query by first-seen month.</td><td>new_site_share_quarterly</td><td>Separates current installed presence from whether new builders are choosing WordPress now.</td></tr>
+          <tr><td>Search interest</td><td>Google Trends export for WordPress, WordPress developer, Shopify, Wix, Squarespace, and Webflow.</td><td>search_interest_quarterly</td><td>Turns the current Wikimedia proxy into a direct broad-interest signal.</td></tr>
+          <tr><td>Broad job demand</td><td>Lightcast, Indeed/Hiring Lab, LinkedIn, or another labor-market export with WordPress and peer terms.</td><td>job_demand_quarterly</td><td>Separates WordPress-specific demand from the narrow HN and jobs.wordpress.net proxies.</td></tr>
+          <tr><td>Support history</td><td>WordPress.org support forum export or recurring snapshots of all, unresolved, resolved, and no-reply views.</td><td>support_forum_quarterly</td><td>Turns the current live support queue snapshot into a trend.</td></tr>
+          <tr><td>Developer interest</td><td>Keep Stack Overflow tag totals and add GitHub repo/activity or package/dependency ecosystem trends.</td><td>developer_interest_quarterly</td><td>Distinguishes fewer support questions from actual developer adoption or migration.</td></tr>
+        </tbody>
+      </table>
+      <p class="note" style="margin-top:10px">Disk is currently very tight, so the next data pull should either free local cache space first or import one source at a time and checkpoint SQLite after each refresh.</p>
     </section>
   </main>
 </body>

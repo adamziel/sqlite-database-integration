@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WordPress Report Goal Audit</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172033;
+      --muted: #637083;
+      --line: #d9e1ea;
+      --paper: #f6f8fb;
+      --panel: #ffffff;
+      --blue: #2563eb;
+      --green: #159957;
+      --amber: #b7791f;
+      --red: #c2410c;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    main { max-width: 1180px; margin: 0 auto; padding: 36px 20px 48px; }
+    h1 { margin: 0 0 8px; font-size: clamp(34px, 4vw, 54px); line-height: 1.04; letter-spacing: 0; }
+    h2 { margin: 0 0 12px; font-size: 22px; }
+    h3 { margin: 0 0 6px; font-size: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; }
+    p { margin: 0 0 12px; color: var(--muted); }
+    a { color: var(--blue); }
+    .lede { max-width: 880px; font-size: 18px; }
+    .grid { display: grid; gap: 14px; }
+    .cards { grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 22px 0; }
+    .two { grid-template-columns: 1fr 1fr; align-items: start; }
+    .card, .section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .metric { font-size: 32px; font-weight: 800; line-height: 1; margin: 4px 0 8px; }
+    .metric small { display: block; color: var(--muted); font-size: 13px; font-weight: 650; margin-top: 6px; line-height: 1.3; }
+    .status { display: inline-block; border-radius: 999px; padding: 4px 9px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
+    .covered { background: #dcfce7; color: #166534; }
+    .partial { background: #fef3c7; color: #92400e; }
+    .source { background: #dbeafe; color: #1e40af; }
+    .audit-list { display: grid; gap: 10px; margin-top: 12px; }
+    .audit-row {
+      display: grid;
+      grid-template-columns: minmax(180px, .9fr) minmax(120px, .45fr) minmax(260px, 1.65fr);
+      gap: 12px;
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--green);
+      border-radius: 8px;
+      padding: 13px;
+      background: #fff;
+    }
+    .audit-row.partial-row { border-left-color: var(--amber); }
+    .audit-row strong { display: block; line-height: 1.2; }
+    .audit-row p { margin: 4px 0 0; font-size: 14px; }
+    .links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .links a {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 6px 10px;
+      background: #fbfdff;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; margin-top: 8px; font-size: 14px; }
+    th, td { text-align: left; border-bottom: 1px solid var(--line); padding: 9px 8px; vertical-align: top; overflow-wrap: anywhere; }
+    th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+    .footer { margin-top: 24px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 14px; }
+    @media (max-width: 860px) {
+      main { padding: 24px 14px 36px; }
+      .cards, .two, .audit-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <h1>WordPress report goal audit</h1>
+  <p class="lede">This page maps the current WordPress Community & Adoption Health report back to the active goal file. It is a quick proof map: what is covered directly, what is covered with public proxies or snapshots, and where the refresh metadata lives.</p>
+
+  <section class="grid cards" aria-label="Audit summary">
+    <div class="card">
+      <h3>Report sections</h3>
+      <div class="metric">3 <small>main views</small></div>
+      <p>Participation, Project Load, and Market Position.</p>
+    </div>
+    <div class="card">
+      <h3>Decision answers</h3>
+      <div class="metric">7 <small>goal questions</small></div>
+      <p>Covered in the main report and the decision brief.</p>
+    </div>
+    <div class="card">
+      <h3>SQLite evidence</h3>
+      <div class="metric">76 <small>tables</small></div>
+      <p>Includes 19 hashed source files and fetched public-source tables.</p>
+    </div>
+    <div class="card">
+      <h3>Partial signals</h3>
+      <div class="metric">5 <small>labeled gaps</small></div>
+      <p>Stored in SQLite and shown in the source coverage pages.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Requirement Coverage</h2>
+    <div class="audit-list">
+      <div class="audit-row">
+        <div><strong>HTML progress summary</strong><p>Summarize what has been done so far.</p></div>
+        <div><span class="status covered">Covered</span></div>
+        <div><p><a href="progress_summary.html">progress_summary.html</a> now summarizes the work, links current artifacts, and includes the latest Decision Questions update.</p></div>
+      </div>
+      <div class="audit-row">
+        <div><strong>Visual decision report</strong><p>Explain community involvement, project workload, and market position.</p></div>
+        <div><span class="status covered">Covered</span></div>
+        <div><p><a href="index.html">index.html</a> contains the three main views, a relevance scorecard, a Goal Coverage Map, Source Coverage, and a final Decision Readout.</p></div>
+      </div>
+      <div class="audit-row">
+        <div><strong>Separate evidence lanes</strong><p>Do not treat tickets as the whole community.</p></div>
+        <div><span class="status covered">Covered</span></div>
+        <div><p>The report separates ticket-derived signals, ecosystem signals, and adoption/demand signals at the top of the page.</p></div>
+      </div>
+      <div class="audit-row">
+        <div><strong>Ticket participation and load</strong><p>New, closed, net flow, reporters, first-time, repeat, maintainer split, response, close time, reopen, stale share, concentration, drive-by vs sustained.</p></div>
+        <div><span class="status covered">Covered</span></div>
+        <div><p>64,951 Core tickets, 32,135 Gutenberg issues, and 12,136 wordpress-develop PRs are loaded. The report uses quarterly Core, Gutenberg, PR, timeline, response, reopen, concentration, and depth tables.</p></div>
+      </div>
+      <div class="audit-row">
+        <div><strong>Bug and feature mix</strong><p>Show bugs, feature requests, and all tickets/issues separately where useful.</p></div>
+        <div><span class="status covered">Covered</span></div>
+        <div><p>The classification trend contains 716 quarterly category rows, with separate Core and Gutenberg category charts plus open-backlog category summaries.</p></div>
+      </div>
+      <div class="audit-row">
+        <div><strong>Community outside tickets</strong><p>Props, committers, Make/Core, WordCamps, Meetups, plugins, themes, translations, Five for the Future, support, dev notes.</p></div>
+        <div><span class="status covered">Covered</span></div>
+        <div><p>The report includes release credits, committers, Make/Core posts/comments/dev notes, WordCamp records, Events/Meetups, Translate snapshots, Five for the Future, support snapshots, and plugin/theme directory activity.</p></div>
+      </div>
+      <div class="audit-row partial-row">
+        <div><strong>Popularity and likelihood to choose WordPress</strong><p>Installed share, CMS share, newly detected sites, traffic tiers, peer builders, demand signals, plugins, WooCommerce, enterprise.</p></div>
+        <div><span class="status partial">Mixed</span></div>
+        <div><p>Installed-share and CMS-share evidence is direct. Newly detected sites, search interest, and broad job demand are presented with public proxies and clearly labeled as partial.</p></div>
+      </div>
+      <div class="audit-row">
+        <div><strong>Quarterly preference</strong><p>Prefer quarterly time series where the data supports it.</p></div>
+        <div><span class="status covered">Covered</span></div>
+        <div><p>Core, Gutenberg, PR, classification, Make/Core, dev-note, support snapshot buckets, Stack Overflow, Wikimedia, HN hiring, plugin downloads, and many market/demand charts use quarterly or monthly-to-quarterly series where available.</p></div>
+      </div>
+      <div class="audit-row">
+        <div><strong>Refreshable source metadata</strong><p>Enough metadata to refresh without rediscovering the model.</p></div>
+        <div><span class="status covered">Covered</span></div>
+        <div><p><a href="data_inventory.html">data_inventory.html</a> lists table counts, local source hashes, and partial-source gaps. <a href="refresh_runbook.html">refresh_runbook.html</a> records the refresh path.</p></div>
+      </div>
+      <div class="audit-row">
+        <div><strong>Short visual decision readout</strong><p>End with community health, project load, and market position.</p></div>
+        <div><span class="status covered">Covered</span></div>
+        <div><p>The main report ends with a Decision Readout, and <a href="decision_brief.html">decision_brief.html</a> provides a shareable one-page version with seven visual answer cards.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="grid two" style="margin-top:14px">
+    <div class="section">
+      <h2>Partial Signals Stored In SQLite</h2>
+      <table>
+        <thead><tr><th>Signal</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>developer_interest_proxy</td><td>Partial: Stack Overflow and Wikimedia are public proxies, not total developer interest.</td></tr>
+          <tr><td>job_demand</td><td>Partial: HN hiring and WordPress Jobs are narrow demand proxies.</td></tr>
+          <tr><td>new_site_share_history</td><td>Partial: current BuiltWith pipeline and HTTP Archive tracked-share trends are not a full new-site cohort.</td></tr>
+          <tr><td>search_interest</td><td>Partial: Wikimedia pageviews are included; Google Trends or similar would be more direct.</td></tr>
+          <tr><td>support_forum_history</td><td>Partial: current queue snapshots are included; a full historical forum export would improve trend coverage.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="section">
+      <h2>Useful Entry Points</h2>
+      <p>Use the full report for charts, the decision brief for sharing, and the data inventory when checking source coverage.</p>
+      <div class="links">
+        <a href="index.html#decision-questions">Decision Questions</a>
+        <a href="index.html#goal-map">Goal Coverage Map</a>
+        <a href="index.html#coverage">Source Coverage</a>
+        <a href="decision_brief.html">Decision brief</a>
+        <a href="progress_summary.html">Progress summary</a>
+        <a href="data_inventory.html">Data inventory</a>
+        <a href="refresh_runbook.html">Refresh runbook</a>
+      </div>
+    </div>
+  </section>
+
+  <p class="footer">Generated as a companion audit for the WordPress Community & Adoption Health report on June 14, 2026. Source counts come from community_health.sqlite.</p>
+</main>
+</body>
+</html>

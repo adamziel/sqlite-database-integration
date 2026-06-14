@@ -6883,7 +6883,7 @@ p {{ margin:0 0 12px; }}
 
   <section id="coverage" class="section">
     <h2>Source Coverage</h2>
-    <p class="callout">The SQLite database stores imported source tables, fetched ecosystem/adoption records, file hashes, and explicit source gaps. Download: <a href="community_health.sqlite.gz">community_health.sqlite.gz</a>. Inventory: <a href="data_inventory.html">data_inventory.html</a>.</p>
+    <p class="callout">The SQLite database stores imported source tables, fetched ecosystem/adoption records, file hashes, and explicit source gaps. Download: <a href="community_health.sqlite.gz">community_health.sqlite.gz</a>. Inventory: <a href="data_inventory.html">data_inventory.html</a>. Goal audit: <a href="goal_audit.html">goal_audit.html</a>.</p>
     <div class="grid-2">
       <div class="card">
         <h3>Refresh provenance</h3>
@@ -6914,6 +6914,7 @@ p {{ margin:0 0 12px; }}
       <div class="link-list">
         <a href="decision_brief.html">Decision brief</a>
         <a href="progress_summary.html">Progress summary</a>
+        <a href="goal_audit.html">Goal audit</a>
         <a href="data_inventory.html">Data inventory</a>
         <a href="refresh_runbook.html">Refresh runbook</a>
       </div>

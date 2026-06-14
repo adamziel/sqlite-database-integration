@@ -3916,7 +3916,7 @@ def build_database(data, fetched):
                 "support_forum_history",
                 "partial",
                 "Historical WordPress.org support forum topic/reply export",
-                "Current report includes public support queue snapshots, resolved/unresolved/no-reply summaries, last-activity buckets, forum-level unanswered summaries, and major-plugin support-thread totals; not a full long-term topic/reply history.",
+                "Current report includes public support queue snapshots, resolved/unresolved/no-reply summaries, last-activity buckets, forum-level unanswered summaries, a support-load companion view, and major-plugin support-thread totals; not a full long-term topic/reply history.",
             )
         )
     else:
@@ -6480,7 +6480,7 @@ p {{ margin:0 0 12px; }}
     </article>
     <article class="lane-card ecosystem">
       <h3><span class="lane-dot"></span>Ecosystem signals</h3>
-      <p>WordPress.org APIs, Make/Core, WordCamp, Events, Translate, Five for the Future, and support snapshots show community activity outside trackers. See the <a href="ecosystem_activity.html">ecosystem activity view</a> for the compact digest.</p>
+      <p>WordPress.org APIs, Make/Core, WordCamp, Events, Translate, Five for the Future, and support snapshots show community activity outside trackers. See the <a href="ecosystem_activity.html">ecosystem activity view</a> for the compact digest and the <a href="support_load.html">support load view</a> for the current support-queue readout.</p>
       <ul class="lane-list">
         <li>Best for release credits, committers, events, translation, support load, plugin/theme activity, and pledged work.</li>
         <li>Mostly snapshots or release-level series, so they complement rather than replace ticket trends.</li>
@@ -7468,6 +7468,7 @@ p {{ margin:0 0 12px; }}
         <a href="project_load.html">Project load</a>
         <a href="market_position.html">Market position</a>
         <a href="developer_interest.html">Developer interest</a>
+        <a href="support_load.html">Support load</a>
         <a href="contributor_depth.html">Contributor depth</a>
         <a href="ecosystem_activity.html">Ecosystem activity</a>
         <a href="goal_audit.html">Goal audit</a>

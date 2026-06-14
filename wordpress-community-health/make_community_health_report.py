@@ -5077,6 +5077,9 @@ def build_report(data, fetched):
     support_unresolved_count = sum(1 for row in support_topics if row.get("is_unresolved") == "1")
     support_no_reply_count = sum(1 for row in support_topics if row.get("has_no_replies") == "1")
     support_recent_count = num(support_view_by_name.get("all_topics", {}).get("unique_topics"))
+    support_view_count = len([row for row in support_views if row.get("view")])
+    support_pages_fetched = sum(num(row.get("pages_fetched")) for row in support_views)
+    support_pages_discovered = sum(num(row.get("pages_discovered")) for row in support_views)
     support_oldest = min([row.get("last_activity_at") for row in support_topics if row.get("last_activity_at")] or [""])
     support_latest = max([row.get("last_activity_at") for row in support_topics if row.get("last_activity_at")] or [""])
     support_queue_max = max(support_resolved_count, support_unresolved_count, support_no_reply_count, support_recent_count, 1)
@@ -6183,6 +6186,8 @@ p {{ margin:0 0 12px; }}
           {stat_card("Unresolved", compact(support_unresolved_count), "current unresolved view", "watch")}
           {stat_card("Resolved", compact(support_resolved_count), "current resolved view", "good")}
           {stat_card("No replies", compact(support_no_reply_count), "deduplicated zero-reply topics", "watch")}
+          {stat_card("Views covered", compact(support_view_count), "all, unresolved, resolved, no replies", "soft")}
+          {stat_card("Pages fetched", compact(support_pages_fetched), f"{compact(support_pages_discovered)} discovered pages", "soft")}
         </div>
         {horizontal_count_metric("Recent topics view", support_recent_count, support_queue_max, COLORS["core"], "")}
         {horizontal_count_metric("Unresolved queue", support_unresolved_count, support_queue_max, COLORS["orange"], "")}

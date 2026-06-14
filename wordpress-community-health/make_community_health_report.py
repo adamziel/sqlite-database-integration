@@ -3802,7 +3802,7 @@ def build_database(data, fetched):
                 "support_forum_history",
                 "partial",
                 "Historical WordPress.org support forum topic/reply export",
-                "Current report includes public support queue snapshots, last-activity buckets, and major-plugin support-thread totals; not a full long-term topic/reply history.",
+                "Current report includes public support queue snapshots, resolved/unresolved/no-reply summaries, last-activity buckets, forum-level unanswered summaries, and major-plugin support-thread totals; not a full long-term topic/reply history.",
             )
         )
     else:
@@ -4004,11 +4004,15 @@ def build_derived_metrics(data):
                 "source": "Core Trac ticket RSS status-change events",
             }
         )
-    support_monthly, support_age = derive_support_forum_activity(data.get("support_forum_topics", []))
+    support_topics = data.get("support_forum_topics", [])
+    support_monthly, support_age = derive_support_forum_activity(support_topics)
+    support_snapshot_summary, support_unanswered_by_forum = derive_support_forum_snapshot_tables(support_topics)
     return {
         "core_reopen_quarterly": rows,
         "support_forum_activity_monthly": support_monthly,
         "support_forum_age_buckets": support_age,
+        "support_forum_snapshot_summary": support_snapshot_summary,
+        "support_forum_unanswered_by_forum": support_unanswered_by_forum,
         "contributor_depth_buckets": derive_contributor_depth(data),
         "contributor_concentration_summary": derive_contributor_concentration_summary(data),
         "maintainer_participation_quarterly": derive_maintainer_participation_quarterly(data),
@@ -4158,6 +4162,103 @@ def derive_support_forum_activity(topics):
         row["source"] = "Current WordPress.org support queue snapshot, bucketed by age since last activity"
         age_rows.append(row)
     return monthly_rows, age_rows
+
+
+def derive_support_forum_snapshot_tables(topics):
+    if not topics:
+        return [], []
+    collected_dates = [parse_iso(row.get("collected_at")) for row in topics if parse_iso(row.get("collected_at"))]
+    snapshot_at = max(collected_dates) if collected_dates else END
+    forums = defaultdict(
+        lambda: {
+            "topics": 0,
+            "resolved": 0,
+            "unresolved": 0,
+            "no_replies": 0,
+            "replies": 0,
+            "participants": 0,
+            "starters": set(),
+        }
+    )
+    totals = {
+        "topics": 0,
+        "resolved": 0,
+        "unresolved": 0,
+        "no_replies": 0,
+        "replies": 0,
+        "participants": 0,
+        "starters": set(),
+    }
+    oldest_activity = None
+    latest_activity = None
+    for row in topics:
+        forum_name = row.get("forum_name") or "(unknown)"
+        bucket = forums[forum_name]
+        is_resolved = num(row.get("is_resolved"))
+        is_unresolved = num(row.get("is_unresolved"))
+        has_no_replies = num(row.get("has_no_replies"))
+        replies = num(row.get("replies"))
+        participants = num(row.get("participants"))
+        for target in (bucket, totals):
+            target["topics"] += 1
+            target["resolved"] += is_resolved
+            target["unresolved"] += is_unresolved
+            target["no_replies"] += has_no_replies
+            target["replies"] += replies
+            target["participants"] += participants
+            if row.get("starter_slug"):
+                target["starters"].add(row.get("starter_slug"))
+        activity = parse_iso(row.get("last_activity_at"))
+        if activity and (oldest_activity is None or activity < oldest_activity):
+            oldest_activity = activity
+        if activity and (latest_activity is None or activity > latest_activity):
+            latest_activity = activity
+
+    def shares(values):
+        topics_total = values["topics"]
+        return {
+            "resolved_share_pct": round(values["resolved"] / topics_total * 100, 2) if topics_total else 0,
+            "unresolved_share_pct": round(values["unresolved"] / topics_total * 100, 2) if topics_total else 0,
+            "no_reply_share_pct": round(values["no_replies"] / topics_total * 100, 2) if topics_total else 0,
+        }
+
+    total_shares = shares(totals)
+    summary = [
+        {
+            "snapshot_at": snapshot_at.isoformat().replace("+00:00", "Z"),
+            "topics": totals["topics"],
+            "resolved": totals["resolved"],
+            "unresolved": totals["unresolved"],
+            "no_replies": totals["no_replies"],
+            "replies": totals["replies"],
+            "participants": totals["participants"],
+            "unique_starters": len(totals["starters"]),
+            "forum_count": len(forums),
+            "oldest_last_activity_at": oldest_activity.isoformat().replace("+00:00", "Z") if oldest_activity else "",
+            "latest_last_activity_at": latest_activity.isoformat().replace("+00:00", "Z") if latest_activity else "",
+            "resolved_share_pct": total_shares["resolved_share_pct"],
+            "unresolved_share_pct": total_shares["unresolved_share_pct"],
+            "no_reply_share_pct": total_shares["no_reply_share_pct"],
+            "source": "Current WordPress.org support queue snapshot deduplicated by topic",
+        }
+    ]
+    by_forum = []
+    for forum_name, values in sorted(forums.items(), key=lambda item: item[1]["unresolved"], reverse=True):
+        row = {
+            "snapshot_at": snapshot_at.isoformat().replace("+00:00", "Z"),
+            "forum_name": forum_name,
+            "topics": values["topics"],
+            "resolved": values["resolved"],
+            "unresolved": values["unresolved"],
+            "no_replies": values["no_replies"],
+            "replies": values["replies"],
+            "participants": values["participants"],
+            "unique_starters": len(values["starters"]),
+            "source": "Current WordPress.org support queue snapshot deduplicated by topic",
+        }
+        row.update(shares(values))
+        by_forum.append(row)
+    return summary, by_forum
 
 
 def contributor_depth_rows(label, rows, author_key, date_key, since=None):
@@ -4889,6 +4990,11 @@ def source_status_rows(fetched):
             "Current WordPress.org support queue snapshot with forum, status, last-activity, and age buckets; historical trend still needs a fuller export",
         ),
         (
+            "Support unanswered summary",
+            "covered" if fetched.get("support_forum_snapshot_summary") else "missing",
+            "Current support snapshot summarized into resolved, unresolved, no-reply, and forum-level unanswered tables",
+        ),
+        (
             "Search interest and job demand",
             "partial" if fetched.get("wikimedia_pageviews_quarterly") or fetched.get("hn_hiring_wordpress_quarterly") else "missing",
             "General web search trends and broad hiring-platform time series are not included; Wikimedia, Stack Overflow, and HN are narrower public/developer/demand proxies",
@@ -4956,6 +5062,8 @@ def build_report(data, fetched):
     support_forums = data["support_forum_forum_summary"]
     support_monthly = fetched.get("support_forum_activity_monthly", [])
     support_age_buckets = fetched.get("support_forum_age_buckets", [])
+    support_snapshot_summary = fetched.get("support_forum_snapshot_summary", [])
+    support_unanswered_by_forum = fetched.get("support_forum_unanswered_by_forum", [])
     builtwith_new_sites = data["builtwith_new_site_snapshot"]
     builtwith_tier_share = fetched.get("builtwith_tier_share_snapshot", [])
     builtwith_technology_snapshots = fetched.get("builtwith_technology_snapshots", [])
@@ -5154,13 +5262,9 @@ def build_report(data, fetched):
     support_no_reply_count = sum(1 for row in support_topics if row.get("has_no_replies") == "1")
     support_recent_count = num(support_view_by_name.get("all_topics", {}).get("unique_topics"))
     support_view_count = len([row for row in support_views if row.get("view")])
-    support_pages_fetched = sum(num(row.get("pages_fetched")) for row in support_views)
-    support_pages_discovered = sum(num(row.get("pages_discovered")) for row in support_views)
     support_oldest = min([row.get("last_activity_at") for row in support_topics if row.get("last_activity_at")] or [""])
     support_latest = max([row.get("last_activity_at") for row in support_topics if row.get("last_activity_at")] or [""])
     support_queue_max = max(support_resolved_count, support_unresolved_count, support_no_reply_count, support_recent_count, 1)
-    top_support_forums = sorted(support_forums, key=lambda row: num(row.get("topics")), reverse=True)[:8]
-    max_support_forum_topics = max([num(row.get("topics")) for row in top_support_forums] or [1])
     support_month_topic_points = point_series(support_monthly, "month", "topics")
     support_month_unresolved_points = point_series(support_monthly, "month", "unresolved")
     support_month_resolved_points = point_series(support_monthly, "month", "resolved")
@@ -5183,6 +5287,15 @@ def build_report(data, fetched):
         if support_topic_count
         else 0
     )
+    support_summary = support_snapshot_summary[0] if support_snapshot_summary else {}
+    support_resolved_share = float(support_summary.get("resolved_share_pct") or (support_resolved_count / support_topic_count * 100 if support_topic_count else 0))
+    support_no_reply_share = float(support_summary.get("no_reply_share_pct") or (support_no_reply_count / support_topic_count * 100 if support_topic_count else 0))
+    top_support_unanswered_forums = sorted(
+        support_unanswered_by_forum or support_forums,
+        key=lambda row: (num(row.get("unresolved") or row.get("unresolved_topics")), num(row.get("no_replies") or row.get("no_reply_topics"))),
+        reverse=True,
+    )[:8]
+    max_support_unanswered_forum = max([num(row.get("unresolved") or row.get("unresolved_topics")) for row in top_support_unanswered_forums] or [1])
     builtwith_by_tech = {row.get("technology"): row for row in builtwith_new_sites}
     builtwith_new_rows = [row for row in builtwith_new_sites if num(row.get("new_last_3_months")) > 0]
     builtwith_max_90 = max([num(row.get("new_last_3_months")) for row in builtwith_new_rows] or [1])
@@ -6361,8 +6474,9 @@ p {{ margin:0 0 12px; }}
           {stat_card("Unresolved", compact(support_unresolved_count), "current unresolved view", "watch")}
           {stat_card("Resolved", compact(support_resolved_count), "current resolved view", "good")}
           {stat_card("No replies", compact(support_no_reply_count), "deduplicated zero-reply topics", "watch")}
+          {stat_card("Resolved share", pct(support_resolved_share), "of deduplicated queue topics", "good")}
+          {stat_card("No-reply share", pct(support_no_reply_share), "of deduplicated queue topics", "watch")}
           {stat_card("Views covered", compact(support_view_count), "all, unresolved, resolved, no replies", "soft")}
-          {stat_card("Pages fetched", compact(support_pages_fetched), f"{compact(support_pages_discovered)} discovered pages", "soft")}
         </div>
         {horizontal_count_metric("Recent topics view", support_recent_count, support_queue_max, COLORS["core"], "")}
         {horizontal_count_metric("Unresolved queue", support_unresolved_count, support_queue_max, COLORS["orange"], "")}
@@ -6370,9 +6484,9 @@ p {{ margin:0 0 12px; }}
         {horizontal_count_metric("No-reply topics", support_no_reply_count, support_queue_max, COLORS["red"], "")}
       </div>
       <div class="card">
-        <h3>Where support load sits</h3>
-        <p>Deduplicated topics across the current public queue views, grouped by forum.</p>
-        {''.join(horizontal_count_metric(str(row.get("forum_name", "")), num(row.get("topics")), max_support_forum_topics, COLORS["community"], "") for row in top_support_forums)}
+        <h3>Where unanswered support sits</h3>
+        <p>Deduplicated topics across the current public queue views, grouped by forum and sorted by unresolved topics.</p>
+        {''.join(horizontal_count_metric(str(row.get("forum_name", "")), num(row.get("unresolved") or row.get("unresolved_topics")), max_support_unanswered_forum, COLORS["orange"], " unresolved") for row in top_support_unanswered_forums)}
       </div>
     </div>
     <div class="grid-2">

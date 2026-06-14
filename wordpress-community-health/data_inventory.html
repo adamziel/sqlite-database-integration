@@ -100,7 +100,7 @@
     </nav>
 
     <section class="grid metrics" aria-label="Database summary">
-      <div class="metric"><h3>Tables</h3><strong>78</strong><span>SQLite tables in the report database.</span></div>
+      <div class="metric"><h3>Tables</h3><strong>80</strong><span>SQLite tables in the report database.</span></div>
       <div class="metric"><h3>Local sources</h3><strong>19</strong><span>Imported files with SHA-256 hashes.</span></div>
       <div class="metric"><h3>Tickets/issues</h3><strong>97.1k</strong><span>Core Trac tickets plus Gutenberg issues.</span></div>
       <div class="metric"><h3>Pull requests</h3><strong>12.1k</strong><span>wordpress-develop GitHub PR records.</span></div>
@@ -220,7 +220,9 @@
 <div class="table-chip"><code>support_forum_activity_monthly</code><span>7 rows</span></div>
 <div class="table-chip"><code>support_forum_age_buckets</code><span>6 rows</span></div>
 <div class="table-chip"><code>support_forum_forum_summary</code><span>10 rows</span></div>
+<div class="table-chip"><code>support_forum_snapshot_summary</code><span>1 rows</span></div>
 <div class="table-chip"><code>support_forum_topics</code><span>1,315 rows</span></div>
+<div class="table-chip"><code>support_forum_unanswered_by_forum</code><span>10 rows</span></div>
 <div class="table-chip"><code>support_forum_view_snapshots</code><span>4 rows</span></div>
 <div class="table-chip"><code>theme_directory_activity_sample</code><span>900 rows</span></div>
 <div class="table-chip"><code>translation_core_dev_status</code><span>202 rows</span></div>
@@ -415,7 +417,7 @@
             <td><code>support_forum_history</code></td>
             <td><span class="status">partial</span></td>
             <td>Historical WordPress.org support forum topic/reply export</td>
-            <td>Current report includes public support queue snapshots, last-activity buckets, and major-plugin support-thread totals; not a full long-term topic/reply history.</td>
+            <td>Current report includes public support queue snapshots, resolved/unresolved/no-reply summaries, last-activity buckets, forum-level unanswered summaries, and major-plugin support-thread totals; not a full long-term topic/reply history.</td>
           </tr></tbody>
       </table>
     </section>

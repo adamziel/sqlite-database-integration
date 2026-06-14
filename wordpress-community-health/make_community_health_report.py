@@ -206,6 +206,13 @@ def year_start(value):
     return f"{parsed.year:04d}-01-01"
 
 
+def month_start(value):
+    parsed = parse_iso(value)
+    if not parsed:
+        return None
+    return f"{parsed.year:04d}-{parsed.month:02d}-01"
+
+
 def num(value, default=0):
     if value in (None, ""):
         return default
@@ -1564,7 +1571,7 @@ def build_database(data, fetched):
                 "support_forum_history",
                 "partial",
                 "Historical WordPress.org support forum topic/reply export",
-                "Current report includes public support queue snapshots, not long-term forum activity trends.",
+                "Current report includes public support queue snapshots and last-activity buckets, not a full long-term topic/reply history.",
             )
         )
     else:
@@ -1690,7 +1697,116 @@ def build_derived_metrics(data):
                 "source": "Core Trac ticket RSS status-change events",
             }
         )
-    return {"core_reopen_quarterly": rows}
+    support_monthly, support_age = derive_support_forum_activity(data.get("support_forum_topics", []))
+    return {
+        "core_reopen_quarterly": rows,
+        "support_forum_activity_monthly": support_monthly,
+        "support_forum_age_buckets": support_age,
+    }
+
+
+def derive_support_forum_activity(topics):
+    monthly = defaultdict(
+        lambda: {
+            "topics": 0,
+            "resolved": 0,
+            "unresolved": 0,
+            "no_replies": 0,
+            "replies": 0,
+            "participants": 0,
+            "forums": set(),
+            "starters": set(),
+        }
+    )
+    collected_dates = [parse_iso(row.get("collected_at")) for row in topics if parse_iso(row.get("collected_at"))]
+    snapshot_at = max(collected_dates) if collected_dates else END
+    age_bucket_defs = [
+        ("0-7 days", 0, 7),
+        ("8-30 days", 8, 30),
+        ("31-90 days", 31, 90),
+        ("91-180 days", 91, 180),
+        ("181+ days", 181, None),
+        ("unknown", None, None),
+    ]
+    age_buckets = {
+        label: {
+            "age_bucket": label,
+            "topics": 0,
+            "resolved": 0,
+            "unresolved": 0,
+            "no_replies": 0,
+            "replies": 0,
+            "participants": 0,
+        }
+        for label, _min_days, _max_days in age_bucket_defs
+    }
+
+    def age_bucket_for(days):
+        if days is None:
+            return "unknown"
+        for label, min_days, max_days in age_bucket_defs:
+            if min_days is None:
+                continue
+            if days >= min_days and (max_days is None or days <= max_days):
+                return label
+        return "unknown"
+
+    for row in topics:
+        active = parse_iso(row.get("last_activity_at"))
+        is_resolved = num(row.get("is_resolved"))
+        is_unresolved = num(row.get("is_unresolved"))
+        has_no_replies = num(row.get("has_no_replies"))
+        replies = num(row.get("replies"))
+        participants = num(row.get("participants"))
+        if active:
+            month = month_start(active.isoformat())
+            bucket = monthly[month]
+            bucket["topics"] += 1
+            bucket["resolved"] += is_resolved
+            bucket["unresolved"] += is_unresolved
+            bucket["no_replies"] += has_no_replies
+            bucket["replies"] += replies
+            bucket["participants"] += participants
+            if row.get("forum_name"):
+                bucket["forums"].add(row.get("forum_name"))
+            if row.get("starter_slug"):
+                bucket["starters"].add(row.get("starter_slug"))
+            age_days = max(0, int((snapshot_at - active).total_seconds() // 86400))
+        else:
+            age_days = None
+        age_bucket = age_buckets[age_bucket_for(age_days)]
+        age_bucket["topics"] += 1
+        age_bucket["resolved"] += is_resolved
+        age_bucket["unresolved"] += is_unresolved
+        age_bucket["no_replies"] += has_no_replies
+        age_bucket["replies"] += replies
+        age_bucket["participants"] += participants
+
+    monthly_rows = []
+    for month, values in sorted(monthly.items()):
+        monthly_rows.append(
+            {
+                "month": month,
+                "label": parse_iso(month).strftime("%b %Y") if parse_iso(month) else month,
+                "topics": values["topics"],
+                "resolved": values["resolved"],
+                "unresolved": values["unresolved"],
+                "no_replies": values["no_replies"],
+                "replies": values["replies"],
+                "participants": values["participants"],
+                "forums": len(values["forums"]),
+                "starters": len(values["starters"]),
+                "source": "Current WordPress.org support queue snapshot, bucketed by last activity month",
+            }
+        )
+    age_rows = []
+    for index, (label, _min_days, _max_days) in enumerate(age_bucket_defs, start=1):
+        row = dict(age_buckets[label])
+        row["bucket_order"] = index
+        row["snapshot_at"] = snapshot_at.isoformat().replace("+00:00", "Z")
+        row["source"] = "Current WordPress.org support queue snapshot, bucketed by age since last activity"
+        age_rows.append(row)
+    return monthly_rows, age_rows
 
 
 def load_data():
@@ -2024,7 +2140,7 @@ def source_status_rows(fetched):
         (
             "Support forums",
             "partial" if SOURCE_FILES["support_forum_topics"].exists() else "missing",
-            "Current WordPress.org support queue snapshot; historical trend still needs a fuller export",
+            "Current WordPress.org support queue snapshot with forum, status, last-activity, and age buckets; historical trend still needs a fuller export",
         ),
     ]
     return rows
@@ -2068,6 +2184,8 @@ def build_report(data, fetched):
     support_topics = data["support_forum_topics"]
     support_views = data["support_forum_view_snapshots"]
     support_forums = data["support_forum_forum_summary"]
+    support_monthly = fetched.get("support_forum_activity_monthly", [])
+    support_age_buckets = fetched.get("support_forum_age_buckets", [])
     builtwith_new_sites = data["builtwith_new_site_snapshot"]
 
     core_latest = current_latest(core_q)
@@ -2180,6 +2298,12 @@ def build_report(data, fetched):
     support_queue_max = max(support_resolved_count, support_unresolved_count, support_no_reply_count, support_recent_count, 1)
     top_support_forums = sorted(support_forums, key=lambda row: num(row.get("topics")), reverse=True)[:8]
     max_support_forum_topics = max([num(row.get("topics")) for row in top_support_forums] or [1])
+    support_month_topic_points = point_series(support_monthly, "month", "topics")
+    support_month_unresolved_points = point_series(support_monthly, "month", "unresolved")
+    support_month_resolved_points = point_series(support_monthly, "month", "resolved")
+    support_month_no_reply_points = point_series(support_monthly, "month", "no_replies")
+    support_age_ordered = sorted(support_age_buckets, key=lambda row: num(row.get("bucket_order")))
+    support_age_max = max([num(row.get("topics")) for row in support_age_ordered] or [1])
     builtwith_by_tech = {row.get("technology"): row for row in builtwith_new_sites}
     builtwith_new_rows = [row for row in builtwith_new_sites if num(row.get("new_last_3_months")) > 0]
     builtwith_max_90 = max([num(row.get("new_last_3_months")) for row in builtwith_new_rows] or [1])
@@ -2543,6 +2667,19 @@ p {{ margin:0 0 12px; }}
         <h3>Where support load sits</h3>
         <p>Deduplicated topics across the current public queue views, grouped by forum.</p>
         {''.join(horizontal_count_metric(str(row.get("forum_name", "")), num(row.get("topics")), max_support_forum_topics, COLORS["community"], "") for row in top_support_forums)}
+      </div>
+    </div>
+    <div class="grid-2">
+      {svg_line_chart("Support queue last-activity month", "Current public support queue snapshot, grouped by each topic's last activity month.", [
+          {"label": "All queue topics", "color": COLORS["core"], "points": support_month_topic_points},
+          {"label": "Unresolved", "color": COLORS["orange"], "points": support_month_unresolved_points},
+          {"label": "Resolved", "color": COLORS["green"], "points": support_month_resolved_points},
+          {"label": "No replies", "color": COLORS["red"], "points": support_month_no_reply_points},
+      ])}
+      <div class="card">
+        <h3>Support queue age</h3>
+        <p>How old the current queue is, measured from each topic's last activity date at collection time.</p>
+        {''.join(horizontal_count_metric(str(row.get("age_bucket", "")), num(row.get("topics")), support_age_max, COLORS["orange"] if num(row.get("unresolved")) else COLORS["green"], " topics") for row in support_age_ordered)}
       </div>
     </div>
     <div class="grid-2">

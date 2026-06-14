@@ -159,6 +159,34 @@ def point_series(rows_, key, value_key, label_transform=quarter_label, limit=Non
     return points[-limit:] if limit else points
 
 
+def indexed_point_series(rows_, key, value_key, base_period=None, label_transform=quarter_label):
+    ordered = sorted(rows_, key=lambda item: item.get(key, ""))
+    if base_period:
+        base_row = next((row for row in ordered if row.get(key) == base_period and num(row.get(value_key)) > 0), None)
+    else:
+        base_row = None
+    if not base_row:
+        base_row = next((row for row in ordered if num(row.get(value_key)) > 0), None)
+    if not base_row:
+        return []
+    base_key = base_row.get(key, "")
+    base_value = num(base_row.get(value_key))
+    points = []
+    for row in ordered:
+        if row.get(key, "") < base_key:
+            continue
+        points.append((label_transform(row.get(key, "")), num(row.get(value_key)) / base_value * 100))
+    return points
+
+
+def latest_point_value(points):
+    return points[-1][1] if points else 0
+
+
+def index_label(value):
+    return f"{num(value):.0f}"
+
+
 def multi_line_chart(title, note, series, value_decimals=0):
     series = [
         {
@@ -248,7 +276,8 @@ def main():
     finally:
         conn.close()
 
-    tech_order = ["WordPress", "Shopify", "Wix", "Squarespace", "Webflow", "WooCommerce"]
+    builder_order = ["WordPress", "Shopify", "Wix", "Squarespace", "Webflow"]
+    tech_order = builder_order + ["WooCommerce"]
     attention_by_signal = {row.get("signal"): row for row in attention}
     wiki_summary = attention_by_signal.get("wikimedia_wordpress_pageviews", {})
     so_summary = attention_by_signal.get("stack_overflow_wordpress_questions", {})
@@ -274,6 +303,25 @@ def main():
     wp_latest_share = num(latest_wp_wiki.get("views")) / latest_total_views * 100 if latest_total_views else 0
     latest_total_questions = sum(num(row.get("question_count")) for row in latest_stack_by_tech.values())
     wp_question_share = num(latest_wp_stack.get("question_count")) / latest_total_questions * 100 if latest_total_questions else 0
+    wiki_index_by_tech = {
+        tech: indexed_point_series([row for row in wiki if row.get("technology") == tech], "quarter", "views")
+        for tech in builder_order
+    }
+    stack_index_by_tech = {
+        tech: indexed_point_series([row for row in stack if row.get("technology") == tech], "quarter", "question_count", "2021-01-01")
+        for tech in tech_order
+    }
+    wp_wiki_index = latest_point_value(wiki_index_by_tech.get("WordPress", []))
+    wp_stack_index = latest_point_value(stack_index_by_tech.get("WordPress", []))
+    fastest_attention = max(
+        (
+            {"technology": tech, "index": latest_point_value(points)}
+            for tech, points in wiki_index_by_tech.items()
+            if tech != "WordPress" and points
+        ),
+        key=lambda row: row["index"],
+        default={"technology": "", "index": 0},
+    )
 
     metrics = "".join(
         [
@@ -306,6 +354,18 @@ def main():
                 pct(wp_question_share),
                 "of latest tracked Stack Overflow questions",
                 "violet",
+            ),
+            metric_card(
+                "WP attention index",
+                index_label(wp_wiki_index),
+                "2015 Q3 baseline is 100",
+                "blue",
+            ),
+            metric_card(
+                "WP help index",
+                index_label(wp_stack_index),
+                "2021 Q1 baseline is 100",
+                "amber",
             ),
             metric_card(
                 "Search suggestions",
@@ -352,6 +412,30 @@ def main():
             for tech in tech_order
         ],
     )
+    wiki_index_chart = multi_line_chart(
+        "Public attention index since 2015",
+        "Each line starts at 100 in 2015 Q3. WordPress still leads on raw attention, while smaller builders grew faster from smaller bases.",
+        [
+            {
+                "name": tech,
+                "color": COLORS.get(tech.lower(), COLORS["blue"]),
+                "points": wiki_index_by_tech.get(tech, []),
+            }
+            for tech in builder_order
+        ],
+    )
+    stack_index_chart = multi_line_chart(
+        "Developer-help index since 2021",
+        "Each line starts at 100 in 2021 Q1. Visible Stack Overflow help questions are much lower across the tracked tags.",
+        [
+            {
+                "name": tech,
+                "color": COLORS.get(tech.lower(), COLORS["blue"]),
+                "points": stack_index_by_tech.get(tech, []),
+            }
+            for tech in tech_order
+        ],
+    )
 
     max_views = max([num(row.get("views")) for row in latest_wiki_by_tech.values()] or [1])
     max_questions = max([num(row.get("question_count")) for row in latest_stack_by_tech.values()] or [1])
@@ -385,6 +469,12 @@ def main():
                 "Stack Overflow WordPress-tag questions are far below the stored pre-2024 comparison quarter.",
                 pct(so_summary.get("change_pct")),
                 "amber",
+            ),
+            signal_row(
+                "Relative attention growth favors smaller builders",
+                "Indexed public attention shows smaller builders grew faster from smaller starting points, while WordPress remains largest in raw pageviews.",
+                f"{fastest_attention.get('technology')} {index_label(fastest_attention.get('index'))}",
+                "violet",
             ),
             signal_row(
                 "Search-query intent is now captured as a snapshot",
@@ -475,7 +565,7 @@ def main():
 <body>
 <main>
   <h1>WordPress search interest</h1>
-  <p class="lede">A compact proxy readout for search and public attention using data already stored in SQLite: Wikimedia article pageviews, Stack Overflow tag-question volume, and current autocomplete suggestions for WordPress, developer, alternatives, and comparison queries.</p>
+  <p class="lede">A compact readout for public attention and search-adjacent demand using data already stored in SQLite: indexed Wikimedia article pageviews, Stack Overflow tag-question volume, and current autocomplete suggestions for WordPress, developer, alternatives, and comparison queries.</p>
 {nav_html()}
 
   <section class="metrics" aria-label="Search interest summary">
@@ -504,6 +594,8 @@ def main():
 {suggestion_cards}
       </div>
     </article>
+{wiki_index_chart}
+{stack_index_chart}
 {wiki_chart}
 {stack_chart}
     <article class="chart-card">

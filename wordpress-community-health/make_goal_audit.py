@@ -62,15 +62,45 @@ def audit_row(title, prompt, status, detail, class_name="covered"):
       </div>"""
 
 
-def gap_table_rows(gaps):
+GAP_SUMMARIES = {
+    "developer_interest_proxy": (
+        "Developer interest",
+        "Stack Overflow, Wikimedia, npm downloads, and GitHub PR activity are in.",
+        "Add one broader developer-community source.",
+    ),
+    "job_demand": (
+        "Hiring demand",
+        "HN hiring threads and WordPress Jobs snapshots are in.",
+        "Add a broad hiring-platform export.",
+    ),
+    "new_site_share_history": (
+        "New-site history",
+        "BuiltWith current pipeline and HTTP Archive proxies are in.",
+        "Add a true first-seen site cohort.",
+    ),
+    "search_interest": (
+        "Search interest",
+        "Wikimedia and Stack Overflow attention proxies are in.",
+        "Add Google Trends or a similar search-provider export.",
+    ),
+    "support_forum_history": (
+        "Support history",
+        "Current support queues and unresolved snapshots are in.",
+        "Add long-running topic and reply history.",
+    ),
+}
+
+
+def gap_cards(gaps):
     return "\n".join(
         f"""
-          <tr>
-            <td><code>{esc(row['signal'])}</code></td>
-            <td><span class="status partial">{esc(row['status'])}</span></td>
-            <td>{esc(row['needed_source'])}</td>
-            <td>{esc(row['note'])}</td>
-          </tr>"""
+      <div class="gap-card">
+        <span class="status partial">{esc(row['status'])}</span>
+        <strong>{esc(GAP_SUMMARIES.get(row['signal'], (row['signal'].replace('_', ' ').title(), '', ''))[0])}</strong>
+        <p>{esc(GAP_SUMMARIES.get(row['signal'], ('', row['note'], ''))[1])}</p>
+        <b>Best next source</b>
+        <p>{esc(GAP_SUMMARIES.get(row['signal'], ('', '', row['needed_source']))[2])}</p>
+      </div>"""
         for row in gaps
     )
 
@@ -158,7 +188,7 @@ def render():
         source_file_total=compact(source_file_total),
         source_gap_total=compact(source_gap_total),
         audit_rows="\n".join(rows),
-        gap_rows=gap_table_rows(gaps),
+        gap_cards=gap_cards(gaps),
         generated_at=esc(generated_at),
     )
     OUT.write_text(html_doc, encoding="utf-8")
@@ -227,6 +257,18 @@ HTML_TEMPLATE = """<!doctype html>
     .audit-row.partial-row { border-left-color: var(--amber); }
     .audit-row strong { display: block; line-height: 1.2; }
     .audit-row p { margin: 4px 0 0; font-size: 14px; }
+    .gap-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; margin-top: 12px; }
+    .gap-card {
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--amber);
+      border-radius: 8px;
+      padding: 13px;
+      background: #fff;
+      min-width: 0;
+    }
+    .gap-card strong { display: block; margin: 8px 0 6px; line-height: 1.25; }
+    .gap-card b { display: block; margin-top: 12px; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+    .gap-card p { margin: 0; font-size: 14px; line-height: 1.4; }
     .links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
     .links a {
       display: inline-flex;
@@ -239,9 +281,6 @@ HTML_TEMPLATE = """<!doctype html>
       font-size: 13px;
       font-weight: 700;
     }
-    table { width: 100%; border-collapse: collapse; table-layout: fixed; margin-top: 8px; font-size: 14px; }
-    th, td { text-align: left; border-bottom: 1px solid var(--line); padding: 9px 8px; vertical-align: top; overflow-wrap: anywhere; }
-    th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
     .footer { margin-top: 24px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 14px; }
     @media (max-width: 860px) {
       main { padding: 24px 14px 36px; }
@@ -286,11 +325,9 @@ HTML_TEMPLATE = """<!doctype html>
   <section class="grid two" style="margin-top:14px">
     <div class="section">
       <h2>Partial Signals Stored In SQLite</h2>
-      <table>
-        <thead><tr><th>Signal</th><th>Status</th><th>Best next source</th><th>Current note</th></tr></thead>
-        <tbody>$gap_rows
-        </tbody>
-      </table>
+      <p>These are the remaining source areas where the report already has a labeled proxy or snapshot, but the ideal historical source would make the decision view stronger.</p>
+      <div class="gap-grid">$gap_cards
+      </div>
     </div>
     <div class="section">
       <h2>Useful Entry Points</h2>

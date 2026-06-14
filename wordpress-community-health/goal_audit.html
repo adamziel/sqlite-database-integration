@@ -60,6 +60,18 @@
     .audit-row.partial-row { border-left-color: var(--amber); }
     .audit-row strong { display: block; line-height: 1.2; }
     .audit-row p { margin: 4px 0 0; font-size: 14px; }
+    .gap-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; margin-top: 12px; }
+    .gap-card {
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--amber);
+      border-radius: 8px;
+      padding: 13px;
+      background: #fff;
+      min-width: 0;
+    }
+    .gap-card strong { display: block; margin: 8px 0 6px; line-height: 1.25; }
+    .gap-card b { display: block; margin-top: 12px; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+    .gap-card p { margin: 0; font-size: 14px; line-height: 1.4; }
     .links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
     .links a {
       display: inline-flex;
@@ -72,9 +84,6 @@
       font-size: 13px;
       font-weight: 700;
     }
-    table { width: 100%; border-collapse: collapse; table-layout: fixed; margin-top: 8px; font-size: 14px; }
-    th, td { text-align: left; border-bottom: 1px solid var(--line); padding: 9px 8px; vertical-align: top; overflow-wrap: anywhere; }
-    th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
     .footer { margin-top: 24px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 14px; }
     @media (max-width: 860px) {
       main { padding: 24px 14px 36px; }
@@ -178,45 +187,48 @@
   <section class="grid two" style="margin-top:14px">
     <div class="section">
       <h2>Partial Signals Stored In SQLite</h2>
-      <table>
-        <thead><tr><th>Signal</th><th>Status</th><th>Best next source</th><th>Current note</th></tr></thead>
-        <tbody>
-          <tr>
-            <td><code>developer_interest_proxy</code></td>
-            <td><span class="status partial">partial</span></td>
-            <td>Stack Exchange API question totals, Wikimedia Pageviews API, npm package downloads, GitHub PR activity, and broader developer-community sources</td>
-            <td>Quarterly Stack Overflow tag volume, Wikimedia pageviews, npm @wordpress package downloads, wordpress-develop PR activity, and a compact attention/demand summary are included as public attention and contribution proxies; they do not measure general search-query interest.</td>
-          </tr>
+      <p>These are the remaining source areas where the report already has a labeled proxy or snapshot, but the ideal historical source would make the decision view stronger.</p>
+      <div class="gap-grid">
+      <div class="gap-card">
+        <span class="status partial">partial</span>
+        <strong>Developer interest</strong>
+        <p>Stack Overflow, Wikimedia, npm downloads, and GitHub PR activity are in.</p>
+        <b>Best next source</b>
+        <p>Add one broader developer-community source.</p>
+      </div>
 
-          <tr>
-            <td><code>job_demand</code></td>
-            <td><span class="status partial">partial</span></td>
-            <td>Hacker News monthly Who is hiring? threads plus hiring-platform exports</td>
-            <td>HN Who is hiring WordPress/WooCommerce, PHP, and agency/studio mention counts, WordPress Jobs board open-listing snapshots, a compact proxy-direction summary, and a job-demand companion view are included; broader job-board demand still needs a labor-market source.</td>
-          </tr>
+      <div class="gap-card">
+        <span class="status partial">partial</span>
+        <strong>Hiring demand</strong>
+        <p>HN hiring threads and WordPress Jobs snapshots are in.</p>
+        <b>Best next source</b>
+        <p>Add a broad hiring-platform export.</p>
+      </div>
 
-          <tr>
-            <td><code>new_site_share_history</code></td>
-            <td><span class="status partial">partial</span></td>
-            <td>BuiltWith historical trends or HTTP Archive cohort queries</td>
-            <td>Current report includes BuiltWith current Net New Pipeline, HTTP Archive monthly origin counts, derived tracked-share history, rank-tier detected-origin adoption, a compact new-site choice summary, and a dedicated new-site choice companion view; not a multi-year newly created site cohort.</td>
-          </tr>
+      <div class="gap-card">
+        <span class="status partial">partial</span>
+        <strong>New-site history</strong>
+        <p>BuiltWith current pipeline and HTTP Archive proxies are in.</p>
+        <b>Best next source</b>
+        <p>Add a true first-seen site cohort.</p>
+      </div>
 
-          <tr>
-            <td><code>search_interest</code></td>
-            <td><span class="status partial">partial</span></td>
-            <td>Google Trends or another search-interest provider</td>
-            <td>Wikimedia Pageviews API quarterly article-view trends, Stack Overflow tag-volume context, a compact attention/demand summary, and a search-interest companion view are included as public-interest proxies; true search-query interest still needs Google Trends or another search provider.</td>
-          </tr>
+      <div class="gap-card">
+        <span class="status partial">partial</span>
+        <strong>Search interest</strong>
+        <p>Wikimedia and Stack Overflow attention proxies are in.</p>
+        <b>Best next source</b>
+        <p>Add Google Trends or a similar search-provider export.</p>
+      </div>
 
-          <tr>
-            <td><code>support_forum_history</code></td>
-            <td><span class="status partial">partial</span></td>
-            <td>Historical WordPress.org support forum topic/reply export</td>
-            <td>Current report includes public support queue snapshots, resolved/unresolved/no-reply summaries, last-activity buckets, forum-level unanswered summaries, a support-load companion view, and major-plugin support-thread totals; not a full long-term topic/reply history.</td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="gap-card">
+        <span class="status partial">partial</span>
+        <strong>Support history</strong>
+        <p>Current support queues and unresolved snapshots are in.</p>
+        <b>Best next source</b>
+        <p>Add long-running topic and reply history.</p>
+      </div>
+      </div>
     </div>
     <div class="section">
       <h2>Useful Entry Points</h2>
@@ -243,7 +255,7 @@
     </div>
   </section>
 
-  <p class="footer">Generated as a companion audit for the WordPress Community & Adoption Health report on 2026-06-14 18:28 UTC. Source counts come from community_health.sqlite.</p>
+  <p class="footer">Generated as a companion audit for the WordPress Community & Adoption Health report on 2026-06-14 19:09 UTC. Source counts come from community_health.sqlite.</p>
 </main>
 </body>
 </html>

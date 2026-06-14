@@ -96,10 +96,18 @@ p { margin:0 0 12px; }
 .covered .pill { background:#dcfce7; color:#166534; }
 .partial .pill { background:#fef3c7; color:#92400e; }
 .missing .pill { background:#fee2e2; color:#991b1b; }
-.readout-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin-top:14px; }
+.readout-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:14px; margin-top:14px; }
 .readout-card { border:1px solid var(--line); border-radius:8px; padding:16px; background:#fff; }
 .readout-card strong { display:block; font-size:24px; line-height:1.15; margin-bottom:8px; }
 .readout-card p { color:var(--muted); }
+.readout-mini-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:12px; }
+.readout-mini { border:1px solid var(--line); border-left:4px solid var(--blue); border-radius:8px; padding:10px; background:#f8fafc; min-width:0; }
+.readout-mini span { display:block; color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.06em; font-weight:800; line-height:1.2; }
+.readout-mini b { display:block; font-size:22px; line-height:1.1; margin:4px 0 3px; overflow-wrap:anywhere; }
+.readout-mini p { margin:0; color:var(--muted); font-size:12px; line-height:1.3; }
+.readout-mini.good { border-left-color:var(--green); }
+.readout-mini.watch { border-left-color:var(--orange); }
+.readout-mini.softer { border-left-color:var(--red); }
 .evidence-strength-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin:14px 0 16px; }
 .evidence-strength-card { border:1px solid var(--line); border-left:5px solid var(--blue); border-radius:8px; padding:14px; background:#fff; min-height:142px; }
 .evidence-strength-card span { display:block; color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.06em; font-weight:800; margin-bottom:4px; }
@@ -152,7 +160,7 @@ p { margin:0 0 12px; }
 .footer { color:var(--muted); font-size:13px; margin-top:32px; border-top:1px solid var(--line); padding-top:18px; }
 @media (max-width:900px) {
   h1 { font-size:34px; }
-  .lane-grid, .answer-grid, .grid-2, .stats, .card .stats, .decision-stats, .status-grid, .readout-grid, .evidence-strength-grid, .score-grid, .decision-matrix { grid-template-columns:1fr; }
+  .lane-grid, .answer-grid, .grid-2, .stats, .card .stats, .decision-stats, .status-grid, .readout-grid, .readout-mini-grid, .evidence-strength-grid, .score-grid, .decision-matrix { grid-template-columns:1fr; }
   .goal-row { grid-template-columns:1fr; }
   .page { padding:24px 16px 48px; }
 }
@@ -4346,6 +4354,42 @@ p { margin:0 0 12px; }
     </div>
       </div>
       <div class="readout-card">
+        <strong>Ecosystem activity: broad outside trackers</strong>
+        <p>Release credits, committers, WordCamps, translations, pledged work, and support queues show community surface area beyond tickets. These are mostly release-level or current snapshots, so they describe depth more than quarter-to-quarter momentum.</p>
+        <div class="readout-mini-grid">
+          <div class="readout-mini good">
+      <span>Latest release props</span>
+      <b>756</b>
+      <p>WordPress 7.0</p>
+    </div>
+          <div class="readout-mini good">
+      <span>Release committers</span>
+      <b>34</b>
+      <p>7.0</p>
+    </div>
+          <div class="readout-mini good">
+      <span>WordCamps</span>
+      <b>103</b>
+      <p>2025 full-year records</p>
+    </div>
+          <div class="readout-mini good">
+      <span>Translation profiles</span>
+      <b>83.6k</b>
+      <p>202 locale teams</p>
+    </div>
+          <div class="readout-mini good">
+      <span>Pledged hours</span>
+      <b>7,327</b>
+      <p>Five for the Future weekly</p>
+    </div>
+          <div class="readout-mini watch">
+      <span>Support queue</span>
+      <b>1,315</b>
+      <p>25.9% resolved share</p>
+    </div>
+        </div>
+      </div>
+      <div class="readout-card">
         <strong>Project load: mostly keeping up, backlog still aged</strong>
         <p>Since 2024, Core closures are slightly above new tickets on average, and Gutenberg is near balanced with a recent cleanup quarter. The remaining open backlog still contains a large older share.</p>
         <div class="hmetric">
@@ -4416,7 +4460,7 @@ p { margin:0 0 12px; }
   </section>
 
   <section class="footer">
-    <p>Generated 2026-06-14 22:29 UTC from local Core/Gutenberg exports and public sources.</p>
+    <p>Generated 2026-06-14 22:42 UTC from local Core/Gutenberg exports and public sources.</p>
     <p>Sources: <a href="https://w3techs.com/technologies/history_overview/content_management/all/y">W3Techs usage trend</a>, <a href="https://w3techs.com/technologies/history_overview/content_management/ms/y">W3Techs CMS market-share trend</a>, <a href="https://almanac.httparchive.org/en/2025/cms">HTTP Archive Web Almanac CMS 2025</a>, <a href="https://httparchive.org/reports/techreport/tech">HTTP Archive Technology Report API</a>, <a href="https://api.stackexchange.com/docs/questions">Stack Exchange API</a>, <a href="https://doc.wikimedia.org/generated-data-platform/aqs/analytics-api/reference/page-views.html">Wikimedia Pageviews API</a>, <a href="https://suggestqueries.google.com/complete/search?client=firefox&hl=en&gl=US&q=wordpress">Google autocomplete suggestions</a>, <a href="https://packagist.org/apidoc">Packagist API</a>, <a href="https://api.github.com/search/repositories">GitHub repository search API</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="https://codex.wordpress.org/WordPress.org_API#Plugin_Download_Stats">WordPress.org plugin download stats</a>, <a href="https://remoteok.com/">Remote OK</a>, <a href="https://remotive.com/">Remotive</a>, <a href="https://jobs.wordpress.net/">WordPress Jobs board</a>, <a href="https://web.archive.org/cdx">Internet Archive CDX API</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="https://events.wordpress.org/">WordPress Events</a>, <a href="https://translate.wordpress.org/">Translate WordPress</a>, <a href="https://make.wordpress.org/core/wp-json/wp/v2/posts">Make/Core posts API</a>, <a href="https://make.wordpress.org/core/wp-json/wp/v2/comments">Make/Core comments API</a>, <a href="https://wordpress.org/support/view/all-topics/">WordPress.org support forums</a>, <a href="https://trends.builtwith.com/cms/WordPress">BuiltWith technology pages</a>, <a href="https://github.com/WordPress/gutenberg/issues">Gutenberg GitHub issues</a>, <a href="https://api.github.com/repos/WordPress/wordpress-develop/pulls/comments">wordpress-develop GitHub review comments</a>, <a href="https://wordpress.org/five-for-the-future/pledges/">Five for the Future pledges</a>, <a href="https://wordpress.org/download/releases/">WordPress release archive</a>, and <a href="https://api.wordpress.org/core/credits/1.1/">Core credits API</a>.</p>
   </section>
 </main>

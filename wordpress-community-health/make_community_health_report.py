@@ -6223,6 +6223,16 @@ def horizontal_count_metric(label, value, max_value, color, suffix=""):
     """.strip()
 
 
+def mini_metric(label, value, note="", tone="soft"):
+    return f"""
+    <div class="readout-mini {html.escape(tone)}">
+      <span>{html.escape(label)}</span>
+      <b>{html.escape(str(value))}</b>
+      <p>{html.escape(note)}</p>
+    </div>
+    """.strip()
+
+
 def average(rows, col, start=None, end=None):
     vals = []
     for row in rows:
@@ -8001,10 +8011,18 @@ p {{ margin:0 0 12px; }}
 .covered .pill {{ background:#dcfce7; color:#166534; }}
 .partial .pill {{ background:#fef3c7; color:#92400e; }}
 .missing .pill {{ background:#fee2e2; color:#991b1b; }}
-.readout-grid {{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin-top:14px; }}
+.readout-grid {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:14px; margin-top:14px; }}
 .readout-card {{ border:1px solid var(--line); border-radius:8px; padding:16px; background:#fff; }}
 .readout-card strong {{ display:block; font-size:24px; line-height:1.15; margin-bottom:8px; }}
 .readout-card p {{ color:var(--muted); }}
+.readout-mini-grid {{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:12px; }}
+.readout-mini {{ border:1px solid var(--line); border-left:4px solid var(--blue); border-radius:8px; padding:10px; background:#f8fafc; min-width:0; }}
+.readout-mini span {{ display:block; color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.06em; font-weight:800; line-height:1.2; }}
+.readout-mini b {{ display:block; font-size:22px; line-height:1.1; margin:4px 0 3px; overflow-wrap:anywhere; }}
+.readout-mini p {{ margin:0; color:var(--muted); font-size:12px; line-height:1.3; }}
+.readout-mini.good {{ border-left-color:var(--green); }}
+.readout-mini.watch {{ border-left-color:var(--orange); }}
+.readout-mini.softer {{ border-left-color:var(--red); }}
 .evidence-strength-grid {{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin:14px 0 16px; }}
 .evidence-strength-card {{ border:1px solid var(--line); border-left:5px solid var(--blue); border-radius:8px; padding:14px; background:#fff; min-height:142px; }}
 .evidence-strength-card span {{ display:block; color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.06em; font-weight:800; margin-bottom:4px; }}
@@ -8057,7 +8075,7 @@ p {{ margin:0 0 12px; }}
 .footer {{ color:var(--muted); font-size:13px; margin-top:32px; border-top:1px solid var(--line); padding-top:18px; }}
 @media (max-width:900px) {{
   h1 {{ font-size:34px; }}
-  .lane-grid, .answer-grid, .grid-2, .stats, .card .stats, .decision-stats, .status-grid, .readout-grid, .evidence-strength-grid, .score-grid, .decision-matrix {{ grid-template-columns:1fr; }}
+  .lane-grid, .answer-grid, .grid-2, .stats, .card .stats, .decision-stats, .status-grid, .readout-grid, .readout-mini-grid, .evidence-strength-grid, .score-grid, .decision-matrix {{ grid-template-columns:1fr; }}
   .goal-row {{ grid-template-columns:1fr; }}
   .page {{ padding:24px 16px 48px; }}
 }}
@@ -9238,6 +9256,18 @@ p {{ margin:0 0 12px; }}
         {horizontal_metric("Gutenberg first-time creator retention", gut_first_retention, 100, COLORS["red"])}
         {horizontal_metric("PR creation vs 2021-2023", pr_flow_ratio, max(160, pr_flow_ratio), COLORS["green"])}
         {horizontal_metric("Review comments vs 2021-2023", review_comment_ratio, max(160, review_comment_ratio), COLORS["prs"])}
+      </div>
+      <div class="readout-card">
+        <strong>Ecosystem activity: broad outside trackers</strong>
+        <p>Release credits, committers, WordCamps, translations, pledged work, and support queues show community surface area beyond tickets. These are mostly release-level or current snapshots, so they describe depth more than quarter-to-quarter momentum.</p>
+        <div class="readout-mini-grid">
+          {mini_metric("Latest release props", compact(num(latest_release_credit.get("props_count"))), f"WordPress {latest_release_credit.get('version', '')}", "good")}
+          {mini_metric("Release committers", compact(num(latest_release_committer.get("committer_count"))), latest_release_committer.get("version", ""), "good")}
+          {mini_metric("WordCamps", compact(num(latest_complete_wordcamp_year.get("events"))), f"{latest_complete_wordcamp_year.get('label', '')} full-year records", "good")}
+          {mini_metric("Translation profiles", compact(num(translation_snapshot.get("locale_contributor_profile_sum"))), f"{compact(num(translation_snapshot.get('locale_count')))} locale teams", "good")}
+          {mini_metric("Pledged hours", compact(float(fttf_snapshot.get("pledged_hours_per_week") or 0)), "Five for the Future weekly", "good")}
+          {mini_metric("Support queue", compact(support_topic_count), f"{pct(support_resolved_share)} resolved share", "watch")}
+        </div>
       </div>
       <div class="readout-card">
         <strong>Project load: mostly keeping up, backlog still aged</strong>

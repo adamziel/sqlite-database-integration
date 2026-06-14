@@ -178,6 +178,15 @@ def matrix_card(tone, heading, lead, body, metric):
       </article>"""
 
 
+def ladder_row(tone, label, value, text):
+    return f"""
+      <div class="ladder-row {esc(tone)}">
+        <span>{esc(label)}</span>
+        <strong>{esc(value)}</strong>
+        <p>{esc(text)}</p>
+      </div>""".strip()
+
+
 def main():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
@@ -188,9 +197,11 @@ def main():
         cms_delta = wp_cms - num(market_value(conn, "cms_market_share", date="2025-01-01"))
 
         builtwith_90 = signal(conn, "builtwith_90_day_pipeline")
+        builtwith_30 = signal(conn, "builtwith_30_day_pipeline")
         archive_latest = signal(conn, "http_archive_latest_tracked_share")
         archive_change = signal(conn, "http_archive_tracked_share_change")
         builtwith_90_share = num(builtwith_90.get("wordpress_share_pct"))
+        builtwith_30_share = num(builtwith_30.get("wordpress_share_pct"))
         archive_share = num(archive_latest.get("wordpress_share_pct"))
         archive_delta = num(archive_change.get("wordpress_value"))
 
@@ -366,6 +377,16 @@ def main():
     .matrix-card strong {{ display:block; color:var(--ink); font-size:21px; line-height:1.16; margin-bottom:8px; }}
     .matrix-card p {{ margin-bottom:11px; }}
     .matrix-card span {{ display:block; color:#475569; font-size:13px; font-weight:800; }}
+    .newsite-ladder {{ background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px; margin:20px 0; }}
+    .newsite-ladder h2 {{ margin-top:0; }}
+    .ladder-grid {{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }}
+    .ladder-row {{ border:1px solid var(--line); border-left:5px solid var(--blue); border-radius:8px; padding:12px; background:#fbfdff; min-width:0; }}
+    .ladder-row span {{ display:block; color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.06em; font-weight:800; }}
+    .ladder-row strong {{ display:block; color:var(--ink); font-size:24px; line-height:1.1; margin:5px 0; overflow-wrap:anywhere; }}
+    .ladder-row p {{ margin:0; color:var(--muted); font-size:13px; line-height:1.35; }}
+    .ladder-row.good {{ border-left-color:var(--green); }}
+    .ladder-row.watch {{ border-left-color:var(--amber); }}
+    .ladder-row.softer {{ border-left-color:var(--red); }}
     .metric {{ font-size:32px; font-weight:800; line-height:1; margin:4px 0 8px; }}
     .metric small {{ display:block; color:var(--muted); font-size:13px; font-weight:650; margin-top:6px; line-height:1.3; }}
     .pill {{ display:inline-block; border-radius:999px; padding:4px 9px; background:#eef4ff; color:var(--blue); font-size:12px; font-weight:750; text-transform:uppercase; letter-spacing:.06em; }}
@@ -380,7 +401,7 @@ def main():
     th, td {{ text-align:left; border-bottom:1px solid var(--line); padding:10px 8px; vertical-align:top; overflow-wrap:anywhere; }}
     th {{ color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.06em; }}
     .footer {{ margin-top:24px; color:var(--muted); font-size:13px; }}
-    @media (max-width:860px) {{ main {{ padding:24px 14px 36px; }} .answer, .cards, .two, .lanes, .matrix-grid {{ grid-template-columns:1fr; }} }}
+    @media (max-width:860px) {{ main {{ padding:24px 14px 36px; }} .answer, .cards, .two, .lanes, .matrix-grid, .ladder-grid {{ grid-template-columns:1fr; }} }}
   </style>
 </head>
 <body>
@@ -428,6 +449,17 @@ def main():
 
   <section class="grid cards">
 {cards}
+  </section>
+
+  <section class="newsite-ladder">
+    <h2>New-site Evidence Ladder</h2>
+    <p>Use the first two rows for confidence that WordPress is still widely chosen. Use the last two rows to understand why new-site momentum is labeled as a proxy instead of a complete history.</p>
+    <div class="ladder-grid">
+      {ladder_row("good", "Installed share", f"{pct(wp_all)} / {pct(wp_cms)}", "Direct all-site and CMS-share evidence.")}
+      {ladder_row("soft", "Current pipeline", pct(builtwith_90_share), f"BuiltWith 90-day newly found-site proxy; 30-day share is {pct(builtwith_30_share)}.")}
+      {ladder_row("watch", "Recurring crawl trend", signed_pts(archive_delta), "HTTP Archive tracked-share movement since 2020-01.")}
+      {ladder_row("softer", "True cohort", "Not yet", "Needs first-seen site cohort or paid BuiltWith historical export.")}
+    </div>
   </section>
 
   <section>

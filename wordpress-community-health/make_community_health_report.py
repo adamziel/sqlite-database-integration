@@ -8891,6 +8891,7 @@ p {{ margin:0 0 12px; }}
       <p>Use these alongside the main report depending on whether the reader needs a short decision brief, current progress, source audit, or refresh instructions.</p>
       <div class="link-list">
         <a href="decision_brief.html">Decision brief</a>
+        <a href="work_so_far.html">Work so far</a>
         <a href="progress_summary.html">Progress summary</a>
         <a href="project_load.html">Project load</a>
         <a href="market_position.html">Market position</a>

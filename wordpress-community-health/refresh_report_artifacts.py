@@ -94,6 +94,11 @@ HTML_ARTIFACTS = {
         "Goal audit",
         "make_progress_summary.py",
     ],
+    "work_so_far.html": [
+        "WordPress relevance report: work so far",
+        "Built So Far",
+        "Still Partial",
+    ],
     "refresh_runbook.html": [
         "Refresh runbook",
         "python3 refresh_report_artifacts.py",
@@ -274,6 +279,7 @@ def main():
         run_step([sys.executable, "make_support_load_report.py"])
         run_step([sys.executable, "make_decision_brief.py"])
         run_step([sys.executable, "make_progress_summary.py"])
+        run_step([sys.executable, "make_work_so_far.py"])
         run_step([sys.executable, "make_source_gap_plan.py"])
         run_step([sys.executable, "make_data_inventory.py"])
 

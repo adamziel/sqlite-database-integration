@@ -3958,8 +3958,8 @@ def build_database(data, fetched):
             (
                 "developer_interest_proxy",
                 "partial",
-                "Stack Exchange API question totals by Stack Overflow tag plus Wikimedia Pageviews API",
-                "Quarterly Stack Overflow tag volume, Wikimedia pageviews, and a compact attention/demand summary are included as public attention proxies; they do not measure general search-query interest.",
+                "Stack Exchange API question totals, Wikimedia Pageviews API, GitHub PR activity, and broader developer-community sources",
+                "Quarterly Stack Overflow tag volume, Wikimedia pageviews, wordpress-develop PR activity, and a compact attention/demand summary are included as public attention and contribution proxies; they do not measure general search-query interest.",
             )
         )
     else:
@@ -6488,7 +6488,7 @@ p {{ margin:0 0 12px; }}
     </article>
     <article class="lane-card market">
       <h3><span class="lane-dot"></span>Adoption and demand signals</h3>
-      <p>W3Techs, HTTP Archive, BuiltWith, Stack Overflow, Wikimedia, Hacker News, jobs, and plugin history show market position and demand proxies. See the <a href="market_position.html">market position view</a> for the compact decision readout.</p>
+      <p>W3Techs, HTTP Archive, BuiltWith, Stack Overflow, Wikimedia, Hacker News, jobs, and plugin history show market position and demand proxies. See the <a href="market_position.html">market position view</a> for the compact decision readout and the <a href="developer_interest.html">developer interest view</a> for help-seeking, attention, hiring, and PR activity.</p>
       <ul class="lane-list">
         <li>Best for installed share, CMS share, traffic-tier presence, current newly found-site proxy, and demand direction.</li>
         <li>Search and broad job-market demand remain partial; current proxies are labeled as such.</li>
@@ -7467,6 +7467,7 @@ p {{ margin:0 0 12px; }}
         <a href="progress_summary.html">Progress summary</a>
         <a href="project_load.html">Project load</a>
         <a href="market_position.html">Market position</a>
+        <a href="developer_interest.html">Developer interest</a>
         <a href="contributor_depth.html">Contributor depth</a>
         <a href="ecosystem_activity.html">Ecosystem activity</a>
         <a href="goal_audit.html">Goal audit</a>

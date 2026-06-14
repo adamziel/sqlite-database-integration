@@ -125,7 +125,7 @@ WIKIMEDIA_PAGEVIEWS_API = "https://wikimedia.org/api/rest_v1/metrics/pageviews/p
 WIKIMEDIA_PAGEVIEWS_DOCS_URL = "https://doc.wikimedia.org/generated-data-platform/aqs/analytics-api/reference/page-views.html"
 WPVIP_CASE_STUDY_API = "https://wpvip.com/wp-json/wp/v2/case-study"
 WPVIP_CASE_STUDY_ARCHIVE_URL = "https://wpvip.com/case-studies/"
-STACK_OVERFLOW_TAG_START = dt.datetime(2021, 1, 1, tzinfo=dt.timezone.utc)
+STACK_OVERFLOW_TAG_START = dt.datetime(2010, 1, 1, tzinfo=dt.timezone.utc)
 WIKIMEDIA_PAGEVIEW_START = dt.datetime(2015, 7, 1, tzinfo=dt.timezone.utc)
 STACK_OVERFLOW_TAGS = [
     {"tag": "wordpress", "label": "WordPress", "color": "#2563eb"},
@@ -3745,7 +3745,7 @@ def build_report(data, fetched):
             "points": sorted(
                 (row["quarter"], num(row.get("question_count")))
                 for row in stack_overflow_tags
-                if row.get("tag") == tag_config["tag"] and row.get("quarter") >= "2021-01-01"
+                if row.get("tag") == tag_config["tag"]
             ),
         }
         for tag_config in STACK_OVERFLOW_TAGS

@@ -56,6 +56,7 @@ SOURCE_FILES = {
 
 SKIP_NETWORK_DB_FALLBACK_TABLES = [
     "market_share",
+    "hn_hiring_wordpress_quarterly",
     "builtwith_technology_snapshots",
     "builtwith_technology_history",
     "directory_snapshots",
@@ -110,6 +111,9 @@ CREDITS_API = "https://api.wordpress.org/core/credits/1.1/"
 GITHUB_COMPARE_API = "https://api.github.com/repos/WordPress/wordpress-develop/compare"
 STACK_EXCHANGE_QUESTIONS_API = "https://api.stackexchange.com/2.3/questions"
 STACK_EXCHANGE_DOCS_URL = "https://api.stackexchange.com/docs/questions"
+HN_SEARCH_API = "https://hn.algolia.com/api/v1/search"
+HN_ITEM_API = "https://hn.algolia.com/api/v1/items"
+HN_HIRING_SOURCE_URL = "https://news.ycombinator.com/submitted?id=whoishiring"
 STACK_OVERFLOW_TAG_START = dt.datetime(2021, 1, 1, tzinfo=dt.timezone.utc)
 STACK_OVERFLOW_TAGS = [
     {"tag": "wordpress", "label": "WordPress", "color": "#2563eb"},
@@ -671,6 +675,203 @@ def fetch_stackoverflow_tag_quarterly(skip_network=False):
     if rows:
         write_cached_stackoverflow_tag_quarterly(rows)
     return rows
+
+
+def month_starts(start, end):
+    current = dt.datetime(start.year, start.month, 1, tzinfo=dt.timezone.utc)
+    while current <= end:
+        yield current
+        if current.month == 12:
+            current = dt.datetime(current.year + 1, 1, 1, tzinfo=dt.timezone.utc)
+        else:
+            current = dt.datetime(current.year, current.month + 1, 1, tzinfo=dt.timezone.utc)
+
+
+def hn_hiring_cache_path():
+    return CACHE / "hn-hiring-wordpress-monthly.json"
+
+
+def read_cached_hn_hiring_monthly():
+    path = hn_hiring_cache_path()
+    if not path.exists():
+        return []
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return []
+    rows = payload.get("rows") if isinstance(payload, dict) else payload
+    return rows if isinstance(rows, list) else []
+
+
+def write_cached_hn_hiring_monthly(rows):
+    CACHE.mkdir(parents=True, exist_ok=True)
+    hn_hiring_cache_path().write_text(
+        json.dumps(
+            {
+                "collected_at": dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z"),
+                "source_url": HN_HIRING_SOURCE_URL,
+                "rows": rows,
+            },
+            indent=2,
+            sort_keys=True,
+        ),
+        encoding="utf-8",
+    )
+
+
+def hn_search_url(query, hits_per_page=10):
+    params = {
+        "query": query,
+        "tags": "story",
+        "hitsPerPage": hits_per_page,
+    }
+    return f"{HN_SEARCH_API}?{urllib.parse.urlencode(params)}"
+
+
+def find_hn_hiring_story(month_start):
+    title = f"Ask HN: Who is hiring? ({month_start.strftime('%B')} {month_start.year})"
+    data, _headers = fetch_json(hn_search_url(title))
+    hits = data.get("hits") if isinstance(data, dict) else []
+    if not isinstance(hits, list):
+        hits = []
+    normalized_title = title.lower()
+    for hit in hits:
+        if not isinstance(hit, dict):
+            continue
+        observed_title = str(hit.get("title") or hit.get("story_title") or "").strip()
+        if observed_title.lower() == normalized_title:
+            return str(hit.get("objectID") or ""), observed_title
+    for hit in hits:
+        if not isinstance(hit, dict):
+            continue
+        observed_title = str(hit.get("title") or hit.get("story_title") or "").strip()
+        if "who is hiring?" in observed_title.lower() and month_start.strftime("%B").lower() in observed_title.lower() and str(month_start.year) in observed_title:
+            return str(hit.get("objectID") or ""), observed_title
+    return "", ""
+
+
+WP_HIRING_RE = re.compile(r"\bwordpress\b", re.I)
+WOO_HIRING_RE = re.compile(r"\bwoo\s*commerce\b|\bwoocommerce\b", re.I)
+PHP_HIRING_RE = re.compile(r"\bphp\b", re.I)
+AGENCY_HIRING_RE = re.compile(r"\bagency\b|\bdigital studio\b|\bweb studio\b|\bmarketing agency\b", re.I)
+
+
+def hn_hiring_month_row(month_start, story_id, story_title):
+    source_url = f"https://news.ycombinator.com/item?id={story_id}"
+    data, _headers = fetch_json(f"{HN_ITEM_API}/{story_id}")
+    comments = data.get("children") if isinstance(data, dict) else []
+    if not isinstance(comments, list):
+        comments = []
+    hiring_comments = 0
+    wordpress_comments = 0
+    woocommerce_comments = 0
+    php_comments = 0
+    agency_comments = 0
+    for comment in comments:
+        if not isinstance(comment, dict):
+            continue
+        text = strip_html(comment.get("text") or "")
+        if not text:
+            continue
+        hiring_comments += 1
+        has_wordpress = bool(WP_HIRING_RE.search(text))
+        has_woocommerce = bool(WOO_HIRING_RE.search(text))
+        if has_wordpress:
+            wordpress_comments += 1
+        if has_woocommerce:
+            woocommerce_comments += 1
+        if PHP_HIRING_RE.search(text):
+            php_comments += 1
+        if AGENCY_HIRING_RE.search(text):
+            agency_comments += 1
+    wp_or_woo = 0
+    for comment in comments:
+        if isinstance(comment, dict):
+            text = strip_html(comment.get("text") or "")
+            if WP_HIRING_RE.search(text) or WOO_HIRING_RE.search(text):
+                wp_or_woo += 1
+    return {
+        "month": month_start.strftime("%Y-%m-%d"),
+        "label": month_start.strftime("%Y-%m"),
+        "story_id": story_id,
+        "story_title": story_title,
+        "hiring_comments": hiring_comments,
+        "wordpress_comments": wordpress_comments,
+        "woocommerce_comments": woocommerce_comments,
+        "wordpress_or_woocommerce_comments": wp_or_woo,
+        "php_comments": php_comments,
+        "agency_comments": agency_comments,
+        "wordpress_or_woocommerce_per_100_comments": round(wp_or_woo / hiring_comments * 100, 2) if hiring_comments else 0,
+        "source": "Hacker News monthly Who is hiring? thread top-level comments",
+        "source_url": source_url,
+    }
+
+
+def aggregate_hn_hiring_quarterly(monthly_rows):
+    grouped = defaultdict(list)
+    for row in monthly_rows:
+        q = quarter_start(row.get("month"))
+        if q:
+            grouped[q].append(row)
+    quarterly = []
+    collected_at = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
+    for quarter, rows in sorted(grouped.items()):
+        hiring_comments = sum(num(row.get("hiring_comments")) for row in rows)
+        wp = sum(num(row.get("wordpress_comments")) for row in rows)
+        woo = sum(num(row.get("woocommerce_comments")) for row in rows)
+        wp_or_woo = sum(num(row.get("wordpress_or_woocommerce_comments")) for row in rows)
+        php = sum(num(row.get("php_comments")) for row in rows)
+        agency = sum(num(row.get("agency_comments")) for row in rows)
+        quarterly.append(
+            {
+                "quarter": quarter,
+                "label": quarter_label(quarter),
+                "months_with_thread": len(rows),
+                "hiring_comments": hiring_comments,
+                "wordpress_comments": wp,
+                "woocommerce_comments": woo,
+                "wordpress_or_woocommerce_comments": wp_or_woo,
+                "php_comments": php,
+                "agency_comments": agency,
+                "wordpress_or_woocommerce_per_100_comments": round(wp_or_woo / hiring_comments * 100, 2) if hiring_comments else 0,
+                "story_ids": ",".join(str(row.get("story_id") or "") for row in rows if row.get("story_id")),
+                "source_urls": ",".join(str(row.get("source_url") or "") for row in rows if row.get("source_url")),
+                "source": "Hacker News monthly Who is hiring? thread top-level comments",
+                "source_url": HN_HIRING_SOURCE_URL,
+                "collected_at": collected_at,
+            }
+        )
+    return quarterly
+
+
+def fetch_hn_hiring_wordpress_quarterly(skip_network=False):
+    cached_rows = read_cached_hn_hiring_monthly()
+    by_month = {
+        row.get("month"): dict(row)
+        for row in cached_rows
+        if isinstance(row, dict) and row.get("month")
+    }
+    expected_months = [month.strftime("%Y-%m-%d") for month in month_starts(STACK_OVERFLOW_TAG_START, END)]
+    if skip_network or set(expected_months).issubset(set(by_month)):
+        return aggregate_hn_hiring_quarterly([by_month[month] for month in expected_months if month in by_month])
+
+    for month_start in month_starts(STACK_OVERFLOW_TAG_START, END):
+        month = month_start.strftime("%Y-%m-%d")
+        if month in by_month:
+            continue
+        try:
+            story_id, story_title = find_hn_hiring_story(month_start)
+            if not story_id:
+                eprint(f"HN Who is hiring thread not found for {month}")
+                continue
+            by_month[month] = hn_hiring_month_row(month_start, story_id, story_title)
+            time.sleep(0.12)
+        except Exception as exc:
+            eprint(f"HN Who is hiring fetch failed for {month}: {exc}")
+    monthly_rows = [by_month[month] for month in expected_months if month in by_month]
+    if monthly_rows:
+        write_cached_hn_hiring_monthly(monthly_rows)
+    return aggregate_hn_hiring_quarterly(monthly_rows)
 
 
 def builtwith_cache_path(technology):
@@ -2112,9 +2313,9 @@ def build_database(data, fetched):
             ),
             (
                 "job_demand",
-                "missing",
-                "Hiring platform or labor-market time-series export",
-                "No public job-posting time series is wired in yet.",
+                "partial",
+                "Hacker News monthly Who is hiring? threads plus hiring-platform exports",
+                "HN Who is hiring WordPress/WooCommerce mention counts are included as a narrow startup-hiring proxy; broader job-board demand still needs a labor-market source.",
             ),
         ]
     )
@@ -2714,6 +2915,7 @@ def source_status_rows(fetched):
         ("HTTP Archive/Web Almanac", "covered", "2025 CMS adoption snapshot and high-traffic context"),
         ("BuiltWith ecommerce history", "covered" if fetched.get("builtwith_technology_history") else "missing", "Shopify and WooCommerce live-site counts by traffic tier"),
         ("Stack Overflow tag volume", "covered" if fetched.get("stack_overflow_tag_quarterly") else "missing", "Quarterly public developer-attention proxy from Stack Exchange API tag totals"),
+        ("HN hiring mentions", "partial" if fetched.get("hn_hiring_wordpress_quarterly") else "missing", "WordPress/WooCommerce mentions in monthly Hacker News Who is hiring threads; not a broad job-board index"),
         ("WordPress.org plugin/theme directories", "covered" if fetched.get("directory_snapshots") else "missing", "Current plugin and theme counts"),
         ("Plugin/theme directory activity", "covered" if fetched.get("directory_activity_snapshots") else "missing", "Current new, updated, and popular samples from WordPress.org directory APIs"),
         ("Major plugin install base", "partial" if fetched.get("major_plugin_install_snapshot") else "missing", "Current fixed-slug plugin API snapshot; historical growth still requires archived snapshots"),
@@ -2739,8 +2941,8 @@ def source_status_rows(fetched):
         ),
         (
             "Search interest and job demand",
-            "missing",
-            "General web search trends and hiring-platform time series are not included; Stack Overflow tag volume is only a developer-attention proxy",
+            "partial" if fetched.get("hn_hiring_wordpress_quarterly") else "missing",
+            "General web search trends and broad hiring-platform time series are not included; Stack Overflow and HN are narrow developer/demand proxies",
         ),
     ]
     return rows
@@ -2760,6 +2962,7 @@ def build_report(data, fetched):
     classifications = data["classification_trend"]
     market_rows = fetched.get("market_share", [])
     stack_overflow_tags = fetched.get("stack_overflow_tag_quarterly", [])
+    hn_hiring_q = fetched.get("hn_hiring_wordpress_quarterly", [])
     wordcamps = fetched.get("wordcamps", [])
     wordcamp_yearly = fetched.get("wordcamp_yearly", [])
     wp_event_snapshots = fetched.get("wp_event_snapshots", [])
@@ -3032,6 +3235,32 @@ def build_report(data, fetched):
         default={},
     )
     so_wp_delta = num(latest_so_wp.get("question_count")) - num(previous_so_wp.get("question_count")) if latest_so_wp and previous_so_wp else None
+    hn_hiring_series = [
+        {
+            "label": "WordPress/WooCommerce",
+            "color": COLORS["wordpress"],
+            "points": point_series(hn_hiring_q, "quarter", "wordpress_or_woocommerce_comments", "2021-01-01"),
+        },
+        {
+            "label": "PHP",
+            "color": COLORS["purple"],
+            "points": point_series(hn_hiring_q, "quarter", "php_comments", "2021-01-01"),
+        },
+        {
+            "label": "Agency/studio",
+            "color": COLORS["orange"],
+            "points": point_series(hn_hiring_q, "quarter", "agency_comments", "2021-01-01"),
+        },
+    ]
+    hn_hiring_share_series = [
+        {
+            "label": "WP/Woo mentions per 100 posts",
+            "color": COLORS["wordpress"],
+            "points": point_series(hn_hiring_q, "quarter", "wordpress_or_woocommerce_per_100_comments", "2021-01-01"),
+        }
+    ]
+    latest_hn_hiring = max(hn_hiring_q, key=lambda row: row.get("quarter", ""), default={})
+    hn_hiring_months = sum(num(row.get("months_with_thread")) for row in hn_hiring_q)
 
     plugin_count = num(directory.get("plugin_directory_plugins", {}).get("value"))
     theme_count = num(directory.get("theme_directory_themes", {}).get("value"))
@@ -3516,6 +3745,19 @@ p {{ margin:0 0 12px; }}
       </div>
     </div>
     <div class="grid-2">
+      {svg_line_chart("HN Who is hiring mentions", "Quarterly top-level comments in Hacker News monthly Who is hiring threads that mention WordPress, WooCommerce, PHP, or agencies/studios.", hn_hiring_series)}
+      {svg_line_chart("WP/Woo hiring mention share", "Mentions per 100 top-level Who is hiring comments.", hn_hiring_share_series)}
+    </div>
+    <div class="card">
+      <h3>Hiring-proxy readout</h3>
+      <p>This is a narrow startup-hiring proxy from HN threads, not a complete job-market view. It is useful mainly as a directional developer-demand signal.</p>
+      <div class="stats">
+        {stat_card("Latest WP/Woo mentions", compact(num(latest_hn_hiring.get("wordpress_or_woocommerce_comments"))), latest_hn_hiring.get("label", "not fetched"), "soft")}
+        {stat_card("Per 100 posts", pct(float(latest_hn_hiring.get("wordpress_or_woocommerce_per_100_comments") or 0)), "WP/Woo mentions in latest quarter", "soft")}
+        {stat_card("Thread coverage", compact(hn_hiring_months), "monthly hiring threads parsed", "good" if hn_hiring_months else "watch")}
+      </div>
+    </div>
+    <div class="grid-2">
       <div class="card">
         <h3>Newly found site pipeline</h3>
         <p>BuiltWith public Net New Pipeline counts for the last 90 days. Squarespace's top-level CMS page does not expose new-site counts, so it is excluded from this share.</p>
@@ -3660,6 +3902,7 @@ def main():
         args.skip_network
     )
     fetched["stack_overflow_tag_quarterly"] = fetch_stackoverflow_tag_quarterly(args.skip_network)
+    fetched["hn_hiring_wordpress_quarterly"] = fetch_hn_hiring_wordpress_quarterly(args.skip_network)
     fetched["directory_snapshots"] = fetch_wordpress_directory_snapshots(args.skip_network)
     (
         fetched["directory_activity_snapshots"],

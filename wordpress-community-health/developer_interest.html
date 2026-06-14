@@ -53,21 +53,29 @@
     .package-row strong { display:block; line-height:1.2; }
     .package-row span { color:var(--muted); font-size:13px; overflow-wrap:anywhere; }
     .package-row b { white-space:nowrap; font-size:18px; }
+    .topic-row { border:1px solid var(--line); border-radius:8px; padding:11px 12px; background:#fbfdff; }
+    .topic-top { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; }
+    .topic-top strong { display:block; line-height:1.2; }
+    .topic-top span { color:var(--muted); font-size:13px; overflow-wrap:anywhere; }
+    .topic-top b { white-space:nowrap; font-size:18px; }
+    .topic-track { height:8px; border-radius:999px; background:#e8eef6; overflow:hidden; margin-top:9px; }
+    .topic-track i { display:block; height:100%; border-radius:999px; background:linear-gradient(90deg,var(--blue),var(--green)); }
     .footer-note { margin-top:18px; font-size:13px; }
     @media (max-width:960px) {
       main { padding:24px 14px 36px; }
       .metrics, .grid, .charts { grid-template-columns:1fr; }
       .metric { min-height:auto; }
       .signal-row { align-items:flex-start; flex-direction:column; }
-      .signal-row b, .package-row b { white-space:normal; }
+      .signal-row b, .package-row b, .topic-top b { white-space:normal; }
       .package-row { align-items:flex-start; flex-direction:column; }
+      .topic-top { flex-direction:column; }
     }
   </style>
 </head>
 <body>
 <main>
   <h1>WordPress developer interest</h1>
-    <p class="lede">A compact readout of developer-attention and demand proxies already stored in SQLite: Stack Overflow questions, Wikipedia pageviews, npm package downloads, GitHub repository interest, Hacker News hiring mentions, WordPress Jobs snapshots, and wordpress-develop PR plus review-comment activity.</p>
+    <p class="lede">A compact readout of developer-attention and demand proxies already stored in SQLite: Stack Overflow questions, Wikipedia pageviews, npm and Composer package downloads, GitHub repository interest and topic breadth, Hacker News hiring mentions, WordPress Jobs snapshots, and wordpress-develop PR plus review-comment activity.</p>
     <nav class="nav">
       <a href="index.html#market">Market Position</a>
       <a href="index.html#participation">Participation</a>
@@ -112,6 +120,11 @@
         <h3>GitHub repo interest</h3>
         <strong>32.3k</strong>
         <p>20.9k forks across 5 tracked repos</p>
+      </article>
+      <article class="metric green">
+        <h3>GitHub topic repos</h3>
+        <strong>52.0k</strong>
+        <p>6 topic searches collected 2026-06-14</p>
       </article>
       <article class="metric amber">
         <h3>HN WP/Woo hiring rate</h3>
@@ -182,6 +195,13 @@
           </div>
           <b>32.3k stars</b>
         </div>
+        <div class="signal-row green">
+          <div>
+            <strong>GitHub ecosystem breadth is visible</strong>
+            <span>GitHub topic search finds the largest selected topic as WordPress topic. This is public repository breadth, not active maintainer headcount.</span>
+          </div>
+          <b>28.5k repos</b>
+        </div>
         <div class="signal-row amber">
           <div>
             <strong>Hiring proxies are narrower and lower</strong>
@@ -194,7 +214,7 @@
     <article class="section">
       <h2>How to read this</h2>
       <p>This page separates public attention, developer help-seeking, code-review participation, and hiring proxies. Lower help questions can mean less interest, fewer Stack Overflow users, better docs, or answers moving elsewhere, so it should not be read as adoption by itself.</p>
-      <p class="callout">Quarterly Stack Overflow tag volume, Wikimedia pageviews, npm @wordpress package downloads, Packagist Composer package snapshots, wordpress-develop PR and line review-comment activity, GitHub repository interest snapshots, and a compact attention/demand summary are included as public attention and contribution proxies; they do not measure general search-query interest.</p>
+      <p class="callout">Quarterly Stack Overflow tag volume, Wikimedia pageviews, npm @wordpress package downloads, Packagist Composer package snapshots, wordpress-develop PR and line review-comment activity, GitHub repository interest and topic-search snapshots, and a compact attention/demand summary are included as public attention and contribution proxies; they do not measure general search-query interest.</p>
     </article>
   </section>
 
@@ -358,6 +378,73 @@
         </div>
       </div>
     </article>
+    <article class="chart-card">
+      <h2>GitHub topic snapshot</h2>
+      <p>Current public repository-search totals for selected WordPress ecosystem topics. This is repository breadth, not active contributor count.</p>
+      <div class="package-list">
+
+        <div class="topic-row">
+          <div class="topic-top">
+            <div>
+              <strong>WordPress topic</strong>
+              <span>topic:wordpress · top repo: digitalocean/nginxconfig.io</span>
+            </div>
+            <b>28.5k</b>
+          </div>
+          <div class="topic-track"><i style="width:100.0%"></i></div>
+        </div>
+        <div class="topic-row">
+          <div class="topic-top">
+            <div>
+              <strong>Plugin topic</strong>
+              <span>topic:wordpress-plugin · top repo: WordPress/gutenberg</span>
+            </div>
+            <b>14.8k</b>
+          </div>
+          <div class="topic-track"><i style="width:52.1%"></i></div>
+        </div>
+        <div class="topic-row">
+          <div class="topic-top">
+            <div>
+              <strong>Theme topic</strong>
+              <span>topic:wordpress-theme · top repo: roots/sage</span>
+            </div>
+            <b>4,282</b>
+          </div>
+          <div class="topic-track"><i style="width:15.0%"></i></div>
+        </div>
+        <div class="topic-row">
+          <div class="topic-top">
+            <div>
+              <strong>WooCommerce topic</strong>
+              <span>topic:woocommerce · top repo: woocommerce/woocommerce</span>
+            </div>
+            <b>2,895</b>
+          </div>
+          <div class="topic-track"><i style="width:10.2%"></i></div>
+        </div>
+        <div class="topic-row">
+          <div class="topic-top">
+            <div>
+              <strong>Gutenberg topic</strong>
+              <span>topic:gutenberg · top repo: WordPress/gutenberg</span>
+            </div>
+            <b>1,019</b>
+          </div>
+          <div class="topic-track"><i style="width:3.6%"></i></div>
+        </div>
+        <div class="topic-row">
+          <div class="topic-top">
+            <div>
+              <strong>WP-CLI topic</strong>
+              <span>topic:wp-cli · top repo: wp-cli/wp-cli</span>
+            </div>
+            <b>461</b>
+          </div>
+          <div class="topic-track"><i style="width:1.6%"></i></div>
+        </div>
+      </div>
+    </article>
 <article class="chart-card">
 <h2>GitHub PR flow</h2>
 <p>Quarterly wordpress-develop pull requests. This is project contribution activity, not market demand.</p>
@@ -463,7 +550,7 @@
 </article>
   </section>
 
-  <p class="footer-note">Rows come from <code>stack_overflow_tag_quarterly</code>, <code>wikimedia_pageviews_quarterly</code>, <code>npm_wordpress_downloads_quarterly</code>, <code>packagist_package_snapshot</code> collected 2026-06-14, <code>github_repo_interest_snapshot</code> collected 2026-06-14, <code>hn_hiring_wordpress_quarterly</code>, <code>wordpress_jobs_board_snapshots</code>, <code>github_pr_quarterly</code>, <code>github_pr_review_comments_quarterly</code>, and <code>attention_demand_summary</code>. Integrity check: <code>ok</code>.</p>
+  <p class="footer-note">Rows come from <code>stack_overflow_tag_quarterly</code>, <code>wikimedia_pageviews_quarterly</code>, <code>npm_wordpress_downloads_quarterly</code>, <code>packagist_package_snapshot</code> collected 2026-06-14, <code>github_repo_interest_snapshot</code> collected 2026-06-14, <code>github_repo_search_snapshot</code> collected 2026-06-14, <code>hn_hiring_wordpress_quarterly</code>, <code>wordpress_jobs_board_snapshots</code>, <code>github_pr_quarterly</code>, <code>github_pr_review_comments_quarterly</code>, and <code>attention_demand_summary</code>. Integrity check: <code>ok</code>.</p>
 </main>
 </body>
 </html>

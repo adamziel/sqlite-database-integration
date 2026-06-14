@@ -60,6 +60,7 @@ HTML_ARTIFACTS = {
         "Developer-help questions",
         "Package ecosystem activity",
         "Composer package snapshot",
+        "GitHub topic snapshot",
         "GitHub code-review comments",
     ],
     "job_demand.html": [

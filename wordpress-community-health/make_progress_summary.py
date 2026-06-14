@@ -82,7 +82,7 @@ def timeline_item(label, body):
 GAP_SUMMARIES = {
     "developer_interest_proxy": {
         "title": "Developer interest",
-        "current": "Stack Overflow, Wikimedia, npm downloads, Packagist Composer package snapshots, GitHub PRs, GitHub review comments, and repository-interest snapshots are in.",
+        "current": "Stack Overflow, Wikimedia, npm downloads, Packagist Composer package snapshots, GitHub PRs, GitHub review comments, repository-interest snapshots, and GitHub topic-search breadth are in.",
         "next": "Add another stable developer-community source if available.",
     },
     "job_demand": {
@@ -215,7 +215,7 @@ def main():
             link_card("Contributor depth", "Drive-by, repeat, regular, and sustained participation readout.", "contributor_depth.html", "green"),
             link_card("Market position", "Installed-share, current new-site proxy, and demand direction readout.", "market_position.html", "amber"),
             link_card("New-site choice", "Current newly found-site, recurring crawl, and traffic-tier readout.", "new_site_choice.html", "amber"),
-            link_card("Developer interest", "Help-seeking, public attention, npm and Packagist packages, hiring proxies, PR flow, and review-comment activity.", "developer_interest.html", "amber"),
+            link_card("Developer interest", "Help-seeking, public attention, npm and Packagist packages, GitHub topic breadth, hiring proxies, PR flow, and review-comment activity.", "developer_interest.html", "amber"),
             link_card("Search interest", "Wikimedia pageviews, Stack Overflow questions, and autocomplete query-intent snapshots.", "search_interest.html", "amber"),
             link_card("Job demand", "HN hiring mentions, Remote OK current jobs, WordPress Jobs snapshots, and jobs-board categories.", "job_demand.html", "amber"),
             link_card("Ecosystem activity", "Non-ticket community channels, plugin breadth, and current ecosystem snapshots.", "ecosystem_activity.html", "green"),
@@ -234,7 +234,7 @@ def main():
             timeline_item("Tickets", "Built quarterly Core Trac and Gutenberg GitHub metrics for new/closed flow, backlog, reporters, first-time reporters, bug/feature mix, response time, closure time, stale share, and contributor concentration."),
             timeline_item("Classification", "Loaded bug, feature request, documentation, support, and other classification outputs into the SQLite-backed pipeline."),
             timeline_item("Ecosystem", "Added Core release credits and committers, Make/Core posts and comments, dev notes, WordCamps, events, translation snapshots, Five for the Future, support snapshots, plugin/theme directory samples, plugin search breadth, major plugin stats, and enterprise case studies."),
-            timeline_item("Adoption", "Added W3Techs, HTTP Archive, BuiltWith, WordPress.org stats, Stack Overflow, Wikimedia, autocomplete query-intent snapshots, Packagist Composer package snapshots, Hacker News hiring threads, Remote OK current jobs, WordPress Jobs snapshots, compact new-site summaries, and attention/demand proxy summaries."),
+            timeline_item("Adoption", "Added W3Techs, HTTP Archive, BuiltWith, WordPress.org stats, Stack Overflow, Wikimedia, autocomplete query-intent snapshots, Packagist Composer package snapshots, GitHub topic-search breadth, Hacker News hiring threads, Remote OK current jobs, WordPress Jobs snapshots, compact new-site summaries, and attention/demand proxy summaries."),
             timeline_item("Companions", 'Added focused pages for <a href="project_load.html">Project Load</a>, <a href="market_position.html">Market Position</a>, <a href="new_site_choice.html">New-site Choice</a>, <a href="search_interest.html">Search Interest</a>, <a href="developer_interest.html">Developer Interest</a>, <a href="job_demand.html">Job Demand</a>, <a href="support_load.html">Support Load</a>, <a href="contributor_depth.html">Contributor Depth</a>, <a href="ecosystem_activity.html">Ecosystem Activity</a>, and <a href="source_gap_plan.html">Source Gap Plan</a>.'),
             timeline_item("Decision brief", "Added <code>make_decision_brief.py</code> so installed share, current new-site proxy, closure ratios, first-time reporter retention, backlog age, contributor concentration, npm package downloads, and theme sample counts regenerate from SQLite."),
             timeline_item("Progress summary", "Added <code>make_progress_summary.py</code> so this progress page is regenerated from SQLite counts and the current report artifact list."),
@@ -380,7 +380,7 @@ def main():
     <p class="lede">This is the working state as of June 14, 2026. The active direction is the WordPress Community & Adoption Health report, not the SQLite benchmark runner. The public report opens with a decision scorecard, a Decision Questions checklist, visible data-source strength, a SQLite-generated decision brief, and this SQLite-generated progress summary.</p>
 
     <section class="grid cards">
-{card("Database", compact(table_count), "tables", "SQLite stores imported ticket data, fetched ecosystem data, npm and Packagist package snapshots, source hashes, generated summaries, and known source gaps.", "green", 92)}
+{card("Database", compact(table_count), "tables", "SQLite stores imported ticket data, fetched ecosystem data, npm, Packagist, and GitHub topic snapshots, source hashes, generated summaries, and known source gaps.", "green", 92)}
 {card("Ticket records", compact(ticket_total), "items", f"{compact(core_count)} Core Trac tickets plus {compact(gut_count)} Gutenberg GitHub issues are loaded for quarterly analysis.", "green", 96)}
 {card("Package signal", compact(npm_downloads), quarter_label(npm_quarter), "Tracked @wordpress npm package downloads add developer/package activity beyond help-question volume.", "green", 78)}
 {card("Known gaps", compact(partial_gaps), f"of {compact(source_gaps)} partial", "Remaining ideal sources are true new-site history, search-provider data, broad hiring demand, longer support history, and another stable developer-community source.", "amber", 35)}

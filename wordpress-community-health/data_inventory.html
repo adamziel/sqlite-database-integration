@@ -146,7 +146,7 @@
     </nav>
 
     <section class="grid metrics" aria-label="Database summary">
-      <div class="metric"><h3>Tables</h3><strong>95</strong><span>SQLite tables in the report database.</span></div>
+      <div class="metric"><h3>Tables</h3><strong>96</strong><span>SQLite tables in the report database.</span></div>
       <div class="metric"><h3>Local sources</h3><strong>19</strong><span>Imported files with SHA-256 hashes.</span></div>
       <div class="metric"><h3>Tickets/issues</h3><strong>97.1k</strong><span>Core Trac tickets plus Gutenberg issues.</span></div>
       <div class="metric"><h3>Pull requests</h3><strong>12.1k</strong><span>wordpress-develop GitHub PR records.</span></div>
@@ -229,6 +229,11 @@
           <strong><code>packagist_package_snapshot</code></strong>
           <p>Current Composer package downloads, favorites, dependents, and release timestamps.</p>
         </article>
+
+        <article class="family-card">
+          <strong><code>github_repo_search_snapshot</code></strong>
+          <p>Current GitHub repository-search totals and top matching repositories for selected WordPress ecosystem topics.</p>
+        </article>
         </div>
       </div>
     </section>
@@ -289,6 +294,7 @@
 <div class="table-chip"><code>github_pr_review_comments_quarterly</code><span>31 rows</span></div>
 <div class="table-chip"><code>github_prs</code><span>12.1k rows</span></div>
 <div class="table-chip"><code>github_repo_interest_snapshot</code><span>5 rows</span></div>
+<div class="table-chip"><code>github_repo_search_snapshot</code><span>6 rows</span></div>
 <div class="table-chip"><code>gutenberg_issues</code><span>32.1k rows</span></div>
 <div class="table-chip"><code>gutenberg_issues_jsonl</code><span>32.1k rows</span></div>
 <div class="table-chip"><code>gutenberg_quarterly</code><span>21 rows</span></div>
@@ -500,9 +506,9 @@
           <span class="status">partial</span>
           <strong>Developer Interest Proxy</strong>
           <b>Best next source</b>
-          <p>Stack Exchange API question totals, Wikimedia Pageviews API, npm package downloads, GitHub PR/repository/review activity, and broader developer-community sources</p>
+          <p>Stack Exchange API question totals, Wikimedia Pageviews API, npm package downloads, GitHub PR/repository/topic/review activity, and broader developer-community sources</p>
           <b>Current coverage</b>
-          <p>Quarterly Stack Overflow tag volume, Wikimedia pageviews, npm @wordpress package downloads, Packagist Composer package snapshots, wordpress-develop PR and line review-comment activity, GitHub repository interest snapshots, and a compact attention/demand summary are included as public attention and contribution proxies; they do not measure general search-query interest.</p>
+          <p>Quarterly Stack Overflow tag volume, Wikimedia pageviews, npm @wordpress package downloads, Packagist Composer package snapshots, wordpress-develop PR and line review-comment activity, GitHub repository interest and topic-search snapshots, and a compact attention/demand summary are included as public attention and contribution proxies; they do not measure general search-query interest.</p>
         </article>
 
         <article class="gap-card">

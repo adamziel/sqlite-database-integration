@@ -50,7 +50,7 @@ PLAN = {
         "label": "Developer interest",
         "order": "5",
         "color": "violet",
-        "next_step": "Keep Stack Overflow, Wikimedia, npm and Packagist package snapshots, GitHub PR activity, and GitHub review-comment activity, then add another developer-community source if a stable public source is available.",
+        "next_step": "Keep Stack Overflow, Wikimedia, npm and Packagist package snapshots, GitHub PR activity, GitHub topic-search breadth, and GitHub review-comment activity, then add another developer-community source if a stable public source is available.",
         "target_tables": ["developer_interest_quarterly", "packagist_package_snapshot"],
         "success": "Developer-attention rows that combine help questions, public attention, package use, Composer ecosystem usage, and contribution activity.",
         "why": "Distinguishes fewer public help questions from actual developer adoption or migration.",

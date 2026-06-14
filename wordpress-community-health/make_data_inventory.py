@@ -180,6 +180,7 @@ def render():
         ("major_plugin_*", "Major plugin installs, historical snapshots, support counts, and downloads."),
         ("plugin_search_snapshot", "Current WordPress.org plugin search-result counts and top matching plugins by category."),
         ("packagist_package_snapshot", "Current Composer package downloads, favorites, dependents, and release timestamps."),
+        ("github_repo_search_snapshot", "Current GitHub repository-search totals and top matching repositories for selected WordPress ecosystem topics."),
     ]
 
     html_doc = f"""<!doctype html>

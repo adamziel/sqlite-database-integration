@@ -66,6 +66,7 @@ SKIP_NETWORK_DB_FALLBACK_TABLES = [
     "search_query_suggestions",
     "search_query_intent_summary",
     "packagist_package_snapshot",
+    "github_repo_search_snapshot",
     "npm_wordpress_downloads_monthly",
     "npm_wordpress_downloads_quarterly",
     "github_repo_interest_snapshot",
@@ -161,6 +162,7 @@ RELEASE_ARCHIVE_URL = "https://wordpress.org/download/releases/"
 CREDITS_API = "https://api.wordpress.org/core/credits/1.1/"
 GITHUB_COMPARE_API = "https://api.github.com/repos/WordPress/wordpress-develop/compare"
 GITHUB_REPO_API = "https://api.github.com/repos"
+GITHUB_SEARCH_REPOSITORIES_API = "https://api.github.com/search/repositories"
 GITHUB_PR_REVIEW_COMMENTS_API = "https://api.github.com/repos/WordPress/wordpress-develop/pulls/comments"
 GITHUB_PR_REVIEW_COMMENTS_CACHE = ROOT / "cache" / "github-wordpress-develop-review-comments.json"
 GITHUB_INTEREST_REPOS = [
@@ -169,6 +171,14 @@ GITHUB_INTEREST_REPOS = [
     ("WP-CLI", "wp-cli", "Command-line tooling"),
     ("woocommerce", "woocommerce", "Commerce plugin"),
     ("Automattic", "jetpack", "Major plugin suite"),
+]
+GITHUB_REPO_SEARCH_QUERIES = [
+    {"query": "topic:wordpress", "label": "WordPress topic", "category": "ecosystem"},
+    {"query": "topic:wordpress-plugin", "label": "Plugin topic", "category": "plugin"},
+    {"query": "topic:wordpress-theme", "label": "Theme topic", "category": "theme"},
+    {"query": "topic:woocommerce", "label": "WooCommerce topic", "category": "commerce"},
+    {"query": "topic:gutenberg", "label": "Gutenberg topic", "category": "editor"},
+    {"query": "topic:wp-cli", "label": "WP-CLI topic", "category": "tooling"},
 ]
 STACK_EXCHANGE_QUESTIONS_API = "https://api.stackexchange.com/2.3/questions"
 STACK_EXCHANGE_DOCS_URL = "https://api.stackexchange.com/docs/questions"
@@ -687,6 +697,103 @@ def fetch_github_repo_interest_snapshot(skip_network=False):
             }
         )
         time.sleep(0.05)
+    return rows
+
+
+def github_repo_search_cache_path():
+    return CACHE / "github-repo-search-snapshot.json"
+
+
+def read_cached_github_repo_search_snapshot():
+    path = github_repo_search_cache_path()
+    if not path.exists():
+        return []
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return []
+    rows = payload.get("rows") if isinstance(payload, dict) else payload
+    return rows if isinstance(rows, list) else []
+
+
+def write_cached_github_repo_search_snapshot(rows):
+    CACHE.mkdir(parents=True, exist_ok=True)
+    github_repo_search_cache_path().write_text(
+        json.dumps(
+            {
+                "collected_at": dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z"),
+                "source_url": GITHUB_SEARCH_REPOSITORIES_API,
+                "rows": rows,
+            },
+            indent=2,
+            sort_keys=True,
+        ),
+        encoding="utf-8",
+    )
+
+
+def github_repo_search_url(query):
+    params = urllib.parse.urlencode(
+        {
+            "q": query,
+            "sort": "stars",
+            "order": "desc",
+            "per_page": "1",
+        }
+    )
+    return f"{GITHUB_SEARCH_REPOSITORIES_API}?{params}"
+
+
+def fetch_github_repo_search_snapshot(skip_network=False):
+    cached_rows = read_cached_github_repo_search_snapshot()
+    if cached_rows:
+        cached_dates = {str(row.get("collected_at", ""))[:10] for row in cached_rows if row.get("collected_at")}
+        today = dt.datetime.now(dt.timezone.utc).date().isoformat()
+        if skip_network or today in cached_dates:
+            return cached_rows
+    if skip_network:
+        return cached_rows
+
+    token = credential_from_git()
+    collected_at = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
+    rows = []
+    for config in GITHUB_REPO_SEARCH_QUERIES:
+        query = config["query"]
+        api_url = github_repo_search_url(query)
+        try:
+            payload, _headers = github_json(api_url, token=token, use_cache=False)
+        except urllib.error.HTTPError as exc:
+            eprint(f"GitHub repo search unavailable for {query}: HTTP {exc.code}")
+            continue
+        except Exception as exc:
+            eprint(f"GitHub repo search unavailable for {query}: {exc}")
+            continue
+        items = payload.get("items") if isinstance(payload, dict) else []
+        top = items[0] if items else {}
+        rows.append(
+            {
+                "collected_at": collected_at,
+                "query": query,
+                "label": config["label"],
+                "category": config["category"],
+                "total_count": int(num(payload.get("total_count"))) if isinstance(payload, dict) else 0,
+                "incomplete_results": str(bool(payload.get("incomplete_results"))) if isinstance(payload, dict) else "",
+                "top_full_name": top.get("full_name", "") if isinstance(top, dict) else "",
+                "top_stars": int(num(top.get("stargazers_count"))) if isinstance(top, dict) else 0,
+                "top_forks": int(num(top.get("forks_count"))) if isinstance(top, dict) else 0,
+                "top_language": top.get("language", "") if isinstance(top, dict) else "",
+                "top_updated_at": top.get("updated_at", "") if isinstance(top, dict) else "",
+                "top_pushed_at": top.get("pushed_at", "") if isinstance(top, dict) else "",
+                "top_description": top.get("description", "") if isinstance(top, dict) else "",
+                "top_source_url": top.get("html_url", "") if isinstance(top, dict) else "",
+                "source": "GitHub repository search API topic snapshot",
+                "source_url": api_url,
+            }
+        )
+        time.sleep(0.15)
+    rows.sort(key=lambda row: (-num(row.get("total_count")), row.get("label", "")))
+    if rows:
+        write_cached_github_repo_search_snapshot(rows)
     return rows
 
 
@@ -5001,8 +5108,8 @@ def build_database(data, fetched):
             (
                 "developer_interest_proxy",
                 "partial",
-                "Stack Exchange API question totals, Wikimedia Pageviews API, npm package downloads, GitHub PR/repository/review activity, and broader developer-community sources",
-                "Quarterly Stack Overflow tag volume, Wikimedia pageviews, npm @wordpress package downloads, Packagist Composer package snapshots, wordpress-develop PR and line review-comment activity, GitHub repository interest snapshots, and a compact attention/demand summary are included as public attention and contribution proxies; they do not measure general search-query interest.",
+                "Stack Exchange API question totals, Wikimedia Pageviews API, npm package downloads, GitHub PR/repository/topic/review activity, and broader developer-community sources",
+                "Quarterly Stack Overflow tag volume, Wikimedia pageviews, npm @wordpress package downloads, Packagist Composer package snapshots, wordpress-develop PR and line review-comment activity, GitHub repository interest and topic-search snapshots, and a compact attention/demand summary are included as public attention and contribution proxies; they do not measure general search-query interest.",
             )
         )
     else:
@@ -6230,6 +6337,7 @@ def source_status_rows(fetched):
         ("Wikimedia pageviews", "covered" if fetched.get("wikimedia_pageviews_quarterly") else "missing", "Quarterly en.wikipedia article pageviews as a public-interest proxy, not search-query volume"),
         ("Search query suggestions", "covered" if fetched.get("search_query_suggestions") else "missing", "Current Google autocomplete suggestions for selected WordPress, developer, alternatives, and comparison queries; not search volume"),
         ("Packagist WordPress packages", "covered" if fetched.get("packagist_package_snapshot") else "missing", "Current Composer package downloads, favorites, dependents, and release timestamps for selected WordPress packages and tooling"),
+        ("GitHub repo topic search", "covered" if fetched.get("github_repo_search_snapshot") else "missing", "Current GitHub repository-search totals and top matching repositories for selected WordPress ecosystem topics"),
         ("WordPress npm packages", "covered" if fetched.get("npm_wordpress_downloads_quarterly") else "missing", "Quarterly npm downloads for selected @wordpress packages as package-ecosystem activity, not developer headcount"),
         ("GitHub repo interest snapshot", "covered" if fetched.get("github_repo_interest_snapshot") else "missing", "Current stars, forks, subscribers, open issues, and activity timestamps for selected WordPress ecosystem repositories"),
         ("GitHub PR review comments", "covered" if fetched.get("github_pr_review_comments_quarterly") else "missing", "Quarterly wordpress-develop line review-comment activity from GitHub pull-request review comments"),
@@ -6318,6 +6426,7 @@ def build_report(data, fetched):
     search_suggestions = fetched.get("search_query_suggestions", [])
     search_intent_summary = fetched.get("search_query_intent_summary", [])
     packagist_packages = fetched.get("packagist_package_snapshot", [])
+    github_repo_search = fetched.get("github_repo_search_snapshot", [])
     review_comments_q = fetched.get("github_pr_review_comments_quarterly", [])
     hn_hiring_q = fetched.get("hn_hiring_wordpress_quarterly", [])
     hn_hiring_summary = fetched.get("hn_hiring_demand_summary", [])
@@ -7031,6 +7140,11 @@ def build_report(data, fetched):
     packagist_dependents = sum(num(row.get("dependents")) for row in packagist_packages)
     packagist_snapshot_date = (packagist_top.get("collected_at", "") or "")[:10] if packagist_top else "not fetched"
     max_packagist_monthly = max([num(row.get("downloads_monthly")) for row in packagist_sorted] or [1])
+    github_repo_search_sorted = sorted(github_repo_search, key=lambda row: num(row.get("total_count")), reverse=True)
+    github_repo_search_total = sum(num(row.get("total_count")) for row in github_repo_search)
+    github_repo_search_max = max([num(row.get("total_count")) for row in github_repo_search_sorted] or [1])
+    github_repo_search_top = github_repo_search_sorted[0] if github_repo_search_sorted else {}
+    github_repo_search_snapshot_date = (github_repo_search_top.get("collected_at", "") or "")[:10] if github_repo_search_top else "not fetched"
     wikimedia_pageview_series = [
         {
             "label": config["label"],
@@ -8310,9 +8424,11 @@ p {{ margin:0 0 12px; }}
           {stat_card("Full-history tags", f"{len(so_full_history_labels)}/{len(STACK_OVERFLOW_TAGS)}", so_expected_label, "soft")}
           {stat_card("Packagist monthly", compact(packagist_monthly_downloads), "selected WP Composer packages", "good" if packagist_packages else "watch")}
           {stat_card("Composer dependents", compact(packagist_dependents), f"{compact(len(packagist_packages))} packages, {packagist_snapshot_date}", "soft")}
+          {stat_card("GitHub topic repos", compact(github_repo_search_total), f"{compact(len(github_repo_search))} topic searches, {github_repo_search_snapshot_date}", "good" if github_repo_search else "watch")}
         </div>
         <p class="small-note">{html.escape(so_coverage_detail)}</p>
         {''.join(horizontal_count_metric(str(row.get("label")), num(row.get("downloads_monthly")), max_packagist_monthly, COLORS["green"], " monthly downloads") for row in packagist_sorted[:6])}
+        {''.join(horizontal_count_metric(str(row.get("label")), num(row.get("total_count")), github_repo_search_max, COLORS["core"], " repos") for row in github_repo_search_sorted[:6])}
       </div>
     </div>
     <div class="grid-2">
@@ -8737,7 +8853,7 @@ p {{ margin:0 0 12px; }}
 
   <section class="footer">
     <p>Generated {dt.datetime.now(dt.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')} from local Core/Gutenberg exports and public sources.</p>
-    <p>Sources: <a href="{W3TECHS_USAGE_URL}">W3Techs usage trend</a>, <a href="{W3TECHS_MARKET_SHARE_URL}">W3Techs CMS market-share trend</a>, <a href="{HTTP_ARCHIVE_CMS_URL}">HTTP Archive Web Almanac CMS 2025</a>, <a href="{HTTP_ARCHIVE_TECH_REPORT_URL}">HTTP Archive Technology Report API</a>, <a href="{STACK_EXCHANGE_DOCS_URL}">Stack Exchange API</a>, <a href="{WIKIMEDIA_PAGEVIEWS_DOCS_URL}">Wikimedia Pageviews API</a>, <a href="{SEARCH_SUGGEST_SOURCE_URL}">Google autocomplete suggestions</a>, <a href="{PACKAGIST_DOCS_URL}">Packagist API</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="{PLUGIN_DOWNLOADS_DOCS_URL}">WordPress.org plugin download stats</a>, <a href="{REMOTEOK_SOURCE_URL}">Remote OK</a>, <a href="{WORDPRESS_JOBS_URL}">WordPress Jobs board</a>, <a href="{WAYBACK_CDX_API}">Internet Archive CDX API</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="{EVENTS_WORDPRESS_URL}">WordPress Events</a>, <a href="{TRANSLATE_LOCALES_URL}">Translate WordPress</a>, <a href="{MAKE_CORE_API}">Make/Core posts API</a>, <a href="{MAKE_CORE_COMMENTS_API}">Make/Core comments API</a>, <a href="https://wordpress.org/support/view/all-topics/">WordPress.org support forums</a>, <a href="https://trends.builtwith.com/cms/WordPress">BuiltWith technology pages</a>, <a href="https://github.com/WordPress/gutenberg/issues">Gutenberg GitHub issues</a>, <a href="{GITHUB_PR_REVIEW_COMMENTS_API}">wordpress-develop GitHub review comments</a>, <a href="{FTTF_PLEDGES_URL}">Five for the Future pledges</a>, <a href="{RELEASE_ARCHIVE_URL}">WordPress release archive</a>, and <a href="{CREDITS_API}">Core credits API</a>.</p>
+    <p>Sources: <a href="{W3TECHS_USAGE_URL}">W3Techs usage trend</a>, <a href="{W3TECHS_MARKET_SHARE_URL}">W3Techs CMS market-share trend</a>, <a href="{HTTP_ARCHIVE_CMS_URL}">HTTP Archive Web Almanac CMS 2025</a>, <a href="{HTTP_ARCHIVE_TECH_REPORT_URL}">HTTP Archive Technology Report API</a>, <a href="{STACK_EXCHANGE_DOCS_URL}">Stack Exchange API</a>, <a href="{WIKIMEDIA_PAGEVIEWS_DOCS_URL}">Wikimedia Pageviews API</a>, <a href="{SEARCH_SUGGEST_SOURCE_URL}">Google autocomplete suggestions</a>, <a href="{PACKAGIST_DOCS_URL}">Packagist API</a>, <a href="{GITHUB_SEARCH_REPOSITORIES_API}">GitHub repository search API</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="{PLUGIN_DOWNLOADS_DOCS_URL}">WordPress.org plugin download stats</a>, <a href="{REMOTEOK_SOURCE_URL}">Remote OK</a>, <a href="{WORDPRESS_JOBS_URL}">WordPress Jobs board</a>, <a href="{WAYBACK_CDX_API}">Internet Archive CDX API</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="{EVENTS_WORDPRESS_URL}">WordPress Events</a>, <a href="{TRANSLATE_LOCALES_URL}">Translate WordPress</a>, <a href="{MAKE_CORE_API}">Make/Core posts API</a>, <a href="{MAKE_CORE_COMMENTS_API}">Make/Core comments API</a>, <a href="https://wordpress.org/support/view/all-topics/">WordPress.org support forums</a>, <a href="https://trends.builtwith.com/cms/WordPress">BuiltWith technology pages</a>, <a href="https://github.com/WordPress/gutenberg/issues">Gutenberg GitHub issues</a>, <a href="{GITHUB_PR_REVIEW_COMMENTS_API}">wordpress-develop GitHub review comments</a>, <a href="{FTTF_PLEDGES_URL}">Five for the Future pledges</a>, <a href="{RELEASE_ARCHIVE_URL}">WordPress release archive</a>, and <a href="{CREDITS_API}">Core credits API</a>.</p>
   </section>
 </main>
 </body>
@@ -8788,6 +8904,7 @@ def main():
         args.skip_network
     )
     fetched["github_repo_interest_snapshot"] = fetch_github_repo_interest_snapshot(args.skip_network)
+    fetched["github_repo_search_snapshot"] = fetch_github_repo_search_snapshot(args.skip_network)
     fetched["github_pr_review_comments"] = fetch_github_pr_review_comments(args.skip_network)
     fetched["github_pr_review_comments_quarterly"] = derive_github_pr_review_comments_quarterly(
         fetched["github_pr_review_comments"]

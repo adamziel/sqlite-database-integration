@@ -65,7 +65,7 @@ def audit_row(title, prompt, status, detail, class_name="covered"):
 GAP_SUMMARIES = {
     "developer_interest_proxy": (
         "Developer interest",
-        "Stack Overflow, Wikimedia, npm downloads, Packagist Composer package snapshots, GitHub PRs, GitHub review comments, and repository-interest snapshots are in.",
+        "Stack Overflow, Wikimedia, npm downloads, Packagist Composer package snapshots, GitHub PRs, GitHub review comments, repository-interest snapshots, and GitHub topic-search breadth are in.",
         "Add one broader developer-community source if a stable public source is available.",
     ),
     "job_demand": (

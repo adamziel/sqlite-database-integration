@@ -247,6 +247,11 @@ def main():
             if table_exists(conn, "github_repo_interest_snapshot")
             else []
         )
+        repo_search = (
+            rows(conn, "SELECT * FROM github_repo_search_snapshot ORDER BY CAST(total_count AS REAL) DESC, label")
+            if table_exists(conn, "github_repo_search_snapshot")
+            else []
+        )
         hn = rows(conn, "SELECT * FROM hn_hiring_wordpress_quarterly ORDER BY quarter")
         jobs = rows(conn, "SELECT * FROM wordpress_jobs_board_snapshots ORDER BY snapshot_date")
         prs = rows(conn, "SELECT * FROM github_pr_quarterly ORDER BY quarter")
@@ -283,6 +288,10 @@ def main():
     repo_fork_total = sum(num(row.get("forks")) for row in repo_interest)
     top_repo = max(repo_interest, key=lambda row: num(row.get("stars")), default={})
     repo_collected = top_repo.get("collected_at", "")[:10] if top_repo else "not collected"
+    repo_search_total = sum(num(row.get("total_count")) for row in repo_search)
+    repo_search_max = max([num(row.get("total_count")) for row in repo_search] or [1])
+    top_repo_search = max(repo_search, key=lambda row: num(row.get("total_count")), default={})
+    repo_search_collected = top_repo_search.get("collected_at", "")[:10] if top_repo_search else "not collected"
 
     stack_techs = [
         ("WordPress", COLORS["wordpress"]),
@@ -422,6 +431,12 @@ def main():
                 "green",
             ),
             metric_card(
+                "GitHub topic repos",
+                compact(repo_search_total),
+                f"{compact(len(repo_search))} topic searches collected {repo_search_collected}",
+                "green",
+            ),
+            metric_card(
                 "HN WP/Woo hiring rate",
                 f"{num(latest_hn.get('wordpress_or_woocommerce_per_100_comments')):.2f}",
                 f"mentions per 100 comments; {change_label(hn_summary)}",
@@ -487,6 +502,12 @@ def main():
                 "green",
             ),
             signal_row(
+                "GitHub ecosystem breadth is visible",
+                f"GitHub topic search finds the largest selected topic as {top_repo_search.get('label', 'n/a')}. This is public repository breadth, not active maintainer headcount.",
+                f"{compact(top_repo_search.get('total_count'))} repos",
+                "green",
+            ),
+            signal_row(
                 "Hiring proxies are narrower and lower",
                 "HN WP/Woo mentions and jobs.wordpress.net open listings are both lower than their stored baselines.",
                 f"{compact(latest_jobs.get('total_jobs'))} listings",
@@ -506,6 +527,20 @@ def main():
           <b>{esc(compact(row.get("downloads_monthly")))}</b>
         </div>"""
         for row in packagist[:8]
+    )
+    repo_search_rows = "".join(
+        f"""
+        <div class="topic-row">
+          <div class="topic-top">
+            <div>
+              <strong>{esc(row.get("label"))}</strong>
+              <span>{esc(row.get("query"))} · top repo: {esc(row.get("top_full_name"))}</span>
+            </div>
+            <b>{esc(compact(row.get("total_count")))}</b>
+          </div>
+          <div class="topic-track"><i style="width:{min(100, num(row.get("total_count")) / repo_search_max * 100):.1f}%"></i></div>
+        </div>"""
+        for row in repo_search[:8]
     )
 
     html_doc = f"""<!doctype html>
@@ -563,21 +598,29 @@ def main():
     .package-row strong {{ display:block; line-height:1.2; }}
     .package-row span {{ color:var(--muted); font-size:13px; overflow-wrap:anywhere; }}
     .package-row b {{ white-space:nowrap; font-size:18px; }}
+    .topic-row {{ border:1px solid var(--line); border-radius:8px; padding:11px 12px; background:#fbfdff; }}
+    .topic-top {{ display:flex; justify-content:space-between; gap:12px; align-items:flex-start; }}
+    .topic-top strong {{ display:block; line-height:1.2; }}
+    .topic-top span {{ color:var(--muted); font-size:13px; overflow-wrap:anywhere; }}
+    .topic-top b {{ white-space:nowrap; font-size:18px; }}
+    .topic-track {{ height:8px; border-radius:999px; background:#e8eef6; overflow:hidden; margin-top:9px; }}
+    .topic-track i {{ display:block; height:100%; border-radius:999px; background:linear-gradient(90deg,var(--blue),var(--green)); }}
     .footer-note {{ margin-top:18px; font-size:13px; }}
     @media (max-width:960px) {{
       main {{ padding:24px 14px 36px; }}
       .metrics, .grid, .charts {{ grid-template-columns:1fr; }}
       .metric {{ min-height:auto; }}
       .signal-row {{ align-items:flex-start; flex-direction:column; }}
-      .signal-row b, .package-row b {{ white-space:normal; }}
+      .signal-row b, .package-row b, .topic-top b {{ white-space:normal; }}
       .package-row {{ align-items:flex-start; flex-direction:column; }}
+      .topic-top {{ flex-direction:column; }}
     }}
   </style>
 </head>
 <body>
 <main>
   <h1>WordPress developer interest</h1>
-    <p class="lede">A compact readout of developer-attention and demand proxies already stored in SQLite: Stack Overflow questions, Wikipedia pageviews, npm package downloads, GitHub repository interest, Hacker News hiring mentions, WordPress Jobs snapshots, and wordpress-develop PR plus review-comment activity.</p>
+    <p class="lede">A compact readout of developer-attention and demand proxies already stored in SQLite: Stack Overflow questions, Wikipedia pageviews, npm and Composer package downloads, GitHub repository interest and topic breadth, Hacker News hiring mentions, WordPress Jobs snapshots, and wordpress-develop PR plus review-comment activity.</p>
 {nav_html()}
 
   <section class="metrics" aria-label="Developer interest summary">
@@ -609,13 +652,20 @@ def main():
 {packagist_rows}
       </div>
     </article>
+    <article class="chart-card">
+      <h2>GitHub topic snapshot</h2>
+      <p>Current public repository-search totals for selected WordPress ecosystem topics. This is repository breadth, not active contributor count.</p>
+      <div class="package-list">
+{repo_search_rows}
+      </div>
+    </article>
 {pr_chart}
 {review_chart}
 {hn_chart}
 {jobs_chart}
   </section>
 
-  <p class="footer-note">Rows come from <code>stack_overflow_tag_quarterly</code>, <code>wikimedia_pageviews_quarterly</code>, <code>npm_wordpress_downloads_quarterly</code>, <code>packagist_package_snapshot</code> collected {esc(packagist_collected)}, <code>github_repo_interest_snapshot</code> collected {esc(repo_collected)}, <code>hn_hiring_wordpress_quarterly</code>, <code>wordpress_jobs_board_snapshots</code>, <code>github_pr_quarterly</code>, <code>github_pr_review_comments_quarterly</code>, and <code>attention_demand_summary</code>. Integrity check: <code>{esc(integrity)}</code>.</p>
+  <p class="footer-note">Rows come from <code>stack_overflow_tag_quarterly</code>, <code>wikimedia_pageviews_quarterly</code>, <code>npm_wordpress_downloads_quarterly</code>, <code>packagist_package_snapshot</code> collected {esc(packagist_collected)}, <code>github_repo_interest_snapshot</code> collected {esc(repo_collected)}, <code>github_repo_search_snapshot</code> collected {esc(repo_search_collected)}, <code>hn_hiring_wordpress_quarterly</code>, <code>wordpress_jobs_board_snapshots</code>, <code>github_pr_quarterly</code>, <code>github_pr_review_comments_quarterly</code>, and <code>attention_demand_summary</code>. Integrity check: <code>{esc(integrity)}</code>.</p>
 </main>
 </body>
 </html>

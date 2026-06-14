@@ -172,6 +172,7 @@ def render():
         ("gutenberg_issues", gutenberg_issues, "Gutenberg GitHub issue rows."),
         ("github_prs", github_prs, "wordpress-develop pull request rows."),
         ("classification_trend", table_count(conn, "classification_trend"), "Quarterly classification rows."),
+        ("contributor_retention_cohorts", table_count(conn, "contributor_retention_cohorts"), "First-seen contributor cohorts and next-four-quarter return rates."),
     ]
     external_rows = [
         ("market_share", "W3Techs all-site and CMS-share trend rows."),

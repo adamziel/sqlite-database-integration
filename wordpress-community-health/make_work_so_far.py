@@ -154,7 +154,7 @@ def main():
     timeline = "\n".join(
         [
             timeline_item("Foundation", "Ticket and issue history", "Loaded Core Trac, Gutenberg issues, wordpress-develop PRs, status flow, reporters, labels, and classification tables into SQLite."),
-            timeline_item("Participation", "Quarterly community flow", "Built quarterly views for new and closed work, first-time and repeat reporters, PR authors, maintainer split, contributor depth, and concentration."),
+            timeline_item("Participation", "Quarterly community flow", "Built quarterly views for new and closed work, first-time and repeat reporters, newcomer return cohorts, PR authors, maintainer split, contributor depth, and concentration."),
             timeline_item("Project load", "Backlog and maintenance shape", "Added open backlog, age buckets, category mix, response time, close time, reopened events, and closure-flow visuals."),
             timeline_item("Market", "Adoption and builder context", "Added W3Techs, HTTP Archive, BuiltWith, traffic-tier, new-site proxy, WooCommerce, and enterprise-adoption signals."),
             timeline_item("Ecosystem", "Activity outside trackers", "Added release credits, committers, Make/Core posts and comments, WordCamps, Events, Translate, Five for the Future, support, plugin, and theme sources."),

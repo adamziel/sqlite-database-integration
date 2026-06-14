@@ -56,6 +56,31 @@ def contributor_rows(conn):
     ).fetchall()
 
 
+def table_exists(conn, table):
+    row = conn.execute(
+        "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?",
+        (table,),
+    ).fetchone()
+    return bool(row)
+
+
+def retention_rows(conn):
+    if not table_exists(conn, "contributor_retention_cohorts"):
+        return []
+    return [
+        dict(row)
+        for row in conn.execute(
+            """
+            SELECT source, cohort_quarter, label, new_contributors, matured_4q,
+                   returned_next_4q, return_next_4q_rate_pct, one_quarter_only_share_pct
+            FROM contributor_retention_cohorts
+            WHERE matured_4q = 'yes' AND cohort_quarter >= '2021-01-01'
+            ORDER BY source, cohort_quarter
+            """
+        ).fetchall()
+    ]
+
+
 def nav_html():
     return "\n".join(
         [
@@ -108,6 +133,16 @@ def bar(label, value, color):
     return f"""
         <div class="barline">
           <div class="bar-label"><span>{esc(label)}</span><strong>{pct(value)}</strong></div>
+          <div class="bar"><span style="width:{width:.1f}%;background:{esc(color)}"></span></div>
+        </div>"""
+
+
+def horizontal_bar(label, value, color, suffix="%"):
+    value = float(value or 0)
+    width = max(2, min(100, value))
+    return f"""
+        <div class="barline retention-bar">
+          <div class="bar-label"><span>{esc(label)}</span><strong>{value:.1f}{esc(suffix)}</strong></div>
           <div class="bar"><span style="width:{width:.1f}%;background:{esc(color)}"></span></div>
         </div>"""
 
@@ -170,11 +205,42 @@ def summary_card(rows_by_key, source, label, color):
       </article>"""
 
 
+def retention_panel(retention):
+    if not retention:
+        return ""
+    pieces = []
+    for source, label, color in SOURCES:
+        source_rows = [row for row in retention if row.get("source") == source]
+        if not source_rows:
+            continue
+        avg_return = sum(float(row.get("return_next_4q_rate_pct") or 0) for row in source_rows) / len(source_rows)
+        latest = max(source_rows, key=lambda row: row.get("cohort_quarter", ""))
+        pieces.append(
+            f"""
+        <article class="retention-card">
+          <h3>{esc(label)}</h3>
+          <div class="retention-big">{avg_return:.1f}%</div>
+          <p>average next-year return rate for mature first-seen cohorts since 2021</p>
+          {horizontal_bar(f"Latest mature cohort ({latest.get('label', '')})", latest.get("return_next_4q_rate_pct"), color)}
+          {horizontal_bar("One-quarter-only share", latest.get("one_quarter_only_share_pct"), "#b7791f")}
+        </article>"""
+        )
+    return f"""
+    <section class="readout">
+      <h2>Newcomer return</h2>
+      <p class="note">A cohort is the first quarter someone appears in a source. Return rate means they appeared again within the next four quarters, so the newest cohorts are held out until enough time has elapsed.</p>
+      <div class="retention-grid">
+{''.join(pieces)}
+      </div>
+    </section>"""
+
+
 def render():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     try:
         rows = contributor_rows(conn)
+        retention = retention_rows(conn)
         integrity = one(conn, "PRAGMA integrity_check")
     finally:
         conn.close()
@@ -182,6 +248,7 @@ def render():
     rows_by_key = row_map(rows)
     summaries = "\n".join(summary_card(rows_by_key, source, label, color) for source, label, color in SOURCES)
     ladders = "\n".join(depth_ladder(rows_by_key, source, label, color, "since_2024") for source, label, color in SOURCES)
+    retention_html = retention_panel(retention)
 
     html_doc = f"""<!doctype html>
 <html lang="en">
@@ -255,6 +322,11 @@ def render():
     .readout-grid strong {{ display: block; margin-bottom: 5px; }}
     .readout-grid span {{ color: var(--muted); font-size: 14px; }}
     .source-stack {{ display: grid; gap: 14px; margin-top: 16px; }}
+    .retention-grid {{ display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }}
+    .retention-card {{ border: 1px solid var(--line); border-radius: 8px; background: #fbfdff; padding: 14px; }}
+    .retention-big {{ font-size: 34px; line-height: 1; font-weight: 850; margin: 6px 0; }}
+    .retention-card p {{ color: var(--muted); font-size: 13px; margin-bottom: 12px; }}
+    .retention-bar {{ margin-top: 10px; }}
     .source-card {{ padding: 18px; }}
     .source-head {{ display: flex; gap: 12px; align-items: flex-start; margin-bottom: 14px; }}
     .source-head > span {{ width: 6px; min-height: 48px; border-radius: 999px; flex: 0 0 auto; }}
@@ -286,7 +358,7 @@ def render():
       color: #244067;
     }}
     @media (max-width: 920px) {{
-      .summary-grid, .readout-grid {{ grid-template-columns: 1fr; }}
+      .summary-grid, .readout-grid, .retention-grid {{ grid-template-columns: 1fr; }}
       .depth-row {{ grid-template-columns: 1fr; }}
     }}
     @media (max-width: 620px) {{
@@ -315,6 +387,8 @@ def render():
       </div>
     </section>
 
+{retention_html}
+
     <section>
       <h2>Depth ladders since 2024</h2>
       <p class="note">Each row compares share of people with share of work. A wide people bar with a smaller work bar means broad entry; a small people bar with a wider work bar means concentrated repeat work.</p>
@@ -323,7 +397,7 @@ def render():
       </div>
     </section>
 
-    <p class="footer-note">Rows come from the SQLite <code>contributor_depth_buckets</code> table. Integrity check: <code>{esc(integrity)}</code>. The main report summarizes this as broad entry with concentrated sustained work.</p>
+    <p class="footer-note">Rows come from the SQLite <code>contributor_depth_buckets</code> and <code>contributor_retention_cohorts</code> tables. Integrity check: <code>{esc(integrity)}</code>. The main report summarizes this as broad entry with concentrated sustained work.</p>
   </main>
 </body>
 </html>

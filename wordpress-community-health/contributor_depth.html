@@ -70,6 +70,11 @@
     .readout-grid strong { display: block; margin-bottom: 5px; }
     .readout-grid span { color: var(--muted); font-size: 14px; }
     .source-stack { display: grid; gap: 14px; margin-top: 16px; }
+    .retention-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
+    .retention-card { border: 1px solid var(--line); border-radius: 8px; background: #fbfdff; padding: 14px; }
+    .retention-big { font-size: 34px; line-height: 1; font-weight: 850; margin: 6px 0; }
+    .retention-card p { color: var(--muted); font-size: 13px; margin-bottom: 12px; }
+    .retention-bar { margin-top: 10px; }
     .source-card { padding: 18px; }
     .source-head { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 14px; }
     .source-head > span { width: 6px; min-height: 48px; border-radius: 999px; flex: 0 0 auto; }
@@ -101,7 +106,7 @@
       color: #244067;
     }
     @media (max-width: 920px) {
-      .summary-grid, .readout-grid { grid-template-columns: 1fr; }
+      .summary-grid, .readout-grid, .retention-grid { grid-template-columns: 1fr; }
       .depth-row { grid-template-columns: 1fr; }
     }
     @media (max-width: 620px) {
@@ -188,6 +193,60 @@
         <div><strong>Broad entry is real.</strong><span>Each stream still has many people who only appear once, especially Core Trac.</span></div>
         <div><strong>Repeat work is concentrated.</strong><span>Gutenberg and Core PRs depend more heavily on the sustained-contributor bucket.</span></div>
         <div><strong>PRs are the most concentrated stream.</strong><span>Since 2024, 8.4% of PR authors account for 69.1% of wordpress-develop PRs.</span></div>
+      </div>
+    </section>
+
+
+    <section class="readout">
+      <h2>Newcomer return</h2>
+      <p class="note">A cohort is the first quarter someone appears in a source. Return rate means they appeared again within the next four quarters, so the newest cohorts are held out until enough time has elapsed.</p>
+      <div class="retention-grid">
+
+        <article class="retention-card">
+          <h3>Core Trac</h3>
+          <div class="retention-big">9.2%</div>
+          <p>average next-year return rate for mature first-seen cohorts since 2021</p>
+
+        <div class="barline retention-bar">
+          <div class="bar-label"><span>Latest mature cohort (2025-Q2)</span><strong>7.5%</strong></div>
+          <div class="bar"><span style="width:7.5%;background:#2563eb"></span></div>
+        </div>
+
+        <div class="barline retention-bar">
+          <div class="bar-label"><span>One-quarter-only share</span><strong>92.5%</strong></div>
+          <div class="bar"><span style="width:92.5%;background:#b7791f"></span></div>
+        </div>
+        </article>
+        <article class="retention-card">
+          <h3>Gutenberg</h3>
+          <div class="retention-big">19.9%</div>
+          <p>average next-year return rate for mature first-seen cohorts since 2021</p>
+
+        <div class="barline retention-bar">
+          <div class="bar-label"><span>Latest mature cohort (2025-Q2)</span><strong>19.4%</strong></div>
+          <div class="bar"><span style="width:19.4%;background:#8b5cf6"></span></div>
+        </div>
+
+        <div class="barline retention-bar">
+          <div class="bar-label"><span>One-quarter-only share</span><strong>80.7%</strong></div>
+          <div class="bar"><span style="width:80.7%;background:#b7791f"></span></div>
+        </div>
+        </article>
+        <article class="retention-card">
+          <h3>Core PRs</h3>
+          <div class="retention-big">23.2%</div>
+          <p>average next-year return rate for mature first-seen cohorts since 2021</p>
+
+        <div class="barline retention-bar">
+          <div class="bar-label"><span>Latest mature cohort (2025-Q2)</span><strong>41.7%</strong></div>
+          <div class="bar"><span style="width:41.7%;background:#159957"></span></div>
+        </div>
+
+        <div class="barline retention-bar">
+          <div class="bar-label"><span>One-quarter-only share</span><strong>58.3%</strong></div>
+          <div class="bar"><span style="width:58.3%;background:#b7791f"></span></div>
+        </div>
+        </article>
       </div>
     </section>
 
@@ -447,7 +506,7 @@
       </div>
     </section>
 
-    <p class="footer-note">Rows come from the SQLite <code>contributor_depth_buckets</code> table. Integrity check: <code>ok</code>. The main report summarizes this as broad entry with concentrated sustained work.</p>
+    <p class="footer-note">Rows come from the SQLite <code>contributor_depth_buckets</code> and <code>contributor_retention_cohorts</code> tables. Integrity check: <code>ok</code>. The main report summarizes this as broad entry with concentrated sustained work.</p>
   </main>
 </body>
 </html>

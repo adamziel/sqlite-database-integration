@@ -38,6 +38,7 @@ HTML_ARTIFACTS = {
         "WordPress contributor depth",
         "Depth ladders since 2024",
         "Core Trac reporters",
+        "Newcomer return",
     ],
     "ecosystem_activity.html": [
         "WordPress ecosystem activity",

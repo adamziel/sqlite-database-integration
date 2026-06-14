@@ -231,7 +231,7 @@ def main():
     timeline = "".join(
         [
             timeline_item("Plan", "Wrote <code>goal.md</code>: a visual report on WordPress participation, project load, and market position."),
-            timeline_item("Tickets", "Built quarterly Core Trac and Gutenberg GitHub metrics for new/closed flow, backlog, reporters, first-time reporters, bug/feature mix, response time, closure time, stale share, and contributor concentration."),
+            timeline_item("Tickets", "Built quarterly Core Trac and Gutenberg GitHub metrics for new/closed flow, backlog, reporters, first-time reporters, newcomer return cohorts, bug/feature mix, response time, closure time, stale share, and contributor concentration."),
             timeline_item("Classification", "Loaded bug, feature request, documentation, support, and other classification outputs into the SQLite-backed pipeline."),
             timeline_item("Ecosystem", "Added Core release credits and committers, Make/Core posts and comments, dev notes, WordCamps, events, translation snapshots, Five for the Future, support snapshots, plugin/theme directory samples, plugin and theme search breadth, major plugin stats, and enterprise case studies."),
             timeline_item("Adoption", "Added W3Techs, HTTP Archive, BuiltWith, WordPress.org stats, Stack Overflow, Wikimedia, autocomplete query-intent snapshots, Packagist Composer package snapshots, GitHub topic-search breadth, Hacker News hiring threads, Remote OK and Remotive current jobs, WordPress Jobs snapshots, compact new-site summaries, and attention/demand proxy summaries."),
@@ -255,7 +255,7 @@ def main():
     coverage_grid = coverage_cards(
         [
             ("Three report views", 'Participation, Project Load, and Market Position sections in <a href="index.html">index.html</a>.', "Covered"),
-            ("Ticket-derived participation and load", "Quarterly Core Trac, Gutenberg, and wordpress-develop PR charts for flow, reporters, response, closure, reopen, stale share, and concentration.", "Covered"),
+            ("Ticket-derived participation and load", "Quarterly Core Trac, Gutenberg, and wordpress-develop PR charts for flow, reporters, newcomer return cohorts, response, closure, reopen, stale share, and concentration.", "Covered"),
             ("Bug, feature request, and all-ticket views", "Separate Core and Gutenberg line charts plus open-backlog category summaries.", "Covered"),
             ("Community outside tickets", "Release credits, committers, Make/Core, WordCamp, Events, Translate, Five for the Future, support snapshots and answer summaries, plugin/theme directory, plugin and theme search breadth, stale popular plugins, and enterprise case studies.", "Covered with snapshots"),
             ("Market position and adoption", "W3Techs installed share, HTTP Archive origin and tracked-share trends, BuiltWith pipeline/tier data, plugin install/download history, WooCommerce, and compact new-site plus attention/demand proxy summaries.", "Covered with proxies for new-site and demand history"),

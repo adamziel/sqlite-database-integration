@@ -61,6 +61,7 @@ SKIP_NETWORK_DB_FALLBACK_TABLES = [
     "http_archive_rank_adoption_snapshot",
     "http_archive_cwv_monthly",
     "wporg_ecosystem_stats_snapshot",
+    "stack_overflow_tag_quarterly",
     "wikimedia_pageviews_monthly",
     "wikimedia_pageviews_quarterly",
     "search_query_suggestions",
@@ -517,6 +518,10 @@ def fnum(value, default=0.0):
 
 
 def pct(value, digits=1):
+    try:
+        value = float(value)
+    except (TypeError, ValueError):
+        return "n/a"
     if value is None or math.isnan(value):
         return "n/a"
     return f"{value:.{digits}f}%"
@@ -5500,6 +5505,7 @@ def build_derived_metrics(data):
         "support_forum_snapshot_summary": support_snapshot_summary,
         "support_forum_unanswered_by_forum": support_unanswered_by_forum,
         "contributor_depth_buckets": derive_contributor_depth(data),
+        "contributor_retention_cohorts": derive_contributor_retention_cohorts(data),
         "contributor_concentration_summary": derive_contributor_concentration_summary(data),
         "maintainer_participation_quarterly": derive_maintainer_participation_quarterly(data),
         "category_open_backlog_summary": derive_category_open_backlog_summary(data),
@@ -5923,6 +5929,95 @@ def derive_contributor_depth(data):
     for label, source_rows, author_key, date_key in sources:
         rows.extend(contributor_depth_rows(label, source_rows, author_key, date_key))
         rows.extend(contributor_depth_rows(label, source_rows, author_key, date_key, "2024-01-01"))
+    return rows
+
+
+def quarter_number(quarter):
+    parsed = parse_iso(quarter)
+    if not parsed:
+        return None
+    return parsed.year * 4 + ((parsed.month - 1) // 3)
+
+
+def derive_contributor_retention_cohorts(data):
+    configs = [
+        ("Core Trac reporters", data.get("core_tickets", []), "reporter", "created_at"),
+        ("Gutenberg issue creators", data.get("gutenberg_issues", []), "author_login", "created_at"),
+        ("wordpress-develop PR authors", data.get("github_prs", []), "author_login", "created_at"),
+    ]
+    rows = []
+    for source, source_rows, author_key, date_key in configs:
+        author_quarters = defaultdict(list)
+        author_items = Counter()
+        for item in source_rows:
+            author = str(item.get(author_key) or "").strip()
+            if not author:
+                continue
+            quarter = quarter_start(item.get(date_key))
+            if not quarter:
+                continue
+            author_quarters[author].append(quarter)
+            author_items[author] += 1
+        if not author_quarters:
+            continue
+        latest_quarter = max(q for quarters in author_quarters.values() for q in quarters)
+        latest_number = quarter_number(latest_quarter)
+        cohorts = defaultdict(list)
+        author_quarter_sets = {}
+        for author, quarters in author_quarters.items():
+            unique_quarters = sorted(set(quarters))
+            author_quarter_sets[author] = unique_quarters
+            cohorts[unique_quarters[0]].append(author)
+        for cohort_quarter, authors in sorted(cohorts.items()):
+            cohort_number = quarter_number(cohort_quarter)
+            if cohort_number is None or latest_number is None:
+                continue
+            observed_after = max(0, latest_number - cohort_number)
+            returned_later = 0
+            returned_next_4q = 0
+            one_quarter_only = 0
+            single_item_ever = 0
+            repeat_items_next_4q = 0
+            for author in authors:
+                later_offsets = [
+                    quarter_number(q) - cohort_number
+                    for q in author_quarter_sets[author]
+                    if quarter_number(q) is not None and quarter_number(q) > cohort_number
+                ]
+                if later_offsets:
+                    returned_later += 1
+                if any(0 < offset <= 4 for offset in later_offsets):
+                    returned_next_4q += 1
+                if len(author_quarter_sets[author]) == 1:
+                    one_quarter_only += 1
+                if author_items[author] == 1:
+                    single_item_ever += 1
+                repeat_items_next_4q += sum(
+                    1
+                    for q in author_quarters[author]
+                    if (q_number := quarter_number(q)) is not None and 0 < q_number - cohort_number <= 4
+                )
+            cohort_size = len(authors)
+            rows.append(
+                {
+                    "source": source,
+                    "cohort_quarter": cohort_quarter,
+                    "label": quarter_label(cohort_quarter),
+                    "new_contributors": cohort_size,
+                    "quarters_observed_after": observed_after,
+                    "matured_4q": "yes" if observed_after >= 4 else "no",
+                    "returned_later": returned_later,
+                    "return_later_rate_pct": round(returned_later / cohort_size * 100, 2) if cohort_size else 0,
+                    "returned_next_4q": returned_next_4q,
+                    "return_next_4q_rate_pct": round(returned_next_4q / cohort_size * 100, 2) if cohort_size else 0,
+                    "repeat_items_next_4q": repeat_items_next_4q,
+                    "one_quarter_only": one_quarter_only,
+                    "one_quarter_only_share_pct": round(one_quarter_only / cohort_size * 100, 2) if cohort_size else 0,
+                    "single_item_ever": single_item_ever,
+                    "single_item_ever_share_pct": round(single_item_ever / cohort_size * 100, 2) if cohort_size else 0,
+                    "metric_note": "Contributor cohort is based on first observed quarter in this source; next-4Q retention counts people with another item in one of the next four quarters.",
+                }
+            )
     return rows
 
 
@@ -6545,6 +6640,7 @@ def source_status_rows(fetched):
         ("wordpress-develop PRs", "covered", "12k PRs with authors, dates, Trac links"),
         ("Project-member/outside split", "covered" if fetched.get("maintainer_participation_quarterly") else "missing", "Quarterly GitHub author_association split for Gutenberg issues and wordpress-develop PRs"),
         ("Contributor depth buckets", "covered" if fetched.get("contributor_depth_buckets") else "missing", "One-time, repeat, and sustained contributors across Core, Gutenberg, and PR activity"),
+        ("Contributor retention cohorts", "covered" if fetched.get("contributor_retention_cohorts") else "missing", "Quarterly first-seen contributor cohorts and next-four-quarter return rates across Core, Gutenberg, and PR activity"),
         ("Contributor concentration", "covered" if fetched.get("contributor_concentration_summary") else "missing", "Top 10, 25, and 50 contributor work share across Core, Gutenberg, and PR activity"),
         ("Ticket category classification", "covered", "Bug, feature request, enhancement, task, and other categories"),
         ("Open category backlog", "covered" if fetched.get("category_open_backlog_summary") else "missing", "Open bug, enhancement, feature-request, and other category composition"),
@@ -6704,6 +6800,7 @@ def build_report(data, fetched):
     builtwith_technology_snapshots = fetched.get("builtwith_technology_snapshots", [])
     builtwith_technology_history = fetched.get("builtwith_technology_history", [])
     contributor_depth = fetched.get("contributor_depth_buckets", [])
+    contributor_retention = fetched.get("contributor_retention_cohorts", [])
     contributor_concentration_summary = fetched.get("contributor_concentration_summary", [])
     maintainer_participation = fetched.get("maintainer_participation_quarterly", [])
     category_open_backlog = fetched.get("category_open_backlog_summary", [])
@@ -6803,6 +6900,39 @@ def build_report(data, fetched):
         ("Gutenberg issue creators", "Gutenberg", COLORS["gutenberg"]),
         ("wordpress-develop PR authors", "PRs", COLORS["prs"]),
     ]
+    matured_retention_rows = [
+        row
+        for row in contributor_retention
+        if row.get("matured_4q") == "yes" and row.get("cohort_quarter", "") >= "2021-01-01"
+    ]
+    retention_latest_by_source = {
+        source: max(
+            [row for row in matured_retention_rows if row.get("source") == source],
+            key=lambda row: row.get("cohort_quarter", ""),
+            default={},
+        )
+        for source, _short_label, _color in depth_sources
+    }
+
+    def retention_recent_average(source):
+        rows_for_source = [row for row in matured_retention_rows if row.get("source") == source]
+        if not rows_for_source:
+            return 0
+        return sum(float(row.get("return_next_4q_rate_pct") or 0) for row in rows_for_source) / len(rows_for_source)
+
+    retention_series = [
+        {
+            "label": f"{short_label} return rate",
+            "color": color,
+            "points": point_series(
+                [row for row in matured_retention_rows if row.get("source") == source],
+                "cohort_quarter",
+                "return_next_4q_rate_pct",
+                "2021-01-01",
+            ),
+        }
+        for source, short_label, color in depth_sources
+    ]
     maintainer_latest_by_source = {
         source: max(
             [row for row in maintainer_participation if row.get("source") == source],
@@ -6823,8 +6953,8 @@ def build_report(data, fetched):
     wp_usage_2025 = next((r for r in market_rows if r["metric"] == "all_sites_usage" and r["technology"] == "WordPress" and r["date"] == "2025-01-01"), None)
     wp_cms_latest = market_latest(market_rows, "cms_market_share", "WordPress")
     wp_cms_2025 = next((r for r in market_rows if r["metric"] == "cms_market_share" and r["technology"] == "WordPress" and r["date"] == "2025-01-01"), None)
-    usage_delta = (wp_usage_latest["value"] - wp_usage_2025["value"]) if wp_usage_latest and wp_usage_2025 else None
-    cms_delta = (wp_cms_latest["value"] - wp_cms_2025["value"]) if wp_cms_latest and wp_cms_2025 else None
+    usage_delta = (fnum(wp_usage_latest["value"]) - fnum(wp_usage_2025["value"])) if wp_usage_latest and wp_usage_2025 else None
+    cms_delta = (fnum(wp_cms_latest["value"]) - fnum(wp_cms_2025["value"])) if wp_cms_latest and wp_cms_2025 else None
 
     member_points = point_series(gut_q, "quarter", "member_created", "2021-01-01")
     community_points = point_series(gut_q, "quarter", "community_created", "2021-01-01")
@@ -7133,14 +7263,14 @@ def build_report(data, fetched):
             {
                 "label": tech,
                 "color": color,
-                "points": sorted((r["date"], r["value"]) for r in market_rows if r["metric"] == "all_sites_usage" and r["technology"] == tech),
+                "points": sorted((r["date"], fnum(r["value"])) for r in market_rows if r["metric"] == "all_sites_usage" and r["technology"] == tech),
             }
         )
         market_cms_series.append(
             {
                 "label": tech,
                 "color": color,
-                "points": sorted((r["date"], r["value"]) for r in market_rows if r["metric"] == "cms_market_share" and r["technology"] == tech),
+                "points": sorted((r["date"], fnum(r["value"])) for r in market_rows if r["metric"] == "cms_market_share" and r["technology"] == tech),
             }
         )
     http_archive_adoption_series = [
@@ -8131,6 +8261,20 @@ p {{ margin:0 0 12px; }}
         {"label": "Gutenberg repeat creators", "color": COLORS["gutenberg"], "points": gut_repeat_creator_points},
         {"label": "PR repeat authors", "color": COLORS["prs"], "points": pr_repeat_author_points},
     ])}
+    <div class="grid-2">
+      {svg_line_chart("First-time cohort return rate", "Share of each first-seen cohort that came back within the next four quarters. Recent cohorts are shown only after four quarters have elapsed.", retention_series, y_suffix="%")}
+      <div class="card">
+        <h3>Newcomer return readout</h3>
+        <p>This separates new-arrival volume from follow-on participation. It asks: of the people first seen in a quarter, how many came back within the next year?</p>
+        <div class="stats">
+          {stat_card("Core avg return", pct(retention_recent_average("Core Trac reporters")), "mature cohorts since 2021", "soft")}
+          {stat_card("Gutenberg avg return", pct(retention_recent_average("Gutenberg issue creators")), "mature cohorts since 2021", "soft")}
+          {stat_card("PR avg return", pct(retention_recent_average("wordpress-develop PR authors")), "mature cohorts since 2021", "soft")}
+        </div>
+        {''.join(horizontal_metric(f"{short_label} latest mature cohort", float(retention_latest_by_source.get(source, {}).get("return_next_4q_rate_pct") or 0), 100, color) for source, short_label, color in depth_sources)}
+        <p class="small-note">Rows are stored in SQLite as <code>contributor_retention_cohorts</code>. The newest cohorts are intentionally excluded from this chart until they have enough follow-up time.</p>
+      </div>
+    </div>
     {svg_line_chart("Core GitHub PR review activity", "Line review comments, reviewed pull requests, and unique review commenters by quarter in wordpress-develop.", [
         {"label": "Review comments", "color": COLORS["prs"], "points": point_series(review_comments_q, "quarter", "review_comments", "2021-01-01")},
         {"label": "Reviewed PRs", "color": COLORS["green"], "points": point_series(review_comments_q, "quarter", "reviewed_prs", "2021-01-01")},

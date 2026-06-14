@@ -140,7 +140,7 @@ def render():
         ),
         audit_row(
             "Ticket participation and load",
-            "New, closed, net flow, reporters, first-time, repeat, maintainer split, response, close time, reopen, stale share, concentration, drive-by vs sustained.",
+            "New, closed, net flow, reporters, first-time, repeat, newcomer return cohorts, maintainer split, response, close time, reopen, stale share, concentration, drive-by vs sustained.",
             "Covered",
             f"{compact(core_tickets)} Core tickets, {compact(gutenberg_issues)} Gutenberg issues, and {compact(github_prs)} wordpress-develop PRs are loaded. The report uses quarterly Core, Gutenberg, PR, timeline, response, reopen, concentration, and depth tables.",
         ),

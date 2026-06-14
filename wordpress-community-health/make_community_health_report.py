@@ -5832,6 +5832,7 @@ p {{ margin:0 0 12px; }}
 .question-card strong {{ display:block; font-size:22px; line-height:1.15; margin:5px 0 7px; }}
 .question-card p {{ color:var(--muted); margin:0; }}
 .question-card .tag {{ color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.07em; font-weight:800; }}
+.question-card .source {{ display:block; margin-top:11px; color:#475569; font-size:12px; font-weight:800; }}
 .question-card.good {{ border-left-color:var(--green); }}
 .question-card.watch {{ border-left-color:var(--orange); }}
 .question-card.soft {{ border-left-color:var(--blue); }}
@@ -5939,6 +5940,7 @@ p {{ margin:0 0 12px; }}
     <a href="#participation">Participation</a>
     <a href="#load">Project Load</a>
     <a href="#market">Market Position</a>
+    <a href="#decision-questions">Decision Questions</a>
     <a href="#scorecard">Scorecard</a>
     <a href="#goal-map">Coverage Map</a>
     <a href="#coverage">Source Coverage</a>
@@ -6027,42 +6029,53 @@ p {{ margin:0 0 12px; }}
     {signal_card("Code review", "PR flow is higher", f"wordpress-develop PR creation averaged {compact(pr_created_prev)} per quarter in 2021-2023 and {compact(pr_created_recent)} since 2024.", "good")}
   </section>
 
-  <section class="question-grid" aria-label="Plain-English decision answers">
+  <section id="decision-questions" class="section">
+    <h2>Decision Questions</h2>
+    <p class="callout">These are the plain-English answers the report is meant to support. Each card points to the kind of evidence behind the answer, so this can be used as a quick briefing before reading the charts.</p>
+    <div class="question-grid" aria-label="Plain-English decision answers">
     <article class="question-card good">
       <span class="tag">Still widely chosen?</span>
       <strong>Yes.</strong>
       <p>Installed-share evidence has WordPress at {pct(wp_usage_latest['value']) if wp_usage_latest else 'n/a'} of all sites and {pct(wp_cms_latest['value']) if wp_cms_latest else 'n/a'} of CMS sites.</p>
+      <span class="source">W3Techs + HTTP Archive</span>
     </article>
     <article class="question-card watch">
       <span class="tag">Adoption direction?</span>
-      <strong>Softer.</strong>
+      <strong>Flat-to-down recently.</strong>
       <p>{f"W3Techs is down {abs(usage_delta):.1f} all-site points and {abs(cms_delta):.1f} CMS-share points since Jan 2025." if usage_delta is not None and cms_delta is not None else "The latest installed-share trend is flatter than the historical climb."}</p>
+      <span class="source">W3Techs yearly trend</span>
     </article>
     <article class="question-card slower">
       <span class="tag">Participation?</span>
       <strong>Fewer new reporters.</strong>
       <p>Core first-time reporter retention is {pct(core_first_retention)} of the 2021-2023 average; Gutenberg is {pct(gut_first_retention)}. PR creation is higher.</p>
+      <span class="source">Core Trac + Gutenberg + PRs</span>
     </article>
     <article class="question-card soft">
       <span class="tag">Keeping up?</span>
       <strong>Mostly.</strong>
       <p>Since 2024, closure/new ratios are Core {pct(core_closure_ratio)} and Gutenberg {pct(gut_closure_ratio)}.</p>
+      <span class="source">Quarterly ticket flow</span>
     </article>
     <article class="question-card watch">
       <span class="tag">Backlog age?</span>
       <strong>Aged.</strong>
       <p>Open stale share is Core {pct(core_stale_pct)} and Gutenberg {pct(gut_stale_pct)}; 2+ year open share is Core {pct(core_open_2y_share)} and Gutenberg {pct(gut_open_2y_share)}.</p>
+      <span class="source">Current open backlog</span>
     </article>
     <article class="question-card soft">
       <span class="tag">Contributor spread?</span>
       <strong>Broad entry, concentrated work.</strong>
       <p>Since 2024, top-50 work share is Core {pct(conc_metric("Core Trac reporters", "since_2024", "top50_item_share_pct"))}, Gutenberg {pct(conc_metric("Gutenberg issue creators", "since_2024", "top50_item_share_pct"))}, and PRs {pct(conc_metric("wordpress-develop PR authors", "since_2024", "top50_item_share_pct"))}.</p>
+      <span class="source">Contributor concentration</span>
     </article>
     <article class="question-card watch">
       <span class="tag">Builders gaining?</span>
       <strong>Some share, yes.</strong>
       <p>HTTP Archive tracked share has WordPress at {http_share_latest_wp_label}, {http_share_wp_delta_label} since {http_share_first_date or 'the first HTTP Archive month'}; WordPress still leads the current tracked BuiltWith 90-day pipeline at {pct(builtwith_wp_90_share)}.</p>
+      <span class="source">HTTP Archive + BuiltWith proxy</span>
     </article>
+    </div>
   </section>
 
   <section class="stats">

@@ -107,6 +107,21 @@ p { margin:0 0 12px; }
 .evidence-strength-card.good { border-left-color:var(--green); }
 .evidence-strength-card.soft { border-left-color:var(--blue); }
 .evidence-strength-card.watch { border-left-color:var(--orange); }
+.scorecard-verdict { border:1px solid var(--line); border-left:6px solid var(--green); border-radius:8px; padding:16px; background:#fff; margin:16px 0 12px; }
+.scorecard-verdict strong { display:block; font-size:22px; line-height:1.2; margin-bottom:6px; }
+.scorecard-verdict p { color:var(--muted); margin:0; }
+.score-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+.score-card { border:1px solid var(--line); border-top:5px solid var(--blue); border-radius:8px; padding:14px; background:#fff; min-height:142px; }
+.score-card .score-chip { display:inline-block; border-radius:999px; padding:3px 8px; font-size:12px; font-weight:800; margin-bottom:9px; background:#dbeafe; color:#1e40af; }
+.score-card b { display:block; font-size:13px; color:var(--muted); margin-bottom:3px; }
+.score-card strong { display:block; font-size:24px; line-height:1.1; margin-bottom:8px; }
+.score-card p { color:var(--muted); margin:0; font-size:14px; }
+.score-card.good { border-top-color:var(--green); }
+.score-card.good .score-chip { background:#dcfce7; color:#166534; }
+.score-card.slower { border-top-color:var(--red); }
+.score-card.slower .score-chip { background:#fee2e2; color:#991b1b; }
+.score-card.watch { border-top-color:var(--orange); }
+.score-card.watch .score-chip { background:#fef3c7; color:#92400e; }
 .goal-map { display:grid; gap:10px; margin-top:16px; }
 .goal-row { display:grid; grid-template-columns:minmax(160px,1.1fr) minmax(135px,.7fr) minmax(260px,2fr); gap:14px; align-items:start; border:1px solid var(--line); border-left:6px solid var(--blue); border-radius:8px; padding:13px 14px; background:#fff; }
 .goal-row strong { display:block; line-height:1.2; }
@@ -127,7 +142,7 @@ p { margin:0 0 12px; }
 .footer { color:var(--muted); font-size:13px; margin-top:32px; border-top:1px solid var(--line); padding-top:18px; }
 @media (max-width:900px) {
   h1 { font-size:34px; }
-  .lane-grid, .answer-grid, .grid-2, .stats, .decision-stats, .status-grid, .readout-grid, .evidence-strength-grid { grid-template-columns:1fr; }
+  .lane-grid, .answer-grid, .grid-2, .stats, .decision-stats, .status-grid, .readout-grid, .evidence-strength-grid, .score-grid { grid-template-columns:1fr; }
   .goal-row { grid-template-columns:1fr; }
   .page { padding:24px 16px 48px; }
 }
@@ -143,6 +158,7 @@ p { margin:0 0 12px; }
     <a href="#participation">Participation</a>
     <a href="#load">Project Load</a>
     <a href="#market">Market Position</a>
+    <a href="#scorecard">Scorecard</a>
     <a href="#goal-map">Coverage Map</a>
     <a href="#coverage">Source Coverage</a>
     <a href="#readout">Decision Readout</a>
@@ -173,6 +189,52 @@ p { margin:0 0 12px; }
         <li>Search and broad job-market demand remain partial; current proxies are labeled as such.</li>
       </ul>
     </article>
+  </section>
+
+  <section id="scorecard" class="section">
+    <h2>Relevance Scorecard</h2>
+    <div class="scorecard-verdict">
+      <strong>Overall: still in a good place, with softer momentum.</strong>
+      <p>WordPress remains the default CMS on installed-share and ecosystem evidence. The softer parts are new-site momentum, first-time tracker participation, and demand signals that currently rely on public proxies.</p>
+    </div>
+    <div class="score-grid" aria-label="WordPress relevance scorecard">
+      <article class="score-card good">
+        <span class="score-chip">Strong</span>
+        <b>Installed reach</b>
+        <strong>41.5% / 59.3%</strong>
+        <p>All-site share and CMS share still make WordPress the default CMS.</p>
+      </article>
+      <article class="score-card watch">
+        <span class="score-chip">Softer</span>
+        <b>Recent share direction</b>
+        <strong>-2.1 pts</strong>
+        <p>All-site W3Techs change since Jan 2025; CMS share also moved -2.7 pts.</p>
+      </article>
+      <article class="score-card watch">
+        <span class="score-chip">Current proxy</span>
+        <b>New-site choice</b>
+        <strong>67.4%</strong>
+        <p>Share of the tracked 90-day BuiltWith pipeline across WordPress, Shopify, Wix, and Webflow.</p>
+      </article>
+      <article class="score-card slower">
+        <span class="score-chip">Slower</span>
+        <b>New community entry</b>
+        <strong>66.2% / 69.5%</strong>
+        <p>Core and Gutenberg first-time reporter retention versus the 2021-2023 quarterly average.</p>
+      </article>
+      <article class="score-card good">
+        <span class="score-chip">Mostly keeping up</span>
+        <b>Project throughput</b>
+        <strong>103.5% / 98.3%</strong>
+        <p>Core and Gutenberg closure/new ratios since 2024.</p>
+      </article>
+      <article class="score-card good">
+        <span class="score-chip">Deep</span>
+        <b>Ecosystem base</b>
+        <strong>61.2k / 8,337</strong>
+        <p>Current WordPress.org plugin and theme directory counts, plus active releases, events, translations, and pledges elsewhere in the report.</p>
+      </article>
+    </div>
   </section>
 
   <section class="answer-grid">
@@ -3814,7 +3876,7 @@ p { margin:0 0 12px; }
   </section>
 
   <section class="footer">
-    <p>Generated 2026-06-14 15:27 UTC from local Core/Gutenberg exports and public sources.</p>
+    <p>Generated 2026-06-14 15:31 UTC from local Core/Gutenberg exports and public sources.</p>
     <p>Sources: <a href="https://w3techs.com/technologies/history_overview/content_management/all/y">W3Techs usage trend</a>, <a href="https://w3techs.com/technologies/history_overview/content_management/ms/y">W3Techs CMS market-share trend</a>, <a href="https://almanac.httparchive.org/en/2025/cms">HTTP Archive Web Almanac CMS 2025</a>, <a href="https://httparchive.org/reports/techreport/tech">HTTP Archive Technology Report API</a>, <a href="https://api.stackexchange.com/docs/questions">Stack Exchange API</a>, <a href="https://doc.wikimedia.org/generated-data-platform/aqs/analytics-api/reference/page-views.html">Wikimedia Pageviews API</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="https://codex.wordpress.org/WordPress.org_API#Plugin_Download_Stats">WordPress.org plugin download stats</a>, <a href="https://jobs.wordpress.net/">WordPress Jobs board</a>, <a href="https://web.archive.org/cdx">Internet Archive CDX API</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="https://events.wordpress.org/">WordPress Events</a>, <a href="https://translate.wordpress.org/">Translate WordPress</a>, <a href="https://make.wordpress.org/core/wp-json/wp/v2/posts">Make/Core posts API</a>, <a href="https://make.wordpress.org/core/wp-json/wp/v2/comments">Make/Core comments API</a>, <a href="https://wordpress.org/support/view/all-topics/">WordPress.org support forums</a>, <a href="https://trends.builtwith.com/cms/WordPress">BuiltWith technology pages</a>, <a href="https://github.com/WordPress/gutenberg/issues">Gutenberg GitHub issues</a>, <a href="https://wordpress.org/five-for-the-future/pledges/">Five for the Future pledges</a>, <a href="https://wordpress.org/download/releases/">WordPress release archive</a>, and <a href="https://api.wordpress.org/core/credits/1.1/">Core credits API</a>.</p>
   </section>
 </main>

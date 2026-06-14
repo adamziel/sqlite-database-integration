@@ -5888,6 +5888,21 @@ p {{ margin:0 0 12px; }}
 .evidence-strength-card.good {{ border-left-color:var(--green); }}
 .evidence-strength-card.soft {{ border-left-color:var(--blue); }}
 .evidence-strength-card.watch {{ border-left-color:var(--orange); }}
+.scorecard-verdict {{ border:1px solid var(--line); border-left:6px solid var(--green); border-radius:8px; padding:16px; background:#fff; margin:16px 0 12px; }}
+.scorecard-verdict strong {{ display:block; font-size:22px; line-height:1.2; margin-bottom:6px; }}
+.scorecard-verdict p {{ color:var(--muted); margin:0; }}
+.score-grid {{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }}
+.score-card {{ border:1px solid var(--line); border-top:5px solid var(--blue); border-radius:8px; padding:14px; background:#fff; min-height:142px; }}
+.score-card .score-chip {{ display:inline-block; border-radius:999px; padding:3px 8px; font-size:12px; font-weight:800; margin-bottom:9px; background:#dbeafe; color:#1e40af; }}
+.score-card b {{ display:block; font-size:13px; color:var(--muted); margin-bottom:3px; }}
+.score-card strong {{ display:block; font-size:24px; line-height:1.1; margin-bottom:8px; }}
+.score-card p {{ color:var(--muted); margin:0; font-size:14px; }}
+.score-card.good {{ border-top-color:var(--green); }}
+.score-card.good .score-chip {{ background:#dcfce7; color:#166534; }}
+.score-card.slower {{ border-top-color:var(--red); }}
+.score-card.slower .score-chip {{ background:#fee2e2; color:#991b1b; }}
+.score-card.watch {{ border-top-color:var(--orange); }}
+.score-card.watch .score-chip {{ background:#fef3c7; color:#92400e; }}
 .goal-map {{ display:grid; gap:10px; margin-top:16px; }}
 .goal-row {{ display:grid; grid-template-columns:minmax(160px,1.1fr) minmax(135px,.7fr) minmax(260px,2fr); gap:14px; align-items:start; border:1px solid var(--line); border-left:6px solid var(--blue); border-radius:8px; padding:13px 14px; background:#fff; }}
 .goal-row strong {{ display:block; line-height:1.2; }}
@@ -5908,7 +5923,7 @@ p {{ margin:0 0 12px; }}
 .footer {{ color:var(--muted); font-size:13px; margin-top:32px; border-top:1px solid var(--line); padding-top:18px; }}
 @media (max-width:900px) {{
   h1 {{ font-size:34px; }}
-  .lane-grid, .answer-grid, .grid-2, .stats, .decision-stats, .status-grid, .readout-grid, .evidence-strength-grid {{ grid-template-columns:1fr; }}
+  .lane-grid, .answer-grid, .grid-2, .stats, .decision-stats, .status-grid, .readout-grid, .evidence-strength-grid, .score-grid {{ grid-template-columns:1fr; }}
   .goal-row {{ grid-template-columns:1fr; }}
   .page {{ padding:24px 16px 48px; }}
 }}
@@ -5924,6 +5939,7 @@ p {{ margin:0 0 12px; }}
     <a href="#participation">Participation</a>
     <a href="#load">Project Load</a>
     <a href="#market">Market Position</a>
+    <a href="#scorecard">Scorecard</a>
     <a href="#goal-map">Coverage Map</a>
     <a href="#coverage">Source Coverage</a>
     <a href="#readout">Decision Readout</a>
@@ -5954,6 +5970,52 @@ p {{ margin:0 0 12px; }}
         <li>Search and broad job-market demand remain partial; current proxies are labeled as such.</li>
       </ul>
     </article>
+  </section>
+
+  <section id="scorecard" class="section">
+    <h2>Relevance Scorecard</h2>
+    <div class="scorecard-verdict">
+      <strong>Overall: still in a good place, with softer momentum.</strong>
+      <p>WordPress remains the default CMS on installed-share and ecosystem evidence. The softer parts are new-site momentum, first-time tracker participation, and demand signals that currently rely on public proxies.</p>
+    </div>
+    <div class="score-grid" aria-label="WordPress relevance scorecard">
+      <article class="score-card good">
+        <span class="score-chip">Strong</span>
+        <b>Installed reach</b>
+        <strong>{pct(wp_usage_latest['value']) if wp_usage_latest else 'n/a'} / {pct(wp_cms_latest['value']) if wp_cms_latest else 'n/a'}</strong>
+        <p>All-site share and CMS share still make WordPress the default CMS.</p>
+      </article>
+      <article class="score-card watch">
+        <span class="score-chip">Softer</span>
+        <b>Recent share direction</b>
+        <strong>{f"{usage_delta:+.1f} pts" if usage_delta is not None else "n/a"}</strong>
+        <p>All-site W3Techs change since Jan 2025; CMS share also moved {f"{cms_delta:+.1f} pts" if cms_delta is not None else "n/a"}.</p>
+      </article>
+      <article class="score-card watch">
+        <span class="score-chip">Current proxy</span>
+        <b>New-site choice</b>
+        <strong>{pct(builtwith_wp_90_share)}</strong>
+        <p>Share of the tracked 90-day BuiltWith pipeline across WordPress, Shopify, Wix, and Webflow.</p>
+      </article>
+      <article class="score-card slower">
+        <span class="score-chip">Slower</span>
+        <b>New community entry</b>
+        <strong>{pct(core_first_retention)} / {pct(gut_first_retention)}</strong>
+        <p>Core and Gutenberg first-time reporter retention versus the 2021-2023 quarterly average.</p>
+      </article>
+      <article class="score-card good">
+        <span class="score-chip">Mostly keeping up</span>
+        <b>Project throughput</b>
+        <strong>{pct(core_closure_ratio)} / {pct(gut_closure_ratio)}</strong>
+        <p>Core and Gutenberg closure/new ratios since 2024.</p>
+      </article>
+      <article class="score-card good">
+        <span class="score-chip">Deep</span>
+        <b>Ecosystem base</b>
+        <strong>{compact(plugin_count)} / {compact(theme_count)}</strong>
+        <p>Current WordPress.org plugin and theme directory counts, plus active releases, events, translations, and pledges elsewhere in the report.</p>
+      </article>
+    </div>
   </section>
 
   <section class="answer-grid">

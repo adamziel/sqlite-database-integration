@@ -54,7 +54,7 @@
     .date { font-weight: 750; color: var(--blue); }
     .pillrow { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
     .pill { border: 1px solid var(--line); border-radius: 999px; padding: 6px 10px; background: #fbfdff; font-size: 13px; color: var(--muted); }
-    .linkcards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 18px 0; }
+    .linkcards { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin: 18px 0; }
     .linkcard {
       display: block;
       color: inherit;
@@ -132,6 +132,10 @@
         <strong>Decision brief</strong>
         <span>One-page summary for quick sharing and review.</span>
       </a>
+      <a class="linkcard" href="data_inventory.html">
+        <strong>Data inventory</strong>
+        <span>SQLite tables, source hashes, and partial-source gaps.</span>
+      </a>
       <a class="linkcard" href="refresh_runbook.html">
         <strong>Refresh runbook</strong>
         <span>How to refresh safely, including low-disk constraints.</span>
@@ -197,6 +201,12 @@
             </div>
           </div>
           <div class="item">
+            <div class="date">Inventory</div>
+            <div>
+              <p>Added <a href="data_inventory.html">data_inventory.html</a> to document the SQLite table list, hashed local sources, and stored partial-source gaps.</p>
+            </div>
+          </div>
+          <div class="item">
             <div class="date">Publishing</div>
             <div>
               <p>Generated final_report.html and published the GitHub Pages version as <a href="index.html">index.html</a>, with <a href="community_health.sqlite.gz">community_health.sqlite.gz</a> for the supporting database export.</p>
@@ -222,6 +232,7 @@
           <span class="pill">community_health.sqlite.gz</span>
           <span class="pill">scorecard</span>
           <span class="pill">coverage map</span>
+          <span class="pill">data inventory</span>
         </div>
         <table>
           <thead><tr><th>Area</th><th>State</th></tr></thead>
@@ -248,7 +259,7 @@
           <tr><td>Market position and adoption</td><td>W3Techs installed share, HTTP Archive origin and tracked-share trends, BuiltWith pipeline/tier data, plugin install/download history, WooCommerce, and demand proxies.</td><td>Covered with proxies for new-site and demand history</td></tr>
           <tr><td>Decision questions</td><td>Seven plain-English answer cards plus final evidence-strength and decision readout sections.</td><td>Covered</td></tr>
           <tr><td>Short visual decision readout</td><td>Relevance Scorecard, Goal Coverage Map, Decision Brief, and final Decision Readout.</td><td>Covered</td></tr>
-          <tr><td>Refresh metadata</td><td>SQLite source_files hashes, source_gaps, source coverage cards, generator script, cached public-source tables, and compressed DB export.</td><td>Covered</td></tr>
+          <tr><td>Refresh metadata</td><td>SQLite source_files hashes, source_gaps, data inventory page, source coverage cards, generator script, cached public-source tables, and compressed DB export.</td><td>Covered</td></tr>
           <tr><td>Remaining ideal sources</td><td>True multi-year new-site cohorts, Google Trends or equivalent, broad labor-market exports, and fuller support-forum history.</td><td>Partial by design</td></tr>
         </tbody>
       </table>

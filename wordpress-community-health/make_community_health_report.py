@@ -1584,8 +1584,12 @@ def builtwith_cache_path(technology):
 
 def fetch_builtwith_page(technology, source_url, skip_network=False):
     cache_path = builtwith_cache_path(technology)
+    legacy_cache_path = CACHE / f"builtwith-{technology}.html"
+    read_path = cache_path if cache_path.exists() else legacy_cache_path
     if skip_network and cache_path.exists():
         return cache_path.read_text(encoding="utf-8", errors="replace")
+    if skip_network and read_path.exists():
+        return read_path.read_text(encoding="utf-8", errors="replace")
     if skip_network:
         return ""
     try:
@@ -4674,10 +4678,12 @@ def build_report(data, fetched):
     builtwith_live_by_tech = {row.get("technology"): row for row in builtwith_technology_snapshots}
     builtwith_live_rows = [row for row in builtwith_technology_snapshots if num(row.get("total_live")) > 0]
     builtwith_live_max = max([num(row.get("total_live")) for row in builtwith_live_rows] or [1])
-    builtwith_history_techs = [
+    builtwith_ecommerce_history_techs = [
         ("Shopify", COLORS["shopify"]),
         ("WooCommerce", COLORS["purple"]),
     ]
+    builtwith_ecommerce_live_rows = [row for row in builtwith_live_rows if row.get("category") == "eCommerce"]
+    builtwith_ecommerce_live_max = max([num(row.get("total_live")) for row in builtwith_ecommerce_live_rows] or [1])
     builtwith_total_live_series = [
         {
             "label": tech,
@@ -4688,7 +4694,7 @@ def build_report(data, fetched):
                 if row.get("technology") == tech and row.get("date") >= "2010-01-01"
             ),
         }
-        for tech, color in builtwith_history_techs
+        for tech, color in builtwith_ecommerce_history_techs
     ]
     builtwith_top1m_series = [
         {
@@ -4700,7 +4706,7 @@ def build_report(data, fetched):
                 if row.get("technology") == tech and row.get("date") >= "2010-01-01"
             ),
         }
-        for tech, color in builtwith_history_techs
+        for tech, color in builtwith_ecommerce_history_techs
     ]
     woocommerce_builtwith = builtwith_live_by_tech.get("WooCommerce", {})
     woocommerce_plugin = max(
@@ -5763,13 +5769,13 @@ p {{ margin:0 0 12px; }}
           {stat_card("Top 1M", compact(num(woocommerce_builtwith.get("top_1m"))), "BuiltWith traffic tier", "soft")}
           {stat_card("Plugin installs", compact(num(woocommerce_plugin.get("active_installs"))), "WordPress.org active installs", "good")}
         </div>
-        {horizontal_count_metric("WooCommerce live sites", num(woocommerce_builtwith.get("total_live")), builtwith_live_max, COLORS["purple"], "")}
-        {horizontal_count_metric("WooCommerce Top 1M", num(woocommerce_builtwith.get("top_1m")), max([num(row.get("top_1m")) for row in builtwith_live_rows] or [1]), COLORS["purple"], "")}
+        {horizontal_count_metric("WooCommerce live sites", num(woocommerce_builtwith.get("total_live")), builtwith_ecommerce_live_max, COLORS["purple"], "")}
+        {horizontal_count_metric("WooCommerce Top 1M", num(woocommerce_builtwith.get("top_1m")), max([num(row.get("top_1m")) for row in builtwith_ecommerce_live_rows] or [1]), COLORS["purple"], "")}
       </div>
       <div class="card">
         <h3>BuiltWith ecommerce footprint</h3>
         <p>Current live-site totals from the fetched BuiltWith ecommerce pages.</p>
-        {''.join(horizontal_count_metric(str(row.get("technology", "")), num(row.get("total_live")), builtwith_live_max, COLORS.get(str(row.get("technology", "")).lower(), COLORS["purple"] if row.get("technology") == "WooCommerce" else COLORS["neutral"]), "") for row in sorted(builtwith_live_rows, key=lambda item: num(item.get("total_live")), reverse=True))}
+        {''.join(horizontal_count_metric(str(row.get("technology", "")), num(row.get("total_live")), builtwith_ecommerce_live_max, COLORS.get(str(row.get("technology", "")).lower(), COLORS["purple"] if row.get("technology") == "WooCommerce" else COLORS["neutral"]), "") for row in sorted(builtwith_ecommerce_live_rows, key=lambda item: num(item.get("total_live")), reverse=True))}
       </div>
     </div>
     <div class="grid-2">

@@ -59,6 +59,8 @@ SKIP_NETWORK_DB_FALLBACK_TABLES = [
     "wikimedia_pageviews_monthly",
     "wikimedia_pageviews_quarterly",
     "hn_hiring_wordpress_quarterly",
+    "wordpress_jobs_board_snapshots",
+    "wordpress_jobs_board_category_snapshots",
     "enterprise_vip_case_studies",
     "builtwith_technology_snapshots",
     "builtwith_technology_history",
@@ -122,6 +124,7 @@ STACK_EXCHANGE_DOCS_URL = "https://api.stackexchange.com/docs/questions"
 HN_SEARCH_API = "https://hn.algolia.com/api/v1/search"
 HN_ITEM_API = "https://hn.algolia.com/api/v1/items"
 HN_HIRING_SOURCE_URL = "https://news.ycombinator.com/submitted?id=whoishiring"
+WORDPRESS_JOBS_URL = "https://jobs.wordpress.net/"
 WAYBACK_CDX_API = "https://web.archive.org/cdx"
 WAYBACK_WEB_ROOT = "https://web.archive.org/web"
 WIKIMEDIA_PAGEVIEWS_API = "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article"
@@ -131,6 +134,7 @@ WPVIP_CASE_STUDY_ARCHIVE_URL = "https://wpvip.com/case-studies/"
 STACK_OVERFLOW_TAG_START = dt.datetime(2010, 1, 1, tzinfo=dt.timezone.utc)
 HN_HIRING_START = dt.datetime(2012, 1, 1, tzinfo=dt.timezone.utc)
 WIKIMEDIA_PAGEVIEW_START = dt.datetime(2015, 7, 1, tzinfo=dt.timezone.utc)
+WORDPRESS_JOBS_ARCHIVE_START_YEAR = 2016
 MAJOR_PLUGIN_ARCHIVE_START_YEAR = 2016
 STACK_OVERFLOW_TAGS = [
     {"tag": "wordpress", "label": "WordPress", "color": "#2563eb"},
@@ -1185,6 +1189,297 @@ def derive_hn_hiring_demand_summary(rows):
             }
         )
     return summary
+
+
+def wordpress_jobs_cache_path():
+    return CACHE / "wordpress-jobs-board-snapshots.json"
+
+
+def read_cached_wordpress_jobs_board():
+    path = wordpress_jobs_cache_path()
+    if not path.exists():
+        return [], []
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return [], []
+    snapshots = payload.get("snapshots", []) if isinstance(payload, dict) else []
+    categories = payload.get("categories", []) if isinstance(payload, dict) else []
+    return (
+        snapshots if isinstance(snapshots, list) else [],
+        categories if isinstance(categories, list) else [],
+    )
+
+
+def write_cached_wordpress_jobs_board(snapshots, categories):
+    CACHE.mkdir(parents=True, exist_ok=True)
+    wordpress_jobs_cache_path().write_text(
+        json.dumps(
+            {
+                "collected_at": dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z"),
+                "source_url": WORDPRESS_JOBS_URL,
+                "snapshots": snapshots,
+                "categories": categories,
+            },
+            indent=2,
+            sort_keys=True,
+        ),
+        encoding="utf-8",
+    )
+
+
+def slugify_label(value):
+    slug = re.sub(r"[^a-z0-9]+", "-", strip_html(value).lower()).strip("-")
+    return slug or "unknown"
+
+
+def wordpress_jobs_cdx_url():
+    params = [
+        ("url", "jobs.wordpress.net/"),
+        ("from", str(WORDPRESS_JOBS_ARCHIVE_START_YEAR)),
+        ("to", str(END.year - 1)),
+        ("matchType", "exact"),
+        ("filter", "statuscode:200"),
+        ("filter", "mimetype:text/html"),
+        ("collapse", "timestamp:4"),
+        ("output", "json"),
+        ("fl", "timestamp,original,digest"),
+    ]
+    return f"{WAYBACK_CDX_API}?{urllib.parse.urlencode(params)}"
+
+
+def fetch_wordpress_jobs_cdx_rows():
+    url = wordpress_jobs_cdx_url()
+    payload, _headers = fetch_with_retries(fetch_json, url, "WordPress Jobs CDX", attempts=4, delay=2.0)
+    if not isinstance(payload, list) or len(payload) < 2:
+        return [], url
+    header = payload[0]
+    rows = []
+    for item in payload[1:]:
+        if not isinstance(item, list) or len(item) != len(header):
+            continue
+        row = dict(zip(header, item))
+        timestamp = str(row.get("timestamp") or "")
+        if re.match(r"^\d{14}$", timestamp):
+            rows.append(row)
+    return rows, url
+
+
+def classify_jobs_type(value):
+    text = strip_html(value).lower()
+    if "full time" in text or "full-time" in text:
+        return "Full Time"
+    if "part time" in text or "part-time" in text:
+        return "Part Time"
+    if "project" in text or "freelance" in text or "contract" in text:
+        return "Project"
+    if "intern" in text:
+        return "Internship"
+    return ""
+
+
+def parse_wordpress_jobs_current_cards(page_html):
+    rows = []
+    for match in re.finditer(r'<a[^>]+class="[^"]*\bjob-card\b[^"]*"[^>]*>(.*?)</a>', page_html, flags=re.I | re.S):
+        block = match.group(0)
+        attrs = block[: block.find(">") + 1]
+        href_match = re.search(r'href="([^"]+)"', attrs, flags=re.I)
+        data_category_match = re.search(r'data-category="([^"]+)"', attrs, flags=re.I)
+        category_match = re.search(r'class="[^"]*\bjob-card__badge\b[^"]*"[^>]*>(.*?)</span>', block, flags=re.I | re.S)
+        title_match = re.search(r'class="[^"]*\bjob-card__title\b[^"]*"[^>]*>(.*?)</h2>', block, flags=re.I | re.S)
+        company_match = re.search(r'class="[^"]*\bjob-card__company\b[^"]*"[^>]*>(.*?)</p>', block, flags=re.I | re.S)
+        date_match = re.search(r'class="[^"]*\bjob-card__date\b[^"]*"[^>]*>\s*Posted\s+([^<]+)', block, flags=re.I | re.S)
+        meta_text = strip_html(" ".join(re.findall(r'class="[^"]*\bjob-card__meta\b[^"]*"[^>]*>(.*?)</div>', block, flags=re.I | re.S)))
+        category = strip_html(category_match.group(1)) if category_match else strip_html(data_category_match.group(1) if data_category_match else "")
+        rows.append(
+            {
+                "title": strip_html(title_match.group(1)) if title_match else "",
+                "url": href_match.group(1) if href_match else "",
+                "category": category or "Uncategorized",
+                "category_slug": slugify_label(data_category_match.group(1) if data_category_match else category),
+                "company": strip_html(company_match.group(1)) if company_match else "",
+                "job_type": classify_jobs_type(meta_text),
+                "remote": "1" if "remote" in meta_text.lower() else "0",
+                "posted_label": strip_html(date_match.group(1)) if date_match else "",
+            }
+        )
+    return rows
+
+
+def parse_wordpress_jobs_legacy_rows(page_html):
+    rows = []
+    group_pattern = re.compile(
+        r'<div class="jobs-group">(.*?)(?=<div class="jobs-group">|<footer\b|</main>|<div id="footer")',
+        re.I | re.S,
+    )
+    for group_match in group_pattern.finditer(page_html):
+        group = group_match.group(1)
+        category_match = re.search(r'View all jobs listed under ([^"]+)">([^<]+)</a>', group, flags=re.I | re.S)
+        category = strip_html(category_match.group(2) if category_match else "")
+        category = category or strip_html(category_match.group(1) if category_match else "") or "Uncategorized"
+        category_slug = slugify_label(category)
+        row_pattern = re.compile(
+            r'<div class="row row-[^"]*">\s*'
+            r'<div class="job-date[^"]*">(?P<date>.*?)</div>'
+            r'<div class="job-title[^"]*"><a href="(?P<url>[^"]+)"[^>]*>(?P<title>.*?)</a></div>'
+            r'<div class="job-type[^"]*">(?P<type>.*?)</div>'
+            r'<div class="job-location[^"]*">(?P<location>.*?)</div>',
+            re.I | re.S,
+        )
+        for row_match in row_pattern.finditer(group):
+            rows.append(
+                {
+                    "title": strip_html(row_match.group("title")),
+                    "url": row_match.group("url"),
+                    "category": category,
+                    "category_slug": category_slug,
+                    "company": "",
+                    "job_type": classify_jobs_type(row_match.group("type")),
+                    "remote": "1" if "remote" in strip_html(row_match.group("location")).lower() else "0",
+                    "posted_label": strip_html(row_match.group("date")),
+                }
+            )
+    return rows
+
+
+def parse_wordpress_jobs_page(page_html):
+    rows = parse_wordpress_jobs_current_cards(page_html)
+    if rows:
+        return rows
+    return parse_wordpress_jobs_legacy_rows(page_html)
+
+
+def wordpress_jobs_summary_row(snapshot_date, source_type, source_url, jobs, archive_timestamp="", archive_digest="", archive_original_url=""):
+    category_counts = Counter(row.get("category_slug") or "unknown" for row in jobs)
+    type_counts = Counter(row.get("job_type") or "Unknown" for row in jobs)
+    remote_jobs = sum(1 for row in jobs if row.get("remote") == "1")
+    return {
+        "snapshot_date": snapshot_date,
+        "year": snapshot_date[:4],
+        "source_type": source_type,
+        "source_url": source_url,
+        "archive_timestamp": archive_timestamp,
+        "archive_digest": archive_digest,
+        "archive_original_url": archive_original_url,
+        "total_jobs": len(jobs),
+        "development_jobs": category_counts.get("development", 0),
+        "plugin_development_jobs": category_counts.get("plugin-development", 0),
+        "theme_customization_jobs": category_counts.get("theme-customization", 0),
+        "support_jobs": category_counts.get("support", 0),
+        "design_jobs": category_counts.get("design", 0),
+        "writing_jobs": category_counts.get("writing", 0),
+        "performance_jobs": category_counts.get("performance", 0),
+        "general_jobs": category_counts.get("general", 0),
+        "full_time_jobs": type_counts.get("Full Time", 0),
+        "project_jobs": type_counts.get("Project", 0),
+        "part_time_jobs": type_counts.get("Part Time", 0),
+        "remote_jobs": remote_jobs,
+        "source": "WordPress Jobs board open listings snapshot",
+        "collected_at": dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z"),
+    }
+
+
+def wordpress_jobs_category_rows(snapshot_row, jobs):
+    counts = Counter((row.get("category_slug") or "unknown", row.get("category") or "Uncategorized") for row in jobs)
+    rows = []
+    for (category_slug, category), count in sorted(counts.items(), key=lambda item: (-item[1], item[0][1])):
+        rows.append(
+            {
+                "snapshot_date": snapshot_row["snapshot_date"],
+                "year": snapshot_row["year"],
+                "source_type": snapshot_row["source_type"],
+                "category_slug": category_slug,
+                "category": category,
+                "open_jobs": count,
+                "total_jobs": snapshot_row["total_jobs"],
+                "category_share_pct": round(count / snapshot_row["total_jobs"] * 100, 2) if snapshot_row["total_jobs"] else 0,
+                "source_url": snapshot_row["source_url"],
+                "archive_timestamp": snapshot_row.get("archive_timestamp", ""),
+            }
+        )
+    return rows
+
+
+def fetch_wordpress_jobs_board_snapshots(skip_network=False):
+    cached_snapshots, cached_categories = read_cached_wordpress_jobs_board()
+    if skip_network and cached_snapshots:
+        return cached_snapshots, cached_categories
+    if skip_network:
+        return [], []
+
+    snapshots_by_key = {
+        (row.get("snapshot_date"), row.get("source_type")): dict(row)
+        for row in cached_snapshots
+        if isinstance(row, dict) and row.get("snapshot_date")
+    }
+    category_rows = [
+        dict(row) for row in cached_categories if isinstance(row, dict) and row.get("snapshot_date")
+    ]
+    category_keys = {
+        (row.get("snapshot_date"), row.get("source_type"), row.get("category_slug"))
+        for row in category_rows
+    }
+
+    try:
+        cdx_rows, _cdx_source_url = fetch_wordpress_jobs_cdx_rows()
+    except Exception as exc:
+        eprint(f"WordPress Jobs CDX fetch failed: {exc}")
+        cdx_rows = []
+    for cdx_row in cdx_rows:
+        timestamp = str(cdx_row.get("timestamp") or "")
+        snapshot_date = f"{timestamp[0:4]}-{timestamp[4:6]}-{timestamp[6:8]}"
+        key = (snapshot_date, "wayback_archive")
+        if key in snapshots_by_key:
+            continue
+        original_url = str(cdx_row.get("original") or WORDPRESS_JOBS_URL)
+        replay_url = wayback_replay_url(timestamp, original_url)
+        try:
+            page_html, _headers = fetch_with_retries(fetch_text, replay_url, f"WordPress Jobs {timestamp}", attempts=4, delay=2.0)
+        except Exception as exc:
+            eprint(f"WordPress Jobs archive fetch failed for {timestamp}: {exc}")
+            continue
+        jobs = parse_wordpress_jobs_page(page_html)
+        if not jobs:
+            eprint(f"WordPress Jobs archive snapshot had no parseable jobs for {timestamp}")
+            continue
+        snapshot = wordpress_jobs_summary_row(
+            snapshot_date,
+            "wayback_archive",
+            replay_url,
+            jobs,
+            archive_timestamp=timestamp,
+            archive_digest=str(cdx_row.get("digest") or ""),
+            archive_original_url=original_url,
+        )
+        snapshots_by_key[key] = snapshot
+        for row in wordpress_jobs_category_rows(snapshot, jobs):
+            cat_key = (row.get("snapshot_date"), row.get("source_type"), row.get("category_slug"))
+            if cat_key not in category_keys:
+                category_rows.append(row)
+                category_keys.add(cat_key)
+        time.sleep(0.8)
+
+    try:
+        live_html, _headers = fetch_text(WORDPRESS_JOBS_URL)
+        live_jobs = parse_wordpress_jobs_page(live_html)
+    except Exception as exc:
+        eprint(f"WordPress Jobs current-page fetch failed: {exc}")
+        live_jobs = []
+    if live_jobs:
+        snapshot_date = live_snapshot_date()
+        snapshot = wordpress_jobs_summary_row(snapshot_date, "current_page", WORDPRESS_JOBS_URL, live_jobs)
+        snapshots_by_key[(snapshot_date, "current_page")] = snapshot
+        category_rows = [
+            row for row in category_rows
+            if not (row.get("snapshot_date") == snapshot_date and row.get("source_type") == "current_page")
+        ]
+        category_rows.extend(wordpress_jobs_category_rows(snapshot, live_jobs))
+
+    snapshots = sorted(snapshots_by_key.values(), key=lambda row: (row.get("snapshot_date", ""), row.get("source_type", "")))
+    category_rows = sorted(category_rows, key=lambda row: (row.get("snapshot_date", ""), row.get("category", "")))
+    if snapshots:
+        write_cached_wordpress_jobs_board(snapshots, category_rows)
+    return snapshots, category_rows
 
 
 def vip_case_studies_cache_path():
@@ -3077,7 +3372,7 @@ def build_database(data, fetched):
             "job_demand",
             "partial",
             "Hacker News monthly Who is hiring? threads plus hiring-platform exports",
-            "HN Who is hiring WordPress/WooCommerce, PHP, and agency/studio mention counts are included from 2012 onward as narrow startup-hiring proxies; broader job-board demand still needs a labor-market source.",
+            "HN Who is hiring WordPress/WooCommerce, PHP, and agency/studio mention counts plus WordPress Jobs board open-listing snapshots are included as narrow demand proxies; broader job-board demand still needs a labor-market source.",
         )
     )
     if not fetched.get("enterprise_vip_case_studies"):
@@ -4049,6 +4344,7 @@ def source_status_rows(fetched):
         ("Stack Overflow tag volume", "covered" if fetched.get("stack_overflow_tag_quarterly") else "missing", "Quarterly public developer-attention proxy from Stack Exchange API tag totals"),
         ("Wikimedia pageviews", "covered" if fetched.get("wikimedia_pageviews_quarterly") else "missing", "Quarterly en.wikipedia article pageviews as a public-interest proxy, not search-query volume"),
         ("HN hiring mentions", "partial" if fetched.get("hn_hiring_wordpress_quarterly") else "missing", "WordPress/WooCommerce, PHP, and agency/studio mentions in monthly Hacker News Who is hiring threads from 2012 onward; not a broad job-board index"),
+        ("WordPress Jobs board", "partial" if fetched.get("wordpress_jobs_board_snapshots") else "missing", "Open-listing snapshots from jobs.wordpress.net current page and annual Internet Archive captures; WordPress-specific, not a broad hiring-platform index"),
         ("Enterprise adoption signal", "covered" if fetched.get("enterprise_vip_case_studies") else "missing", "Current public WordPress VIP case-study snapshot with industries and use cases"),
         ("WordPress.org plugin/theme directories", "covered" if fetched.get("directory_snapshots") else "missing", "Current plugin and theme counts"),
         ("Plugin/theme directory activity", "covered" if fetched.get("directory_activity_snapshots") else "missing", "Current new, updated, and popular samples from WordPress.org directory APIs"),
@@ -4105,6 +4401,8 @@ def build_report(data, fetched):
     wikimedia_pageviews_q = fetched.get("wikimedia_pageviews_quarterly", [])
     hn_hiring_q = fetched.get("hn_hiring_wordpress_quarterly", [])
     hn_hiring_summary = fetched.get("hn_hiring_demand_summary", [])
+    wordpress_jobs_snapshots = fetched.get("wordpress_jobs_board_snapshots", [])
+    wordpress_jobs_categories = fetched.get("wordpress_jobs_board_category_snapshots", [])
     enterprise_vip_cases = fetched.get("enterprise_vip_case_studies", [])
     wordcamps = fetched.get("wordcamps", [])
     wordcamp_yearly = fetched.get("wordcamp_yearly", [])
@@ -4644,6 +4942,47 @@ def build_report(data, fetched):
         num(hn_latest_4q.get("agency_comments")),
         1,
     )
+    wordpress_jobs_series = [
+        {
+            "label": "Open listings",
+            "color": COLORS["wordpress"],
+            "points": point_series(wordpress_jobs_snapshots, "snapshot_date", "total_jobs", "2016-01-01"),
+        },
+        {
+            "label": "Development",
+            "color": COLORS["core"],
+            "points": point_series(wordpress_jobs_snapshots, "snapshot_date", "development_jobs", "2016-01-01"),
+        },
+        {
+            "label": "Project/freelance-style",
+            "color": COLORS["orange"],
+            "points": point_series(wordpress_jobs_snapshots, "snapshot_date", "project_jobs", "2016-01-01"),
+        },
+        {
+            "label": "Support",
+            "color": COLORS["green"],
+            "points": point_series(wordpress_jobs_snapshots, "snapshot_date", "support_jobs", "2016-01-01"),
+        },
+    ]
+    latest_jobs_snapshot = max(wordpress_jobs_snapshots, key=lambda row: row.get("snapshot_date", ""), default={})
+    jobs_archive_snapshots = [row for row in wordpress_jobs_snapshots if row.get("source_type") == "wayback_archive"]
+    jobs_snapshot_dates = sorted(row.get("snapshot_date", "") for row in wordpress_jobs_snapshots if row.get("snapshot_date"))
+    jobs_range_label = (
+        f"{jobs_snapshot_dates[0]} to {jobs_snapshot_dates[-1]}"
+        if jobs_snapshot_dates
+        else "not fetched"
+    )
+    latest_jobs_categories = sorted(
+        [row for row in wordpress_jobs_categories if row.get("snapshot_date") == latest_jobs_snapshot.get("snapshot_date")],
+        key=lambda row: num(row.get("open_jobs")),
+        reverse=True,
+    )
+    max_latest_jobs_category = max([num(row.get("open_jobs")) for row in latest_jobs_categories] or [1])
+    latest_jobs_total = num(latest_jobs_snapshot.get("total_jobs"))
+    latest_project_jobs = num(latest_jobs_snapshot.get("project_jobs"))
+    latest_development_jobs = num(latest_jobs_snapshot.get("development_jobs"))
+    latest_jobs_project_share = latest_project_jobs / latest_jobs_total * 100 if latest_jobs_total else 0
+    latest_jobs_development_share = latest_development_jobs / latest_jobs_total * 100 if latest_jobs_total else 0
     enterprise_recent_cases = sum(1 for row in enterprise_vip_cases if str(row.get("date", "")) >= "2024-01-01")
     enterprise_industry_counts = Counter()
     enterprise_use_case_counts = Counter()
@@ -5349,6 +5688,20 @@ p {{ margin:0 0 12px; }}
       </div>
     </div>
     <div class="grid-2">
+      {svg_line_chart("WordPress Jobs board open listings", "Annual archived snapshots plus the current jobs.wordpress.net page. This is WordPress-specific open-listing demand, not a broad labor-market index.", wordpress_jobs_series)}
+      <div class="card">
+        <h3>Jobs-board readout</h3>
+        <p>Open listings on jobs.wordpress.net add a WordPress-specific demand signal. The series is a snapshot view: it counts visible open listings on captured pages, not total postings over the whole year.</p>
+        <div class="stats">
+          {stat_card("Latest open listings", compact(latest_jobs_total), latest_jobs_snapshot.get("snapshot_date", "not fetched"), "soft")}
+          {stat_card("Development share", pct(latest_jobs_development_share), f"{compact(latest_development_jobs)} current listings", "soft")}
+          {stat_card("Project-style share", pct(latest_jobs_project_share), f"{compact(latest_project_jobs)} current listings", "soft")}
+          {stat_card("Archive snapshots", compact(len(jobs_archive_snapshots)), jobs_range_label, "good" if jobs_archive_snapshots else "watch")}
+        </div>
+        {''.join(horizontal_count_metric(str(row.get("category", "")), num(row.get("open_jobs")), max_latest_jobs_category, COLORS["community"] if row.get("category_slug") == "project" else COLORS["core"], " listings") for row in latest_jobs_categories[:6])}
+      </div>
+    </div>
+    <div class="grid-2">
       <div class="card">
         <h3>Enterprise adoption snapshot</h3>
         <p>Current public WordPress VIP case-study records. This is a curated enterprise evidence source, not a count of all enterprise WordPress sites.</p>
@@ -5551,7 +5904,7 @@ p {{ margin:0 0 12px; }}
 
   <section class="footer">
     <p>Generated {dt.datetime.now(dt.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')} from local Core/Gutenberg exports and public sources.</p>
-    <p>Sources: <a href="{W3TECHS_USAGE_URL}">W3Techs usage trend</a>, <a href="{W3TECHS_MARKET_SHARE_URL}">W3Techs CMS market-share trend</a>, <a href="{HTTP_ARCHIVE_CMS_URL}">HTTP Archive Web Almanac CMS 2025</a>, <a href="{STACK_EXCHANGE_DOCS_URL}">Stack Exchange API</a>, <a href="{WIKIMEDIA_PAGEVIEWS_DOCS_URL}">Wikimedia Pageviews API</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="{PLUGIN_DOWNLOADS_DOCS_URL}">WordPress.org plugin download stats</a>, <a href="{WAYBACK_CDX_API}">Internet Archive CDX API</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="{EVENTS_WORDPRESS_URL}">WordPress Events</a>, <a href="{TRANSLATE_LOCALES_URL}">Translate WordPress</a>, <a href="{MAKE_CORE_API}">Make/Core posts API</a>, <a href="{MAKE_CORE_COMMENTS_API}">Make/Core comments API</a>, <a href="https://wordpress.org/support/view/all-topics/">WordPress.org support forums</a>, <a href="https://trends.builtwith.com/cms/WordPress">BuiltWith technology pages</a>, <a href="https://github.com/WordPress/gutenberg/issues">Gutenberg GitHub issues</a>, <a href="{FTTF_PLEDGES_URL}">Five for the Future pledges</a>, <a href="{RELEASE_ARCHIVE_URL}">WordPress release archive</a>, and <a href="{CREDITS_API}">Core credits API</a>.</p>
+    <p>Sources: <a href="{W3TECHS_USAGE_URL}">W3Techs usage trend</a>, <a href="{W3TECHS_MARKET_SHARE_URL}">W3Techs CMS market-share trend</a>, <a href="{HTTP_ARCHIVE_CMS_URL}">HTTP Archive Web Almanac CMS 2025</a>, <a href="{STACK_EXCHANGE_DOCS_URL}">Stack Exchange API</a>, <a href="{WIKIMEDIA_PAGEVIEWS_DOCS_URL}">Wikimedia Pageviews API</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="{PLUGIN_DOWNLOADS_DOCS_URL}">WordPress.org plugin download stats</a>, <a href="{WORDPRESS_JOBS_URL}">WordPress Jobs board</a>, <a href="{WAYBACK_CDX_API}">Internet Archive CDX API</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="{EVENTS_WORDPRESS_URL}">WordPress Events</a>, <a href="{TRANSLATE_LOCALES_URL}">Translate WordPress</a>, <a href="{MAKE_CORE_API}">Make/Core posts API</a>, <a href="{MAKE_CORE_COMMENTS_API}">Make/Core comments API</a>, <a href="https://wordpress.org/support/view/all-topics/">WordPress.org support forums</a>, <a href="https://trends.builtwith.com/cms/WordPress">BuiltWith technology pages</a>, <a href="https://github.com/WordPress/gutenberg/issues">Gutenberg GitHub issues</a>, <a href="{FTTF_PLEDGES_URL}">Five for the Future pledges</a>, <a href="{RELEASE_ARCHIVE_URL}">WordPress release archive</a>, and <a href="{CREDITS_API}">Core credits API</a>.</p>
   </section>
 </main>
 </body>
@@ -5581,6 +5934,10 @@ def main():
         args.skip_network
     )
     fetched["hn_hiring_wordpress_quarterly"] = fetch_hn_hiring_wordpress_quarterly(args.skip_network)
+    (
+        fetched["wordpress_jobs_board_snapshots"],
+        fetched["wordpress_jobs_board_category_snapshots"],
+    ) = fetch_wordpress_jobs_board_snapshots(args.skip_network)
     fetched["enterprise_vip_case_studies"] = fetch_wordpress_vip_case_studies(args.skip_network)
     fetched["directory_snapshots"] = fetch_wordpress_directory_snapshots(args.skip_network)
     (

@@ -54,6 +54,22 @@
     .date { font-weight: 750; color: var(--blue); }
     .pillrow { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
     .pill { border: 1px solid var(--line); border-radius: 999px; padding: 6px 10px; background: #fbfdff; font-size: 13px; color: var(--muted); }
+    .linkcards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 18px 0; }
+    .linkcard {
+      display: block;
+      color: inherit;
+      text-decoration: none;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-top: 5px solid var(--blue);
+      border-radius: 8px;
+      padding: 14px;
+      min-height: 126px;
+    }
+    .linkcard.green { border-top-color: var(--green); }
+    .linkcard.amber { border-top-color: var(--amber); }
+    .linkcard strong { display: block; font-size: 18px; line-height: 1.2; margin-bottom: 7px; }
+    .linkcard span { color: var(--muted); font-size: 14px; }
     ul { margin: 10px 0 0; padding-left: 20px; }
     li + li { margin-top: 6px; }
     .status { display: inline-flex; align-items: center; gap: 7px; font-weight: 750; }
@@ -66,7 +82,7 @@
     th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
     @media (max-width: 820px) {
       main { padding: 24px 14px 36px; }
-      .cards, .two { grid-template-columns: 1fr; }
+      .cards, .two, .linkcards { grid-template-columns: 1fr; }
       .item { grid-template-columns: 1fr; gap: 3px; }
     }
   </style>
@@ -74,12 +90,12 @@
 <body>
   <main>
     <h1>WordPress relevance report progress</h1>
-    <p class="lede">This is the working state as of June 14, 2026. The active direction is the WordPress Community & Adoption Health report, not the SQLite benchmark runner.</p>
+    <p class="lede">This is the working state as of June 14, 2026. The active direction is the WordPress Community & Adoption Health report, not the SQLite benchmark runner. The public report now opens with a decision scorecard and keeps data-source strength visible.</p>
 
     <section class="grid cards">
       <div class="card">
         <h3>Database</h3>
-        <div class="metric">70+ <small>tables</small></div>
+        <div class="metric">76 <small>tables</small></div>
         <p class="note">SQLite now stores imported ticket data, fetched ecosystem data, source hashes, and known source gaps.</p>
         <div class="bar green"><span style="width:92%"></span></div>
       </div>
@@ -91,8 +107,8 @@
       </div>
       <div class="card">
         <h3>Report</h3>
-        <div class="metric">3 <small>views</small></div>
-        <p class="note">Participation, Project Load, and Market Position are implemented in the generated HTML report.</p>
+        <div class="metric">3+ <small>views</small></div>
+        <p class="note">Participation, Project Load, Market Position, a relevance scorecard, a coverage map, and a decision readout are implemented.</p>
         <div class="bar green"><span style="width:86%"></span></div>
       </div>
       <div class="card">
@@ -103,6 +119,25 @@
       </div>
     </section>
 
+    <section class="linkcards" aria-label="Current public report links">
+      <a class="linkcard green" href="index.html#scorecard">
+        <strong>Relevance scorecard</strong>
+        <span>Short decision view: still in a good place, with softer momentum.</span>
+      </a>
+      <a class="linkcard" href="index.html#goal-map">
+        <strong>Goal coverage map</strong>
+        <span>Shows which areas are strong, directional, snapshot-based, or proxy-led.</span>
+      </a>
+      <a class="linkcard amber" href="decision_brief.html">
+        <strong>Decision brief</strong>
+        <span>One-page summary for quick sharing and review.</span>
+      </a>
+      <a class="linkcard" href="refresh_runbook.html">
+        <strong>Refresh runbook</strong>
+        <span>How to refresh safely, including low-disk constraints.</span>
+      </a>
+    </section>
+
     <section class="grid two">
       <div class="section">
         <h2>What has been done</h2>
@@ -110,7 +145,7 @@
           <div class="item">
             <div class="date">Plan</div>
             <div>
-              <p>Wrote the active brief in <a href="file:///Users/admin/goal.md">goal.md</a>: a visual report on WordPress participation, project load, and market position.</p>
+              <p>Wrote the active brief in goal.md: a visual report on WordPress participation, project load, and market position.</p>
             </div>
           </div>
           <div class="item">
@@ -150,9 +185,21 @@
             </div>
           </div>
           <div class="item">
+            <div class="date">Scorecard</div>
+            <div>
+              <p>Added the Relevance Scorecard near the top of the report: installed reach, recent share direction, current new-site proxy, new community entry, project throughput, and ecosystem base.</p>
+            </div>
+          </div>
+          <div class="item">
+            <div class="date">Coverage map</div>
+            <div>
+              <p>Added a visual Goal Coverage Map so readers can quickly separate strong quarterly evidence from directional snapshots and partial proxies.</p>
+            </div>
+          </div>
+          <div class="item">
             <div class="date">Publishing</div>
             <div>
-              <p>Generated <a href="file:///Users/admin/wordpress_community_health/final_report.html">final_report.html</a> and copied the public version to <a href="file:///Users/admin/sqlite-database-integration-pages/wordpress-community-health/index.html">the GitHub Pages workspace</a> with a compressed database export.</p>
+              <p>Generated final_report.html and published the GitHub Pages version as <a href="index.html">index.html</a>, with <a href="community_health.sqlite.gz">community_health.sqlite.gz</a> for the supporting database export.</p>
             </div>
           </div>
         </div>
@@ -173,6 +220,8 @@
           <span class="pill">final_report.html</span>
           <span class="pill">index.html</span>
           <span class="pill">community_health.sqlite.gz</span>
+          <span class="pill">scorecard</span>
+          <span class="pill">coverage map</span>
         </div>
         <table>
           <thead><tr><th>Area</th><th>State</th></tr></thead>
@@ -188,7 +237,7 @@
 
     <section class="section" style="margin-top:14px">
       <h2>Goal coverage checklist</h2>
-      <p class="note">This maps the current artifacts back to <a href="file:///Users/admin/goal.md">goal.md</a>. Items marked partial are present in the report, but rely on proxies or snapshots rather than the ideal broad historical source.</p>
+      <p class="note">This maps the current artifacts back to goal.md. Items marked partial are present in the report, but rely on proxies or snapshots rather than the ideal broad historical source.</p>
       <table>
         <thead><tr><th>Requirement</th><th>Evidence</th><th>Status</th></tr></thead>
         <tbody>
@@ -198,6 +247,7 @@
           <tr><td>Community outside tickets</td><td>Release credits, committers, Make/Core, WordCamp, Events, Translate, Five for the Future, support snapshots, plugin/theme directory, and enterprise case studies.</td><td>Covered with some snapshots</td></tr>
           <tr><td>Market position and adoption</td><td>W3Techs installed share, HTTP Archive origin and tracked-share trends, BuiltWith pipeline/tier data, plugin install/download history, WooCommerce, and demand proxies.</td><td>Covered with proxies for new-site and demand history</td></tr>
           <tr><td>Decision questions</td><td>Seven plain-English answer cards plus final evidence-strength and decision readout sections.</td><td>Covered</td></tr>
+          <tr><td>Short visual decision readout</td><td>Relevance Scorecard, Goal Coverage Map, Decision Brief, and final Decision Readout.</td><td>Covered</td></tr>
           <tr><td>Refresh metadata</td><td>SQLite source_files hashes, source_gaps, source coverage cards, generator script, cached public-source tables, and compressed DB export.</td><td>Covered</td></tr>
           <tr><td>Remaining ideal sources</td><td>True multi-year new-site cohorts, Google Trends or equivalent, broad labor-market exports, and fuller support-forum history.</td><td>Partial by design</td></tr>
         </tbody>

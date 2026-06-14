@@ -17,6 +17,14 @@ COLORS = {
     "squarespace": "#64748b",
     "php": "#4f46e5",
     "agency": "#c2410c",
+    "block-editor": "#2563eb",
+    "blocks": "#159957",
+    "components": "#7c3aed",
+    "data": "#b7791f",
+    "element": "#0f766e",
+    "editor": "#c2410c",
+    "i18n": "#4f46e5",
+    "scripts": "#64748b",
     "green": "#159957",
     "amber": "#b7791f",
     "ink": "#172033",
@@ -56,6 +64,10 @@ def one(conn, sql, params=()):
 
 def rows(conn, sql, params=()):
     return [dict(row) for row in conn.execute(sql, params).fetchall()]
+
+
+def table_exists(conn, name):
+    return bool(one(conn, "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (name,)))
 
 
 def quarter_label(value):
@@ -220,6 +232,11 @@ def main():
         attention = rows(conn, "SELECT * FROM attention_demand_summary ORDER BY signal")
         stack = rows(conn, "SELECT * FROM stack_overflow_tag_quarterly ORDER BY quarter, technology")
         wiki = rows(conn, "SELECT * FROM wikimedia_pageviews_quarterly ORDER BY quarter, technology")
+        npm = (
+            rows(conn, "SELECT * FROM npm_wordpress_downloads_quarterly ORDER BY quarter, package")
+            if table_exists(conn, "npm_wordpress_downloads_quarterly")
+            else []
+        )
         hn = rows(conn, "SELECT * FROM hn_hiring_wordpress_quarterly ORDER BY quarter")
         jobs = rows(conn, "SELECT * FROM wordpress_jobs_board_snapshots ORDER BY snapshot_date")
         prs = rows(conn, "SELECT * FROM github_pr_quarterly ORDER BY quarter")
@@ -238,6 +255,10 @@ def main():
     latest_jobs = latest(jobs, "snapshot_date")
     latest_so = latest([row for row in stack if row.get("technology") == "WordPress"], "quarter")
     latest_wiki = latest([row for row in wiki if row.get("technology") == "WordPress"], "quarter")
+    latest_npm_quarter = max([row.get("quarter", "") for row in npm], default="")
+    latest_npm_rows = [row for row in npm if row.get("quarter") == latest_npm_quarter]
+    latest_npm_total = sum(num(row.get("downloads")) for row in latest_npm_rows)
+    top_npm_package = max(latest_npm_rows, key=lambda row: num(row.get("downloads")), default={})
 
     stack_techs = [
         ("WordPress", COLORS["wordpress"]),
@@ -252,6 +273,14 @@ def main():
         ("Wix", COLORS["wix"]),
         ("Webflow", COLORS["webflow"]),
         ("WooCommerce", COLORS["woocommerce"]),
+    ]
+    npm_packages = [
+        ("block-editor", COLORS["block-editor"]),
+        ("components", COLORS["components"]),
+        ("data", COLORS["data"]),
+        ("element", COLORS["element"]),
+        ("i18n", COLORS["i18n"]),
+        ("scripts", COLORS["scripts"]),
     ]
 
     stack_chart = multi_line_chart(
@@ -277,6 +306,19 @@ def main():
                 "points": point_series([row for row in wiki if row.get("technology") == tech], "quarter", "views", limit=18),
             }
             for tech, color in wiki_techs
+        ],
+        value_decimals=0,
+    )
+    npm_chart = multi_line_chart(
+        "Package ecosystem activity",
+        "Quarterly npm downloads for selected @wordpress packages. This captures package consumption by builds, CI, and tooling, not unique developer headcount.",
+        [
+            {
+                "name": label,
+                "color": color,
+                "points": point_series([row for row in npm if row.get("package_label") == label], "quarter", "downloads", limit=18),
+            }
+            for label, color in npm_packages
         ],
         value_decimals=0,
     )
@@ -328,6 +370,12 @@ def main():
                 "blue",
             ),
             metric_card(
+                "npm package downloads",
+                compact(latest_npm_total),
+                f"{quarter_label(latest_npm_quarter)} tracked @wordpress package downloads",
+                "green",
+            ),
+            metric_card(
                 "HN WP/Woo hiring rate",
                 f"{num(latest_hn.get('wordpress_or_woocommerce_per_100_comments')):.2f}",
                 f"mentions per 100 comments; {change_label(hn_summary)}",
@@ -369,6 +417,12 @@ def main():
                 "green",
             ),
             signal_row(
+                "Package ecosystem activity is visible",
+                f"The largest tracked @wordpress npm package in the latest quarter is {top_npm_package.get('package_label', 'n/a')}. Treat downloads as build/tooling activity, not people.",
+                compact(top_npm_package.get("downloads")),
+                "green",
+            ),
+            signal_row(
                 "Hiring proxies are narrower and lower",
                 "HN WP/Woo mentions and jobs.wordpress.net open listings are both lower than their stored baselines.",
                 f"{compact(latest_jobs.get('total_jobs'))} listings",
@@ -403,7 +457,7 @@ def main():
     .lede {{ max-width:900px; font-size:18px; margin-bottom:20px; }}
     .nav {{ display:flex; flex-wrap:wrap; gap:8px; margin:18px 0 22px; }}
     .nav a {{ border:1px solid var(--line); border-radius:999px; padding:7px 11px; background:#fbfdff; text-decoration:none; font-weight:700; font-size:13px; }}
-    .metrics {{ display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; margin:22px 0; }}
+    .metrics {{ display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:12px; margin:22px 0; }}
     .metric, .section, .chart-card {{ background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px; }}
     .metric {{ border-top:5px solid var(--blue); min-height:148px; }}
     .metric.green {{ border-top-color:var(--green); }}
@@ -442,7 +496,7 @@ def main():
 <body>
 <main>
   <h1>WordPress developer interest</h1>
-  <p class="lede">A compact readout of developer-attention and demand proxies already stored in SQLite: Stack Overflow questions, Wikipedia pageviews, Hacker News hiring mentions, WordPress Jobs snapshots, and wordpress-develop PR activity.</p>
+  <p class="lede">A compact readout of developer-attention and demand proxies already stored in SQLite: Stack Overflow questions, Wikipedia pageviews, npm package downloads, Hacker News hiring mentions, WordPress Jobs snapshots, and wordpress-develop PR activity.</p>
 {nav_html()}
 
   <section class="metrics" aria-label="Developer interest summary">
@@ -466,12 +520,13 @@ def main():
   <section class="charts">
 {stack_chart}
 {wiki_chart}
+{npm_chart}
 {pr_chart}
 {hn_chart}
 {jobs_chart}
   </section>
 
-  <p class="footer-note">Rows come from <code>stack_overflow_tag_quarterly</code>, <code>wikimedia_pageviews_quarterly</code>, <code>hn_hiring_wordpress_quarterly</code>, <code>wordpress_jobs_board_snapshots</code>, <code>github_pr_quarterly</code>, and <code>attention_demand_summary</code>. Integrity check: <code>{esc(integrity)}</code>.</p>
+  <p class="footer-note">Rows come from <code>stack_overflow_tag_quarterly</code>, <code>wikimedia_pageviews_quarterly</code>, <code>npm_wordpress_downloads_quarterly</code>, <code>hn_hiring_wordpress_quarterly</code>, <code>wordpress_jobs_board_snapshots</code>, <code>github_pr_quarterly</code>, and <code>attention_demand_summary</code>. Integrity check: <code>{esc(integrity)}</code>.</p>
 </main>
 </body>
 </html>

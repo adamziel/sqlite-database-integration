@@ -57,6 +57,7 @@ HTML_ARTIFACTS = {
     "developer_interest.html": [
         "WordPress developer interest",
         "Developer-help questions",
+        "Package ecosystem activity",
         "GitHub code-review activity",
     ],
     "job_demand.html": [

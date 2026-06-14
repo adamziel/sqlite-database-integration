@@ -50,9 +50,9 @@ PLAN = {
         "label": "Developer interest",
         "order": "5",
         "color": "violet",
-        "next_step": "Keep Stack Overflow and Wikimedia, then add developer-community sources such as GitHub activity or package/dependency ecosystem trends if available.",
+        "next_step": "Keep Stack Overflow, Wikimedia, npm package downloads, and GitHub PR activity, then add another developer-community source if available.",
         "target_tables": ["developer_interest_quarterly"],
-        "success": "Quarterly developer-attention rows that are not only help-question volume.",
+        "success": "Quarterly developer-attention rows that combine help questions, public attention, package use, and contribution activity.",
         "why": "Distinguishes fewer public help questions from actual developer adoption or migration.",
     },
 }

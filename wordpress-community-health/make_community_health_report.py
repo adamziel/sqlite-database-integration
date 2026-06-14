@@ -63,6 +63,8 @@ SKIP_NETWORK_DB_FALLBACK_TABLES = [
     "wporg_ecosystem_stats_snapshot",
     "wikimedia_pageviews_monthly",
     "wikimedia_pageviews_quarterly",
+    "npm_wordpress_downloads_monthly",
+    "npm_wordpress_downloads_quarterly",
     "hn_hiring_wordpress_quarterly",
     "wordpress_jobs_board_snapshots",
     "wordpress_jobs_board_category_snapshots",
@@ -159,11 +161,14 @@ WAYBACK_CDX_API = "https://web.archive.org/cdx"
 WAYBACK_WEB_ROOT = "https://web.archive.org/web"
 WIKIMEDIA_PAGEVIEWS_API = "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article"
 WIKIMEDIA_PAGEVIEWS_DOCS_URL = "https://doc.wikimedia.org/generated-data-platform/aqs/analytics-api/reference/page-views.html"
+NPM_DOWNLOADS_API = "https://api.npmjs.org/downloads/range"
+NPM_DOWNLOADS_DOCS_URL = "https://github.com/npm/registry/blob/main/docs/download-counts.md"
 WPVIP_CASE_STUDY_API = "https://wpvip.com/wp-json/wp/v2/case-study"
 WPVIP_CASE_STUDY_ARCHIVE_URL = "https://wpvip.com/case-studies/"
 STACK_OVERFLOW_TAG_START = dt.datetime(2010, 1, 1, tzinfo=dt.timezone.utc)
 HN_HIRING_START = dt.datetime(2012, 1, 1, tzinfo=dt.timezone.utc)
 WIKIMEDIA_PAGEVIEW_START = dt.datetime(2015, 7, 1, tzinfo=dt.timezone.utc)
+NPM_DOWNLOAD_START = dt.datetime(2020, 1, 1, tzinfo=dt.timezone.utc)
 WORDPRESS_JOBS_ARCHIVE_START_YEAR = 2016
 MAJOR_PLUGIN_ARCHIVE_START_YEAR = 2016
 STACK_OVERFLOW_TAGS = [
@@ -181,6 +186,16 @@ WIKIMEDIA_PAGEVIEW_ARTICLES = [
     {"article": "Wix.com", "label": "Wix", "color": "#f59e0b"},
     {"article": "Squarespace", "label": "Squarespace", "color": "#64748b"},
     {"article": "Webflow", "label": "Webflow", "color": "#0891b2"},
+]
+NPM_WORDPRESS_PACKAGES = [
+    {"package": "@wordpress/block-editor", "label": "block-editor", "color": "#2563eb"},
+    {"package": "@wordpress/blocks", "label": "blocks", "color": "#159957"},
+    {"package": "@wordpress/components", "label": "components", "color": "#7c3aed"},
+    {"package": "@wordpress/data", "label": "data", "color": "#b7791f"},
+    {"package": "@wordpress/element", "label": "element", "color": "#0f766e"},
+    {"package": "@wordpress/editor", "label": "editor", "color": "#c2410c"},
+    {"package": "@wordpress/i18n", "label": "i18n", "color": "#4f46e5"},
+    {"package": "@wordpress/scripts", "label": "scripts", "color": "#64748b"},
 ]
 MAJOR_PLUGIN_SLUGS = [
     "woocommerce",
@@ -1377,6 +1392,175 @@ def fetch_wikimedia_pageviews(skip_network=False):
     return monthly_rows, aggregate_wikimedia_pageviews_quarterly(monthly_rows)
 
 
+def npm_downloads_cache_path():
+    return CACHE / "npm-wordpress-downloads-daily.json"
+
+
+def read_cached_npm_downloads_daily():
+    path = npm_downloads_cache_path()
+    if not path.exists():
+        return []
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return []
+    rows = payload.get("rows") if isinstance(payload, dict) else payload
+    return rows if isinstance(rows, list) else []
+
+
+def write_cached_npm_downloads_daily(rows):
+    CACHE.mkdir(parents=True, exist_ok=True)
+    npm_downloads_cache_path().write_text(
+        json.dumps(
+            {
+                "collected_at": dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z"),
+                "source_url": NPM_DOWNLOADS_DOCS_URL,
+                "rows": rows,
+            },
+            separators=(",", ":"),
+            sort_keys=True,
+        ),
+        encoding="utf-8",
+    )
+
+
+def npm_downloads_url(package, start, end):
+    encoded_package = urllib.parse.quote(package, safe="")
+    return f"{NPM_DOWNLOADS_API}/{start.strftime('%Y-%m-%d')}:{end.strftime('%Y-%m-%d')}/{encoded_package}"
+
+
+def npm_range_chunks(start, end):
+    current = dt.datetime(start.year, start.month, start.day, tzinfo=dt.timezone.utc)
+    while current <= end:
+        chunk_end = min(current + dt.timedelta(days=545), end)
+        yield current, chunk_end
+        current = chunk_end + dt.timedelta(days=1)
+
+
+def normalize_npm_download_row(item, config, source_url, collected_at):
+    return {
+        "day": str(item.get("day") or ""),
+        "month": str(item.get("day") or "")[:7] + "-01" if item.get("day") else "",
+        "quarter": quarter_start(str(item.get("day") or "")),
+        "package": config["package"],
+        "package_label": config["label"],
+        "downloads": int(num(item.get("downloads"))),
+        "source": "npm downloads API daily package download counts",
+        "source_url": NPM_DOWNLOADS_DOCS_URL,
+        "api_url": source_url,
+        "collected_at": collected_at,
+    }
+
+
+def aggregate_npm_downloads_monthly(daily_rows):
+    grouped = defaultdict(list)
+    for row in daily_rows:
+        month = row.get("month")
+        package = row.get("package")
+        if package and month:
+            grouped[(package, month)].append(row)
+    label_by_package = {item["package"]: item["label"] for item in NPM_WORDPRESS_PACKAGES}
+    rows = []
+    collected_at = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
+    for (package, month), items in sorted(grouped.items()):
+        rows.append(
+            {
+                "month": month,
+                "label": month[:7],
+                "package": package,
+                "package_label": label_by_package.get(package, package),
+                "downloads": sum(num(item.get("downloads")) for item in items),
+                "days_covered": len(items),
+                "source": "npm downloads API daily counts, aggregated monthly",
+                "source_url": NPM_DOWNLOADS_DOCS_URL,
+                "collected_at": collected_at,
+            }
+        )
+    return rows
+
+
+def aggregate_npm_downloads_quarterly(monthly_rows):
+    grouped = defaultdict(list)
+    for row in monthly_rows:
+        quarter = quarter_start(row.get("month"))
+        package = row.get("package")
+        if package and quarter:
+            grouped[(package, quarter)].append(row)
+    label_by_package = {item["package"]: item["label"] for item in NPM_WORDPRESS_PACKAGES}
+    rows = []
+    collected_at = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
+    for (package, quarter), items in sorted(grouped.items()):
+        rows.append(
+            {
+                "quarter": quarter,
+                "label": quarter_label(quarter),
+                "package": package,
+                "package_label": label_by_package.get(package, package),
+                "downloads": sum(num(item.get("downloads")) for item in items),
+                "months_covered": len(items),
+                "source": "npm downloads API monthly counts, aggregated quarterly",
+                "source_url": NPM_DOWNLOADS_DOCS_URL,
+                "collected_at": collected_at,
+            }
+        )
+    return rows
+
+
+def fetch_npm_wordpress_downloads(skip_network=False):
+    cached_rows = read_cached_npm_downloads_daily()
+    by_key = {
+        (row.get("package"), row.get("day")): dict(row)
+        for row in cached_rows
+        if isinstance(row, dict) and row.get("package") and row.get("day")
+    }
+    expected_days = [day.strftime("%Y-%m-%d") for day in day_starts(NPM_DOWNLOAD_START, END)]
+    expected_keys = {
+        (config["package"], day)
+        for config in NPM_WORDPRESS_PACKAGES
+        for day in expected_days
+    }
+    if skip_network or (expected_keys and expected_keys.issubset(set(by_key))):
+        daily_rows = [
+            by_key[(config["package"], day)]
+            for config in NPM_WORDPRESS_PACKAGES
+            for day in expected_days
+            if (config["package"], day) in by_key
+        ]
+        monthly_rows = aggregate_npm_downloads_monthly(daily_rows)
+        return monthly_rows, aggregate_npm_downloads_quarterly(monthly_rows)
+
+    collected_at = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
+    for config in NPM_WORDPRESS_PACKAGES:
+        package = config["package"]
+        missing_days = [day for day in expected_days if (package, day) not in by_key]
+        if not missing_days:
+            continue
+        for chunk_start, chunk_end in npm_range_chunks(NPM_DOWNLOAD_START, END):
+            source_url = npm_downloads_url(package, chunk_start, chunk_end)
+            try:
+                payload, _headers = fetch_with_retries(fetch_json, source_url, f"npm downloads {package}", attempts=3, delay=1.0)
+            except Exception as exc:
+                eprint(f"npm downloads fetch failed for {package}: {exc}")
+                continue
+            for item in payload.get("downloads", []) if isinstance(payload, dict) else []:
+                row = normalize_npm_download_row(item, config, source_url, collected_at)
+                if row.get("day"):
+                    by_key[(package, row["day"])] = row
+            time.sleep(0.05)
+            if by_key:
+                write_cached_npm_downloads_daily(sorted(by_key.values(), key=lambda row: (row.get("package", ""), row.get("day", ""))))
+    daily_rows = [
+        by_key[(config["package"], day)]
+        for config in NPM_WORDPRESS_PACKAGES
+        for day in expected_days
+        if (config["package"], day) in by_key
+    ]
+    if daily_rows:
+        write_cached_npm_downloads_daily(daily_rows)
+    monthly_rows = aggregate_npm_downloads_monthly(daily_rows)
+    return monthly_rows, aggregate_npm_downloads_quarterly(monthly_rows)
+
+
 def month_starts(start, end):
     current = dt.datetime(start.year, start.month, 1, tzinfo=dt.timezone.utc)
     while current <= end:
@@ -1385,6 +1569,13 @@ def month_starts(start, end):
             current = dt.datetime(current.year + 1, 1, 1, tzinfo=dt.timezone.utc)
         else:
             current = dt.datetime(current.year, current.month + 1, 1, tzinfo=dt.timezone.utc)
+
+
+def day_starts(start, end):
+    current = dt.datetime(start.year, start.month, start.day, tzinfo=dt.timezone.utc)
+    while current.date() <= end.date():
+        yield current
+        current += dt.timedelta(days=1)
 
 
 def hn_hiring_cache_path():
@@ -3953,13 +4144,13 @@ def build_database(data, fetched):
                 "WordCamp data is included; broader Meetup chapter activity is not.",
             )
         )
-    if fetched.get("stack_overflow_tag_quarterly"):
+    if fetched.get("stack_overflow_tag_quarterly") or fetched.get("npm_wordpress_downloads_quarterly"):
         gaps.append(
             (
                 "developer_interest_proxy",
                 "partial",
-                "Stack Exchange API question totals, Wikimedia Pageviews API, GitHub PR activity, and broader developer-community sources",
-                "Quarterly Stack Overflow tag volume, Wikimedia pageviews, wordpress-develop PR activity, and a compact attention/demand summary are included as public attention and contribution proxies; they do not measure general search-query interest.",
+                "Stack Exchange API question totals, Wikimedia Pageviews API, npm package downloads, GitHub PR activity, and broader developer-community sources",
+                "Quarterly Stack Overflow tag volume, Wikimedia pageviews, npm @wordpress package downloads, wordpress-develop PR activity, and a compact attention/demand summary are included as public attention and contribution proxies; they do not measure general search-query interest.",
             )
         )
     else:
@@ -5185,6 +5376,7 @@ def source_status_rows(fetched):
         ("BuiltWith traffic tiers", "covered" if fetched.get("builtwith_tier_share_snapshot") else "missing", "Current WordPress share by traffic tier across tracked CMS/builder technologies"),
         ("Stack Overflow tag volume", "covered" if fetched.get("stack_overflow_tag_quarterly") else "missing", "Quarterly public developer-attention proxy from Stack Exchange API tag totals"),
         ("Wikimedia pageviews", "covered" if fetched.get("wikimedia_pageviews_quarterly") else "missing", "Quarterly en.wikipedia article pageviews as a public-interest proxy, not search-query volume"),
+        ("WordPress npm packages", "covered" if fetched.get("npm_wordpress_downloads_quarterly") else "missing", "Quarterly npm downloads for selected @wordpress packages as package-ecosystem activity, not developer headcount"),
         ("HN hiring mentions", "partial" if fetched.get("hn_hiring_wordpress_quarterly") else "missing", "WordPress/WooCommerce, PHP, and agency/studio mentions in monthly Hacker News Who is hiring threads from 2012 onward; not a broad job-board index"),
         ("WordPress Jobs board", "partial" if fetched.get("wordpress_jobs_board_snapshots") else "missing", "Open-listing snapshots from jobs.wordpress.net current page and annual Internet Archive captures; WordPress-specific, not a broad hiring-platform index"),
         ("Attention and demand summary", "covered" if fetched.get("attention_demand_summary") else "missing", "Derived compact comparison of Stack Overflow, Wikimedia, HN hiring, and WordPress Jobs proxy direction"),
@@ -7587,6 +7779,9 @@ def main():
     )
     fetched["stack_overflow_tag_quarterly"] = fetch_stackoverflow_tag_quarterly(args.skip_network)
     fetched["wikimedia_pageviews_monthly"], fetched["wikimedia_pageviews_quarterly"] = fetch_wikimedia_pageviews(
+        args.skip_network
+    )
+    fetched["npm_wordpress_downloads_monthly"], fetched["npm_wordpress_downloads_quarterly"] = fetch_npm_wordpress_downloads(
         args.skip_network
     )
     fetched["hn_hiring_wordpress_quarterly"] = fetch_hn_hiring_wordpress_quarterly(args.skip_network)

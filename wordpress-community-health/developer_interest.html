@@ -22,7 +22,7 @@
     .lede { max-width:900px; font-size:18px; margin-bottom:20px; }
     .nav { display:flex; flex-wrap:wrap; gap:8px; margin:18px 0 22px; }
     .nav a { border:1px solid var(--line); border-radius:999px; padding:7px 11px; background:#fbfdff; text-decoration:none; font-weight:700; font-size:13px; }
-    .metrics { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; margin:22px 0; }
+    .metrics { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:12px; margin:22px 0; }
     .metric, .section, .chart-card { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px; }
     .metric { border-top:5px solid var(--blue); min-height:148px; }
     .metric.green { border-top-color:var(--green); }
@@ -61,7 +61,7 @@
 <body>
 <main>
   <h1>WordPress developer interest</h1>
-  <p class="lede">A compact readout of developer-attention and demand proxies already stored in SQLite: Stack Overflow questions, Wikipedia pageviews, Hacker News hiring mentions, WordPress Jobs snapshots, and wordpress-develop PR activity.</p>
+  <p class="lede">A compact readout of developer-attention and demand proxies already stored in SQLite: Stack Overflow questions, Wikipedia pageviews, npm package downloads, Hacker News hiring mentions, WordPress Jobs snapshots, and wordpress-develop PR activity.</p>
     <nav class="nav">
       <a href="index.html#market">Market Position</a>
       <a href="index.html#participation">Participation</a>
@@ -91,6 +91,11 @@
         <h3>Wikipedia views</h3>
         <strong>210.2k</strong>
         <p>2026 Q2; -17.1% vs 2023-Q4</p>
+      </article>
+      <article class="metric green">
+        <h3>npm package downloads</h3>
+        <strong>21.0M</strong>
+        <p>2026 Q2 tracked @wordpress package downloads</p>
       </article>
       <article class="metric amber">
         <h3>HN WP/Woo hiring rate</h3>
@@ -135,6 +140,13 @@
           </div>
           <b>741 PRs</b>
         </div>
+        <div class="signal-row green">
+          <div>
+            <strong>Package ecosystem activity is visible</strong>
+            <span>The largest tracked @wordpress npm package in the latest quarter is element. Treat downloads as build/tooling activity, not people.</span>
+          </div>
+          <b>5.0M</b>
+        </div>
         <div class="signal-row amber">
           <div>
             <strong>Hiring proxies are narrower and lower</strong>
@@ -147,7 +159,7 @@
     <article class="section">
       <h2>How to read this</h2>
       <p>This page separates public attention, developer help-seeking, code-review participation, and hiring proxies. Lower help questions can mean less interest, fewer Stack Overflow users, better docs, or answers moving elsewhere, so it should not be read as adoption by itself.</p>
-      <p class="callout">Quarterly Stack Overflow tag volume, Wikimedia pageviews, wordpress-develop PR activity, and a compact attention/demand summary are included as public attention and contribution proxies; they do not measure general search-query interest.</p>
+      <p class="callout">Quarterly Stack Overflow tag volume, Wikimedia pageviews, npm @wordpress package downloads, wordpress-develop PR activity, and a compact attention/demand summary are included as public attention and contribution proxies; they do not measure general search-query interest.</p>
     </article>
   </section>
 
@@ -212,6 +224,40 @@
 <span><i style="background:#b7791f"></i>Wix <b>86.7k</b></span>
 <span><i style="background:#0f766e"></i>Webflow <b>16.6k</b></span>
 <span><i style="background:#7c3aed"></i>WooCommerce <b>13.5k</b></span>
+</div>
+</article>
+<article class="chart-card">
+<h2>Package ecosystem activity</h2>
+<p>Quarterly npm downloads for selected @wordpress packages. This captures package consumption by builds, CI, and tooling, not unique developer headcount.</p>
+<svg viewBox="0 0 760 300" role="img" aria-label="Package ecosystem activity">
+<line x1="58" x2="734" y1="252.0" y2="252.0" class="gridline" />
+<text x="48" y="256.0" class="axis" text-anchor="end">0</text>
+<line x1="58" x2="734" y1="147.0" y2="147.0" class="gridline" />
+<text x="48" y="151.0" class="axis" text-anchor="end">2.8M</text>
+<line x1="58" x2="734" y1="42.0" y2="42.0" class="gridline" />
+<text x="48" y="46.0" class="axis" text-anchor="end">5.6M</text>
+<path d="M58.0,239.8 L97.8,237.8 L137.5,237.5 L177.3,236.7 L217.1,236.4 L256.8,234.0 L296.6,231.1 L336.4,230.8 L376.1,213.9 L415.9,208.4 L455.6,218.4 L495.4,217.4 L535.2,220.3 L574.9,213.5 L614.7,202.7 L654.5,201.2 L694.2,193.7 L734.0,199.9" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="734.0" cy="199.9" r="4" fill="#2563eb" />
+<path d="M58.0,231.0 L97.8,229.3 L137.5,230.2 L177.3,228.7 L217.1,227.3 L256.8,221.2 L296.6,218.0 L336.4,220.3 L376.1,197.6 L415.9,176.1 L455.6,191.1 L495.4,188.0 L535.2,188.8 L574.9,176.0 L614.7,149.2 L654.5,136.8 L694.2,88.8 L734.0,109.1" fill="none" stroke="#7c3aed" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="734.0" cy="109.1" r="4" fill="#7c3aed" />
+<path d="M58.0,227.7 L97.8,226.3 L137.5,228.3 L177.3,225.6 L217.1,222.4 L256.8,207.7 L296.6,203.1 L336.4,205.3 L376.1,184.2 L415.9,172.4 L455.6,186.0 L495.4,187.5 L535.2,188.1 L574.9,176.2 L614.7,162.2 L654.5,152.4 L694.2,139.0 L734.0,147.3" fill="none" stroke="#b7791f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="734.0" cy="147.3" r="4" fill="#b7791f" />
+<path d="M58.0,209.9 L97.8,203.7 L137.5,204.9 L177.3,202.3 L217.1,192.6 L256.8,177.6 L296.6,180.0 L336.4,188.6 L376.1,171.2 L415.9,154.6 L455.6,158.4 L495.4,152.6 L535.2,146.8 L574.9,132.9 L614.7,116.6 L654.5,92.1 L694.2,72.9 L734.0,64.5" fill="none" stroke="#0f766e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="734.0" cy="64.5" r="4" fill="#0f766e" />
+<path d="M58.0,222.2 L97.8,219.7 L137.5,222.9 L177.3,217.8 L217.1,213.2 L256.8,205.9 L296.6,209.9 L336.4,213.0 L376.1,197.8 L415.9,177.7 L455.6,181.9 L495.4,174.9 L535.2,170.6 L574.9,163.5 L614.7,132.7 L654.5,110.1 L694.2,80.3 L734.0,74.8" fill="none" stroke="#4f46e5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="734.0" cy="74.8" r="4" fill="#4f46e5" />
+<path d="M58.0,241.1 L97.8,239.3 L137.5,239.0 L177.3,238.8 L217.1,237.0 L256.8,235.9 L296.6,234.8 L336.4,233.4 L376.1,218.1 L415.9,213.5 L455.6,222.6 L495.4,226.4 L535.2,225.6 L574.9,216.4 L614.7,215.7 L654.5,216.2 L694.2,209.5 L734.0,209.4" fill="none" stroke="#64748b" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="734.0" cy="209.4" r="4" fill="#64748b" />
+<text x="58" y="284" class="axis">2022 Q1</text>
+<text x="734" y="284" class="axis" text-anchor="end">2026 Q2</text>
+</svg>
+<div class="legend">
+<span><i style="background:#2563eb"></i>block-editor <b>1.4M</b></span>
+<span><i style="background:#7c3aed"></i>components <b>3.8M</b></span>
+<span><i style="background:#b7791f"></i>data <b>2.8M</b></span>
+<span><i style="background:#0f766e"></i>element <b>5.0M</b></span>
+<span><i style="background:#4f46e5"></i>i18n <b>4.7M</b></span>
+<span><i style="background:#64748b"></i>scripts <b>1.1M</b></span>
 </div>
 </article>
 <article class="chart-card">
@@ -294,7 +340,7 @@
 </article>
   </section>
 
-  <p class="footer-note">Rows come from <code>stack_overflow_tag_quarterly</code>, <code>wikimedia_pageviews_quarterly</code>, <code>hn_hiring_wordpress_quarterly</code>, <code>wordpress_jobs_board_snapshots</code>, <code>github_pr_quarterly</code>, and <code>attention_demand_summary</code>. Integrity check: <code>ok</code>.</p>
+  <p class="footer-note">Rows come from <code>stack_overflow_tag_quarterly</code>, <code>wikimedia_pageviews_quarterly</code>, <code>npm_wordpress_downloads_quarterly</code>, <code>hn_hiring_wordpress_quarterly</code>, <code>wordpress_jobs_board_snapshots</code>, <code>github_pr_quarterly</code>, and <code>attention_demand_summary</code>. Integrity check: <code>ok</code>.</p>
 </main>
 </body>
 </html>

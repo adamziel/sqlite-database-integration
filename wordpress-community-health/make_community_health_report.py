@@ -1864,6 +1864,7 @@ def build_derived_metrics(data):
         "core_reopen_quarterly": rows,
         "support_forum_activity_monthly": support_monthly,
         "support_forum_age_buckets": support_age,
+        "contributor_depth_buckets": derive_contributor_depth(data),
     }
 
 
@@ -1969,6 +1970,68 @@ def derive_support_forum_activity(topics):
         row["source"] = "Current WordPress.org support queue snapshot, bucketed by age since last activity"
         age_rows.append(row)
     return monthly_rows, age_rows
+
+
+def contributor_depth_rows(label, rows, author_key, date_key, since=None):
+    counts = Counter()
+    for row in rows:
+        if since and str(row.get(date_key, "")) < since:
+            continue
+        author = str(row.get(author_key) or "").strip() or "(unknown)"
+        counts[author] += 1
+    bucket_defs = [
+        ("1 item", 1, 1),
+        ("2-4 items", 2, 4),
+        ("5-19 items", 5, 19),
+        ("20+ items", 20, None),
+    ]
+    bucketed = {
+        bucket: {"contributors": 0, "items": 0}
+        for bucket, _min_count, _max_count in bucket_defs
+    }
+    for count in counts.values():
+        for bucket, min_count, max_count in bucket_defs:
+            if count >= min_count and (max_count is None or count <= max_count):
+                bucketed[bucket]["contributors"] += 1
+                bucketed[bucket]["items"] += count
+                break
+    total_contributors = sum(value["contributors"] for value in bucketed.values())
+    total_items = sum(value["items"] for value in bucketed.values())
+    window = f"since_{since[:4]}" if since else "all_time"
+    rows_out = []
+    for index, (bucket, _min_count, _max_count) in enumerate(bucket_defs, start=1):
+        values = bucketed[bucket]
+        contributors = values["contributors"]
+        items = values["items"]
+        rows_out.append(
+            {
+                "source": label,
+                "window": window,
+                "since": since or "",
+                "bucket": bucket,
+                "bucket_order": index,
+                "contributors": contributors,
+                "items": items,
+                "total_contributors": total_contributors,
+                "total_items": total_items,
+                "contributor_share_pct": round(contributors / total_contributors * 100, 2) if total_contributors else 0,
+                "item_share_pct": round(items / total_items * 100, 2) if total_items else 0,
+            }
+        )
+    return rows_out
+
+
+def derive_contributor_depth(data):
+    rows = []
+    sources = [
+        ("Core Trac reporters", data.get("core_tickets", []), "reporter", "created_at"),
+        ("Gutenberg issue creators", data.get("gutenberg_issues", []), "author_login", "created_at"),
+        ("wordpress-develop PR authors", data.get("github_prs", []), "author_login", "created_at"),
+    ]
+    for label, source_rows, author_key, date_key in sources:
+        rows.extend(contributor_depth_rows(label, source_rows, author_key, date_key))
+        rows.extend(contributor_depth_rows(label, source_rows, author_key, date_key, "2024-01-01"))
+    return rows
 
 
 def load_data():
@@ -2279,6 +2342,7 @@ def source_status_rows(fetched):
         ("Gutenberg GitHub issues", "covered", "32k issues with labels, state, authors, close dates"),
         ("Gutenberg response/reopen timelines", "covered" if SOURCE_FILES["gutenberg_timeline_quarterly"].exists() else "missing", "GitHub comment timestamps and reopened events"),
         ("wordpress-develop PRs", "covered", "12k PRs with authors, dates, Trac links"),
+        ("Contributor depth buckets", "covered" if fetched.get("contributor_depth_buckets") else "missing", "One-time, repeat, and sustained contributors across Core, Gutenberg, and PR activity"),
         ("Ticket category classification", "covered", "Bug, feature request, enhancement, task, and other categories"),
         ("W3Techs adoption", "covered" if fetched.get("market_share") else "missing", "All-site usage and CMS market-share yearly trends"),
         ("HTTP Archive/Web Almanac", "covered", "2025 CMS adoption snapshot and high-traffic context"),
@@ -2352,6 +2416,7 @@ def build_report(data, fetched):
     builtwith_new_sites = data["builtwith_new_site_snapshot"]
     builtwith_technology_snapshots = fetched.get("builtwith_technology_snapshots", [])
     builtwith_technology_history = fetched.get("builtwith_technology_history", [])
+    contributor_depth = fetched.get("contributor_depth_buckets", [])
 
     core_latest = current_latest(core_q)
     gut_latest = current_latest(gut_q)
@@ -2379,6 +2444,19 @@ def build_report(data, fetched):
     gut_conc_all = contributor_concentration(gut_issues, "author_login", "created_at")
     gut_conc_recent = contributor_concentration(gut_issues, "author_login", "created_at", "2024-01-01")
     pr_conc_recent = contributor_concentration(github_prs, "author_login", "created_at", "2024-01-01")
+    depth_by_key = {
+        (row.get("source"), row.get("window"), row.get("bucket")): row
+        for row in contributor_depth
+    }
+
+    def depth_metric(source, bucket, field, window="since_2024"):
+        return float(depth_by_key.get((source, window, bucket), {}).get(field) or 0)
+
+    depth_sources = [
+        ("Core Trac reporters", "Core", COLORS["core"]),
+        ("Gutenberg issue creators", "Gutenberg", COLORS["gutenberg"]),
+        ("wordpress-develop PR authors", "PRs", COLORS["prs"]),
+    ]
 
     wp_usage_latest = market_latest(market_rows, "all_sites_usage", "WordPress")
     wp_usage_2025 = next((r for r in market_rows if r["metric"] == "all_sites_usage" and r["technology"] == "WordPress" and r["date"] == "2025-01-01"), None)
@@ -2726,6 +2804,18 @@ p {{ margin:0 0 12px; }}
         {horizontal_metric("Gutenberg top 10 creators, all time", gut_conc_all["top10"], 100, COLORS["gutenberg"])}
         {horizontal_metric("Gutenberg top 10 creators, since 2024", gut_conc_recent["top10"], 100, COLORS["gutenberg"])}
         {horizontal_metric("wordpress-develop top 10 PR authors, since 2024", pr_conc_recent["top10"], 100, COLORS["prs"])}
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Drive-by participation</h3>
+        <p>Share of contributors since 2024 who opened exactly one ticket, issue, or PR.</p>
+        {''.join(horizontal_metric(f"{short_label} one-time contributors", depth_metric(source, "1 item", "contributor_share_pct"), 100, color) for source, short_label, color in depth_sources)}
+      </div>
+      <div class="card">
+        <h3>Sustained participation</h3>
+        <p>Share of work since 2024 coming from people with 20 or more tickets, issues, or PRs in that same window.</p>
+        {''.join(horizontal_metric(f"{short_label} 20+ contributor work share", depth_metric(source, "20+ items", "item_share_pct"), 100, color) for source, short_label, color in depth_sources)}
       </div>
     </div>
     <div class="grid-2">

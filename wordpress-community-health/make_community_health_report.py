@@ -54,6 +54,37 @@ SOURCE_FILES = {
     "builtwith_new_site_snapshot": ROOT / "builtwith_new_site_snapshot.csv",
 }
 
+SKIP_NETWORK_DB_FALLBACK_TABLES = [
+    "market_share",
+    "builtwith_technology_snapshots",
+    "builtwith_technology_history",
+    "directory_snapshots",
+    "directory_activity_snapshots",
+    "plugin_directory_activity_sample",
+    "theme_directory_activity_sample",
+    "wordcamps",
+    "wordcamp_yearly",
+    "wp_event_snapshots",
+    "wp_events",
+    "translation_snapshots",
+    "translation_locale_snapshot",
+    "translation_core_dev_status",
+    "make_core_posts",
+    "make_core_comments",
+    "make_core_comment_quarterly",
+    "make_core_dev_note_tags",
+    "make_core_dev_notes",
+    "make_core_dev_note_quarterly",
+    "make_core_dev_note_releases",
+    "fttf_snapshots",
+    "fttf_pledges",
+    "fttf_contributors",
+    "core_releases",
+    "core_release_credits",
+    "core_release_committers",
+    "core_release_committer_counts",
+]
+
 W3TECHS_USAGE_URL = "https://w3techs.com/technologies/history_overview/content_management/all/y"
 W3TECHS_MARKET_SHARE_URL = "https://w3techs.com/technologies/history_overview/content_management/ms/y"
 HTTP_ARCHIVE_CMS_URL = "https://almanac.httparchive.org/en/2025/cms"
@@ -76,6 +107,17 @@ FTTF_PLEDGES_URL = "https://wordpress.org/five-for-the-future/pledges/"
 RELEASE_ARCHIVE_URL = "https://wordpress.org/download/releases/"
 CREDITS_API = "https://api.wordpress.org/core/credits/1.1/"
 GITHUB_COMPARE_API = "https://api.github.com/repos/WordPress/wordpress-develop/compare"
+STACK_EXCHANGE_QUESTIONS_API = "https://api.stackexchange.com/2.3/questions"
+STACK_EXCHANGE_DOCS_URL = "https://api.stackexchange.com/docs/questions"
+STACK_OVERFLOW_TAG_START = dt.datetime(2021, 1, 1, tzinfo=dt.timezone.utc)
+STACK_OVERFLOW_TAGS = [
+    {"tag": "wordpress", "label": "WordPress", "color": "#2563eb"},
+    {"tag": "woocommerce", "label": "WooCommerce", "color": "#7c3aed"},
+    {"tag": "shopify", "label": "Shopify", "color": "#16a34a"},
+    {"tag": "wix", "label": "Wix", "color": "#f59e0b"},
+    {"tag": "squarespace", "label": "Squarespace", "color": "#64748b"},
+    {"tag": "webflow", "label": "Webflow", "color": "#0891b2"},
+]
 CACHE = ROOT / "cache"
 
 COLORS = {
@@ -151,6 +193,35 @@ def read_jsonl(path):
             if line:
                 rows.append(json.loads(line))
     return rows
+
+
+def read_existing_db_table(table_name):
+    if not DB_PATH.exists():
+        return []
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        rows = [dict(row) for row in conn.execute(f'SELECT * FROM "{table_name}"')]
+        conn.close()
+        return rows
+    except sqlite3.Error:
+        return []
+
+
+def apply_skip_network_db_fallback(fetched):
+    restored = []
+    for table_name in SKIP_NETWORK_DB_FALLBACK_TABLES:
+        if fetched.get(table_name):
+            continue
+        rows = read_existing_db_table(table_name)
+        if rows:
+            fetched[table_name] = rows
+            restored.append((table_name, len(rows)))
+    if restored:
+        eprint(
+            "restored skip-network table snapshots from existing SQLite: "
+            + ", ".join(f"{name}={count}" for name, count in restored)
+        )
 
 
 def parse_iso(value):
@@ -464,6 +535,124 @@ def parse_w3techs_history(url, metric_name, skip_network=False):
     except Exception as exc:
         eprint(f"w3techs fetch failed for {metric_name}: {exc}")
         return fallback
+
+
+def quarter_ranges(start, end):
+    current = dt.datetime(start.year, ((start.month - 1) // 3) * 3 + 1, 1, tzinfo=dt.timezone.utc)
+    while current <= end:
+        next_month = current.month + 3
+        next_year = current.year
+        if next_month > 12:
+            next_month -= 12
+            next_year += 1
+        next_quarter = dt.datetime(next_year, next_month, 1, tzinfo=dt.timezone.utc)
+        yield current, min(next_quarter, end + dt.timedelta(seconds=1))
+        current = next_quarter
+
+
+def stackexchange_tag_cache_path():
+    return CACHE / "stackexchange-tag-quarterly.json"
+
+
+def read_cached_stackoverflow_tag_quarterly():
+    path = stackexchange_tag_cache_path()
+    if not path.exists():
+        return []
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return []
+    rows = payload.get("rows") if isinstance(payload, dict) else payload
+    return rows if isinstance(rows, list) else []
+
+
+def write_cached_stackoverflow_tag_quarterly(rows):
+    CACHE.mkdir(parents=True, exist_ok=True)
+    stackexchange_tag_cache_path().write_text(
+        json.dumps(
+            {
+                "collected_at": dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z"),
+                "source_url": STACK_EXCHANGE_DOCS_URL,
+                "rows": rows,
+            },
+            indent=2,
+            sort_keys=True,
+        ),
+        encoding="utf-8",
+    )
+
+
+def stackexchange_questions_url(tag, start, end):
+    params = {
+        "site": "stackoverflow",
+        "tagged": tag,
+        "fromdate": int(start.timestamp()),
+        "todate": max(int(end.timestamp()) - 1, int(start.timestamp())),
+        "order": "desc",
+        "sort": "creation",
+        "pagesize": 1,
+        "filter": "total",
+    }
+    return f"{STACK_EXCHANGE_QUESTIONS_API}?{urllib.parse.urlencode(params)}"
+
+
+def fetch_stackoverflow_tag_quarterly(skip_network=False):
+    cached_rows = read_cached_stackoverflow_tag_quarterly()
+    by_key = {
+        (row.get("tag"), row.get("quarter")): dict(row)
+        for row in cached_rows
+        if isinstance(row, dict) and row.get("tag") and row.get("quarter")
+    }
+    quarters = list(quarter_ranges(STACK_OVERFLOW_TAG_START, END))
+    expected_keys = {
+        (tag_config["tag"], quarter_start_dt.strftime("%Y-%m-%d"))
+        for tag_config in STACK_OVERFLOW_TAGS
+        for quarter_start_dt, _quarter_end_dt in quarters
+    }
+    if skip_network or (expected_keys and expected_keys.issubset(set(by_key))):
+        return sorted(by_key.values(), key=lambda row: (row.get("tag", ""), row.get("quarter", "")))
+
+    collected_at = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
+    for tag_config in STACK_OVERFLOW_TAGS:
+        tag = tag_config["tag"]
+        label = tag_config["label"]
+        for quarter_start_dt, quarter_end_dt in quarters:
+            quarter = quarter_start_dt.strftime("%Y-%m-%d")
+            key = (tag, quarter)
+            if key in by_key:
+                continue
+            api_url = stackexchange_questions_url(tag, quarter_start_dt, quarter_end_dt)
+            try:
+                payload, _headers = fetch_json(api_url)
+            except Exception as exc:
+                eprint(f"Stack Exchange fetch failed for {tag} {quarter}: {exc}")
+                continue
+            total = payload.get("total") if isinstance(payload, dict) else None
+            if total is None:
+                eprint(f"Stack Exchange fetch missing total for {tag} {quarter}")
+                continue
+            by_key[key] = {
+                "quarter": quarter,
+                "label": quarter_label(quarter),
+                "tag": tag,
+                "technology": label,
+                "question_count": int(total),
+                "source": "Stack Exchange API question totals by Stack Overflow tag",
+                "source_url": STACK_EXCHANGE_DOCS_URL,
+                "api_url": api_url,
+                "collected_at": collected_at,
+                "quota_remaining": payload.get("quota_remaining") if isinstance(payload, dict) else "",
+            }
+            backoff = payload.get("backoff") if isinstance(payload, dict) else None
+            if backoff:
+                time.sleep(float(backoff))
+            else:
+                time.sleep(0.08)
+
+    rows = sorted(by_key.values(), key=lambda row: (row.get("tag", ""), row.get("quarter", "")))
+    if rows:
+        write_cached_stackoverflow_tag_quarterly(rows)
+    return rows
 
 
 def builtwith_cache_path(technology):
@@ -1770,6 +1959,40 @@ def build_database(data, fetched):
                 "WordCamp data is included; broader Meetup chapter activity is not.",
             )
         )
+    if fetched.get("stack_overflow_tag_quarterly"):
+        gaps.append(
+            (
+                "developer_interest_proxy",
+                "partial",
+                "Stack Exchange API question totals by Stack Overflow tag",
+                "Quarterly Stack Overflow tag volume is included as a developer-attention proxy; it does not measure general search interest.",
+            )
+        )
+    else:
+        gaps.append(
+            (
+                "developer_interest_proxy",
+                "missing",
+                "Stack Exchange API question totals by Stack Overflow tag",
+                "Needs quarterly tag-volume totals for WordPress and comparable builder/ecommerce tags.",
+            )
+        )
+    gaps.extend(
+        [
+            (
+                "search_interest",
+                "missing",
+                "Google Trends or another search-interest provider",
+                "No stable unattended public search-interest source is wired in; the report uses Stack Overflow tag volume only as a developer-interest proxy.",
+            ),
+            (
+                "job_demand",
+                "missing",
+                "Hiring platform or labor-market time-series export",
+                "No public job-posting time series is wired in yet.",
+            ),
+        ]
+    )
     if not fetched.get("fttf_pledges"):
         gaps.append(
             (
@@ -2347,6 +2570,7 @@ def source_status_rows(fetched):
         ("W3Techs adoption", "covered" if fetched.get("market_share") else "missing", "All-site usage and CMS market-share yearly trends"),
         ("HTTP Archive/Web Almanac", "covered", "2025 CMS adoption snapshot and high-traffic context"),
         ("BuiltWith ecommerce history", "covered" if fetched.get("builtwith_technology_history") else "missing", "Shopify and WooCommerce live-site counts by traffic tier"),
+        ("Stack Overflow tag volume", "covered" if fetched.get("stack_overflow_tag_quarterly") else "missing", "Quarterly public developer-attention proxy from Stack Exchange API tag totals"),
         ("WordPress.org plugin/theme directories", "covered" if fetched.get("directory_snapshots") else "missing", "Current plugin and theme counts"),
         ("Plugin/theme directory activity", "covered" if fetched.get("directory_activity_snapshots") else "missing", "Current new, updated, and popular samples from WordPress.org directory APIs"),
         ("WordCamp Central", "covered" if fetched.get("wordcamps") else "missing", "Historical WordCamp event records and anticipated-attendance fields where available"),
@@ -2369,6 +2593,11 @@ def source_status_rows(fetched):
             "partial" if SOURCE_FILES["support_forum_topics"].exists() else "missing",
             "Current WordPress.org support queue snapshot with forum, status, last-activity, and age buckets; historical trend still needs a fuller export",
         ),
+        (
+            "Search interest and job demand",
+            "missing",
+            "General web search trends and hiring-platform time series are not included; Stack Overflow tag volume is only a developer-attention proxy",
+        ),
     ]
     return rows
 
@@ -2386,6 +2615,7 @@ def build_report(data, fetched):
     github_prs = data["github_prs"]
     classifications = data["classification_trend"]
     market_rows = fetched.get("market_share", [])
+    stack_overflow_tags = fetched.get("stack_overflow_tag_quarterly", [])
     wordcamps = fetched.get("wordcamps", [])
     wordcamp_yearly = fetched.get("wordcamp_yearly", [])
     wp_event_snapshots = fetched.get("wp_event_snapshots", [])
@@ -2634,6 +2864,29 @@ def build_report(data, fetched):
                 "points": sorted((r["date"], r["value"]) for r in market_rows if r["metric"] == "cms_market_share" and r["technology"] == tech),
             }
         )
+    stack_overflow_tag_series = [
+        {
+            "label": tag_config["label"],
+            "color": tag_config["color"],
+            "points": sorted(
+                (row["quarter"], num(row.get("question_count")))
+                for row in stack_overflow_tags
+                if row.get("tag") == tag_config["tag"] and row.get("quarter") >= "2021-01-01"
+            ),
+        }
+        for tag_config in STACK_OVERFLOW_TAGS
+    ]
+    latest_so_wp = max(
+        [row for row in stack_overflow_tags if row.get("tag") == "wordpress"],
+        key=lambda row: row.get("quarter", ""),
+        default={},
+    )
+    previous_so_wp = max(
+        [row for row in stack_overflow_tags if row.get("tag") == "wordpress" and row.get("quarter", "") < "2024-01-01"],
+        key=lambda row: row.get("quarter", ""),
+        default={},
+    )
+    so_wp_delta = num(latest_so_wp.get("question_count")) - num(previous_so_wp.get("question_count")) if latest_so_wp and previous_so_wp else None
 
     plugin_count = num(directory.get("plugin_directory_plugins", {}).get("value"))
     theme_count = num(directory.get("theme_directory_themes", {}).get("value"))
@@ -3094,6 +3347,18 @@ p {{ margin:0 0 12px; }}
       {svg_line_chart("Share among CMS sites", "W3Techs yearly CMS market-share trend.", market_cms_series, y_suffix="%")}
     </div>
     <div class="grid-2">
+      {svg_line_chart("Stack Overflow developer attention", "Quarterly Stack Overflow questions by tag from the Stack Exchange API. This is a developer-help signal, not general web search demand.", stack_overflow_tag_series)}
+      <div class="card">
+        <h3>Developer-interest readout</h3>
+        <p>Stack Overflow tag volume is much narrower than overall site-builder demand, but it shows whether developers are asking for help with WordPress and comparable builder/ecommerce ecosystems.</p>
+        <div class="stats">
+          {stat_card("Latest WordPress tag", compact(num(latest_so_wp.get("question_count"))), latest_so_wp.get("label", "not fetched"), "soft")}
+          {stat_card("Change vs pre-2024", f"{so_wp_delta:+,}" if so_wp_delta is not None else "n/a", "latest quarter minus last pre-2024 quarter", "watch" if so_wp_delta is not None and so_wp_delta < 0 else "soft")}
+          {stat_card("Coverage", compact(len(stack_overflow_tags)), "tag-quarter rows in SQLite", "good" if stack_overflow_tags else "watch")}
+        </div>
+      </div>
+    </div>
+    <div class="grid-2">
       <div class="card">
         <h3>Newly found site pipeline</h3>
         <p>BuiltWith public Net New Pipeline counts for the last 90 days. Squarespace's top-level CMS page does not expose new-site counts, so it is excluded from this share.</p>
@@ -3195,7 +3460,7 @@ p {{ margin:0 0 12px; }}
 
   <section class="footer">
     <p>Generated {dt.datetime.now(dt.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')} from local Core/Gutenberg exports and public sources.</p>
-    <p>Sources: <a href="{W3TECHS_USAGE_URL}">W3Techs usage trend</a>, <a href="{W3TECHS_MARKET_SHARE_URL}">W3Techs CMS market-share trend</a>, <a href="{HTTP_ARCHIVE_CMS_URL}">HTTP Archive Web Almanac CMS 2025</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="{EVENTS_WORDPRESS_URL}">WordPress Events</a>, <a href="{TRANSLATE_LOCALES_URL}">Translate WordPress</a>, <a href="{MAKE_CORE_API}">Make/Core posts API</a>, <a href="{MAKE_CORE_COMMENTS_API}">Make/Core comments API</a>, <a href="https://wordpress.org/support/view/all-topics/">WordPress.org support forums</a>, <a href="https://trends.builtwith.com/cms/WordPress">BuiltWith technology pages</a>, <a href="https://github.com/WordPress/gutenberg/issues">Gutenberg GitHub issues</a>, <a href="{FTTF_PLEDGES_URL}">Five for the Future pledges</a>, <a href="{RELEASE_ARCHIVE_URL}">WordPress release archive</a>, and <a href="{CREDITS_API}">Core credits API</a>.</p>
+    <p>Sources: <a href="{W3TECHS_USAGE_URL}">W3Techs usage trend</a>, <a href="{W3TECHS_MARKET_SHARE_URL}">W3Techs CMS market-share trend</a>, <a href="{HTTP_ARCHIVE_CMS_URL}">HTTP Archive Web Almanac CMS 2025</a>, <a href="{STACK_EXCHANGE_DOCS_URL}">Stack Exchange API</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="{EVENTS_WORDPRESS_URL}">WordPress Events</a>, <a href="{TRANSLATE_LOCALES_URL}">Translate WordPress</a>, <a href="{MAKE_CORE_API}">Make/Core posts API</a>, <a href="{MAKE_CORE_COMMENTS_API}">Make/Core comments API</a>, <a href="https://wordpress.org/support/view/all-topics/">WordPress.org support forums</a>, <a href="https://trends.builtwith.com/cms/WordPress">BuiltWith technology pages</a>, <a href="https://github.com/WordPress/gutenberg/issues">Gutenberg GitHub issues</a>, <a href="{FTTF_PLEDGES_URL}">Five for the Future pledges</a>, <a href="{RELEASE_ARCHIVE_URL}">WordPress release archive</a>, and <a href="{CREDITS_API}">Core credits API</a>.</p>
   </section>
 </main>
 </body>
@@ -3219,6 +3484,7 @@ def main():
     fetched["builtwith_technology_snapshots"], fetched["builtwith_technology_history"] = fetch_builtwith_technology_signals(
         args.skip_network
     )
+    fetched["stack_overflow_tag_quarterly"] = fetch_stackoverflow_tag_quarterly(args.skip_network)
     fetched["directory_snapshots"] = fetch_wordpress_directory_snapshots(args.skip_network)
     (
         fetched["directory_activity_snapshots"],
@@ -3249,6 +3515,8 @@ def main():
     fetched["core_release_committers"], fetched["core_release_committer_counts"] = fetch_core_release_committers(
         fetched["core_releases"], args.skip_network
     )
+    if args.skip_network:
+        apply_skip_network_db_fallback(fetched)
 
     build_database(data, fetched)
     build_report(data, fetched)

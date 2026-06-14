@@ -2872,6 +2872,7 @@ def build_derived_metrics(data):
         "support_forum_activity_monthly": support_monthly,
         "support_forum_age_buckets": support_age,
         "contributor_depth_buckets": derive_contributor_depth(data),
+        "contributor_concentration_summary": derive_contributor_concentration_summary(data),
     }
 
 
@@ -3347,6 +3348,33 @@ def contributor_concentration(rows, author_key, date_key=None, since=None):
     }
 
 
+def derive_contributor_concentration_summary(data):
+    configs = [
+        ("Core Trac reporters", data.get("core_tickets", []), "reporter", "created_at"),
+        ("Gutenberg issue creators", data.get("gutenberg_issues", []), "author_login", "created_at"),
+        ("wordpress-develop PR authors", data.get("github_prs", []), "author_login", "created_at"),
+    ]
+    rows = []
+    for source, source_rows, author_key, date_key in configs:
+        for window, since in [("all_time", None), ("since_2024", "2024-01-01")]:
+            concentration = contributor_concentration(source_rows, author_key, date_key, since)
+            rows.append(
+                {
+                    "source": source,
+                    "window": window,
+                    "since": since or "",
+                    "total_items": concentration["total"],
+                    "total_contributors": concentration["unique"],
+                    "one_time_contributor_share_pct": round(concentration["one_time_share"], 2),
+                    "top10_item_share_pct": round(concentration["top10"], 2),
+                    "top25_item_share_pct": round(concentration["top25"], 2),
+                    "top50_item_share_pct": round(concentration["top50"], 2),
+                    "metric_note": "Share of source rows handled by the top N contributors in the selected window",
+                }
+            )
+    return rows
+
+
 def stale_open_share_core(core_tickets):
     cutoff = END - dt.timedelta(days=365)
     open_rows = [row for row in core_tickets if (row.get("status") or "").lower() != "closed"]
@@ -3422,6 +3450,7 @@ def source_status_rows(fetched):
         ("Gutenberg response/reopen timelines", "covered" if SOURCE_FILES["gutenberg_timeline_quarterly"].exists() else "missing", "GitHub comment timestamps and reopened events"),
         ("wordpress-develop PRs", "covered", "12k PRs with authors, dates, Trac links"),
         ("Contributor depth buckets", "covered" if fetched.get("contributor_depth_buckets") else "missing", "One-time, repeat, and sustained contributors across Core, Gutenberg, and PR activity"),
+        ("Contributor concentration", "covered" if fetched.get("contributor_concentration_summary") else "missing", "Top 10, 25, and 50 contributor work share across Core, Gutenberg, and PR activity"),
         ("Ticket category classification", "covered", "Bug, feature request, enhancement, task, and other categories"),
         ("W3Techs adoption", "covered" if fetched.get("market_share") else "missing", "All-site usage and CMS market-share yearly trends"),
         ("HTTP Archive/Web Almanac", "covered", "2025 CMS adoption snapshot and high-traffic context"),
@@ -3516,6 +3545,7 @@ def build_report(data, fetched):
     builtwith_technology_snapshots = fetched.get("builtwith_technology_snapshots", [])
     builtwith_technology_history = fetched.get("builtwith_technology_history", [])
     contributor_depth = fetched.get("contributor_depth_buckets", [])
+    contributor_concentration_summary = fetched.get("contributor_concentration_summary", [])
 
     core_latest = current_latest(core_q)
     gut_latest = current_latest(gut_q)
@@ -3545,11 +3575,14 @@ def build_report(data, fetched):
     gut_stale, gut_open, gut_stale_pct = stale_open_share_gutenberg(gut_jsonl)
     reopened_pct = len(core_reopened) / len(core_closed_ids) * 100 if core_closed_ids else 0
 
-    core_conc_all = contributor_concentration(core_tickets, "reporter", "created_at")
-    core_conc_recent = contributor_concentration(core_tickets, "reporter", "created_at", "2024-01-01")
-    gut_conc_all = contributor_concentration(gut_issues, "author_login", "created_at")
-    gut_conc_recent = contributor_concentration(gut_issues, "author_login", "created_at", "2024-01-01")
-    pr_conc_recent = contributor_concentration(github_prs, "author_login", "created_at", "2024-01-01")
+    concentration_by_key = {
+        (row.get("source"), row.get("window")): row
+        for row in contributor_concentration_summary
+    }
+
+    def conc_metric(source, window, field):
+        return float(concentration_by_key.get((source, window), {}).get(field) or 0)
+
     depth_by_key = {
         (row.get("source"), row.get("window"), row.get("bucket")): row
         for row in contributor_depth
@@ -4128,12 +4161,8 @@ p {{ margin:0 0 12px; }}
       </div>
       <div class="card">
         <h3>Contributor concentration</h3>
-        <p>Opening work is broad, but a meaningful share still comes from the most active people. The recent window starts in 2024.</p>
-        {horizontal_metric("Core top 10 reporters, all time", core_conc_all["top10"], 100, COLORS["core"])}
-        {horizontal_metric("Core top 10 reporters, since 2024", core_conc_recent["top10"], 100, COLORS["core"])}
-        {horizontal_metric("Gutenberg top 10 creators, all time", gut_conc_all["top10"], 100, COLORS["gutenberg"])}
-        {horizontal_metric("Gutenberg top 10 creators, since 2024", gut_conc_recent["top10"], 100, COLORS["gutenberg"])}
-        {horizontal_metric("wordpress-develop top 10 PR authors, since 2024", pr_conc_recent["top10"], 100, COLORS["prs"])}
+        <p>Share of work since 2024 handled by the top 10, 25, and 50 people in each source.</p>
+        {''.join(horizontal_metric(f"{short_label} top {rank}", conc_metric(source, "since_2024", f"top{rank}_item_share_pct"), 100, color) for source, short_label, color in depth_sources for rank in (10, 25, 50))}
       </div>
     </div>
     <div class="grid-2">

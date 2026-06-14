@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WordPress Contributor Depth</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172033;
+      --muted: #637083;
+      --line: #d9e1ea;
+      --paper: #f6f8fb;
+      --panel: #ffffff;
+      --blue: #2563eb;
+      --green: #159957;
+      --amber: #b7791f;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    main { max-width: 1180px; margin: 0 auto; padding: 36px 22px 48px; }
+    h1 { margin: 0 0 8px; font-size: clamp(32px, 4vw, 52px); line-height: 1.05; letter-spacing: 0; }
+    h2 { margin: 0; font-size: 22px; line-height: 1.15; letter-spacing: 0; }
+    h3 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+    p { margin: 0; }
+    a { color: var(--blue); }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; overflow-wrap: anywhere; }
+    .lede { max-width: 900px; color: var(--muted); font-size: 18px; margin-bottom: 18px; }
+    .nav { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 22px; }
+    .nav a {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 7px 11px;
+      background: #fbfdff;
+      color: var(--muted);
+      font-size: 13px;
+      text-decoration: none;
+    }
+    .summary-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 22px 0; }
+    .summary-card, .source-card, .readout {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
+    }
+    .summary-card { padding: 16px; position: relative; overflow: hidden; }
+    .source-dot { width: 36px; height: 5px; border-radius: 999px; margin-bottom: 12px; }
+    .big { font-size: 42px; line-height: 1; font-weight: 850; margin: 12px 0 4px; }
+    .summary-card p, .delta, .source-head p, .note { color: var(--muted); font-size: 14px; }
+    .mini-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 14px 0; }
+    .mini-grid div {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: #fbfdff;
+    }
+    .mini-grid strong { display: block; font-size: 23px; line-height: 1; margin-bottom: 5px; }
+    .mini-grid span { color: var(--muted); font-size: 12px; line-height: 1.25; display: block; }
+    .delta { display: grid; gap: 4px; border-top: 1px solid var(--line); padding-top: 10px; }
+    .readout { padding: 18px; margin: 16px 0; }
+    .readout-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
+    .readout-grid div { border-left: 5px solid var(--blue); background: #fbfdff; border-radius: 8px; padding: 12px; }
+    .readout-grid div:nth-child(2) { border-left-color: var(--amber); }
+    .readout-grid div:nth-child(3) { border-left-color: var(--green); }
+    .readout-grid strong { display: block; margin-bottom: 5px; }
+    .readout-grid span { color: var(--muted); font-size: 14px; }
+    .source-stack { display: grid; gap: 14px; margin-top: 16px; }
+    .source-card { padding: 18px; }
+    .source-head { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 14px; }
+    .source-head > span { width: 6px; min-height: 48px; border-radius: 999px; flex: 0 0 auto; }
+    .depth-rows { display: grid; gap: 10px; }
+    .depth-row {
+      display: grid;
+      grid-template-columns: 210px minmax(0, 1fr);
+      gap: 14px;
+      align-items: center;
+      border-top: 1px solid var(--line);
+      padding-top: 10px;
+    }
+    .depth-row:first-child { border-top: 0; padding-top: 0; }
+    .bucket strong { display: block; font-size: 16px; }
+    .bucket span { display: block; color: var(--muted); font-size: 13px; }
+    .bars { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .barline { min-width: 0; }
+    .bar-label { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; margin-bottom: 4px; }
+    .bar-label span { color: var(--muted); }
+    .bar-label strong { white-space: nowrap; }
+    .bar { height: 9px; border-radius: 999px; background: #e8eef5; overflow: hidden; }
+    .bar span { display: block; height: 100%; border-radius: inherit; }
+    .footer-note {
+      background: #eef4ff;
+      border: 1px solid #cfe0ff;
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-top: 16px;
+      color: #244067;
+    }
+    @media (max-width: 920px) {
+      .summary-grid, .readout-grid { grid-template-columns: 1fr; }
+      .depth-row { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 620px) {
+      main { padding: 24px 14px 36px; }
+      .bars, .mini-grid { grid-template-columns: 1fr; }
+      .big { font-size: 36px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>WordPress contributor depth</h1>
+    <p class="lede">A focused view of drive-by, returning, regular, and sustained participation across Core Trac tickets, Gutenberg issues, and wordpress-develop pull requests.</p>
+    <nav class="nav">
+      <a href="index.html#participation">Participation</a>
+      <a href="index.html#decision-questions">Decision Questions</a>
+      <a href="progress_summary.html">Progress summary</a>
+      <a href="decision_brief.html">Decision brief</a>
+      <a href="goal_audit.html">Goal audit</a>
+      <a href="data_inventory.html">Data inventory</a>
+      <a href="source_gap_plan.html">Source gap plan</a>
+      <a href="refresh_runbook.html">Refresh runbook</a>
+    </nav>
+
+    <section class="summary-grid" aria-label="Contributor depth summary">
+
+      <article class="summary-card">
+        <div class="source-dot" style="background:#2563eb"></div>
+        <h2>Core Trac</h2>
+        <div class="big">75.5%</div>
+        <p>one-time contributors since 2024</p>
+        <div class="mini-grid">
+          <div><strong>31.5%</strong><span>work from sustained contributors</span></div>
+          <div><strong>1.7%</strong><span>contributors in sustained bucket</span></div>
+        </div>
+        <div class="delta">
+          <span>One-time share vs all-time: +4.5 pts</span>
+          <span>Sustained work vs all-time: -16.6 pts</span>
+        </div>
+      </article>
+
+      <article class="summary-card">
+        <div class="source-dot" style="background:#8b5cf6"></div>
+        <h2>Gutenberg</h2>
+        <div class="big">58.9%</div>
+        <p>one-time contributors since 2024</p>
+        <div class="mini-grid">
+          <div><strong>52.2%</strong><span>work from sustained contributors</span></div>
+          <div><strong>4.1%</strong><span>contributors in sustained bucket</span></div>
+        </div>
+        <div class="delta">
+          <span>One-time share vs all-time: -3.3 pts</span>
+          <span>Sustained work vs all-time: -10.9 pts</span>
+        </div>
+      </article>
+
+      <article class="summary-card">
+        <div class="source-dot" style="background:#159957"></div>
+        <h2>Core PRs</h2>
+        <div class="big">51.6%</div>
+        <p>one-time contributors since 2024</p>
+        <div class="mini-grid">
+          <div><strong>69.1%</strong><span>work from sustained contributors</span></div>
+          <div><strong>8.4%</strong><span>contributors in sustained bucket</span></div>
+        </div>
+        <div class="delta">
+          <span>One-time share vs all-time: -4.1 pts</span>
+          <span>Sustained work vs all-time: -2.6 pts</span>
+        </div>
+      </article>
+    </section>
+
+    <section class="readout">
+      <h2>What this says</h2>
+      <div class="readout-grid">
+        <div><strong>Broad entry is real.</strong><span>Each stream still has many people who only appear once, especially Core Trac.</span></div>
+        <div><strong>Repeat work is concentrated.</strong><span>Gutenberg and Core PRs depend more heavily on the sustained-contributor bucket.</span></div>
+        <div><strong>PRs are the most concentrated stream.</strong><span>Since 2024, 8.4% of PR authors account for 69.1% of wordpress-develop PRs.</span></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Depth ladders since 2024</h2>
+      <p class="note">Each row compares share of people with share of work. A wide people bar with a smaller work bar means broad entry; a small people bar with a wider work bar means concentrated repeat work.</p>
+      <div class="source-stack">
+
+      <article class="source-card">
+        <div class="source-head">
+          <span style="background:#2563eb"></span>
+          <div>
+            <h2>Core Trac</h2>
+            <p>Core Trac reporters · 2,170 contributors · 5,220 items since 2024</p>
+          </div>
+        </div>
+        <div class="depth-rows">
+        <div class="depth-row">
+          <div class="bucket">
+            <strong>One time</strong>
+            <span>1 item · 1,638 people · 1,638 items</span>
+          </div>
+          <div class="bars">
+
+        <div class="barline">
+          <div class="bar-label"><span>people</span><strong>75.5%</strong></div>
+          <div class="bar"><span style="width:75.5%;background:#2563eb"></span></div>
+        </div>
+
+        <div class="barline">
+          <div class="bar-label"><span>work</span><strong>31.4%</strong></div>
+          <div class="bar"><span style="width:31.4%;background:#172033"></span></div>
+        </div>
+          </div>
+        </div>
+        <div class="depth-row">
+          <div class="bucket">
+            <strong>Returning</strong>
+            <span>2-4 items · 379 people · 934 items</span>
+          </div>
+          <div class="bars">
+
+        <div class="barline">
+          <div class="bar-label"><span>people</span><strong>17.5%</strong></div>
+          <div class="bar"><span style="width:17.5%;background:#2563eb"></span></div>
+        </div>
+
+        <div class="barline">
+          <div class="bar-label"><span>work</span><strong>17.9%</strong></div>
+          <div class="bar"><span style="width:17.9%;background:#172033"></span></div>
+        </div>
+          </div>
+        </div>
+        <div class="depth-row">
+          <div class="bucket">
+            <strong>Regular</strong>
+            <span>5-19 items · 117 people · 1,005 items</span>
+          </div>
+          <div class="bars">
+
+        <div class="barline">
+          <div class="bar-label"><span>people</span><strong>5.4%</strong></div>
+          <div class="bar"><span style="width:5.4%;background:#2563eb"></span></div>
+        </div>
+
+        <div class="barline">
+          <div class="bar-label"><span>work</span><strong>19.2%</strong></div>
+          <div class="bar"><span style="width:19.2%;background:#172033"></span></div>
+        </div>
+          </div>
+        </div>
+        <div class="depth-row">
+          <div class="bucket">
+            <strong>Sustained</strong>
+            <span>20+ items · 36 people · 1,643 items</span>
+          </div>
+          <div class="bars">
+
+        <div class="barline">
+          <div class="bar-label"><span>people</span><strong>1.7%</strong></div>
+          <div class="bar"><span style="width:2.0%;background:#2563eb"></span></div>
+        </div>
+
+        <div class="barline">
+          <div class="bar-label"><span>work</span><strong>31.5%</strong></div>
+          <div class="bar"><span style="width:31.5%;background:#172033"></span></div>
+        </div>
+          </div>
+        </div></div>
+      </article>
+
+      <article class="source-card">
+        <div class="source-head">
+          <span style="background:#8b5cf6"></span>
+          <div>
+            <h2>Gutenberg</h2>
+            <p>Gutenberg issue creators · 1,343 contributors · 6,664 items since 2024</p>
+          </div>
+        </div>
+        <div class="depth-rows">
+        <div class="depth-row">
+          <div class="bucket">
+            <strong>One time</strong>
+            <span>1 item · 791 people · 791 items</span>
+          </div>
+          <div class="bars">
+
+        <div class="barline">
+          <div class="bar-label"><span>people</span><strong>58.9%</strong></div>
+          <div class="bar"><span style="width:58.9%;background:#8b5cf6"></span></div>
+        </div>
+
+        <div class="barline">
+          <div class="bar-label"><span>work</span><strong>11.9%</strong></div>
+          <div class="bar"><span style="width:11.9%;background:#172033"></span></div>
+        </div>
+          </div>
+        </div>
+        <div class="depth-row">
+          <div class="bucket">
+            <strong>Returning</strong>
+            <span>2-4 items · 330 people · 819 items</span>
+          </div>
+          <div class="bars">
+
+        <div class="barline">
+          <div class="bar-label"><span>people</span><strong>24.6%</strong></div>
+          <div class="bar"><span style="width:24.6%;background:#8b5cf6"></span></div>
+        </div>
+
+        <div class="barline">
+          <div class="bar-label"><span>work</span><strong>12.3%</strong></div>
+          <div class="bar"><span style="width:12.3%;background:#172033"></span></div>
+        </div>
+          </div>
+        </div>
+        <div class="depth-row">
+          <div class="bucket">
+            <strong>Regular</strong>
+            <span>5-19 items · 167 people · 1,572 items</span>
+          </div>
+          <div class="bars">
+
+        <div class="barline">
+          <div class="bar-label"><span>people</span><strong>12.4%</strong></div>
+          <div class="bar"><span style="width:12.4%;background:#8b5cf6"></span></div>
+        </div>
+
+        <div class="barline">
+          <div class="bar-label"><span>work</span><strong>23.6%</strong></div>
+          <div class="bar"><span style="width:23.6%;background:#172033"></span></div>
+        </div>
+          </div>
+        </div>
+        <div class="depth-row">
+          <div class="bucket">
+            <strong>Sustained</strong>
+            <span>20+ items · 55 people · 3,482 items</span>
+          </div>
+          <div class="bars">
+
+        <div class="barline">
+          <div class="bar-label"><span>people</span><strong>4.1%</strong></div>
+          <div class="bar"><span style="width:4.1%;background:#8b5cf6"></span></div>
+        </div>
+
+        <div class="barline">
+          <div class="bar-label"><span>work</span><strong>52.2%</strong></div>
+          <div class="bar"><span style="width:52.2%;background:#172033"></span></div>
+        </div>
+          </div>
+        </div></div>
+      </article>
+
+      <article class="source-card">
+        <div class="source-head">
+          <span style="background:#159957"></span>
+          <div>
+            <h2>Core PRs</h2>
+            <p>wordpress-develop PR authors · 742 contributors · 6,325 items since 2024</p>
+          </div>
+        </div>
+        <div class="depth-rows">
+        <div class="depth-row">
+          <div class="bucket">
+            <strong>One time</strong>
+            <span>1 item · 383 people · 383 items</span>
+          </div>
+          <div class="bars">
+
+        <div class="barline">
+          <div class="bar-label"><span>people</span><strong>51.6%</strong></div>
+          <div class="bar"><span style="width:51.6%;background:#159957"></span></div>
+        </div>
+
+        <div class="barline">
+          <div class="bar-label"><span>work</span><strong>6.1%</strong></div>
+          <div class="bar"><span style="width:6.1%;background:#172033"></span></div>
+        </div>
+          </div>
+        </div>
+        <div class="depth-row">
+          <div class="bucket">
+            <strong>Returning</strong>
+            <span>2-4 items · 175 people · 462 items</span>
+          </div>
+          <div class="bars">
+
+        <div class="barline">
+          <div class="bar-label"><span>people</span><strong>23.6%</strong></div>
+          <div class="bar"><span style="width:23.6%;background:#159957"></span></div>
+        </div>
+
+        <div class="barline">
+          <div class="bar-label"><span>work</span><strong>7.3%</strong></div>
+          <div class="bar"><span style="width:7.3%;background:#172033"></span></div>
+        </div>
+          </div>
+        </div>
+        <div class="depth-row">
+          <div class="bucket">
+            <strong>Regular</strong>
+            <span>5-19 items · 122 people · 1,108 items</span>
+          </div>
+          <div class="bars">
+
+        <div class="barline">
+          <div class="bar-label"><span>people</span><strong>16.4%</strong></div>
+          <div class="bar"><span style="width:16.4%;background:#159957"></span></div>
+        </div>
+
+        <div class="barline">
+          <div class="bar-label"><span>work</span><strong>17.5%</strong></div>
+          <div class="bar"><span style="width:17.5%;background:#172033"></span></div>
+        </div>
+          </div>
+        </div>
+        <div class="depth-row">
+          <div class="bucket">
+            <strong>Sustained</strong>
+            <span>20+ items · 62 people · 4,372 items</span>
+          </div>
+          <div class="bars">
+
+        <div class="barline">
+          <div class="bar-label"><span>people</span><strong>8.4%</strong></div>
+          <div class="bar"><span style="width:8.4%;background:#159957"></span></div>
+        </div>
+
+        <div class="barline">
+          <div class="bar-label"><span>work</span><strong>69.1%</strong></div>
+          <div class="bar"><span style="width:69.1%;background:#172033"></span></div>
+        </div>
+          </div>
+        </div></div>
+      </article>
+      </div>
+    </section>
+
+    <p class="footer-note">Rows come from the SQLite <code>contributor_depth_buckets</code> table. Integrity check: <code>ok</code>. The main report summarizes this as broad entry with concentrated sustained work.</p>
+  </main>
+</body>
+</html>

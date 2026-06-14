@@ -6607,7 +6607,7 @@ p {{ margin:0 0 12px; }}
 
   <section id="participation" class="section">
     <h2>Participation</h2>
-    <p class="callout">The main participation change is not a collapse. It is fewer first-time and unique reporters in the trackers, while PR authorship is steadier and recent PR volume is higher.</p>
+    <p class="callout">The main participation change is not a collapse. It is fewer first-time and unique reporters in the trackers, while PR authorship is steadier and recent PR volume is higher. The companion <a href="contributor_depth.html">contributor depth view</a> breaks this down into drive-by, returning, regular, and sustained participation.</p>
     {svg_line_chart("People opening issues and PRs by quarter", "Unique Core ticket reporters, Gutenberg issue creators, and wordpress-develop PR authors.", [
         {"label": "Core reporters", "color": COLORS["core"], "points": point_series(core_q, "quarter", "unique_reporters", "2021-01-01")},
         {"label": "Gutenberg creators", "color": COLORS["gutenberg"], "points": point_series(gut_q, "quarter", "unique_creators", "2021-01-01")},
@@ -7465,6 +7465,7 @@ p {{ margin:0 0 12px; }}
       <div class="link-list">
         <a href="decision_brief.html">Decision brief</a>
         <a href="progress_summary.html">Progress summary</a>
+        <a href="contributor_depth.html">Contributor depth</a>
         <a href="goal_audit.html">Goal audit</a>
         <a href="data_inventory.html">Data inventory</a>
         <a href="source_gap_plan.html">Source gap plan</a>

@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WordPress Relevance Decision Brief</title>
+  <style>
+    :root { --ink:#172033; --muted:#637083; --line:#d9e1ea; --paper:#f6f8fb; --panel:#fff; --blue:#2563eb; --green:#159957; --amber:#b7791f; --red:#c2410c; --purple:#7c3aed; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    main { max-width:1120px; margin:0 auto; padding:36px 20px 48px; }
+    h1 { margin:0 0 8px; font-size:clamp(34px,4vw,54px); line-height:1.04; letter-spacing:0; }
+    h2 { margin:28px 0 12px; font-size:22px; }
+    h3 { margin:0 0 6px; font-size:15px; color:var(--muted); text-transform:uppercase; letter-spacing:.07em; }
+    p { margin:0 0 12px; color:var(--muted); }
+    a { color:var(--blue); }
+    .lede { max-width:860px; font-size:18px; }
+    .hero { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:22px; }
+    .answer { display:grid; grid-template-columns:1.2fr .8fr; gap:18px; align-items:start; margin-top:18px; }
+    .verdict { border-left:6px solid var(--amber); background:#fffaf0; border-radius:8px; padding:16px; }
+    .verdict strong { display:block; color:var(--ink); font-size:28px; line-height:1.12; margin-bottom:8px; }
+    .grid { display:grid; gap:14px; }
+    .cards { grid-template-columns:repeat(4,minmax(0,1fr)); margin:20px 0; }
+    .two { grid-template-columns:1fr 1fr; }
+    .card { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px; }
+    .metric { font-size:32px; font-weight:800; line-height:1; margin:4px 0 8px; }
+    .metric small { display:block; color:var(--muted); font-size:13px; font-weight:650; margin-top:6px; line-height:1.3; }
+    .pill { display:inline-block; border-radius:999px; padding:4px 9px; background:#eef4ff; color:var(--blue); font-size:12px; font-weight:750; text-transform:uppercase; letter-spacing:.06em; }
+    .bar { height:10px; border-radius:999px; background:#e7edf5; overflow:hidden; margin:10px 0 2px; }
+    .bar span { display:block; height:100%; border-radius:inherit; }
+    .green { background:var(--green); }
+    .blue { background:var(--blue); }
+    .amber { background:var(--amber); }
+    .red { background:var(--red); }
+    .purple { background:var(--purple); }
+    table { width:100%; border-collapse:collapse; table-layout:fixed; margin-top:8px; font-size:14px; }
+    th, td { text-align:left; border-bottom:1px solid var(--line); padding:10px 8px; vertical-align:top; overflow-wrap:anywhere; }
+    th { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.06em; }
+    .footer { margin-top:24px; color:var(--muted); font-size:13px; }
+    @media (max-width:860px) { main { padding:24px 14px 36px; } .answer, .cards, .two { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+<main>
+  <section class="hero">
+    <span class="pill">Decision brief</span>
+    <h1>WordPress is still the default CMS, but the signals are softer.</h1>
+    <p class="lede">Use WordPress as a strong default when installed reach, ecosystem depth, and open-source control matter. Treat growth and new-site momentum as softer: the report shows fewer new tracker reporters and more visible builder pressure.</p>
+    <div class="answer">
+      <div class="verdict">
+        <strong>Decision readout: still healthy, not effortless.</strong>
+        <p>WordPress remains dominant on installed-share evidence and has broad ecosystem activity. The work queue is closer to balanced than the backlog size alone suggests. The weak spots are new participant entry, older backlog, and incomplete direct evidence for new-site share, search interest, and broad job demand.</p>
+      </div>
+      <div class="card">
+        <h3>Evidence strength</h3>
+        <p><b>Strong:</b> installed share, ticket flow, backlog, release/community activity.</p>
+        <p><b>Useful proxy:</b> BuiltWith pipeline, HTTP Archive tracked share, Stack Overflow, HN hiring, Jobs board.</p>
+        <p><b>Still partial:</b> true new-site cohorts, Google Trends, broad labor-market exports, long support history.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="grid cards">
+    <div class="card">
+      <h3>Still widely chosen</h3>
+      <div class="metric">41.5%<small>of all sites, W3Techs</small></div>
+      <div class="bar"><span class="green" style="width:41.5%"></span></div>
+    </div>
+    <div class="card">
+      <h3>CMS share</h3>
+      <div class="metric">59.3%<small>of CMS sites, W3Techs</small></div>
+      <div class="bar"><span class="green" style="width:59.3%"></span></div>
+    </div>
+    <div class="card">
+      <h3>Builder pressure</h3>
+      <div class="metric">-10.8 pts<small>HTTP Archive tracked share since 2020-01</small></div>
+      <div class="bar"><span class="amber" style="width:70%"></span></div>
+    </div>
+    <div class="card">
+      <h3>Current pipeline</h3>
+      <div class="metric">67.4%<small>tracked BuiltWith 90-day pipeline</small></div>
+      <div class="bar"><span class="blue" style="width:67.4%"></span></div>
+    </div>
+  </section>
+
+  <section class="grid two">
+    <div class="card">
+      <h2>Community And Load</h2>
+      <table>
+        <thead><tr><th>Question</th><th>Answer</th></tr></thead>
+        <tbody>
+          <tr><td>Are more people participating?</td><td>Fewer new reporters in Core and Gutenberg trackers; PR creation is higher.</td></tr>
+          <tr><td>Is the project keeping up?</td><td>Mostly. Since 2024, closure/new ratios are Core 103.5% and Gutenberg 98.3%.</td></tr>
+          <tr><td>Is the backlog fresh?</td><td>No. Current stale open share is Core 75.0% and Gutenberg 64.4%.</td></tr>
+          <tr><td>Is work broadly distributed?</td><td>Entry remains broad, but work is more concentrated in repeat and high-volume contributors.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <h2>Market Position</h2>
+      <table>
+        <thead><tr><th>Question</th><th>Answer</th></tr></thead>
+        <tbody>
+          <tr><td>Is WordPress still widely chosen?</td><td>Yes. Installed share remains very large: 41.5% of all sites and 59.3% of CMS sites.</td></tr>
+          <tr><td>Is adoption growing?</td><td>Softer recently. W3Techs is down 2.1 all-site points and 2.7 CMS-share points since Jan 2025.</td></tr>
+          <tr><td>Are builders gaining?</td><td>Some share, yes. HTTP Archive tracked share is down, while WordPress still leads the current tracked pipeline.</td></tr>
+          <tr><td>What would improve confidence?</td><td>True new-site cohorts, Google Trends, broad labor-market exports, and longer support history.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <p class="footer">Sources and full charts: <a href="index.html">full report</a>, <a href="progress_summary.html">progress summary</a>, and <a href="refresh_runbook.html">refresh runbook</a>.</p>
+</main>
+</body>
+</html>

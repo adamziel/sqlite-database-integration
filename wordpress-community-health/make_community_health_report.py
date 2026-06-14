@@ -683,6 +683,24 @@ def fetch_stackoverflow_tag_quarterly(skip_network=False):
             api_url = stackexchange_questions_url(tag, quarter_start_dt, quarter_end_dt)
             try:
                 payload, _headers = fetch_json(api_url)
+            except urllib.error.HTTPError as exc:
+                try:
+                    error_body = exc.read().decode("utf-8", errors="replace")
+                except Exception:
+                    error_body = ""
+                lower_error = error_body.lower()
+                throttled = exc.code == 429 or "too many requests" in lower_error or "throttle" in lower_error
+                if throttled:
+                    eprint(
+                        f"Stack Exchange throttled while fetching {tag} {quarter} (HTTP {exc.code}); "
+                        "keeping cached and newly fetched rows."
+                    )
+                    rows = sorted(by_key.values(), key=lambda row: (row.get("tag", ""), row.get("quarter", "")))
+                    if rows:
+                        write_cached_stackoverflow_tag_quarterly(rows)
+                    return rows
+                eprint(f"Stack Exchange fetch failed for {tag} {quarter}: HTTP {exc.code}")
+                continue
             except Exception as exc:
                 eprint(f"Stack Exchange fetch failed for {tag} {quarter}: {exc}")
                 continue
@@ -704,9 +722,14 @@ def fetch_stackoverflow_tag_quarterly(skip_network=False):
             }
             backoff = payload.get("backoff") if isinstance(payload, dict) else None
             if backoff:
+                rows = sorted(by_key.values(), key=lambda row: (row.get("tag", ""), row.get("quarter", "")))
+                write_cached_stackoverflow_tag_quarterly(rows)
                 time.sleep(float(backoff))
             else:
                 time.sleep(0.08)
+            if by_key:
+                rows = sorted(by_key.values(), key=lambda row: (row.get("tag", ""), row.get("quarter", "")))
+                write_cached_stackoverflow_tag_quarterly(rows)
 
     rows = sorted(by_key.values(), key=lambda row: (row.get("tag", ""), row.get("quarter", "")))
     if rows:
@@ -3761,6 +3784,31 @@ def build_report(data, fetched):
         default={},
     )
     so_wp_delta = num(latest_so_wp.get("question_count")) - num(previous_so_wp.get("question_count")) if latest_so_wp and previous_so_wp else None
+    so_expected_quarters = [quarter.strftime("%Y-%m-%d") for quarter, _ in quarter_ranges(STACK_OVERFLOW_TAG_START, END)]
+    so_expected_set = set(so_expected_quarters)
+    so_expected_label = (
+        f"{quarter_label(so_expected_quarters[0])} to {quarter_label(so_expected_quarters[-1])}"
+        if so_expected_quarters
+        else "expected range"
+    )
+    so_full_history_labels = []
+    so_partial_history_labels = []
+    for tag_config in STACK_OVERFLOW_TAGS:
+        observed = {
+            row.get("quarter")
+            for row in stack_overflow_tags
+            if row.get("tag") == tag_config["tag"] and row.get("quarter")
+        }
+        if observed and observed == so_expected_set:
+            so_full_history_labels.append(tag_config["label"])
+        elif observed:
+            so_partial_history_labels.append(f"{tag_config['label']} {len(observed)}/{len(so_expected_quarters)}")
+        else:
+            so_partial_history_labels.append(f"{tag_config['label']} 0/{len(so_expected_quarters)}")
+    so_coverage_detail = (
+        f"Full {so_expected_label} coverage: {', '.join(so_full_history_labels) if so_full_history_labels else 'none'}. "
+        f"Partial coverage: {', '.join(so_partial_history_labels) if so_partial_history_labels else 'none'}."
+    )
     wikimedia_pageview_series = [
         {
             "label": config["label"],
@@ -3964,6 +4012,7 @@ p {{ margin:0 0 12px; }}
 .stat-note {{ color:var(--muted); font-size:13px; }}
 .card {{ border:1px solid var(--line); border-radius:8px; padding:16px; background:#fff; }}
 .card .stats {{ grid-template-columns:repeat(2,minmax(0,1fr)); }}
+.small-note {{ color:var(--muted); font-size:13px; margin-top:2px; }}
 .chart {{ width:100%; height:auto; display:block; border:1px solid var(--line); border-radius:8px; background:#fff; margin:14px 0; }}
 .chart-title {{ font-size:20px; font-weight:800; fill:var(--ink); }}
 .chart-note {{ font-size:13px; fill:var(--muted); }}
@@ -4363,7 +4412,9 @@ p {{ margin:0 0 12px; }}
           {stat_card("Latest WordPress tag", compact(num(latest_so_wp.get("question_count"))), latest_so_wp.get("label", "not fetched"), "soft")}
           {stat_card("Change vs pre-2024", f"{so_wp_delta:+,}" if so_wp_delta is not None else "n/a", "latest quarter minus last pre-2024 quarter", "watch" if so_wp_delta is not None and so_wp_delta < 0 else "soft")}
           {stat_card("Coverage", compact(len(stack_overflow_tags)), "tag-quarter rows in SQLite", "good" if stack_overflow_tags else "watch")}
+          {stat_card("Full-history tags", f"{len(so_full_history_labels)}/{len(STACK_OVERFLOW_TAGS)}", so_expected_label, "soft")}
         </div>
+        <p class="small-note">{html.escape(so_coverage_detail)}</p>
       </div>
     </div>
     <div class="grid-2">

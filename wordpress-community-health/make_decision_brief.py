@@ -52,6 +52,10 @@ def value(conn, sql, params=(), default=None):
     return row[0] if row else default
 
 
+def table_exists(conn, name):
+    return bool(value(conn, "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (name,), 0))
+
+
 def market_value(conn, metric, technology="WordPress", date=None):
     if date:
         return value(
@@ -192,6 +196,27 @@ def ladder_row(tone, label, value, text):
       </div>""".strip()
 
 
+def evidence_row(row):
+    return f"""
+      <div class="evidence-row {esc(row.get('tone') or 'soft')}">
+        <div>
+          <strong>{esc(row.get('question'))}</strong>
+          <p>{esc(row.get('answer'))}</p>
+        </div>
+        <div>
+          <span class="evidence-type">{esc(row.get('evidence_type'))}</span>
+          <p>{esc(row.get('primary_sources'))}</p>
+        </div>
+        <div>
+          <b>{esc(row.get('current_read'))}</b>
+          <p>{esc(row.get('next_source'))}</p>
+        </div>
+        <div>
+          <a href="{esc(row.get('report_link') or 'index.html')}">{esc(row.get('report_label') or 'Open view')}</a>
+        </div>
+      </div>""".strip()
+
+
 def change_pct_label(row):
     if not row:
         return "n/a"
@@ -234,6 +259,11 @@ def main():
         major_support_threads = num(value(conn, "SELECT SUM(CAST(support_threads AS REAL)) FROM major_plugin_install_snapshot", default=0))
         major_support_resolved = num(value(conn, "SELECT SUM(CAST(support_threads_resolved AS REAL)) FROM major_plugin_install_snapshot", default=0))
         major_support_resolved_pct = major_support_resolved / major_support_threads * 100 if major_support_threads else 0
+        evidence_rows = (
+            rows(conn, "SELECT * FROM decision_question_evidence ORDER BY CAST(sort_order AS INTEGER)")
+            if table_exists(conn, "decision_question_evidence")
+            else []
+        )
 
         core_created_recent = average(conn, "core_quarterly", "created", "2024-01-01")
         core_closed_recent = average(conn, "core_quarterly", "closed", "2024-01-01")
@@ -355,6 +385,7 @@ def main():
             ),
         ]
     )
+    evidence_map = "\n".join(evidence_row(row) for row in evidence_rows)
 
     html_text = f"""<!doctype html>
 <html lang="en">
@@ -407,6 +438,18 @@ def main():
     .matrix-card strong {{ display:block; color:var(--ink); font-size:21px; line-height:1.16; margin-bottom:8px; }}
     .matrix-card p {{ margin-bottom:11px; }}
     .matrix-card span {{ display:block; color:#475569; font-size:13px; font-weight:800; }}
+    .evidence-map {{ display:grid; gap:10px; margin:12px 0 22px; }}
+    .evidence-row {{ display:grid; grid-template-columns:minmax(160px,1fr) minmax(145px,.8fr) minmax(220px,1.35fr) minmax(100px,.55fr); gap:12px; align-items:start; background:var(--panel); border:1px solid var(--line); border-left:6px solid var(--blue); border-radius:8px; padding:13px; }}
+    .evidence-row.good {{ border-left-color:var(--green); }}
+    .evidence-row.watch {{ border-left-color:var(--amber); }}
+    .evidence-row.slower {{ border-left-color:var(--red); }}
+    .evidence-row.soft {{ border-left-color:var(--blue); }}
+    .evidence-row strong, .evidence-row b {{ display:block; color:var(--ink); line-height:1.2; }}
+    .evidence-row p {{ margin:4px 0 0; color:var(--muted); font-size:13px; line-height:1.35; }}
+    .evidence-type {{ display:inline-flex; width:max-content; max-width:100%; border-radius:999px; padding:4px 9px; font-size:12px; font-weight:800; background:#eef2ff; color:#3730a3; }}
+    .evidence-row.good .evidence-type {{ background:#dcfce7; color:#166534; }}
+    .evidence-row.watch .evidence-type {{ background:#fef3c7; color:#92400e; }}
+    .evidence-row.slower .evidence-type {{ background:#fee2e2; color:#991b1b; }}
     .evidence-ladder {{ background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px; margin:20px 0; }}
     .evidence-ladder h2 {{ margin-top:0; }}
     .ladder-grid {{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }}
@@ -431,7 +474,7 @@ def main():
     th, td {{ text-align:left; border-bottom:1px solid var(--line); padding:10px 8px; vertical-align:top; overflow-wrap:anywhere; }}
     th {{ color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.06em; }}
     .footer {{ margin-top:24px; color:var(--muted); font-size:13px; }}
-    @media (max-width:860px) {{ main {{ padding:24px 14px 36px; }} .answer, .cards, .two, .lanes, .matrix-grid, .ladder-grid {{ grid-template-columns:1fr; }} }}
+    @media (max-width:860px) {{ main {{ padding:24px 14px 36px; }} .answer, .cards, .two, .lanes, .matrix-grid, .ladder-grid, .evidence-row {{ grid-template-columns:1fr; }} }}
   </style>
 </head>
 <body>
@@ -518,6 +561,14 @@ def main():
     <h2>Decision Matrix</h2>
     <div class="matrix-grid">
 {matrix}
+    </div>
+  </section>
+
+  <section>
+    <h2>Evidence Map</h2>
+    <p>This separates direct measurements from mixed and proxy-backed answers, so the decision brief is easier to scan without opening every chart.</p>
+    <div class="evidence-map">
+{evidence_map}
     </div>
   </section>
 

@@ -6243,6 +6243,28 @@ def ladder_row(tone, label, value, text):
     """.strip()
 
 
+def decision_evidence_row(row):
+    return f"""
+      <div class="evidence-row {html.escape(str(row.get('tone') or 'soft'))}">
+        <div>
+          <strong>{html.escape(str(row.get('question') or ''))}</strong>
+          <p>{html.escape(str(row.get('answer') or ''))}</p>
+        </div>
+        <div>
+          <span class="evidence-type">{html.escape(str(row.get('evidence_type') or ''))}</span>
+          <p>{html.escape(str(row.get('primary_sources') or ''))}</p>
+        </div>
+        <div>
+          <b>{html.escape(str(row.get('current_read') or ''))}</b>
+          <p>{html.escape(str(row.get('next_source') or ''))}</p>
+        </div>
+        <div>
+          <a href="{html.escape(str(row.get('report_link') or 'index.html'))}">{html.escape(str(row.get('report_label') or 'Open view'))}</a>
+        </div>
+      </div>
+    """.strip()
+
+
 def average(rows, col, start=None, end=None):
     vals = []
     for row in rows:
@@ -6743,6 +6765,211 @@ def source_status_rows(fetched):
     return rows
 
 
+def derive_decision_question_evidence(data, fetched):
+    def summary(signal_name):
+        return next(
+            (row for row in fetched.get("new_site_choice_summary", []) if row.get("signal") == signal_name),
+            {},
+        )
+
+    def attention(signal_name):
+        return next(
+            (row for row in fetched.get("attention_demand_summary", []) if row.get("signal") == signal_name),
+            {},
+        )
+
+    def backlog_share_for(source, buckets):
+        rows = fetched.get("open_backlog_age_summary", [])
+        total = max([num(row.get("open_total")) for row in rows if row.get("source") == source] or [0])
+        if not total:
+            return 0
+        count = sum(
+            num(row.get("open_count"))
+            for row in rows
+            if row.get("source") == source and row.get("age_bucket") in buckets
+        )
+        return count / total * 100
+
+    def concentration(source):
+        row = next(
+            (
+                row
+                for row in fetched.get("contributor_concentration_summary", [])
+                if row.get("source") == source and row.get("window") == "since_2024"
+            ),
+            {},
+        )
+        return float(row.get("top50_item_share_pct") or 0)
+
+    market_rows = fetched.get("market_share", [])
+    wp_usage_latest = market_latest(market_rows, "all_sites_usage", "WordPress")
+    wp_cms_latest = market_latest(market_rows, "cms_market_share", "WordPress")
+    wp_usage_2025 = market_latest(
+        [row for row in market_rows if row.get("date") <= "2025-01-01"],
+        "all_sites_usage",
+        "WordPress",
+    )
+    wp_cms_2025 = market_latest(
+        [row for row in market_rows if row.get("date") <= "2025-01-01"],
+        "cms_market_share",
+        "WordPress",
+    )
+    usage_delta = (
+        float(wp_usage_latest["value"]) - float(wp_usage_2025["value"])
+        if wp_usage_latest and wp_usage_2025
+        else 0
+    )
+    cms_delta = (
+        float(wp_cms_latest["value"]) - float(wp_cms_2025["value"])
+        if wp_cms_latest and wp_cms_2025
+        else 0
+    )
+
+    core_q = data.get("core_quarterly", [])
+    gut_q = data.get("gutenberg_quarterly", [])
+    core_created_recent = average(core_q, "created", "2024-01-01")
+    core_closed_recent = average(core_q, "closed", "2024-01-01")
+    gut_created_recent = average(gut_q, "created", "2024-01-01")
+    gut_closed_recent = average(gut_q, "closed", "2024-01-01")
+    core_closure_ratio = core_closed_recent / core_created_recent * 100 if core_created_recent else 0
+    gut_closure_ratio = gut_closed_recent / gut_created_recent * 100 if gut_created_recent else 0
+    core_first_prev = average(core_q, "first_time_reporters", "2021-01-01", "2024-01-01")
+    core_first_recent = average(core_q, "first_time_reporters", "2024-01-01")
+    gut_first_prev = average(gut_q, "first_time_creators", "2021-01-01", "2024-01-01")
+    gut_first_recent = average(gut_q, "first_time_creators", "2024-01-01")
+    core_first_retention = core_first_recent / core_first_prev * 100 if core_first_prev else 0
+    gut_first_retention = gut_first_recent / gut_first_prev * 100 if gut_first_prev else 0
+
+    builtwith_90 = summary("builtwith_90_day_pipeline")
+    archive_latest = summary("http_archive_latest_tracked_share")
+    archive_change = summary("http_archive_tracked_share_change")
+    wiki_attention = attention("wikimedia_wordpress_pageviews")
+    stack_attention = attention("stack_overflow_wordpress_questions")
+    hn_attention = attention("hn_wordpress_woocommerce_hiring_rate")
+    old_buckets = {"2-5 years", "5+ years"}
+    core_old_share = backlog_share_for("Core", old_buckets)
+    gut_old_share = backlog_share_for("Gutenberg", old_buckets)
+    core_top50 = concentration("Core Trac reporters")
+    gut_top50 = concentration("Gutenberg issue creators")
+    pr_top50 = concentration("wordpress-develop PR authors")
+
+    generated_at = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
+
+    def row(sort_order, question, answer, evidence_type, tone, primary_sources, current_read, next_source, report_label, report_link):
+        return {
+            "sort_order": sort_order,
+            "question": question,
+            "answer": answer,
+            "evidence_type": evidence_type,
+            "tone": tone,
+            "primary_sources": primary_sources,
+            "current_read": current_read,
+            "next_source": next_source,
+            "report_label": report_label,
+            "report_link": report_link,
+            "generated_at": generated_at,
+        }
+
+    return [
+        row(
+            1,
+            "Still widely chosen?",
+            "Yes.",
+            "Direct",
+            "good",
+            "W3Techs installed share, HTTP Archive, traffic-tier snapshots",
+            f"{pct(wp_usage_latest['value']) if wp_usage_latest else 'n/a'} of all sites; {pct(wp_cms_latest['value']) if wp_cms_latest else 'n/a'} of CMS sites.",
+            "No extra source needed for installed-share direction.",
+            "Market position",
+            "market_position.html",
+        ),
+        row(
+            2,
+            "Adoption growing, flat, or shrinking?",
+            "Softer recently.",
+            "Mixed",
+            "watch",
+            "W3Techs yearly trend plus HTTP Archive recurring crawl share",
+            f"{usage_delta:+.1f} all-site points and {cms_delta:+.1f} CMS-share points since Jan 2025; HTTP tracked share {archive_change.get('wordpress_value', 'n/a')} pts since 2020.",
+            "A true first-seen site cohort would make new-site momentum clearer.",
+            "New-site choice",
+            "new_site_choice.html",
+        ),
+        row(
+            3,
+            "Are more or fewer people participating?",
+            "Fewer new tracker reporters.",
+            "Direct",
+            "slower",
+            "Core Trac, Gutenberg GitHub issues, wordpress-develop PRs",
+            f"Core first-time reporter retention {pct(core_first_retention)}; Gutenberg {pct(gut_first_retention)} versus 2021-2023.",
+            "Outside-ticket channels are shown separately in ecosystem activity.",
+            "Contributor depth",
+            "contributor_depth.html",
+        ),
+        row(
+            4,
+            "Is the project keeping up?",
+            "Mostly.",
+            "Direct",
+            "soft",
+            "Quarterly Core and Gutenberg new/closed flow",
+            f"Closure/new ratios since 2024: Core {pct(core_closure_ratio)}, Gutenberg {pct(gut_closure_ratio)}.",
+            "Keep watching closure waves against new issue/ticket volume.",
+            "Project load",
+            "project_load.html",
+        ),
+        row(
+            5,
+            "Is the backlog fresh or aging?",
+            "Aged.",
+            "Direct",
+            "watch",
+            "Current open Core and Gutenberg backlog age buckets",
+            f"Open 2+ year share: Core {pct(core_old_share)}, Gutenberg {pct(gut_old_share)}.",
+            "Current support history still needs a longer forum export.",
+            "Project load",
+            "project_load.html",
+        ),
+        row(
+            6,
+            "Is contribution spread out?",
+            "Broad entry, concentrated work.",
+            "Direct",
+            "soft",
+            "Top 10/25/50 contributor shares across tickets, issues, and PRs",
+            f"Since 2024 top-50 work share: Core {pct(core_top50)}, Gutenberg {pct(gut_top50)}, PRs {pct(pr_top50)}.",
+            "Pair with contributor-depth cohorts before reading concentration alone.",
+            "Contributor depth",
+            "contributor_depth.html",
+        ),
+        row(
+            7,
+            "Are site builders taking more new-site market?",
+            "Some share, yes.",
+            "Proxy",
+            "watch",
+            "BuiltWith current pipeline and HTTP Archive tracked share",
+            f"BuiltWith 90-day proxy: {pct(builtwith_90.get('wordpress_share_pct'))}; HTTP Archive tracked share: {pct(archive_latest.get('wordpress_share_pct'))}.",
+            "Needs a first-seen site cohort or paid BuiltWith historical export.",
+            "New-site choice",
+            "new_site_choice.html",
+        ),
+        row(
+            8,
+            "What do demand signals say?",
+            "Visible, but slower.",
+            "Proxy",
+            "watch",
+            "Wikimedia, Stack Overflow, HN hiring, WordPress Jobs board",
+            f"Wikimedia {float(wiki_attention.get('change_pct') or 0):+.1f}%, Stack Overflow {float(stack_attention.get('change_pct') or 0):+.1f}%, HN hiring {float(hn_attention.get('change_pct') or 0):+.1f}%.",
+            "Needs search-provider and broad hiring-platform exports.",
+            "Search interest",
+            "search_interest.html",
+        ),
+    ]
+
+
 def build_report(data, fetched):
     core_q = data["core_quarterly"]
     gut_q = data["gutenberg_quarterly"]
@@ -6825,6 +7052,10 @@ def build_report(data, fetched):
     maintainer_participation = fetched.get("maintainer_participation_quarterly", [])
     category_open_backlog = fetched.get("category_open_backlog_summary", [])
     open_backlog_age = fetched.get("open_backlog_age_summary", [])
+    decision_question_evidence = sorted(
+        fetched.get("decision_question_evidence", []),
+        key=lambda row: num(row.get("sort_order")),
+    )
 
     core_latest = current_latest(core_q)
     gut_latest = current_latest(gut_q)
@@ -7929,6 +8160,10 @@ def build_report(data, fetched):
         for name, status, note in source_rows
         if status != "covered"
     ][:5]
+    decision_evidence_html = "\n".join(
+        decision_evidence_row(row)
+        for row in decision_question_evidence
+    )
 
     html_doc = f"""<!doctype html>
 <html lang="en">
@@ -8083,6 +8318,19 @@ p {{ margin:0 0 12px; }}
 .decision-matrix-card strong {{ display:block; font-size:21px; line-height:1.16; margin-bottom:8px; }}
 .decision-matrix-card p {{ color:var(--muted); margin:0 0 10px; }}
 .decision-matrix-card b {{ display:block; color:#475569; font-size:13px; line-height:1.35; }}
+.evidence-map {{ display:grid; gap:10px; margin:14px 0 24px; }}
+.evidence-row {{ display:grid; grid-template-columns:minmax(170px,1.05fr) minmax(150px,.85fr) minmax(230px,1.35fr) minmax(110px,.55fr); gap:13px; align-items:start; border:1px solid var(--line); border-left:6px solid var(--blue); border-radius:8px; padding:13px 14px; background:#fff; }}
+.evidence-row.good {{ border-left-color:var(--green); }}
+.evidence-row.watch {{ border-left-color:var(--orange); }}
+.evidence-row.slower {{ border-left-color:var(--red); }}
+.evidence-row.soft {{ border-left-color:var(--blue); }}
+.evidence-row strong {{ display:block; line-height:1.2; }}
+.evidence-row b {{ display:block; line-height:1.25; margin-bottom:4px; }}
+.evidence-row p {{ margin:3px 0 0; color:var(--muted); font-size:13px; line-height:1.35; }}
+.evidence-type {{ display:inline-flex; width:max-content; max-width:100%; border-radius:999px; padding:4px 9px; font-size:12px; font-weight:800; background:#eef2ff; color:#3730a3; }}
+.evidence-row.good .evidence-type {{ background:#dcfce7; color:#166534; }}
+.evidence-row.watch .evidence-type {{ background:#fef3c7; color:#92400e; }}
+.evidence-row.slower .evidence-type {{ background:#fee2e2; color:#991b1b; }}
 .goal-map {{ display:grid; gap:10px; margin-top:16px; }}
 .goal-row {{ display:grid; grid-template-columns:minmax(160px,1.1fr) minmax(135px,.7fr) minmax(260px,2fr); gap:14px; align-items:start; border:1px solid var(--line); border-left:6px solid var(--blue); border-radius:8px; padding:13px 14px; background:#fff; }}
 .goal-row strong {{ display:block; line-height:1.2; }}
@@ -8104,6 +8352,7 @@ p {{ margin:0 0 12px; }}
 @media (max-width:900px) {{
   h1 {{ font-size:34px; }}
   .lane-grid, .answer-grid, .grid-2, .stats, .card .stats, .decision-stats, .status-grid, .readout-grid, .readout-mini-grid, .evidence-strength-grid, .score-grid, .ladder-grid, .decision-matrix {{ grid-template-columns:1fr; }}
+  .evidence-row {{ grid-template-columns:1fr; }}
   .goal-row {{ grid-template-columns:1fr; }}
   .page {{ padding:24px 16px 48px; }}
 }}
@@ -8122,6 +8371,7 @@ p {{ margin:0 0 12px; }}
     <a href="#decision-questions">Decision Questions</a>
     <a href="#scorecard">Scorecard</a>
     <a href="#decision-matrix">Decision Matrix</a>
+    <a href="#evidence-map">Evidence Map</a>
     <a href="#goal-map">Coverage Map</a>
     <a href="#coverage">Source Coverage</a>
     <a href="data_inventory.html">Data Inventory</a>
@@ -8261,6 +8511,14 @@ p {{ margin:0 0 12px; }}
     {signal_card("Participation", "Fewer new reporters", f"Core first-time reporters averaged {compact(core_first_prev)} per quarter in 2021-2023 and {compact(core_first_recent)} since 2024. Gutenberg moved from {compact(gut_first_prev)} to {compact(gut_first_recent)}.", "slower")}
     {signal_card("Project load", "Closer to balanced", f"Since 2024, Core closures slightly exceed new tickets on average. Gutenberg is close to flat, with the latest sampled quarter closing {compact(num(gut_latest.get('closed')))} against {compact(num(gut_latest.get('created')))} new issues.", "soft")}
     {signal_card("Code review", "Review traffic remains visible", f"wordpress-develop PR creation averaged {compact(pr_created_prev)} per quarter in 2021-2023 and {compact(pr_created_recent)} since 2024. Line review comments averaged {compact(review_comments_recent)} per quarter since 2024.", "good")}
+  </section>
+
+  <section id="evidence-map" class="section">
+    <h2>Evidence Map</h2>
+    <p class="callout">This map separates direct measurements from mixed or proxy-backed answers. Use it to decide which conclusions are already well supported and which ones need one more source before an important new-site or demand decision.</p>
+    <div class="evidence-map" aria-label="Decision question evidence map">
+{decision_evidence_html}
+    </div>
   </section>
 
   <section id="decision-questions" class="section">
@@ -9485,6 +9743,7 @@ def main():
         fetched.get("hn_hiring_demand_summary", []),
         fetched.get("wordpress_jobs_board_snapshots", []),
     )
+    fetched["decision_question_evidence"] = derive_decision_question_evidence(data, fetched)
 
     build_database(data, fetched)
     build_report(data, fetched)

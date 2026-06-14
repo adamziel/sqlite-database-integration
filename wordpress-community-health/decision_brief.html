@@ -49,6 +49,18 @@
     .matrix-card strong { display:block; color:var(--ink); font-size:21px; line-height:1.16; margin-bottom:8px; }
     .matrix-card p { margin-bottom:11px; }
     .matrix-card span { display:block; color:#475569; font-size:13px; font-weight:800; }
+    .evidence-map { display:grid; gap:10px; margin:12px 0 22px; }
+    .evidence-row { display:grid; grid-template-columns:minmax(160px,1fr) minmax(145px,.8fr) minmax(220px,1.35fr) minmax(100px,.55fr); gap:12px; align-items:start; background:var(--panel); border:1px solid var(--line); border-left:6px solid var(--blue); border-radius:8px; padding:13px; }
+    .evidence-row.good { border-left-color:var(--green); }
+    .evidence-row.watch { border-left-color:var(--amber); }
+    .evidence-row.slower { border-left-color:var(--red); }
+    .evidence-row.soft { border-left-color:var(--blue); }
+    .evidence-row strong, .evidence-row b { display:block; color:var(--ink); line-height:1.2; }
+    .evidence-row p { margin:4px 0 0; color:var(--muted); font-size:13px; line-height:1.35; }
+    .evidence-type { display:inline-flex; width:max-content; max-width:100%; border-radius:999px; padding:4px 9px; font-size:12px; font-weight:800; background:#eef2ff; color:#3730a3; }
+    .evidence-row.good .evidence-type { background:#dcfce7; color:#166534; }
+    .evidence-row.watch .evidence-type { background:#fef3c7; color:#92400e; }
+    .evidence-row.slower .evidence-type { background:#fee2e2; color:#991b1b; }
     .evidence-ladder { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px; margin:20px 0; }
     .evidence-ladder h2 { margin-top:0; }
     .ladder-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
@@ -73,7 +85,7 @@
     th, td { text-align:left; border-bottom:1px solid var(--line); padding:10px 8px; vertical-align:top; overflow-wrap:anywhere; }
     th { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.06em; }
     .footer { margin-top:24px; color:var(--muted); font-size:13px; }
-    @media (max-width:860px) { main { padding:24px 14px 36px; } .answer, .cards, .two, .lanes, .matrix-grid, .ladder-grid { grid-template-columns:1fr; } }
+    @media (max-width:860px) { main { padding:24px 14px 36px; } .answer, .cards, .two, .lanes, .matrix-grid, .ladder-grid, .evidence-row { grid-template-columns:1fr; } }
   </style>
 </head>
 <body>
@@ -256,6 +268,149 @@
         <p>The report has useful public proxies, but the ideal sources are first-seen site cohorts, search-provider exports, and broad hiring-platform exports.</p>
         <span>Current BuiltWith 90-day proxy: 67.4% WordPress share</span>
       </article>
+    </div>
+  </section>
+
+  <section>
+    <h2>Evidence Map</h2>
+    <p>This separates direct measurements from mixed and proxy-backed answers, so the decision brief is easier to scan without opening every chart.</p>
+    <div class="evidence-map">
+<div class="evidence-row good">
+        <div>
+          <strong>Still widely chosen?</strong>
+          <p>Yes.</p>
+        </div>
+        <div>
+          <span class="evidence-type">Direct</span>
+          <p>W3Techs installed share, HTTP Archive, traffic-tier snapshots</p>
+        </div>
+        <div>
+          <b>41.5% of all sites; 59.3% of CMS sites.</b>
+          <p>No extra source needed for installed-share direction.</p>
+        </div>
+        <div>
+          <a href="market_position.html">Market position</a>
+        </div>
+      </div>
+<div class="evidence-row watch">
+        <div>
+          <strong>Adoption growing, flat, or shrinking?</strong>
+          <p>Softer recently.</p>
+        </div>
+        <div>
+          <span class="evidence-type">Mixed</span>
+          <p>W3Techs yearly trend plus HTTP Archive recurring crawl share</p>
+        </div>
+        <div>
+          <b>-2.1 all-site points and -2.7 CMS-share points since Jan 2025; HTTP tracked share -10.78 pts since 2020.</b>
+          <p>A true first-seen site cohort would make new-site momentum clearer.</p>
+        </div>
+        <div>
+          <a href="new_site_choice.html">New-site choice</a>
+        </div>
+      </div>
+<div class="evidence-row slower">
+        <div>
+          <strong>Are more or fewer people participating?</strong>
+          <p>Fewer new tracker reporters.</p>
+        </div>
+        <div>
+          <span class="evidence-type">Direct</span>
+          <p>Core Trac, Gutenberg GitHub issues, wordpress-develop PRs</p>
+        </div>
+        <div>
+          <b>Core first-time reporter retention 66.2%; Gutenberg 69.5% versus 2021-2023.</b>
+          <p>Outside-ticket channels are shown separately in ecosystem activity.</p>
+        </div>
+        <div>
+          <a href="contributor_depth.html">Contributor depth</a>
+        </div>
+      </div>
+<div class="evidence-row soft">
+        <div>
+          <strong>Is the project keeping up?</strong>
+          <p>Mostly.</p>
+        </div>
+        <div>
+          <span class="evidence-type">Direct</span>
+          <p>Quarterly Core and Gutenberg new/closed flow</p>
+        </div>
+        <div>
+          <b>Closure/new ratios since 2024: Core 103.5%, Gutenberg 98.3%.</b>
+          <p>Keep watching closure waves against new issue/ticket volume.</p>
+        </div>
+        <div>
+          <a href="project_load.html">Project load</a>
+        </div>
+      </div>
+<div class="evidence-row watch">
+        <div>
+          <strong>Is the backlog fresh or aging?</strong>
+          <p>Aged.</p>
+        </div>
+        <div>
+          <span class="evidence-type">Direct</span>
+          <p>Current open Core and Gutenberg backlog age buckets</p>
+        </div>
+        <div>
+          <b>Open 2+ year share: Core 59.7%, Gutenberg 39.9%.</b>
+          <p>Current support history still needs a longer forum export.</p>
+        </div>
+        <div>
+          <a href="project_load.html">Project load</a>
+        </div>
+      </div>
+<div class="evidence-row soft">
+        <div>
+          <strong>Is contribution spread out?</strong>
+          <p>Broad entry, concentrated work.</p>
+        </div>
+        <div>
+          <span class="evidence-type">Direct</span>
+          <p>Top 10/25/50 contributor shares across tickets, issues, and PRs</p>
+        </div>
+        <div>
+          <b>Since 2024 top-50 work share: Core 35.9%, Gutenberg 50.8%, PRs 65.0%.</b>
+          <p>Pair with contributor-depth cohorts before reading concentration alone.</p>
+        </div>
+        <div>
+          <a href="contributor_depth.html">Contributor depth</a>
+        </div>
+      </div>
+<div class="evidence-row watch">
+        <div>
+          <strong>Are site builders taking more new-site market?</strong>
+          <p>Some share, yes.</p>
+        </div>
+        <div>
+          <span class="evidence-type">Proxy</span>
+          <p>BuiltWith current pipeline and HTTP Archive tracked share</p>
+        </div>
+        <div>
+          <b>BuiltWith 90-day proxy: 67.4%; HTTP Archive tracked share: 78.9%.</b>
+          <p>Needs a first-seen site cohort or paid BuiltWith historical export.</p>
+        </div>
+        <div>
+          <a href="new_site_choice.html">New-site choice</a>
+        </div>
+      </div>
+<div class="evidence-row watch">
+        <div>
+          <strong>What do demand signals say?</strong>
+          <p>Visible, but slower.</p>
+        </div>
+        <div>
+          <span class="evidence-type">Proxy</span>
+          <p>Wikimedia, Stack Overflow, HN hiring, WordPress Jobs board</p>
+        </div>
+        <div>
+          <b>Wikimedia -17.1%, Stack Overflow -96.3%, HN hiring -77.4%.</b>
+          <p>Needs search-provider and broad hiring-platform exports.</p>
+        </div>
+        <div>
+          <a href="search_interest.html">Search interest</a>
+        </div>
+      </div>
     </div>
   </section>
 

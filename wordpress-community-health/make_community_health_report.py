@@ -5943,6 +5943,7 @@ p {{ margin:0 0 12px; }}
     <a href="#goal-map">Coverage Map</a>
     <a href="#coverage">Source Coverage</a>
     <a href="data_inventory.html">Data Inventory</a>
+    <a href="#companion-docs">Report Docs</a>
     <a href="#readout">Decision Readout</a>
   </nav>
 
@@ -6891,6 +6892,16 @@ p {{ margin:0 0 12px; }}
           <code>fetch_gutenberg_timeline_metrics.py</code>
           <code>fetch_support_forum_snapshot.py</code>
         </div>
+      </div>
+    </div>
+    <div id="companion-docs" class="card">
+      <h3>Companion documents</h3>
+      <p>Use these alongside the main report depending on whether the reader needs a short decision brief, current progress, source audit, or refresh instructions.</p>
+      <div class="link-list">
+        <a href="decision_brief.html">Decision brief</a>
+        <a href="progress_summary.html">Progress summary</a>
+        <a href="data_inventory.html">Data inventory</a>
+        <a href="refresh_runbook.html">Refresh runbook</a>
       </div>
     </div>
     <div class="card">

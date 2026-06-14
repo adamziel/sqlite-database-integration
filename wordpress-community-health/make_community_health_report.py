@@ -72,6 +72,8 @@ SKIP_NETWORK_DB_FALLBACK_TABLES = [
     "directory_snapshots",
     "directory_activity_snapshots",
     "plugin_directory_activity_sample",
+    "plugin_maintenance_summary",
+    "plugin_stale_popular_sample",
     "major_plugin_install_snapshot",
     "major_plugin_install_history",
     "major_plugin_download_daily",
@@ -2844,6 +2846,76 @@ def fetch_directory_activity(skip_network=False):
     return [snapshot], plugin_rows, theme_rows
 
 
+def derive_plugin_maintenance_tables(plugin_rows):
+    popular_plugins = [row for row in plugin_rows if row.get("browse") == "popular"]
+    if not popular_plugins:
+        return [], []
+    snapshot_date = max([row.get("snapshot_date", "") for row in popular_plugins if row.get("snapshot_date")] or [live_snapshot_date()])
+    snapshot_at = parse_iso(snapshot_date) or END
+    age_rows = []
+    unknown_last_updated = 0
+    for row in popular_plugins:
+        updated_at = parse_iso(row.get("last_updated_date"))
+        if not updated_at:
+            unknown_last_updated += 1
+            continue
+        days_since_update = max(0, int((snapshot_at - updated_at).total_seconds() // 86400))
+        enriched = dict(row)
+        enriched["days_since_update"] = days_since_update
+        age_rows.append(enriched)
+
+    def count_stale(days):
+        return [row for row in age_rows if num(row.get("days_since_update")) >= days]
+
+    stale_1y = count_stale(365)
+    stale_2y = count_stale(730)
+    stale_3y = count_stale(1095)
+    stale_5y = count_stale(1825)
+    total_installs = sum(num(row.get("active_installs")) for row in popular_plugins)
+    stale_2y_installs = sum(num(row.get("active_installs")) for row in stale_2y)
+    ages = [num(row.get("days_since_update")) for row in age_rows]
+    summary = [
+        {
+            "snapshot_date": snapshot_date,
+            "sample": "popular_plugins",
+            "sample_size": len(popular_plugins),
+            "known_last_updated": len(age_rows),
+            "unknown_last_updated": unknown_last_updated,
+            "stale_1y_count": len(stale_1y),
+            "stale_2y_count": len(stale_2y),
+            "stale_3y_count": len(stale_3y),
+            "stale_5y_count": len(stale_5y),
+            "active_installs_total": total_installs,
+            "stale_2y_active_installs": stale_2y_installs,
+            "stale_2y_sample_share_pct": round(len(stale_2y) / len(popular_plugins) * 100, 2) if popular_plugins else 0,
+            "stale_2y_active_install_share_pct": round(stale_2y_installs / total_installs * 100, 2) if total_installs else 0,
+            "median_days_since_update": round(median(ages), 2) if ages else "",
+            "p90_days_since_update": round(percentile(ages, 0.90), 2) if ages else "",
+            "source_note": "Derived from the WordPress.org popular plugin browse sample. Stale means last updated at least two years before the snapshot date.",
+        }
+    ]
+    detail = []
+    for row in sorted(stale_2y, key=lambda item: num(item.get("active_installs")), reverse=True):
+        detail.append(
+            {
+                "snapshot_date": snapshot_date,
+                "slug": row.get("slug", ""),
+                "name": row.get("name", ""),
+                "rank": row.get("rank", ""),
+                "active_installs": row.get("active_installs", ""),
+                "last_updated_date": row.get("last_updated_date", ""),
+                "days_since_update": row.get("days_since_update", ""),
+                "requires": row.get("requires", ""),
+                "requires_php": row.get("requires_php", ""),
+                "tested": row.get("tested", ""),
+                "plugin_url": row.get("plugin_url", ""),
+                "source_url": row.get("source_url", ""),
+                "source_note": "Popular plugin browse sample rows whose last update is at least two years before the snapshot date.",
+            }
+        )
+    return summary, detail
+
+
 def fetch_wordcamps(skip_network=False):
     if skip_network:
         return []
@@ -4792,6 +4864,7 @@ def source_status_rows(fetched):
             "covered" if fetched.get("major_plugin_install_snapshot") and fetched.get("major_plugin_install_history") else "partial" if fetched.get("major_plugin_install_snapshot") else "missing",
             "Current fixed-slug plugin API snapshot plus annual Wayback snapshots of archived WordPress.org plugin active-install buckets",
         ),
+        ("Stale popular plugin sample", "covered" if fetched.get("plugin_maintenance_summary") else "missing", "Derived WordPress.org popular-plugin sample showing 2+ year stale count, install reach, and detail rows"),
         ("Major plugin support snapshot", "covered" if fetched.get("major_plugin_install_snapshot") else "missing", "Current WordPress.org plugin API support-thread and resolved-thread counts for the fixed major-plugin list"),
         ("Major plugin download trend", "covered" if fetched.get("major_plugin_download_quarterly") else "missing", "WordPress.org daily plugin download stats for the fixed major-plugin list, aggregated quarterly"),
         ("WordCamp Central", "covered" if fetched.get("wordcamps") else "missing", "Historical WordCamp event records and anticipated-attendance fields where available"),
@@ -4871,6 +4944,8 @@ def build_report(data, fetched):
     directory = {row["metric"]: row for row in fetched.get("directory_snapshots", [])}
     directory_activity = fetched.get("directory_activity_snapshots", [])
     plugin_activity_rows = fetched.get("plugin_directory_activity_sample", [])
+    plugin_maintenance_summary = fetched.get("plugin_maintenance_summary", [])
+    plugin_stale_popular_sample = fetched.get("plugin_stale_popular_sample", [])
     major_plugin_rows = fetched.get("major_plugin_install_snapshot", [])
     major_plugin_install_history = fetched.get("major_plugin_install_history", [])
     major_plugin_download_daily = fetched.get("major_plugin_download_daily", [])
@@ -5632,12 +5707,19 @@ def build_report(data, fetched):
     plugin_activity_max = max(plugins_added_90, plugins_updated_90, 1)
     popular_plugin_sample = max(1, num(directory_activity_snapshot.get("popular_plugin_sample_size")))
     popular_plugin_stale = num(directory_activity_snapshot.get("popular_plugin_stale_2y"))
-    top_popular_plugins = sorted(
-        [row for row in plugin_activity_rows if row.get("browse") == "popular"],
+    plugin_maintenance = plugin_maintenance_summary[0] if plugin_maintenance_summary else {}
+    stale_plugin_sample_size = max(1, num(plugin_maintenance.get("sample_size")) or popular_plugin_sample)
+    stale_plugin_count = num(plugin_maintenance.get("stale_2y_count")) or popular_plugin_stale
+    stale_plugin_install_share = float(plugin_maintenance.get("stale_2y_active_install_share_pct") or 0)
+    stale_plugin_sample_share = float(plugin_maintenance.get("stale_2y_sample_share_pct") or 0)
+    stale_plugin_median_age = float(plugin_maintenance.get("median_days_since_update") or 0)
+    stale_plugin_p90_age = float(plugin_maintenance.get("p90_days_since_update") or 0)
+    top_stale_popular_plugins = sorted(
+        plugin_stale_popular_sample,
         key=lambda row: num(row.get("active_installs")),
         reverse=True,
     )[:8]
-    max_popular_plugin_installs = max([num(row.get("active_installs")) for row in top_popular_plugins] or [1])
+    max_stale_plugin_installs = max([num(row.get("active_installs")) for row in top_stale_popular_plugins] or [1])
     top_major_plugins = sorted(
         major_plugin_rows,
         key=lambda row: num(row.get("active_installs")),
@@ -6743,16 +6825,18 @@ p {{ margin:0 0 12px; }}
         {horizontal_count_metric("Plugins updated in sampled 90 days", plugins_updated_90, plugin_activity_max, COLORS["core"], "")}
       </div>
       <div class="card">
-        <h3>Popular plugin maintenance sample</h3>
-        <p>Top popular plugin pages from the WordPress.org API. Stale here means last updated more than two years before the snapshot date.</p>
+        <h3>Stale popular plugin sample</h3>
+        <p>Popular plugin pages from the WordPress.org API. Stale here means last updated more than two years before the snapshot date.</p>
         <div class="stats">
-          {stat_card("Popular sample", compact(popular_plugin_sample), "plugins fetched", "soft")}
-          {stat_card("Stale 2y", compact(popular_plugin_stale), "popular plugins", "watch")}
-          {stat_card("Install reach", compact(num(directory_activity_snapshot.get("popular_plugin_stale_2y_active_installs"))), "active installs on stale sample", "watch")}
-          {stat_card("Snapshot", directory_activity_snapshot.get("snapshot_date", "n/a"), "WordPress.org API", "soft")}
+          {stat_card("Popular sample", compact(stale_plugin_sample_size), "plugins fetched", "soft")}
+          {stat_card("Stale 2y", compact(stale_plugin_count), "popular plugins", "watch")}
+          {stat_card("Install share", pct(stale_plugin_install_share), "active installs on stale sample", "watch")}
+          {stat_card("Median age", f"{compact(stale_plugin_median_age)} days", "since last update", "soft")}
         </div>
-        {horizontal_count_metric("Stale share of popular sample", popular_plugin_stale, popular_plugin_sample, COLORS["orange"], "")}
-        {''.join(horizontal_count_metric(str(row.get("name", "")), num(row.get("active_installs")), max_popular_plugin_installs, COLORS["prs"], " installs") for row in top_popular_plugins[:5])}
+        {horizontal_metric("Stale share of popular sample", stale_plugin_sample_share, 100, COLORS["orange"])}
+        {horizontal_metric("Active-install share on stale sample", stale_plugin_install_share, 100, COLORS["red"])}
+        {horizontal_count_metric("P90 days since update", stale_plugin_p90_age, max(1825, stale_plugin_p90_age), COLORS["orange"], " days")}
+        {''.join(horizontal_count_metric(str(row.get("name", "")), num(row.get("active_installs")), max_stale_plugin_installs, COLORS["prs"], " installs") for row in top_stale_popular_plugins[:5])}
       </div>
     </div>
     <div class="grid-2">
@@ -7076,6 +7160,10 @@ def main():
     )
     if args.skip_network:
         apply_skip_network_db_fallback(fetched)
+    (
+        fetched["plugin_maintenance_summary"],
+        fetched["plugin_stale_popular_sample"],
+    ) = derive_plugin_maintenance_tables(fetched.get("plugin_directory_activity_sample", []))
     fetched["hn_hiring_demand_summary"] = derive_hn_hiring_demand_summary(
         fetched.get("hn_hiring_wordpress_quarterly", [])
     )

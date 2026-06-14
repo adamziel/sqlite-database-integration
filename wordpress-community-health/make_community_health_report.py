@@ -56,6 +56,8 @@ SOURCE_FILES = {
 
 SKIP_NETWORK_DB_FALLBACK_TABLES = [
     "market_share",
+    "wikimedia_pageviews_monthly",
+    "wikimedia_pageviews_quarterly",
     "hn_hiring_wordpress_quarterly",
     "enterprise_vip_case_studies",
     "builtwith_technology_snapshots",
@@ -115,9 +117,12 @@ STACK_EXCHANGE_DOCS_URL = "https://api.stackexchange.com/docs/questions"
 HN_SEARCH_API = "https://hn.algolia.com/api/v1/search"
 HN_ITEM_API = "https://hn.algolia.com/api/v1/items"
 HN_HIRING_SOURCE_URL = "https://news.ycombinator.com/submitted?id=whoishiring"
+WIKIMEDIA_PAGEVIEWS_API = "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article"
+WIKIMEDIA_PAGEVIEWS_DOCS_URL = "https://doc.wikimedia.org/generated-data-platform/aqs/analytics-api/reference/page-views.html"
 WPVIP_CASE_STUDY_API = "https://wpvip.com/wp-json/wp/v2/case-study"
 WPVIP_CASE_STUDY_ARCHIVE_URL = "https://wpvip.com/case-studies/"
 STACK_OVERFLOW_TAG_START = dt.datetime(2021, 1, 1, tzinfo=dt.timezone.utc)
+WIKIMEDIA_PAGEVIEW_START = dt.datetime(2015, 7, 1, tzinfo=dt.timezone.utc)
 STACK_OVERFLOW_TAGS = [
     {"tag": "wordpress", "label": "WordPress", "color": "#2563eb"},
     {"tag": "woocommerce", "label": "WooCommerce", "color": "#7c3aed"},
@@ -125,6 +130,14 @@ STACK_OVERFLOW_TAGS = [
     {"tag": "wix", "label": "Wix", "color": "#f59e0b"},
     {"tag": "squarespace", "label": "Squarespace", "color": "#64748b"},
     {"tag": "webflow", "label": "Webflow", "color": "#0891b2"},
+]
+WIKIMEDIA_PAGEVIEW_ARTICLES = [
+    {"article": "WordPress", "label": "WordPress", "color": "#2563eb"},
+    {"article": "WooCommerce", "label": "WooCommerce", "color": "#7c3aed"},
+    {"article": "Shopify", "label": "Shopify", "color": "#16a34a"},
+    {"article": "Wix.com", "label": "Wix", "color": "#f59e0b"},
+    {"article": "Squarespace", "label": "Squarespace", "color": "#64748b"},
+    {"article": "Webflow", "label": "Webflow", "color": "#0891b2"},
 ]
 MAJOR_PLUGIN_SLUGS = [
     "woocommerce",
@@ -678,6 +691,143 @@ def fetch_stackoverflow_tag_quarterly(skip_network=False):
     if rows:
         write_cached_stackoverflow_tag_quarterly(rows)
     return rows
+
+
+def wikimedia_pageviews_cache_path():
+    return CACHE / "wikimedia-pageviews-monthly.json"
+
+
+def read_cached_wikimedia_pageviews_monthly():
+    path = wikimedia_pageviews_cache_path()
+    if not path.exists():
+        return []
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return []
+    rows = payload.get("rows") if isinstance(payload, dict) else payload
+    return rows if isinstance(rows, list) else []
+
+
+def write_cached_wikimedia_pageviews_monthly(rows):
+    CACHE.mkdir(parents=True, exist_ok=True)
+    wikimedia_pageviews_cache_path().write_text(
+        json.dumps(
+            {
+                "collected_at": dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z"),
+                "source_url": WIKIMEDIA_PAGEVIEWS_DOCS_URL,
+                "rows": rows,
+            },
+            indent=2,
+            sort_keys=True,
+        ),
+        encoding="utf-8",
+    )
+
+
+def wikimedia_pageviews_url(article, start, end):
+    encoded_article = urllib.parse.quote(article.replace(" ", "_"), safe="")
+    start_value = start.strftime("%Y%m%d00")
+    end_value = end.strftime("%Y%m%d00")
+    return (
+        f"{WIKIMEDIA_PAGEVIEWS_API}/en.wikipedia/all-access/all-agents/"
+        f"{encoded_article}/monthly/{start_value}/{end_value}"
+    )
+
+
+def normalize_wikimedia_pageview_item(item, config, source_url, collected_at):
+    timestamp = str(item.get("timestamp") or "")
+    month = f"{timestamp[:4]}-{timestamp[4:6]}-01" if len(timestamp) >= 6 else ""
+    return {
+        "month": month,
+        "label": month[:7],
+        "article": config["article"],
+        "technology": config["label"],
+        "views": num(item.get("views")),
+        "project": str(item.get("project") or "en.wikipedia"),
+        "access": str(item.get("access") or "all-access"),
+        "agent": str(item.get("agent") or "all-agents"),
+        "source": "Wikimedia Pageviews API monthly en.wikipedia article views",
+        "source_url": WIKIMEDIA_PAGEVIEWS_DOCS_URL,
+        "api_url": source_url,
+        "collected_at": collected_at,
+    }
+
+
+def aggregate_wikimedia_pageviews_quarterly(monthly_rows):
+    grouped = defaultdict(list)
+    for row in monthly_rows:
+        q = quarter_start(row.get("month"))
+        if q:
+            grouped[(row.get("article"), q)].append(row)
+    rows = []
+    collected_at = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
+    label_by_article = {item["article"]: item["label"] for item in WIKIMEDIA_PAGEVIEW_ARTICLES}
+    for (article, quarter), items in sorted(grouped.items()):
+        rows.append(
+            {
+                "quarter": quarter,
+                "label": quarter_label(quarter),
+                "article": article,
+                "technology": label_by_article.get(article, article),
+                "views": sum(num(item.get("views")) for item in items),
+                "months_covered": len(items),
+                "source": "Wikimedia Pageviews API monthly en.wikipedia article views, aggregated quarterly",
+                "source_url": WIKIMEDIA_PAGEVIEWS_DOCS_URL,
+                "collected_at": collected_at,
+            }
+        )
+    return rows
+
+
+def fetch_wikimedia_pageviews(skip_network=False):
+    cached_rows = read_cached_wikimedia_pageviews_monthly()
+    by_key = {
+        (row.get("article"), row.get("month")): dict(row)
+        for row in cached_rows
+        if isinstance(row, dict) and row.get("article") and row.get("month")
+    }
+    expected_months = [month.strftime("%Y-%m-%d") for month in month_starts(WIKIMEDIA_PAGEVIEW_START, END)]
+    expected_keys = {
+        (config["article"], month)
+        for config in WIKIMEDIA_PAGEVIEW_ARTICLES
+        for month in expected_months
+    }
+    if skip_network or (expected_keys and expected_keys.issubset(set(by_key))):
+        monthly_rows = [
+            by_key[(config["article"], month)]
+            for config in WIKIMEDIA_PAGEVIEW_ARTICLES
+            for month in expected_months
+            if (config["article"], month) in by_key
+        ]
+        return monthly_rows, aggregate_wikimedia_pageviews_quarterly(monthly_rows)
+
+    collected_at = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
+    for config in WIKIMEDIA_PAGEVIEW_ARTICLES:
+        article = config["article"]
+        missing_months = [month for month in expected_months if (article, month) not in by_key]
+        if not missing_months:
+            continue
+        try:
+            source_url = wikimedia_pageviews_url(article, WIKIMEDIA_PAGEVIEW_START, END)
+            payload, _headers = fetch_json(source_url)
+        except Exception as exc:
+            eprint(f"Wikimedia pageviews fetch failed for {article}: {exc}")
+            continue
+        for item in payload.get("items", []) if isinstance(payload, dict) else []:
+            row = normalize_wikimedia_pageview_item(item, config, source_url, collected_at)
+            if row.get("month"):
+                by_key[(article, row["month"])] = row
+        time.sleep(0.08)
+    monthly_rows = [
+        by_key[(config["article"], month)]
+        for config in WIKIMEDIA_PAGEVIEW_ARTICLES
+        for month in expected_months
+        if (config["article"], month) in by_key
+    ]
+    if monthly_rows:
+        write_cached_wikimedia_pageviews_monthly(monthly_rows)
+    return monthly_rows, aggregate_wikimedia_pageviews_quarterly(monthly_rows)
 
 
 def month_starts(start, end):
@@ -2388,8 +2538,8 @@ def build_database(data, fetched):
             (
                 "developer_interest_proxy",
                 "partial",
-                "Stack Exchange API question totals by Stack Overflow tag",
-                "Quarterly Stack Overflow tag volume is included as a developer-attention proxy; it does not measure general search interest.",
+                "Stack Exchange API question totals by Stack Overflow tag plus Wikimedia Pageviews API",
+                "Quarterly Stack Overflow tag volume and Wikimedia pageviews are included as public attention proxies; they do not measure general search-query interest.",
             )
         )
     else:
@@ -2401,21 +2551,31 @@ def build_database(data, fetched):
                 "Needs quarterly tag-volume totals for WordPress and comparable builder/ecommerce tags.",
             )
         )
-    gaps.extend(
-        [
+    if fetched.get("wikimedia_pageviews_quarterly"):
+        gaps.append(
+            (
+                "search_interest",
+                "partial",
+                "Google Trends or another search-interest provider",
+                "Wikimedia Pageviews API quarterly article-view trends are included as a public-interest proxy; true search-query interest still needs Google Trends or another search provider.",
+            )
+        )
+    else:
+        gaps.append(
             (
                 "search_interest",
                 "missing",
                 "Google Trends or another search-interest provider",
                 "No stable unattended public search-interest source is wired in; the report uses Stack Overflow tag volume only as a developer-interest proxy.",
-            ),
-            (
-                "job_demand",
-                "partial",
-                "Hacker News monthly Who is hiring? threads plus hiring-platform exports",
-                "HN Who is hiring WordPress/WooCommerce mention counts are included as a narrow startup-hiring proxy; broader job-board demand still needs a labor-market source.",
-            ),
-        ]
+            )
+        )
+    gaps.append(
+        (
+            "job_demand",
+            "partial",
+            "Hacker News monthly Who is hiring? threads plus hiring-platform exports",
+            "HN Who is hiring WordPress/WooCommerce mention counts are included as a narrow startup-hiring proxy; broader job-board demand still needs a labor-market source.",
+        )
     )
     if not fetched.get("enterprise_vip_case_studies"):
         gaps.append(
@@ -3095,6 +3255,7 @@ def source_status_rows(fetched):
         ("BuiltWith ecommerce history", "covered" if fetched.get("builtwith_technology_history") else "missing", "Shopify and WooCommerce live-site counts by traffic tier"),
         ("BuiltWith traffic tiers", "covered" if fetched.get("builtwith_tier_share_snapshot") else "missing", "Current WordPress share by traffic tier across tracked CMS/builder technologies"),
         ("Stack Overflow tag volume", "covered" if fetched.get("stack_overflow_tag_quarterly") else "missing", "Quarterly public developer-attention proxy from Stack Exchange API tag totals"),
+        ("Wikimedia pageviews", "covered" if fetched.get("wikimedia_pageviews_quarterly") else "missing", "Quarterly en.wikipedia article pageviews as a public-interest proxy, not search-query volume"),
         ("HN hiring mentions", "partial" if fetched.get("hn_hiring_wordpress_quarterly") else "missing", "WordPress/WooCommerce mentions in monthly Hacker News Who is hiring threads; not a broad job-board index"),
         ("Enterprise adoption signal", "covered" if fetched.get("enterprise_vip_case_studies") else "missing", "Current public WordPress VIP case-study snapshot with industries and use cases"),
         ("WordPress.org plugin/theme directories", "covered" if fetched.get("directory_snapshots") else "missing", "Current plugin and theme counts"),
@@ -3122,8 +3283,8 @@ def source_status_rows(fetched):
         ),
         (
             "Search interest and job demand",
-            "partial" if fetched.get("hn_hiring_wordpress_quarterly") else "missing",
-            "General web search trends and broad hiring-platform time series are not included; Stack Overflow and HN are narrow developer/demand proxies",
+            "partial" if fetched.get("wikimedia_pageviews_quarterly") or fetched.get("hn_hiring_wordpress_quarterly") else "missing",
+            "General web search trends and broad hiring-platform time series are not included; Wikimedia, Stack Overflow, and HN are narrower public/developer/demand proxies",
         ),
     ]
     return rows
@@ -3143,6 +3304,7 @@ def build_report(data, fetched):
     classifications = data["classification_trend"]
     market_rows = fetched.get("market_share", [])
     stack_overflow_tags = fetched.get("stack_overflow_tag_quarterly", [])
+    wikimedia_pageviews_q = fetched.get("wikimedia_pageviews_quarterly", [])
     hn_hiring_q = fetched.get("hn_hiring_wordpress_quarterly", [])
     enterprise_vip_cases = fetched.get("enterprise_vip_case_studies", [])
     wordcamps = fetched.get("wordcamps", [])
@@ -3447,6 +3609,33 @@ def build_report(data, fetched):
         default={},
     )
     so_wp_delta = num(latest_so_wp.get("question_count")) - num(previous_so_wp.get("question_count")) if latest_so_wp and previous_so_wp else None
+    wikimedia_pageview_series = [
+        {
+            "label": config["label"],
+            "color": config["color"],
+            "points": sorted(
+                (row["quarter"], num(row.get("views")))
+                for row in wikimedia_pageviews_q
+                if row.get("article") == config["article"] and row.get("quarter") >= "2016-01-01"
+            ),
+        }
+        for config in WIKIMEDIA_PAGEVIEW_ARTICLES
+    ]
+    latest_wikimedia_wp = max(
+        [row for row in wikimedia_pageviews_q if row.get("article") == "WordPress"],
+        key=lambda row: row.get("quarter", ""),
+        default={},
+    )
+    previous_wikimedia_wp = max(
+        [row for row in wikimedia_pageviews_q if row.get("article") == "WordPress" and row.get("quarter", "") < "2024-01-01"],
+        key=lambda row: row.get("quarter", ""),
+        default={},
+    )
+    wikimedia_wp_delta = (
+        num(latest_wikimedia_wp.get("views")) - num(previous_wikimedia_wp.get("views"))
+        if latest_wikimedia_wp and previous_wikimedia_wp
+        else None
+    )
     hn_hiring_series = [
         {
             "label": "WordPress/WooCommerce",
@@ -3988,6 +4177,18 @@ p {{ margin:0 0 12px; }}
       </div>
     </div>
     <div class="grid-2">
+      {svg_line_chart("Public attention proxy", "Quarterly en.wikipedia article pageviews from the Wikimedia Pageviews API. This is not search volume, but it is a stable public-interest signal.", wikimedia_pageview_series)}
+      <div class="card">
+        <h3>Public-interest readout</h3>
+        <p>Wikimedia article views help separate broad public attention from developer-help and hiring signals. They are a proxy, not a direct measure of site-builder selection.</p>
+        <div class="stats">
+          {stat_card("Latest WordPress views", compact(num(latest_wikimedia_wp.get("views"))), latest_wikimedia_wp.get("label", "not fetched"), "soft")}
+          {stat_card("Change vs pre-2024", f"{wikimedia_wp_delta:+,}" if wikimedia_wp_delta is not None else "n/a", "latest quarter minus last pre-2024 quarter", "watch" if wikimedia_wp_delta is not None and wikimedia_wp_delta < 0 else "soft")}
+          {stat_card("Coverage", compact(len(wikimedia_pageviews_q)), "article-quarter rows in SQLite", "good" if wikimedia_pageviews_q else "watch")}
+        </div>
+      </div>
+    </div>
+    <div class="grid-2">
       {svg_line_chart("HN Who is hiring mentions", "Quarterly top-level comments in Hacker News monthly Who is hiring threads that mention WordPress, WooCommerce, PHP, or agencies/studios.", hn_hiring_series)}
       {svg_line_chart("WP/Woo hiring mention share", "Mentions per 100 top-level Who is hiring comments.", hn_hiring_share_series)}
     </div>
@@ -4185,7 +4386,7 @@ p {{ margin:0 0 12px; }}
 
   <section class="footer">
     <p>Generated {dt.datetime.now(dt.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')} from local Core/Gutenberg exports and public sources.</p>
-    <p>Sources: <a href="{W3TECHS_USAGE_URL}">W3Techs usage trend</a>, <a href="{W3TECHS_MARKET_SHARE_URL}">W3Techs CMS market-share trend</a>, <a href="{HTTP_ARCHIVE_CMS_URL}">HTTP Archive Web Almanac CMS 2025</a>, <a href="{STACK_EXCHANGE_DOCS_URL}">Stack Exchange API</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="{EVENTS_WORDPRESS_URL}">WordPress Events</a>, <a href="{TRANSLATE_LOCALES_URL}">Translate WordPress</a>, <a href="{MAKE_CORE_API}">Make/Core posts API</a>, <a href="{MAKE_CORE_COMMENTS_API}">Make/Core comments API</a>, <a href="https://wordpress.org/support/view/all-topics/">WordPress.org support forums</a>, <a href="https://trends.builtwith.com/cms/WordPress">BuiltWith technology pages</a>, <a href="https://github.com/WordPress/gutenberg/issues">Gutenberg GitHub issues</a>, <a href="{FTTF_PLEDGES_URL}">Five for the Future pledges</a>, <a href="{RELEASE_ARCHIVE_URL}">WordPress release archive</a>, and <a href="{CREDITS_API}">Core credits API</a>.</p>
+    <p>Sources: <a href="{W3TECHS_USAGE_URL}">W3Techs usage trend</a>, <a href="{W3TECHS_MARKET_SHARE_URL}">W3Techs CMS market-share trend</a>, <a href="{HTTP_ARCHIVE_CMS_URL}">HTTP Archive Web Almanac CMS 2025</a>, <a href="{STACK_EXCHANGE_DOCS_URL}">Stack Exchange API</a>, <a href="{WIKIMEDIA_PAGEVIEWS_DOCS_URL}">Wikimedia Pageviews API</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="{EVENTS_WORDPRESS_URL}">WordPress Events</a>, <a href="{TRANSLATE_LOCALES_URL}">Translate WordPress</a>, <a href="{MAKE_CORE_API}">Make/Core posts API</a>, <a href="{MAKE_CORE_COMMENTS_API}">Make/Core comments API</a>, <a href="https://wordpress.org/support/view/all-topics/">WordPress.org support forums</a>, <a href="https://trends.builtwith.com/cms/WordPress">BuiltWith technology pages</a>, <a href="https://github.com/WordPress/gutenberg/issues">Gutenberg GitHub issues</a>, <a href="{FTTF_PLEDGES_URL}">Five for the Future pledges</a>, <a href="{RELEASE_ARCHIVE_URL}">WordPress release archive</a>, and <a href="{CREDITS_API}">Core credits API</a>.</p>
   </section>
 </main>
 </body>
@@ -4211,6 +4412,9 @@ def main():
         args.skip_network
     )
     fetched["stack_overflow_tag_quarterly"] = fetch_stackoverflow_tag_quarterly(args.skip_network)
+    fetched["wikimedia_pageviews_monthly"], fetched["wikimedia_pageviews_quarterly"] = fetch_wikimedia_pageviews(
+        args.skip_network
+    )
     fetched["hn_hiring_wordpress_quarterly"] = fetch_hn_hiring_wordpress_quarterly(args.skip_network)
     fetched["enterprise_vip_case_studies"] = fetch_wordpress_vip_case_studies(args.skip_network)
     fetched["directory_snapshots"] = fetch_wordpress_directory_snapshots(args.skip_network)

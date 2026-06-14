@@ -87,7 +87,7 @@ GAP_SUMMARIES = {
     },
     "job_demand": {
         "title": "Hiring demand",
-        "current": "HN hiring threads and WordPress Jobs snapshots are in.",
+        "current": "HN hiring threads, Remote OK current jobs, and WordPress Jobs snapshots are in.",
         "next": "Add a broad hiring-platform export.",
     },
     "new_site_share_history": {
@@ -217,7 +217,7 @@ def main():
             link_card("New-site choice", "Current newly found-site, recurring crawl, and traffic-tier readout.", "new_site_choice.html", "amber"),
             link_card("Developer interest", "Help-seeking, public attention, npm packages, hiring proxies, and PR activity.", "developer_interest.html", "amber"),
             link_card("Search interest", "Wikimedia pageviews and Stack Overflow questions as public-attention proxies.", "search_interest.html", "amber"),
-            link_card("Job demand", "HN hiring mentions, WordPress Jobs snapshots, and jobs-board categories.", "job_demand.html", "amber"),
+            link_card("Job demand", "HN hiring mentions, Remote OK current jobs, WordPress Jobs snapshots, and jobs-board categories.", "job_demand.html", "amber"),
             link_card("Ecosystem activity", "Non-ticket community channels and current ecosystem snapshots.", "ecosystem_activity.html", "green"),
             link_card("Support load", "Current support queues, forum load, age buckets, and major-plugin support counts.", "support_load.html", "amber"),
             link_card("Decision brief", "SQLite-generated one-page summary for quick sharing and review.", "decision_brief.html", "amber"),
@@ -234,7 +234,7 @@ def main():
             timeline_item("Tickets", "Built quarterly Core Trac and Gutenberg GitHub metrics for new/closed flow, backlog, reporters, first-time reporters, bug/feature mix, response time, closure time, stale share, and contributor concentration."),
             timeline_item("Classification", "Loaded bug, feature request, documentation, support, and other classification outputs into the SQLite-backed pipeline."),
             timeline_item("Ecosystem", "Added Core release credits and committers, Make/Core posts and comments, dev notes, WordCamps, events, translation snapshots, Five for the Future, support snapshots, plugin/theme directory samples, major plugin stats, and enterprise case studies."),
-            timeline_item("Adoption", "Added W3Techs, HTTP Archive, BuiltWith, WordPress.org stats, Stack Overflow, Wikimedia, Hacker News hiring threads, WordPress Jobs snapshots, compact new-site summaries, and attention/demand proxy summaries."),
+            timeline_item("Adoption", "Added W3Techs, HTTP Archive, BuiltWith, WordPress.org stats, Stack Overflow, Wikimedia, Hacker News hiring threads, Remote OK current jobs, WordPress Jobs snapshots, compact new-site summaries, and attention/demand proxy summaries."),
             timeline_item("Companions", 'Added focused pages for <a href="project_load.html">Project Load</a>, <a href="market_position.html">Market Position</a>, <a href="new_site_choice.html">New-site Choice</a>, <a href="search_interest.html">Search Interest</a>, <a href="developer_interest.html">Developer Interest</a>, <a href="job_demand.html">Job Demand</a>, <a href="support_load.html">Support Load</a>, <a href="contributor_depth.html">Contributor Depth</a>, <a href="ecosystem_activity.html">Ecosystem Activity</a>, and <a href="source_gap_plan.html">Source Gap Plan</a>.'),
             timeline_item("Decision brief", "Added <code>make_decision_brief.py</code> so installed share, current new-site proxy, closure ratios, first-time reporter retention, backlog age, contributor concentration, npm package downloads, and theme sample counts regenerate from SQLite."),
             timeline_item("Progress summary", "Added <code>make_progress_summary.py</code> so this progress page is regenerated from SQLite counts and the current report artifact list."),
@@ -262,7 +262,7 @@ def main():
             ("Decision questions", '<a href="index.html#decision-questions">Seven plain-English answer cards</a> plus final evidence-strength and decision readout sections.', "Covered"),
             ("Short visual decision readout", "Relevance Scorecard, Goal Coverage Map, generated Decision Brief, and final Decision Readout.", "Covered"),
             ("Refresh metadata", "SQLite source hashes, source_gaps, generated data inventory, generated decision brief, generated progress summary, generator scripts, cached public-source tables, and compressed DB export.", "Covered"),
-            ("Remaining ideal sources", "True multi-year new-site cohorts, Google Trends or equivalent, broad labor-market exports, fuller support-forum history, and another developer-community source.", "Partial by design"),
+            ("Remaining ideal sources", "True multi-year new-site cohorts, Google Trends or equivalent, multi-year labor-market exports, fuller support-forum history, and another developer-community source.", "Partial by design"),
         ]
     )
 

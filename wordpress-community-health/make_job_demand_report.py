@@ -54,6 +54,14 @@ def rows(conn, sql, params=()):
     return [dict(row) for row in conn.execute(sql, params).fetchall()]
 
 
+def table_exists(conn, table):
+    row = conn.execute(
+        "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?",
+        (table,),
+    ).fetchone()
+    return bool(row)
+
+
 def latest(rows_, key):
     return max(rows_, key=lambda row: row.get(key, ""), default={})
 
@@ -112,7 +120,7 @@ def signal_row(title, text, value, color="blue"):
 
 def bar_row(label, value, max_value, color=COLORS["blue"], suffix=""):
     value = num(value)
-    width = 0 if max_value <= 0 else max(2, min(100, value / max_value * 100))
+    width = 0 if max_value <= 0 or value <= 0 else max(2, min(100, value / max_value * 100))
     shown = f"{compact(value)}{suffix}"
     return f"""
         <div class="barline">
@@ -209,6 +217,16 @@ def main():
         jobs = rows(conn, "SELECT * FROM wordpress_jobs_board_snapshots ORDER BY snapshot_date")
         categories = rows(conn, "SELECT * FROM wordpress_jobs_board_category_snapshots ORDER BY snapshot_date, category")
         attention = rows(conn, "SELECT * FROM attention_demand_summary WHERE signal IN ('hn_wordpress_woocommerce_hiring_rate','wordpress_jobs_open_listings','wordpress_jobs_development_listings')")
+        remoteok_terms = (
+            rows(conn, "SELECT * FROM remoteok_job_signal_snapshot ORDER BY CAST(matching_jobs AS REAL) DESC, term")
+            if table_exists(conn, "remoteok_job_signal_snapshot")
+            else []
+        )
+        remoteok_matches = (
+            rows(conn, "SELECT * FROM remoteok_matching_jobs_snapshot ORDER BY date DESC, job_id DESC")
+            if table_exists(conn, "remoteok_matching_jobs_snapshot")
+            else []
+        )
         gap = rows(conn, "SELECT * FROM source_gaps WHERE signal='job_demand'")
     finally:
         conn.close()
@@ -222,6 +240,13 @@ def main():
     jobs_summary = attention_by_signal.get("wordpress_jobs_open_listings", {})
     dev_jobs_summary = attention_by_signal.get("wordpress_jobs_development_listings", {})
     hn_attention = attention_by_signal.get("hn_wordpress_woocommerce_hiring_rate", {})
+    remoteok_by_term = {row.get("term"): row for row in remoteok_terms}
+    remoteok_wp = remoteok_by_term.get("wordpress", {})
+    remoteok_woo = remoteok_by_term.get("woocommerce", {})
+    remoteok_php = remoteok_by_term.get("php", {})
+    remoteok_total = num(remoteok_wp.get("total_jobs") or (remoteok_terms[0].get("total_jobs") if remoteok_terms else 0))
+    remoteok_wp_or_woo = num(remoteok_wp.get("matching_jobs")) + num(remoteok_woo.get("matching_jobs"))
+    remoteok_collected = remoteok_wp.get("collected_at") or (remoteok_terms[0].get("collected_at") if remoteok_terms else "")
 
     latest_jobs_date = latest_jobs.get("snapshot_date", "")
     latest_categories = [
@@ -265,6 +290,12 @@ def main():
                 f"{compact(latest_jobs.get('full_time_jobs'))} full-time listings in current snapshot",
                 "violet",
             ),
+            metric_card(
+                "Remote OK WP/Woo",
+                compact(remoteok_wp_or_woo),
+                f"{compact(remoteok_total)} current Remote OK jobs scanned",
+                "amber" if remoteok_terms else "violet",
+            ),
         ]
     )
 
@@ -299,6 +330,17 @@ def main():
         ],
         value_decimals=0,
     )
+    remoteok_max = max([num(row.get("matching_jobs")) for row in remoteok_terms] or [1])
+    remoteok_rows = "".join(
+        bar_row(
+            str(row.get("label") or row.get("term") or ""),
+            row.get("matching_jobs"),
+            remoteok_max,
+            COLORS["amber"] if row.get("term") in {"wordpress", "woocommerce"} else COLORS["violet"],
+            f" of {compact(row.get('total_jobs'))}",
+        )
+        for row in remoteok_terms
+    )
 
     gap_note = gap[0].get("note") if gap else "The job-demand source is a proxy-led signal."
     hn_change = f"{pct(hn_attention.get('change_pct'))} vs {hn_attention.get('baseline_period', 'baseline')}"
@@ -322,6 +364,12 @@ def main():
                 "Development listings are the largest visible category on jobs.wordpress.net in the latest snapshot.",
                 compact(latest_jobs.get("development_jobs")),
                 "green",
+            ),
+            signal_row(
+                "Broad remote board is not showing WordPress demand",
+                "The current Remote OK public API snapshot has no WordPress or WooCommerce matches in the scanned jobs.",
+                f"{compact(remoteok_wp_or_woo)} of {compact(remoteok_total)}",
+                "amber",
             ),
             signal_row(
                 "Agency demand is a separate proxy",
@@ -356,7 +404,7 @@ def main():
     .lede {{ max-width:900px; font-size:18px; margin-bottom:20px; }}
     .nav {{ display:flex; flex-wrap:wrap; gap:8px; margin:18px 0 22px; }}
     .nav a {{ border:1px solid var(--line); border-radius:999px; padding:7px 11px; background:#fbfdff; text-decoration:none; font-weight:700; font-size:13px; }}
-    .metrics {{ display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; margin:22px 0; }}
+    .metrics {{ display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:12px; margin:22px 0; }}
     .metric, .section, .chart-card {{ background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px; }}
     .metric {{ border-top:5px solid var(--blue); min-height:148px; }}
     .metric.green {{ border-top-color:var(--green); }}
@@ -417,7 +465,7 @@ def main():
     </article>
     <article class="section">
       <h2>How to read this</h2>
-      <p>This page separates WordPress-specific jobs board snapshots from broader hiring-thread mentions. It helps show direction, but it is narrower than a labor-market export from a hiring platform.</p>
+      <p>This page separates WordPress-specific jobs board snapshots from broader hiring-thread mentions and a current <a href="https://remoteok.com/">Remote OK</a> public API snapshot. It helps show direction, but it is narrower than a multi-year labor-market export.</p>
       <p class="callout">{esc(gap_note)}</p>
     </article>
   </section>
@@ -433,9 +481,16 @@ def main():
 {category_rows}
       </div>
     </article>
+    <article class="chart-card">
+      <h2>Remote OK current term matches</h2>
+      <p>Current Remote OK public API snapshot scanned for WordPress, WooCommerce, PHP, hosted-builder, CMS, and agency/studio terms.</p>
+      <div class="bar-stack">
+{remoteok_rows}
+      </div>
+    </article>
   </section>
 
-  <p class="footer-note">Rows come from <code>hn_hiring_wordpress_quarterly</code>, <code>hn_hiring_demand_summary</code>, <code>wordpress_jobs_board_snapshots</code>, <code>wordpress_jobs_board_category_snapshots</code>, and <code>attention_demand_summary</code>. Integrity check: <code>{esc(integrity)}</code>.</p>
+  <p class="footer-note">Rows come from <code>hn_hiring_wordpress_quarterly</code>, <code>hn_hiring_demand_summary</code>, <code>remoteok_job_signal_snapshot</code>, <code>remoteok_matching_jobs_snapshot</code>, <code>wordpress_jobs_board_snapshots</code>, <code>wordpress_jobs_board_category_snapshots</code>, and <code>attention_demand_summary</code>. Remote OK source snapshot collected {esc(remoteok_collected[:10])}. Integrity check: <code>{esc(integrity)}</code>.</p>
 </main>
 </body>
 </html>

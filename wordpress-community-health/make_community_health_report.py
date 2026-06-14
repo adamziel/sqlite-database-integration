@@ -67,6 +67,8 @@ SKIP_NETWORK_DB_FALLBACK_TABLES = [
     "npm_wordpress_downloads_quarterly",
     "github_repo_interest_snapshot",
     "hn_hiring_wordpress_quarterly",
+    "remoteok_job_signal_snapshot",
+    "remoteok_matching_jobs_snapshot",
     "wordpress_jobs_board_snapshots",
     "wordpress_jobs_board_category_snapshots",
     "attention_demand_summary",
@@ -165,6 +167,19 @@ STACK_EXCHANGE_DOCS_URL = "https://api.stackexchange.com/docs/questions"
 HN_SEARCH_API = "https://hn.algolia.com/api/v1/search"
 HN_ITEM_API = "https://hn.algolia.com/api/v1/items"
 HN_HIRING_SOURCE_URL = "https://news.ycombinator.com/submitted?id=whoishiring"
+REMOTEOK_API_URL = "https://remoteok.com/api"
+REMOTEOK_SOURCE_URL = "https://remoteok.com/"
+REMOTEOK_JOB_TERMS = [
+    ("wordpress", "WordPress", ["wordpress", "word press", "wp plugin", "wp theme", "wp-admin"]),
+    ("woocommerce", "WooCommerce", ["woocommerce", "woo commerce"]),
+    ("php", "PHP", ["php", "laravel", "symfony"]),
+    ("shopify", "Shopify", ["shopify", "liquid"]),
+    ("wix", "Wix", ["wix"]),
+    ("squarespace", "Squarespace", ["squarespace"]),
+    ("webflow", "Webflow", ["webflow"]),
+    ("cms", "CMS", ["cms", "content management"]),
+    ("agency", "Agency/studio", ["agency", "digital studio", "web studio", "studio", "freelance", "freelancer"]),
+]
 WORDPRESS_JOBS_URL = "https://jobs.wordpress.net/"
 WAYBACK_CDX_API = "https://web.archive.org/cdx"
 WAYBACK_WEB_ROOT = "https://web.archive.org/web"
@@ -1919,6 +1934,124 @@ def derive_hn_hiring_demand_summary(rows):
             }
         )
     return summary
+
+
+def remoteok_cache_path():
+    return CACHE / "remoteok-current-jobs.json"
+
+
+def read_cached_remoteok_jobs():
+    path = remoteok_cache_path()
+    if not path.exists():
+        return None
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    return payload if isinstance(payload, list) else None
+
+
+def write_cached_remoteok_jobs(payload):
+    CACHE.mkdir(parents=True, exist_ok=True)
+    remoteok_cache_path().write_text(json.dumps(payload, ensure_ascii=True, sort_keys=True), encoding="utf-8")
+
+
+def remoteok_pattern(pattern):
+    escaped = re.escape(pattern).replace(r"\ ", r"\s+")
+    if re.search(r"\w$", pattern) and re.search(r"^\w", pattern):
+        return re.compile(rf"\b{escaped}\b", re.I)
+    return re.compile(escaped, re.I)
+
+
+def fetch_remoteok_job_snapshots(skip_network=False):
+    payload = read_cached_remoteok_jobs()
+    if not skip_network:
+        try:
+            payload, _headers = fetch_with_retries(fetch_json, REMOTEOK_API_URL, "Remote OK jobs", attempts=3, delay=1.0)
+            if payload:
+                write_cached_remoteok_jobs(payload)
+        except Exception as exc:
+            eprint(f"Remote OK jobs fetch failed: {exc}")
+    if not payload:
+        return [], []
+
+    meta = payload[0] if isinstance(payload[0], dict) and "legal" in payload[0] else {}
+    raw_jobs = [job for job in payload if isinstance(job, dict) and job.get("id")]
+    collected_at = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
+    remote_updated = ""
+    if meta.get("last_updated"):
+        try:
+            remote_updated = dt.datetime.fromtimestamp(int(meta["last_updated"]), tz=dt.timezone.utc).isoformat().replace("+00:00", "Z")
+        except (TypeError, ValueError, OSError):
+            remote_updated = str(meta.get("last_updated") or "")
+
+    compiled_terms = [
+        (term_id, label, [remoteok_pattern(pattern) for pattern in patterns])
+        for term_id, label, patterns in REMOTEOK_JOB_TERMS
+    ]
+    summary = {
+        term_id: {
+            "term": term_id,
+            "label": label,
+            "matching_jobs": 0,
+            "total_jobs": len(raw_jobs),
+            "share_pct": 0,
+            "collected_at": collected_at,
+            "remote_updated_at": remote_updated,
+            "source": "Remote OK public API current job snapshot",
+            "source_url": REMOTEOK_API_URL,
+        }
+        for term_id, label, _patterns in compiled_terms
+    }
+    matching_rows = []
+    seen_matches = set()
+    for job in raw_jobs:
+        tags = job.get("tags") if isinstance(job.get("tags"), list) else []
+        text = " ".join(
+            [
+                str(job.get("position") or ""),
+                str(job.get("company") or ""),
+                " ".join(str(tag) for tag in tags),
+                strip_html(job.get("description") or ""),
+                str(job.get("location") or ""),
+            ]
+        )
+        matched = []
+        for term_id, label, patterns in compiled_terms:
+            if any(pattern.search(text) for pattern in patterns):
+                summary[term_id]["matching_jobs"] += 1
+                matched.append(label)
+        if not matched:
+            continue
+        match_key = str(job.get("id"))
+        if match_key in seen_matches:
+            continue
+        seen_matches.add(match_key)
+        matching_rows.append(
+            {
+                "collected_at": collected_at,
+                "remote_updated_at": remote_updated,
+                "job_id": job.get("id", ""),
+                "date": job.get("date", ""),
+                "company": strip_html(job.get("company") or ""),
+                "position": strip_html(job.get("position") or ""),
+                "location": strip_html(job.get("location") or ""),
+                "tags": ", ".join(str(tag) for tag in tags),
+                "matched_terms": ", ".join(matched),
+                "salary_min": job.get("salary_min", ""),
+                "salary_max": job.get("salary_max", ""),
+                "source_url": job.get("url") or job.get("apply_url") or REMOTEOK_SOURCE_URL,
+                "source": "Remote OK public API current job snapshot",
+            }
+        )
+    summary_rows = []
+    for row in summary.values():
+        row = dict(row)
+        row["share_pct"] = round(num(row["matching_jobs"]) / num(row["total_jobs"]) * 100, 2) if num(row["total_jobs"]) else 0
+        summary_rows.append(row)
+    summary_rows.sort(key=lambda row: (-num(row.get("matching_jobs")), row.get("term", "")))
+    matching_rows.sort(key=lambda row: (row.get("date", ""), row.get("job_id", "")), reverse=True)
+    return summary_rows, matching_rows
 
 
 def derive_attention_demand_summary(stack_overflow_rows, wikimedia_rows, hn_summary_rows, jobs_rows):
@@ -4288,8 +4421,8 @@ def build_database(data, fetched):
         (
             "job_demand",
             "partial",
-            "Hacker News monthly Who is hiring? threads plus hiring-platform exports",
-            "HN Who is hiring WordPress/WooCommerce, PHP, and agency/studio mention counts, WordPress Jobs board open-listing snapshots, a compact proxy-direction summary, and a job-demand companion view are included; broader job-board demand still needs a labor-market source.",
+            "Hacker News monthly Who is hiring? threads, Remote OK current jobs, plus hiring-platform exports",
+            "HN Who is hiring WordPress/WooCommerce, PHP, and agency/studio mention counts, Remote OK current remote-job term counts, WordPress Jobs board open-listing snapshots, a compact proxy-direction summary, and a job-demand companion view are included; broader multi-year labor-market demand still needs a hiring-platform time series.",
         )
     )
     if not fetched.get("enterprise_vip_case_studies"):
@@ -5483,6 +5616,7 @@ def source_status_rows(fetched):
         ("WordPress npm packages", "covered" if fetched.get("npm_wordpress_downloads_quarterly") else "missing", "Quarterly npm downloads for selected @wordpress packages as package-ecosystem activity, not developer headcount"),
         ("GitHub repo interest snapshot", "covered" if fetched.get("github_repo_interest_snapshot") else "missing", "Current stars, forks, subscribers, open issues, and activity timestamps for selected WordPress ecosystem repositories"),
         ("HN hiring mentions", "partial" if fetched.get("hn_hiring_wordpress_quarterly") else "missing", "WordPress/WooCommerce, PHP, and agency/studio mentions in monthly Hacker News Who is hiring threads from 2012 onward; not a broad job-board index"),
+        ("Remote OK jobs snapshot", "partial" if fetched.get("remoteok_job_signal_snapshot") else "missing", "Current Remote OK public API job snapshot with WordPress, WooCommerce, PHP, hosted-builder, CMS, and agency/studio term counts"),
         ("WordPress Jobs board", "partial" if fetched.get("wordpress_jobs_board_snapshots") else "missing", "Open-listing snapshots from jobs.wordpress.net current page and annual Internet Archive captures; WordPress-specific, not a broad hiring-platform index"),
         ("Attention and demand summary", "covered" if fetched.get("attention_demand_summary") else "missing", "Derived compact comparison of Stack Overflow, Wikimedia, HN hiring, and WordPress Jobs proxy direction"),
         ("Enterprise adoption signal", "covered" if fetched.get("enterprise_vip_case_studies") else "missing", "Current public WordPress VIP case-study snapshot with industries and use cases"),
@@ -7884,7 +8018,7 @@ p {{ margin:0 0 12px; }}
 
   <section class="footer">
     <p>Generated {dt.datetime.now(dt.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')} from local Core/Gutenberg exports and public sources.</p>
-    <p>Sources: <a href="{W3TECHS_USAGE_URL}">W3Techs usage trend</a>, <a href="{W3TECHS_MARKET_SHARE_URL}">W3Techs CMS market-share trend</a>, <a href="{HTTP_ARCHIVE_CMS_URL}">HTTP Archive Web Almanac CMS 2025</a>, <a href="{HTTP_ARCHIVE_TECH_REPORT_URL}">HTTP Archive Technology Report API</a>, <a href="{STACK_EXCHANGE_DOCS_URL}">Stack Exchange API</a>, <a href="{WIKIMEDIA_PAGEVIEWS_DOCS_URL}">Wikimedia Pageviews API</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="{PLUGIN_DOWNLOADS_DOCS_URL}">WordPress.org plugin download stats</a>, <a href="{WORDPRESS_JOBS_URL}">WordPress Jobs board</a>, <a href="{WAYBACK_CDX_API}">Internet Archive CDX API</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="{EVENTS_WORDPRESS_URL}">WordPress Events</a>, <a href="{TRANSLATE_LOCALES_URL}">Translate WordPress</a>, <a href="{MAKE_CORE_API}">Make/Core posts API</a>, <a href="{MAKE_CORE_COMMENTS_API}">Make/Core comments API</a>, <a href="https://wordpress.org/support/view/all-topics/">WordPress.org support forums</a>, <a href="https://trends.builtwith.com/cms/WordPress">BuiltWith technology pages</a>, <a href="https://github.com/WordPress/gutenberg/issues">Gutenberg GitHub issues</a>, <a href="{FTTF_PLEDGES_URL}">Five for the Future pledges</a>, <a href="{RELEASE_ARCHIVE_URL}">WordPress release archive</a>, and <a href="{CREDITS_API}">Core credits API</a>.</p>
+    <p>Sources: <a href="{W3TECHS_USAGE_URL}">W3Techs usage trend</a>, <a href="{W3TECHS_MARKET_SHARE_URL}">W3Techs CMS market-share trend</a>, <a href="{HTTP_ARCHIVE_CMS_URL}">HTTP Archive Web Almanac CMS 2025</a>, <a href="{HTTP_ARCHIVE_TECH_REPORT_URL}">HTTP Archive Technology Report API</a>, <a href="{STACK_EXCHANGE_DOCS_URL}">Stack Exchange API</a>, <a href="{WIKIMEDIA_PAGEVIEWS_DOCS_URL}">Wikimedia Pageviews API</a>, <a href="https://api.wordpress.org/">WordPress.org APIs</a>, <a href="{PLUGIN_DOWNLOADS_DOCS_URL}">WordPress.org plugin download stats</a>, <a href="{REMOTEOK_SOURCE_URL}">Remote OK</a>, <a href="{WORDPRESS_JOBS_URL}">WordPress Jobs board</a>, <a href="{WAYBACK_CDX_API}">Internet Archive CDX API</a>, <a href="https://central.wordcamp.org/wp-json/wp/v2/wordcamps">WordCamp Central API</a>, <a href="{EVENTS_WORDPRESS_URL}">WordPress Events</a>, <a href="{TRANSLATE_LOCALES_URL}">Translate WordPress</a>, <a href="{MAKE_CORE_API}">Make/Core posts API</a>, <a href="{MAKE_CORE_COMMENTS_API}">Make/Core comments API</a>, <a href="https://wordpress.org/support/view/all-topics/">WordPress.org support forums</a>, <a href="https://trends.builtwith.com/cms/WordPress">BuiltWith technology pages</a>, <a href="https://github.com/WordPress/gutenberg/issues">Gutenberg GitHub issues</a>, <a href="{FTTF_PLEDGES_URL}">Five for the Future pledges</a>, <a href="{RELEASE_ARCHIVE_URL}">WordPress release archive</a>, and <a href="{CREDITS_API}">Core credits API</a>.</p>
   </section>
 </main>
 </body>
@@ -7928,6 +8062,10 @@ def main():
     )
     fetched["github_repo_interest_snapshot"] = fetch_github_repo_interest_snapshot(args.skip_network)
     fetched["hn_hiring_wordpress_quarterly"] = fetch_hn_hiring_wordpress_quarterly(args.skip_network)
+    (
+        fetched["remoteok_job_signal_snapshot"],
+        fetched["remoteok_matching_jobs_snapshot"],
+    ) = fetch_remoteok_job_snapshots(args.skip_network)
     (
         fetched["wordpress_jobs_board_snapshots"],
         fetched["wordpress_jobs_board_category_snapshots"],

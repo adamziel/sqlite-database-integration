@@ -5876,6 +5876,14 @@ p {{ margin:0 0 12px; }}
 .readout-card {{ border:1px solid var(--line); border-radius:8px; padding:16px; background:#fff; }}
 .readout-card strong {{ display:block; font-size:24px; line-height:1.15; margin-bottom:8px; }}
 .readout-card p {{ color:var(--muted); }}
+.evidence-strength-grid {{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin:14px 0 16px; }}
+.evidence-strength-card {{ border:1px solid var(--line); border-left:5px solid var(--blue); border-radius:8px; padding:14px; background:#fff; min-height:142px; }}
+.evidence-strength-card span {{ display:block; color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.06em; font-weight:800; margin-bottom:4px; }}
+.evidence-strength-card strong {{ display:block; font-size:18px; line-height:1.2; margin-bottom:7px; }}
+.evidence-strength-card p {{ color:var(--muted); margin:0; font-size:14px; }}
+.evidence-strength-card.good {{ border-left-color:var(--green); }}
+.evidence-strength-card.soft {{ border-left-color:var(--blue); }}
+.evidence-strength-card.watch {{ border-left-color:var(--orange); }}
 .link-list {{ display:grid; gap:8px; margin-top:12px; }}
 .link-list a {{ line-height:1.25; }}
 .link-list code {{ display:block; white-space:normal; overflow-wrap:anywhere; line-height:1.35; }}
@@ -5883,7 +5891,7 @@ p {{ margin:0 0 12px; }}
 .footer {{ color:var(--muted); font-size:13px; margin-top:32px; border-top:1px solid var(--line); padding-top:18px; }}
 @media (max-width:900px) {{
   h1 {{ font-size:34px; }}
-  .lane-grid, .answer-grid, .grid-2, .stats, .decision-stats, .status-grid, .readout-grid {{ grid-template-columns:1fr; }}
+  .lane-grid, .answer-grid, .grid-2, .stats, .decision-stats, .status-grid, .readout-grid, .evidence-strength-grid {{ grid-template-columns:1fr; }}
   .page {{ padding:24px 16px 48px; }}
 }}
 </style>
@@ -6769,6 +6777,28 @@ p {{ margin:0 0 12px; }}
   <section id="readout" class="section">
     <h2>Decision Readout</h2>
     <p class="callout">Short version: WordPress is still widely chosen on installed-share evidence; current new-site and demand proxies are softer; ticket participation has fewer new reporters; project load is closer to balanced than the backlog size alone suggests.</p>
+    <div class="evidence-strength-grid">
+      <div class="evidence-strength-card good">
+        <span>Measured directly</span>
+        <strong>Installed share and tracker flow</strong>
+        <p>W3Techs, Core Trac, Gutenberg issues, PRs, releases, and WordPress.org APIs support the strongest claims.</p>
+      </div>
+      <div class="evidence-strength-card soft">
+        <span>Derived from recurring data</span>
+        <strong>Builder-share direction</strong>
+        <p>HTTP Archive monthly origin counts show WordPress at {http_share_latest_wp_label} of the tracked set, {http_share_wp_delta_label} since {http_share_first_date or 'the first month'}.</p>
+      </div>
+      <div class="evidence-strength-card watch">
+        <span>Proxy-led</span>
+        <strong>New-site and demand signals</strong>
+        <p>BuiltWith pipeline, Wikimedia, Stack Overflow, HN hiring, and Jobs snapshots point to direction but are not complete market measures.</p>
+      </div>
+      <div class="evidence-strength-card watch">
+        <span>Broader source needed</span>
+        <strong>Search, jobs, support history</strong>
+        <p>Google Trends or similar, labor-market exports, and a fuller support-forum history would make those signals stronger.</p>
+      </div>
+    </div>
     <div class="readout-grid">
       <div class="readout-card">
         <strong>Community health: active, narrower entry funnel</strong>

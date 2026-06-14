@@ -294,13 +294,14 @@ HTML_TEMPLATE = """<!doctype html>
     </div>
     <div class="section">
       <h2>Useful Entry Points</h2>
-      <p>Use the full report for charts, the decision brief for sharing, market position for adoption decisions, contributor depth for participation shape, ecosystem activity for non-ticket community channels, the data inventory when checking source coverage, and the source gap plan when choosing the next import.</p>
+      <p>Use the full report for charts, the decision brief for sharing, project load for workload decisions, market position for adoption decisions, contributor depth for participation shape, ecosystem activity for non-ticket community channels, the data inventory when checking source coverage, and the source gap plan when choosing the next import.</p>
       <div class="links">
         <a href="index.html#decision-questions">Decision Questions</a>
         <a href="index.html#goal-map">Goal Coverage Map</a>
         <a href="index.html#coverage">Source Coverage</a>
         <a href="decision_brief.html">Decision brief</a>
         <a href="progress_summary.html">Progress summary</a>
+        <a href="project_load.html">Project load</a>
         <a href="market_position.html">Market position</a>
         <a href="contributor_depth.html">Contributor depth</a>
         <a href="ecosystem_activity.html">Ecosystem activity</a>

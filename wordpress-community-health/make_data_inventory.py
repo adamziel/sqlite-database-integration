@@ -79,6 +79,7 @@ def nav_html():
             '      <a href="index.html#goal-map">Coverage map</a>',
             '      <a href="progress_summary.html">Progress summary</a>',
             '      <a href="decision_brief.html">Decision brief</a>',
+            '      <a href="project_load.html">Project load</a>',
             '      <a href="market_position.html">Market position</a>',
             '      <a href="contributor_depth.html">Contributor depth</a>',
             '      <a href="ecosystem_activity.html">Ecosystem activity</a>',
@@ -279,7 +280,7 @@ def render():
         </div>
         <div class="command">
           <b>Publish with the report</b>
-          <code>cp data_inventory.html make_data_inventory.py market_position.html make_market_position_report.py contributor_depth.html make_contributor_depth_report.py ecosystem_activity.html make_ecosystem_activity_report.py source_gap_plan.html make_source_gap_plan.py goal_audit.html make_goal_audit.py refresh_report_artifacts.py /Users/admin/sqlite-database-integration-pages/wordpress-community-health/</code>
+          <code>cp data_inventory.html make_data_inventory.py project_load.html make_project_load_report.py market_position.html make_market_position_report.py contributor_depth.html make_contributor_depth_report.py ecosystem_activity.html make_ecosystem_activity_report.py source_gap_plan.html make_source_gap_plan.py goal_audit.html make_goal_audit.py refresh_report_artifacts.py /Users/admin/sqlite-database-integration-pages/wordpress-community-health/</code>
         </div>
       </div>
     </section>

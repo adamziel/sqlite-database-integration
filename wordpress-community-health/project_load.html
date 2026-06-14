@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WordPress Project Load</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink:#172033;
+      --muted:#637083;
+      --line:#d9e1ea;
+      --paper:#f6f8fb;
+      --panel:#fff;
+      --blue:#2563eb;
+      --green:#159957;
+      --amber:#b7791f;
+      --violet:#7c3aed;
+    }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    main { max-width:1180px; margin:0 auto; padding:36px 22px 48px; }
+    h1 { margin:0 0 8px; font-size:clamp(32px,4vw,52px); line-height:1.05; letter-spacing:0; }
+    h2 { margin:0 0 12px; font-size:23px; line-height:1.15; letter-spacing:0; }
+    h3 { margin:0 0 8px; font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); }
+    p { margin:0; }
+    a { color:var(--blue); }
+    code { font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:13px; overflow-wrap:anywhere; }
+    .lede { max-width:920px; color:var(--muted); font-size:18px; margin-bottom:18px; }
+    .nav { display:flex; flex-wrap:wrap; gap:8px; margin:18px 0 22px; }
+    .nav a { border:1px solid var(--line); border-radius:999px; padding:7px 11px; background:#fbfdff; color:var(--muted); font-size:13px; text-decoration:none; }
+    .metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; margin:22px 0; }
+    .metric, .section, .signal-panel { background:var(--panel); border:1px solid var(--line); border-radius:8px; box-shadow:0 1px 2px rgba(15,23,42,.04); }
+    .metric { padding:16px; border-top:5px solid var(--blue); }
+    .metric.green { border-top-color:var(--green); }
+    .metric.amber { border-top-color:var(--amber); }
+    .metric.violet { border-top-color:var(--violet); }
+    .metric strong { display:block; font-size:31px; line-height:1; margin:5px 0 7px; }
+    .metric p, .note { color:var(--muted); font-size:14px; }
+    .grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:14px; align-items:start; }
+    .section, .signal-panel { padding:18px; }
+    .signals, .bar-stack, .charts { display:grid; gap:10px; }
+    .signal-row { display:flex; justify-content:space-between; gap:14px; align-items:center; border-left:5px solid var(--blue); background:#fbfdff; border-radius:8px; padding:12px; }
+    .signal-row.green { border-left-color:var(--green); }
+    .signal-row.amber { border-left-color:var(--amber); }
+    .signal-row.violet { border-left-color:var(--violet); }
+    .signal-row strong, .signal-row span { display:block; }
+    .signal-row span { color:var(--muted); font-size:13px; }
+    .signal-row b { font-size:20px; white-space:nowrap; }
+    .spark { width:100%; height:auto; display:block; background:#fbfdff; border:1px solid var(--line); border-radius:8px; padding:4px; }
+    .spark-title { font-size:16px; font-weight:750; fill:var(--ink); }
+    .spark-end { font-size:13px; font-weight:800; fill:var(--ink); }
+    .axis { font-size:11px; fill:var(--muted); }
+    .spark-grid { stroke:#e8eef5; stroke-width:1; }
+    .bar-label { display:flex; justify-content:space-between; gap:8px; font-size:13px; margin-bottom:4px; }
+    .bar-label span { color:var(--muted); }
+    .bar-label strong { white-space:nowrap; }
+    .bar { height:9px; border-radius:999px; background:#e8eef5; overflow:hidden; }
+    .bar span { display:block; height:100%; border-radius:inherit; }
+    .readout { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-top:14px; }
+    .readout div { border:1px solid var(--line); border-radius:8px; padding:12px; background:#fbfdff; }
+    .readout strong { display:block; margin-bottom:5px; }
+    .readout span { color:var(--muted); font-size:14px; }
+    .footer-note { margin-top:14px; background:#eef4ff; border:1px solid #cfe0ff; border-radius:8px; padding:14px 16px; color:#244067; }
+    @media (max-width:980px) {
+      .metrics { grid-template-columns:1fr 1fr; }
+      .grid, .readout { grid-template-columns:1fr; }
+    }
+    @media (max-width:640px) {
+      main { padding:24px 14px 36px; }
+      .metrics { grid-template-columns:1fr; }
+      .signal-row { display:block; }
+      .signal-row b { display:block; margin-top:5px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>WordPress project load</h1>
+    <p class="lede">A compact workload readout for Core Trac and Gutenberg: incoming work, closures, net flow, backlog size, stale open work, response time, closure time, reopen flow, and bug/feature mix.</p>
+    <nav class="nav">
+      <a href="index.html#load">Project Load</a>
+      <a href="index.html#decision-questions">Decision Questions</a>
+      <a href="market_position.html">Market position</a>
+      <a href="contributor_depth.html">Contributor depth</a>
+      <a href="ecosystem_activity.html">Ecosystem activity</a>
+      <a href="progress_summary.html">Progress summary</a>
+      <a href="decision_brief.html">Decision brief</a>
+      <a href="goal_audit.html">Goal audit</a>
+      <a href="data_inventory.html">Data inventory</a>
+      <a href="source_gap_plan.html">Source gap plan</a>
+      <a href="refresh_runbook.html">Refresh runbook</a>
+    </nav>
+
+    <section class="metrics" aria-label="Project load summary">
+
+      <article class="metric green">
+        <h3>Core closure balance</h3>
+        <strong>103.5%</strong>
+        <p>closed / opened since 2024</p>
+      </article>
+      <article class="metric amber">
+        <h3>Gutenberg closure balance</h3>
+        <strong>98.3%</strong>
+        <p>closed / opened since 2024</p>
+      </article>
+      <article class="metric blue">
+        <h3>Core open backlog</h3>
+        <strong>8,223</strong>
+        <p>latest quarter 2026-Q2</p>
+      </article>
+      <article class="metric blue">
+        <h3>Gutenberg open backlog</h3>
+        <strong>5,570</strong>
+        <p>latest quarter 2026 Q2</p>
+      </article>
+      <article class="metric amber">
+        <h3>Core 1+ year open share</h3>
+        <strong>74.9%</strong>
+        <p>59.7% is 2+ years since activity</p>
+      </article>
+      <article class="metric amber">
+        <h3>Gutenberg 1+ year open share</h3>
+        <strong>64.3%</strong>
+        <p>39.9% is 2+ years since activity</p>
+      </article>
+      <article class="metric green">
+        <h3>Core first response</h3>
+        <strong>8.1h</strong>
+        <p>100.0% RSS coverage</p>
+      </article>
+      <article class="metric green">
+        <h3>Gutenberg first response</h3>
+        <strong>9.3h</strong>
+        <p>median first non-author response</p>
+      </article>
+    </section>
+
+    <section class="grid">
+      <div class="signal-panel">
+        <h2>Decision lanes</h2>
+        <p class="note">This keeps workload separate from overall participation and market demand.</p>
+        <div class="signals">
+        <div class="signal-row green">
+          <div>
+            <strong>Keeping up?</strong>
+            <span>Since 2024 closure ratios are Core 103.5% and Gutenberg 98.3%.</span>
+          </div>
+          <b>Mostly</b>
+        </div>
+        <div class="signal-row amber">
+          <div>
+            <strong>Latest quarter flow</strong>
+            <span>Core net 157; Gutenberg net -156.</span>
+          </div>
+          <b>Mixed</b>
+        </div>
+        <div class="signal-row amber">
+          <div>
+            <strong>Backlog age</strong>
+            <span>Open share with 1+ year since activity is Core 74.9% and Gutenberg 64.3%.</span>
+          </div>
+          <b>Aged</b>
+        </div>
+        <div class="signal-row green">
+          <div>
+            <strong>Response time</strong>
+            <span>Latest medians: Core 8.1h, Gutenberg 9.3h.</span>
+          </div>
+          <b>Hours</b>
+        </div>
+        <div class="signal-row violet">
+          <div>
+            <strong>Closure time</strong>
+            <span>Latest median days to close: Core 14.0d, Gutenberg 173.6d.</span>
+          </div>
+          <b>Uneven</b>
+        </div>
+        <div class="signal-row amber">
+          <div>
+            <strong>Reopened flow</strong>
+            <span>Latest Core reopened events per 100 closed: 29.1. Gutenberg latest: 3.2.</span>
+          </div>
+          <b>Watch</b>
+        </div></div>
+      </div>
+      <div class="section">
+        <h2>Recent workload shape</h2>
+        <div class="charts"><svg class="spark" viewBox="0 0 520 168" role="img" aria-label="Core open backlog by quarter">
+<text x="48" y="20" class="spark-title">Core open backlog by quarter</text>
+<line x1="48" x2="500" y1="134.0" y2="134.0" class="spark-grid" />
+<text x="40" y="138.0" class="axis" text-anchor="end">0</text>
+<line x1="48" x2="500" y1="84.0" y2="84.0" class="spark-grid" />
+<text x="40" y="88.0" class="axis" text-anchor="end">4643</text>
+<line x1="48" x2="500" y1="34.0" y2="34.0" class="spark-grid" />
+<text x="40" y="38.0" class="axis" text-anchor="end">9286</text>
+<path d="M48.0,49.6 L82.8,48.1 L117.5,46.0 L152.3,43.8 L187.1,43.7 L221.8,43.8 L256.6,44.2 L291.4,43.1 L326.2,43.5 L360.9,45.1 L395.7,47.0 L430.5,47.8 L465.2,47.2 L500.0,45.4" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="500.0" cy="45.4" r="4" fill="#2563eb" />
+<text x="48" y="158" class="axis">2023 Q1</text>
+<text x="500" y="158" class="axis" text-anchor="end">2026 Q2</text>
+<text x="500" y="21" class="spark-end" text-anchor="end">8223</text>
+</svg>
+<svg class="spark" viewBox="0 0 520 168" role="img" aria-label="Gutenberg open backlog by quarter">
+<text x="48" y="20" class="spark-title">Gutenberg open backlog by quarter</text>
+<line x1="48" x2="500" y1="134.0" y2="134.0" class="spark-grid" />
+<text x="40" y="138.0" class="axis" text-anchor="end">0</text>
+<line x1="48" x2="500" y1="84.0" y2="84.0" class="spark-grid" />
+<text x="40" y="88.0" class="axis" text-anchor="end">3394</text>
+<line x1="48" x2="500" y1="34.0" y2="34.0" class="spark-grid" />
+<text x="40" y="38.0" class="axis" text-anchor="end">6788</text>
+<path d="M48.0,61.3 L82.8,56.9 L117.5,57.2 L152.3,53.6 L187.1,50.9 L221.8,47.3 L256.6,43.1 L291.4,43.9 L326.2,43.5 L360.9,45.9 L395.7,46.4 L430.5,50.8 L465.2,49.6 L500.0,51.9" fill="none" stroke="#7c3aed" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="500.0" cy="51.9" r="4" fill="#7c3aed" />
+<text x="48" y="158" class="axis">2023 Q1</text>
+<text x="500" y="158" class="axis" text-anchor="end">2026 Q2</text>
+<text x="500" y="21" class="spark-end" text-anchor="end">5570</text>
+</svg>
+<svg class="spark" viewBox="0 0 520 168" role="img" aria-label="Core net flow">
+<text x="48" y="20" class="spark-title">Core net flow</text>
+<line x1="48" x2="500" y1="134.0" y2="134.0" class="spark-grid" />
+<text x="40" y="138.0" class="axis" text-anchor="end">-224</text>
+<line x1="48" x2="500" y1="84.0" y2="84.0" class="spark-grid" />
+<text x="40" y="88.0" class="axis" text-anchor="end">6</text>
+<line x1="48" x2="500" y1="34.0" y2="34.0" class="spark-grid" />
+<text x="40" y="38.0" class="axis" text-anchor="end">238</text>
+<path d="M48.0,80.4 L82.8,53.8 L117.5,44.5 L152.3,42.3 L187.1,86.1 L221.8,86.3 L256.6,90.8 L291.4,65.7 L326.2,95.4 L360.9,115.5 L395.7,125.7 L430.5,103.8 L465.2,73.1 L500.0,51.4" fill="none" stroke="#159957" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="500.0" cy="51.4" r="4" fill="#159957" />
+<text x="48" y="158" class="axis">2023 Q1</text>
+<text x="500" y="158" class="axis" text-anchor="end">2026 Q2</text>
+<text x="500" y="21" class="spark-end" text-anchor="end">157</text>
+</svg>
+<svg class="spark" viewBox="0 0 520 168" role="img" aria-label="Gutenberg net flow">
+<text x="48" y="20" class="spark-title">Gutenberg net flow</text>
+<line x1="48" x2="500" y1="134.0" y2="134.0" class="spark-grid" />
+<text x="40" y="138.0" class="axis" text-anchor="end">-369</text>
+<line x1="48" x2="500" y1="84.0" y2="84.0" class="spark-grid" />
+<text x="40" y="88.0" class="axis" text-anchor="end">52</text>
+<line x1="48" x2="500" y1="34.0" y2="34.0" class="spark-grid" />
+<text x="40" y="38.0" class="axis" text-anchor="end">472</text>
+<path d="M48.0,42.3 L82.8,54.3 L117.5,92.4 L152.3,61.1 L187.1,68.5 L221.8,60.8 L256.6,56.4 L291.4,96.9 L326.2,87.0 L360.9,109.4 L395.7,93.8 L430.5,125.7 L465.2,80.8 L500.0,108.7" fill="none" stroke="#159957" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="500.0" cy="108.7" r="4" fill="#159957" />
+<text x="48" y="158" class="axis">2023 Q1</text>
+<text x="500" y="158" class="axis" text-anchor="end">2026 Q2</text>
+<text x="500" y="21" class="spark-end" text-anchor="end">-156</text>
+</svg></div>
+      </div>
+    </section>
+
+    <section class="grid" style="margin-top:14px">
+      <div class="section">
+        <h2>Open backlog age</h2>
+        <p class="note">Current open items bucketed by time since last activity or update.</p>
+        <div class="bar-stack">
+        <div class="barline">
+          <div class="bar-label"><span>0-90 days</span><strong>10.2%</strong></div>
+          <div class="bar"><span style="width:10.2%;background:#b7791f"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>91-365 days</span><strong>14.8%</strong></div>
+          <div class="bar"><span style="width:14.8%;background:#b7791f"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>1-2 years</span><strong>15.2%</strong></div>
+          <div class="bar"><span style="width:15.2%;background:#b7791f"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>2-5 years</span><strong>24.4%</strong></div>
+          <div class="bar"><span style="width:24.4%;background:#b7791f"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>5+ years</span><strong>35.3%</strong></div>
+          <div class="bar"><span style="width:35.3%;background:#b7791f"></span></div>
+        </div></div>
+        <p class="note" style="margin:12px 0 8px">Gutenberg</p>
+        <div class="bar-stack">
+        <div class="barline">
+          <div class="bar-label"><span>0-90 days</span><strong>13.3%</strong></div>
+          <div class="bar"><span style="width:13.3%;background:#b7791f"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>91-365 days</span><strong>22.4%</strong></div>
+          <div class="bar"><span style="width:22.4%;background:#b7791f"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>1-2 years</span><strong>24.4%</strong></div>
+          <div class="bar"><span style="width:24.4%;background:#b7791f"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>2-5 years</span><strong>37.3%</strong></div>
+          <div class="bar"><span style="width:37.3%;background:#b7791f"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>5+ years</span><strong>2.5%</strong></div>
+          <div class="bar"><span style="width:2.5%;background:#b7791f"></span></div>
+        </div></div>
+      </div>
+      <div class="section">
+        <h2>Open backlog by category</h2>
+        <p class="note">Largest current open categories by source.</p>
+        <div class="bar-stack">
+        <div class="barline">
+          <div class="bar-label"><span>bug</span><strong>4,664</strong></div>
+          <div class="bar"><span style="width:56.7%;background:#2563eb"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>enhancement</span><strong>2,941</strong></div>
+          <div class="bar"><span style="width:35.8%;background:#2563eb"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>feature_request</span><strong>524</strong></div>
+          <div class="bar"><span style="width:6.4%;background:#2563eb"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>task_maintenance</span><strong>94</strong></div>
+          <div class="bar"><span style="width:2.0%;background:#2563eb"></span></div>
+        </div></div>
+        <p class="note" style="margin:12px 0 8px">Gutenberg</p>
+        <div class="bar-stack">
+        <div class="barline">
+          <div class="bar-label"><span>enhancement</span><strong>2,975</strong></div>
+          <div class="bar"><span style="width:53.4%;background:#7c3aed"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>bug</span><strong>1,957</strong></div>
+          <div class="bar"><span style="width:35.1%;background:#7c3aed"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>other</span><strong>172</strong></div>
+          <div class="bar"><span style="width:3.1%;background:#7c3aed"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>documentation</span><strong>141</strong></div>
+          <div class="bar"><span style="width:2.5%;background:#7c3aed"></span></div>
+        </div>
+        <div class="barline">
+          <div class="bar-label"><span>task_maintenance</span><strong>88</strong></div>
+          <div class="bar"><span style="width:2.0%;background:#7c3aed"></span></div>
+        </div></div>
+      </div>
+    </section>
+
+    <section class="section" style="margin-top:14px">
+      <h2>How to read this</h2>
+      <div class="readout">
+        <div><strong>Flow is closer to balanced.</strong><span>Since 2024, Core closures slightly exceed new tickets on average; Gutenberg is near balanced and had a cleanup quarter in 2026 Q2.</span></div>
+        <div><strong>The backlog is still aged.</strong><span>Most open Core and Gutenberg items have had no recent activity, so backlog size alone understates the age issue.</span></div>
+        <div><strong>Response is measured in hours.</strong><span>Latest median first response is still fairly fast, even while closure age and backlog age remain uneven.</span></div>
+      </div>
+      <p class="footer-note">Rows come from existing SQLite tables including <code>core_quarterly</code>, <code>gutenberg_quarterly</code>, <code>core_response_quarterly</code>, <code>gutenberg_timeline_quarterly</code>, <code>closure_age_summary</code>, <code>core_reopen_quarterly</code>, <code>open_backlog_age_summary</code>, and <code>category_open_backlog_summary</code>. Integrity check: <code>ok</code>.</p>
+    </section>
+  </main>
+</body>
+</html>

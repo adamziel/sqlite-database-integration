@@ -100,6 +100,7 @@ def nav_html():
             '      <a href="index.html#goal-map">Coverage map</a>',
             '      <a href="progress_summary.html">Progress summary</a>',
             '      <a href="decision_brief.html">Decision brief</a>',
+            '      <a href="project_load.html">Project load</a>',
             '      <a href="market_position.html">Market position</a>',
             '      <a href="contributor_depth.html">Contributor depth</a>',
             '      <a href="ecosystem_activity.html">Ecosystem activity</a>',

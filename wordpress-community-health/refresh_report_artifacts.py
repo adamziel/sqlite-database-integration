@@ -49,6 +49,11 @@ HTML_ARTIFACTS = {
         "Decision lanes",
         "Current new-site proxy",
     ],
+    "project_load.html": [
+        "WordPress project load",
+        "Open backlog age",
+        "Open backlog by category",
+    ],
     "decision_brief.html": [
         "Decision Questions",
         "WordPress is still the default CMS",
@@ -226,6 +231,7 @@ def main():
 
     if not ns.validate_only:
         run_step([sys.executable, "make_goal_audit.py"])
+        run_step([sys.executable, "make_project_load_report.py"])
         run_step([sys.executable, "make_contributor_depth_report.py"])
         run_step([sys.executable, "make_ecosystem_activity_report.py"])
         run_step([sys.executable, "make_market_position_report.py"])

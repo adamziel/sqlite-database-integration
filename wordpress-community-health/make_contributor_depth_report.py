@@ -62,6 +62,7 @@ def nav_html():
             '    <nav class="nav">',
             '      <a href="index.html#participation">Participation</a>',
             '      <a href="index.html#decision-questions">Decision Questions</a>',
+            '      <a href="project_load.html">Project load</a>',
             '      <a href="market_position.html">Market position</a>',
             '      <a href="ecosystem_activity.html">Ecosystem activity</a>',
             '      <a href="progress_summary.html">Progress summary</a>',

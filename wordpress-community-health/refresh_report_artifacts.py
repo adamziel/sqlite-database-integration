@@ -51,6 +51,7 @@ HTML_ARTIFACTS = {
         "WordPress market position",
         "Decision lanes",
         "Current new-site proxy",
+        "Installed-base platform context",
     ],
     "new_site_choice.html": [
         "WordPress new-site choice",

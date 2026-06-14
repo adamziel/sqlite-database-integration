@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 import html
 import math
+import re
 import sqlite3
+import datetime as dt
 from pathlib import Path
 
 
@@ -148,6 +150,22 @@ def line_chart(title, points, color=COLORS["blue"], suffix="%"):
     return "\n".join(pieces)
 
 
+def version_major_minor(value):
+    match = re.search(r"(\d+)(?:\.(\d+))?", str(value or ""))
+    if not match:
+        return None
+    return int(match.group(1)), int(match.group(2) or 0)
+
+
+def date_days_between(start, end):
+    try:
+        start_date = dt.date.fromisoformat(str(start)[:10])
+        end_date = dt.date.fromisoformat(str(end)[:10])
+    except (TypeError, ValueError):
+        return 0
+    return (end_date - start_date).days
+
+
 def signal_row(title, text, value, color="blue"):
     return f"""
         <div class="signal-row {esc(color)}">
@@ -191,6 +209,10 @@ def main():
         )
         plugin_rows = rows(conn, "SELECT * FROM major_plugin_install_snapshot")
         vip_rows = rows(conn, "SELECT * FROM enterprise_vip_case_studies")
+        wporg_rows = rows(conn, "SELECT * FROM wporg_ecosystem_stats_snapshot ORDER BY metric, CAST(share_pct AS REAL) DESC")
+        release_rows = rows(conn, "SELECT * FROM core_releases ORDER BY release_date")
+        credit_rows = rows(conn, "SELECT * FROM core_release_credits ORDER BY release_date")
+        committer_rows = rows(conn, "SELECT * FROM core_release_committers ORDER BY release_date")
     finally:
         conn.close()
 
@@ -211,6 +233,31 @@ def main():
 
     builtwith_by_tech = {row.get("technology"): row for row in builtwith_new}
     total_major_plugin_installs = sum(num(row.get("active_installs")) for row in plugin_rows)
+    wporg_by_metric = {}
+    for row in wporg_rows:
+        wporg_by_metric.setdefault(row.get("metric"), []).append(row)
+    top_wp_versions = wporg_by_metric.get("wordpress_version", [])[:6]
+    top_php_versions = wporg_by_metric.get("php_version", [])[:6]
+    php_81_plus = sum(
+        num(row.get("share_pct"))
+        for row in wporg_by_metric.get("php_version", [])
+        if (version := version_major_minor(row.get("label"))) and version >= (8, 1)
+    )
+    db_family = {}
+    for row in wporg_by_metric.get("database_version", []):
+        family = row.get("family") or "Other"
+        db_family[family] = db_family.get(family, 0) + num(row.get("share_pct"))
+    db_family_rows = sorted(db_family.items(), key=lambda item: item[1], reverse=True)
+    latest_release = release_rows[-1] if release_rows else {}
+    latest_credit = credit_rows[-1] if credit_rows else {}
+    latest_committer = committer_rows[-1] if committer_rows else {}
+    release_interval_points = []
+    for previous, current in zip(release_rows, release_rows[1:]):
+        days = date_days_between(previous.get("release_date"), current.get("release_date"))
+        if days:
+            release_interval_points.append((current.get("version"), days))
+    recent_release_intervals = [value for _label, value in release_interval_points[-8:]]
+    median_release_interval = sorted(recent_release_intervals)[len(recent_release_intervals) // 2] if recent_release_intervals else 0
 
     http_wp_points = [
         (row.get("date", "")[:7], row.get("total_tracked_share_pct"))
@@ -228,6 +275,8 @@ def main():
             metric_card("Long-tail tracked share", pct(long_tail.get("wordpress_share_pct")), "BuiltWith current outside-Top-1M snapshot", "violet"),
             metric_card("Major plugin installs", compact(total_major_plugin_installs), "Fixed major-plugin WordPress.org API sample", "amber"),
             metric_card("Enterprise cases", compact(len(vip_rows)), "Current WordPress VIP case-study snapshot", "amber"),
+            metric_card("Latest core release", latest_release.get("version", "n/a"), latest_release.get("release_date", "WordPress release archive"), "blue"),
+            metric_card("PHP 8.1+", pct(php_81_plus), "WordPress.org active install stats", "green"),
         ]
     )
 
@@ -262,6 +311,18 @@ def main():
     tier_bars = "".join(
         horizontal_bar(row.get("label"), row.get("wordpress_share_pct"), 100, COLORS["violet"])
         for row in tier_rows
+    )
+    wp_version_bars = "".join(
+        horizontal_bar(f"WordPress {row.get('label')}", row.get("share_pct"), 100, COLORS["blue"])
+        for row in top_wp_versions
+    )
+    php_version_bars = "".join(
+        horizontal_bar(f"PHP {row.get('label')}", row.get("share_pct"), 100, COLORS["green"] if str(row.get("label", "")).startswith("8.") else COLORS["amber"])
+        for row in top_php_versions
+    )
+    db_family_bars = "".join(
+        horizontal_bar(label, value, 100, COLORS["violet"] if label == "MariaDB" else COLORS["blue"])
+        for label, value in db_family_rows[:5]
     )
 
     attention_list = "".join(
@@ -402,6 +463,26 @@ def main():
 
     <section class="grid" style="margin-top:14px">
       <div class="section">
+        <h2>Installed-base platform context</h2>
+        <p class="note">Current WordPress.org active-install stats. This is not a growth trend, but it shows the deployment context behind the installed base.</p>
+        <div class="bar-stack">{wp_version_bars}</div>
+        <div class="bar-stack">{php_version_bars}</div>
+      </div>
+      <div class="section">
+        <h2>Database and release cadence</h2>
+        <p class="note">Database-family share from WordPress.org stats, plus major-release spacing from the WordPress release archive.</p>
+        <div class="bar-stack">{db_family_bars}</div>
+        {line_chart("Days between major releases", release_interval_points[-12:], COLORS["amber"], suffix="d")}
+        <div class="readout">
+          <div><strong>{compact(num(latest_credit.get("props_count")))}</strong><span>props on WordPress {esc(latest_credit.get("version", "latest"))}</span></div>
+          <div><strong>{compact(num(latest_committer.get("committer_count")))}</strong><span>committers in the latest release compare range</span></div>
+          <div><strong>{compact(median_release_interval)} days</strong><span>median spacing across the latest release intervals</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid" style="margin-top:14px">
+      <div class="section">
         <h2>Attention and demand proxy direction</h2>
         <p class="note">These are directional public proxies, not Google Trends or a broad labor-market export.</p>
         <div class="signals">{attention_list}</div>
@@ -413,7 +494,7 @@ def main():
           <div><strong>Recent share is softer.</strong><span>W3Techs and HTTP Archive show WordPress still leading while its share is lower than recent baselines.</span></div>
           <div><strong>New-site history is partial.</strong><span>BuiltWith and HTTP Archive are useful current proxies; the source gap plan covers the ideal cohort source.</span></div>
         </div>
-        <p class="footer-note">Rows come from existing SQLite tables including <code>market_share</code>, <code>new_site_choice_summary</code>, <code>http_archive_tracked_share_monthly</code>, <code>builtwith_tier_share_snapshot</code>, <code>builtwith_new_site_snapshot</code>, and <code>attention_demand_summary</code>. Integrity check: <code>{esc(integrity)}</code>.</p>
+        <p class="footer-note">Rows come from existing SQLite tables including <code>market_share</code>, <code>new_site_choice_summary</code>, <code>http_archive_tracked_share_monthly</code>, <code>builtwith_tier_share_snapshot</code>, <code>builtwith_new_site_snapshot</code>, <code>wporg_ecosystem_stats_snapshot</code>, <code>core_releases</code>, <code>core_release_credits</code>, <code>core_release_committers</code>, and <code>attention_demand_summary</code>. Integrity check: <code>{esc(integrity)}</code>.</p>
       </div>
     </section>
   </main>

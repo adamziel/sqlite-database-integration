@@ -162,7 +162,7 @@ def main():
             timeline_item("Project load", "Backlog and maintenance shape", "Added open backlog, age buckets, category mix, response time, close time, reopened events, and closure-flow visuals."),
             timeline_item("Market", "Adoption and builder context", "Added W3Techs, HTTP Archive, BuiltWith, traffic-tier, new-site proxy, WooCommerce, and enterprise-adoption signals."),
             timeline_item("Ecosystem", "Activity outside trackers", "Added release credits, committers, Make/Core posts and comments, WordCamps, Events, Translate, Five for the Future, support snapshots, archived support-view estimates, plugin, and theme sources."),
-            timeline_item("Demand", "Developer and search proxies", "Added Stack Overflow, Wikimedia, autocomplete query intent, npm, Packagist, GitHub topic search, HN hiring, Remote OK, Remotive, and WordPress Jobs signals."),
+            timeline_item("Demand", "Developer and search proxies", "Added Stack Overflow, Wikimedia, autocomplete query intent, npm, Packagist, GitHub topic search, HN hiring, Remote OK, Remotive, and annual plus quarterly WordPress Jobs signals."),
             timeline_item("Decision evidence", "Evidence map", "Added a SQLite-backed decision_question_evidence table and visual Evidence Map so each decision answer is labeled as direct, mixed, or proxy-backed."),
             timeline_item("Packaging", "Refreshable report set", "Generated focused companion pages, a data inventory, source gap plan, goal audit, refresh validation, and a compressed SQLite download."),
         ]

@@ -31,9 +31,11 @@
     .metric strong { display:block; font-size:32px; line-height:1; margin:6px 0 8px; }
     .metric p { font-size:14px; }
     .grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; align-items:start; }
+    .grid > *, .charts > *, .section, .chart-card { min-width:0; }
     .charts { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px; }
     .chart-card p, .section p { font-size:14px; margin-bottom:10px; }
-    svg { display:block; width:100%; height:auto; overflow:visible; }
+    svg { display:block; width:100%; height:auto; overflow:hidden; }
+    .chart-scroll { min-width:0; max-width:100%; overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch; }
     .gridline { stroke:#e6edf5; stroke-width:1; }
     .axis { fill:#64748b; font-size:12px; }
     .legend { display:flex; flex-wrap:wrap; gap:8px 13px; margin-top:8px; font-size:13px; color:var(--muted); }
@@ -60,6 +62,7 @@
       .metrics, .grid, .charts { grid-template-columns:1fr; }
       .metric { min-height:auto; }
       .signal-row { align-items:flex-start; flex-direction:column; }
+      .chart-scroll svg { min-width:640px; }
       .signal-row b, .bar-label strong { white-space:normal; }
     }
   </style>
@@ -176,7 +179,7 @@
     <article class="section">
       <h2>How to read this</h2>
       <p>This page separates WordPress-specific jobs board snapshots from broader hiring-thread mentions and current <a href="https://remoteok.com/">Remote OK</a> plus <a href="https://remotive.com/">Remotive</a> public API snapshots. It helps show direction, but it is narrower than a multi-year labor-market export.</p>
-      <p class="callout">HN Who is hiring WordPress/WooCommerce, PHP, and agency/studio mention counts, Remote OK and Remotive current remote-job term counts, WordPress Jobs board open-listing snapshots, a compact proxy-direction summary, and a job-demand companion view are included; broader multi-year labor-market demand still needs a hiring-platform time series.</p>
+      <p class="callout">HN Who is hiring WordPress/WooCommerce, PHP, and agency/studio mention counts, Remote OK and Remotive current remote-job term counts, annual and quarterly WordPress Jobs board open-listing snapshots, a compact proxy-direction summary, and a job-demand companion view are included; broader multi-year labor-market demand still needs a hiring-platform time series.</p>
     </article>
   </section>
 
@@ -184,6 +187,7 @@
 <article class="chart-card">
 <h2>HN hiring mention rates</h2>
 <p>Quarterly mentions per 100 top-level comments in Hacker News Who is hiring threads.</p>
+<div class="chart-scroll">
 <svg viewBox="0 0 760 300" role="img" aria-label="HN hiring mention rates">
 <line x1="58" x2="734" y1="252.0" y2="252.0" class="gridline" />
 <text x="48" y="256.0" class="axis" text-anchor="end">0.00</text>
@@ -200,6 +204,7 @@
 <text x="58" y="284" class="axis">2012 Q1</text>
 <text x="734" y="284" class="axis" text-anchor="end">2026 Q2</text>
 </svg>
+</div>
 <div class="legend">
 <span><i style="background:#2563eb"></i>WP or Woo <b>0.00</b></span>
 <span><i style="background:#7c3aed"></i>PHP <b>1.32</b></span>
@@ -209,6 +214,7 @@
 <article class="chart-card">
 <h2>HN hiring mention counts</h2>
 <p>Quarterly top-level comments mentioning WordPress or WooCommerce, PHP, or agency/studio terms.</p>
+<div class="chart-scroll">
 <svg viewBox="0 0 760 300" role="img" aria-label="HN hiring mention counts">
 <line x1="58" x2="734" y1="252.0" y2="252.0" class="gridline" />
 <text x="48" y="256.0" class="axis" text-anchor="end">0</text>
@@ -225,6 +231,7 @@
 <text x="58" y="284" class="axis">2012 Q1</text>
 <text x="734" y="284" class="axis" text-anchor="end">2026 Q2</text>
 </svg>
+</div>
 <div class="legend">
 <span><i style="background:#2563eb"></i>WP or Woo <b>0</b></span>
 <span><i style="background:#7c3aed"></i>PHP <b>13</b></span>
@@ -233,25 +240,27 @@
 </article>
 <article class="chart-card">
 <h2>WordPress Jobs board snapshots</h2>
-<p>Annual archived snapshots plus the current jobs.wordpress.net page. These are visible open listings, not total postings over each year.</p>
+<p>Quarterly Wayback snapshots plus the current jobs.wordpress.net page. These are visible open listings, not total postings over each quarter.</p>
+<div class="chart-scroll">
 <svg viewBox="0 0 760 300" role="img" aria-label="WordPress Jobs board snapshots">
 <line x1="58" x2="734" y1="252.0" y2="252.0" class="gridline" />
 <text x="48" y="256.0" class="axis" text-anchor="end">0</text>
 <line x1="58" x2="734" y1="147.0" y2="147.0" class="gridline" />
-<text x="48" y="151.0" class="axis" text-anchor="end">22</text>
+<text x="48" y="151.0" class="axis" text-anchor="end">31</text>
 <line x1="58" x2="734" y1="42.0" y2="42.0" class="gridline" />
-<text x="48" y="46.0" class="axis" text-anchor="end">45</text>
-<path d="M58.0,120.8 L133.1,64.5 L208.2,102.0 L283.3,102.0 L358.4,97.3 L433.6,134.8 L508.7,116.1 L583.8,153.6 L658.9,181.7 L734.0,191.1" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
-<circle cx="734.0" cy="191.1" r="4" fill="#2563eb" />
-<path d="M58.0,181.7 L133.1,195.8 L208.2,181.7 L283.3,181.7 L358.4,181.7 L433.6,181.7 L508.7,186.4 L583.8,200.4 L658.9,219.2 L734.0,219.2" fill="none" stroke="#159957" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
-<circle cx="734.0" cy="219.2" r="4" fill="#159957" />
-<path d="M58.0,177.0 L133.1,111.4 L208.2,186.4 L283.3,195.8 L358.4,205.1 L433.6,205.1 L508.7,214.5 L583.8,205.1 L658.9,214.5 L734.0,223.9" fill="none" stroke="#b7791f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
-<circle cx="734.0" cy="223.9" r="4" fill="#b7791f" />
-<path d="M58.0,252.0 L133.1,247.3 L208.2,247.3 L283.3,242.6 L358.4,242.6 L433.6,209.8 L508.7,209.8 L583.8,237.9 L658.9,242.6 L734.0,205.1" fill="none" stroke="#7c3aed" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
-<circle cx="734.0" cy="205.1" r="4" fill="#7c3aed" />
-<text x="58" y="284" class="axis">2016</text>
-<text x="734" y="284" class="axis" text-anchor="end">2026</text>
+<text x="48" y="46.0" class="axis" text-anchor="end">62</text>
+<path d="M58.0,156.5 L81.3,64.5 L104.6,67.9 L127.9,136.1 L151.2,115.6 L174.6,78.1 L197.9,149.7 L221.2,173.6 L244.5,146.3 L267.8,142.9 L291.1,194.0 L314.4,139.5 L337.7,153.1 L361.0,166.8 L384.3,129.3 L407.7,125.9 L431.0,142.9 L454.3,153.1 L477.6,160.0 L500.9,142.9 L524.2,153.1 L547.5,129.3 L570.8,142.9 L594.1,180.4 L617.4,180.4 L640.8,180.4 L664.1,204.3 L687.4,200.9 L710.7,207.7 L734.0,207.7" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="734.0" cy="207.7" r="4" fill="#2563eb" />
+<path d="M58.0,200.9 L81.3,200.9 L104.6,200.9 L127.9,200.9 L151.2,211.1 L174.6,200.9 L197.9,200.9 L221.2,207.7 L244.5,200.9 L267.8,200.9 L291.1,211.1 L314.4,200.9 L337.7,200.9 L361.0,200.9 L384.3,200.9 L407.7,200.9 L431.0,200.9 L454.3,200.9 L477.6,204.3 L500.9,200.9 L524.2,204.3 L547.5,200.9 L570.8,211.1 L594.1,214.5 L617.4,221.3 L640.8,224.7 L664.1,231.5 L687.4,228.1 L710.7,235.0 L734.0,228.1" fill="none" stroke="#159957" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="734.0" cy="228.1" r="4" fill="#159957" />
+<path d="M58.0,197.5 L81.3,132.7 L104.6,139.5 L127.9,173.6 L151.2,149.7 L174.6,142.9 L197.9,211.1 L221.2,200.9 L244.5,204.3 L267.8,211.1 L291.1,217.9 L314.4,217.9 L337.7,224.7 L361.0,217.9 L384.3,207.7 L407.7,197.5 L431.0,245.2 L454.3,248.6 L477.6,224.7 L500.9,228.1 L524.2,224.7 L547.5,217.9 L570.8,238.4 L594.1,217.9 L617.4,235.0 L640.8,228.1 L664.1,238.4 L687.4,224.7 L710.7,235.0 L734.0,231.5" fill="none" stroke="#b7791f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="734.0" cy="231.5" r="4" fill="#b7791f" />
+<path d="M58.0,252.0 L81.3,245.2 L104.6,241.8 L127.9,252.0 L151.2,248.6 L174.6,248.6 L197.9,252.0 L221.2,252.0 L244.5,252.0 L267.8,241.8 L291.1,248.6 L314.4,245.2 L337.7,214.5 L361.0,221.3 L384.3,200.9 L407.7,221.3 L431.0,200.9 L454.3,217.9 L477.6,228.1 L500.9,228.1 L524.2,221.3 L547.5,235.0 L570.8,231.5 L594.1,241.8 L617.4,228.1 L640.8,238.4 L664.1,245.2 L687.4,245.2 L710.7,252.0 L734.0,217.9" fill="none" stroke="#7c3aed" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="734.0" cy="217.9" r="4" fill="#7c3aed" />
+<text x="58" y="284" class="axis">2016 Q1</text>
+<text x="734" y="284" class="axis" text-anchor="end">2026 Q2</text>
 </svg>
+</div>
 <div class="legend">
 <span><i style="background:#2563eb"></i>All listings <b>13</b></span>
 <span><i style="background:#159957"></i>Development <b>7</b></span>
@@ -374,7 +383,7 @@
     </article>
   </section>
 
-  <p class="footer-note">Rows come from <code>hn_hiring_wordpress_quarterly</code>, <code>hn_hiring_demand_summary</code>, <code>remoteok_job_signal_snapshot</code>, <code>remoteok_matching_jobs_snapshot</code>, <code>remotive_job_signal_snapshot</code>, <code>remotive_matching_jobs_snapshot</code>, <code>wordpress_jobs_board_snapshots</code>, <code>wordpress_jobs_board_category_snapshots</code>, and <code>attention_demand_summary</code>. Remote OK source snapshot collected 2026-06-14; Remotive source snapshot collected 2026-06-14. Integrity check: <code>ok</code>.</p>
+  <p class="footer-note">Rows come from <code>hn_hiring_wordpress_quarterly</code>, <code>hn_hiring_demand_summary</code>, <code>remoteok_job_signal_snapshot</code>, <code>remoteok_matching_jobs_snapshot</code>, <code>remotive_job_signal_snapshot</code>, <code>remotive_matching_jobs_snapshot</code>, <code>wordpress_jobs_board_snapshots</code>, <code>wordpress_jobs_board_category_snapshots</code>, <code>wordpress_jobs_board_quarterly_snapshots</code>, <code>wordpress_jobs_board_quarterly_categories</code>, and <code>attention_demand_summary</code>. Remote OK source snapshot collected 2026-06-14; Remotive source snapshot collected 2026-06-14. Integrity check: <code>ok</code>.</p>
 </main>
 </body>
 </html>

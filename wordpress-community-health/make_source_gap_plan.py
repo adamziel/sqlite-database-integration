@@ -33,9 +33,9 @@ PLAN = {
         "order": "3",
         "color": "amber",
         "next_step": "Import a labor-market export such as Lightcast, Indeed/Hiring Lab, LinkedIn, or a comparable source.",
-        "target_tables": ["job_demand_quarterly"],
-        "success": "Quarterly WordPress, PHP, CMS, Shopify, Wix, Squarespace, and Webflow demand rows.",
-        "why": "Separates WordPress-specific demand from narrower HN, Remote OK, Remotive, and jobs.wordpress.net proxies.",
+        "target_tables": ["job_demand_quarterly", "wordpress_jobs_board_quarterly_snapshots"],
+        "success": "Quarterly WordPress, PHP, CMS, Shopify, Wix, Squarespace, and Webflow demand rows, with the current WordPress Jobs board proxy already stored quarterly.",
+        "why": "Separates broad labor-market demand from narrower HN, Remote OK, Remotive, and jobs.wordpress.net proxies.",
     },
     "support_forum_history": {
         "label": "Support history",

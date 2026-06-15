@@ -164,7 +164,7 @@
 
     <section class="metrics" aria-label="Source gap summary">
       <div class="metric"><h3>Partial signals</h3><strong>5</strong><span>Stored in <code>source_gaps</code>.</span></div>
-      <div class="metric"><h3>Database tables</h3><strong>102</strong><span>Existing report tables remain intact.</span></div>
+      <div class="metric"><h3>Database tables</h3><strong>104</strong><span>Existing report tables remain intact.</span></div>
       <div class="metric"><h3>Integrity</h3><strong>ok</strong><span>SQLite integrity check.</span></div>
       <div class="metric"><h3>Next mode</h3><strong>1 at a time</strong><span>Import, validate, then publish each source family.</span></div>
     </section>
@@ -193,7 +193,7 @@
           <span>3</span>
           <div>
             <strong>Job demand</strong>
-            <p>Quarterly WordPress, PHP, CMS, Shopify, Wix, Squarespace, and Webflow demand rows.</p>
+            <p>Quarterly WordPress, PHP, CMS, Shopify, Wix, Squarespace, and Webflow demand rows, with the current WordPress Jobs board proxy already stored quarterly.</p>
           </div>
         </div>
 
@@ -285,13 +285,13 @@
           <span class="order">3</span>
           <div>
             <h2>Job demand</h2>
-            <p>Separates WordPress-specific demand from narrower HN, Remote OK, Remotive, and jobs.wordpress.net proxies.</p>
+            <p>Separates broad labor-market demand from narrower HN, Remote OK, Remotive, and jobs.wordpress.net proxies.</p>
           </div>
         </div>
         <div class="gap-grid">
           <div>
             <h3>Current coverage</h3>
-            <p>HN Who is hiring WordPress/WooCommerce, PHP, and agency/studio mention counts, Remote OK and Remotive current remote-job term counts, WordPress Jobs board open-listing snapshots, a compact proxy-direction summary, and a job-demand companion view are included; broader multi-year labor-market demand still needs a hiring-platform time series.</p>
+            <p>HN Who is hiring WordPress/WooCommerce, PHP, and agency/studio mention counts, Remote OK and Remotive current remote-job term counts, annual and quarterly WordPress Jobs board open-listing snapshots, a compact proxy-direction summary, and a job-demand companion view are included; broader multi-year labor-market demand still needs a hiring-platform time series.</p>
           </div>
           <div>
             <h3>Best next source</h3>
@@ -303,12 +303,12 @@
           </div>
           <div>
             <h3>Target tables</h3>
-            <p class="targets"><code>job_demand_quarterly</code></p>
+            <p class="targets"><code>job_demand_quarterly</code> <code>wordpress_jobs_board_quarterly_snapshots</code></p>
           </div>
         </div>
         <div class="success">
           <b>Done when</b>
-          <span>Quarterly WordPress, PHP, CMS, Shopify, Wix, Squarespace, and Webflow demand rows.</span>
+          <span>Quarterly WordPress, PHP, CMS, Shopify, Wix, Squarespace, and Webflow demand rows, with the current WordPress Jobs board proxy already stored quarterly.</span>
         </div>
       </article>
 

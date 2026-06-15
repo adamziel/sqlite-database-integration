@@ -81,6 +81,8 @@ SKIP_NETWORK_DB_FALLBACK_TABLES = [
     "remotive_matching_jobs_snapshot",
     "wordpress_jobs_board_snapshots",
     "wordpress_jobs_board_category_snapshots",
+    "wordpress_jobs_board_quarterly_snapshots",
+    "wordpress_jobs_board_quarterly_categories",
     "attention_demand_summary",
     "enterprise_vip_case_studies",
     "builtwith_technology_snapshots",
@@ -3212,6 +3214,128 @@ def fetch_wordpress_jobs_board_snapshots(skip_network=False):
     return snapshots, category_rows
 
 
+def wordpress_jobs_quarter_windows(start_year=WORDPRESS_JOBS_ARCHIVE_START_YEAR, end_year=None):
+    if end_year is None:
+        end_year = END.year
+    for year in range(start_year, end_year + 1):
+        for month in (1, 4, 7, 10):
+            start = dt.date(year, month, 1)
+            if start > END.date():
+                continue
+            next_start = dt.date(year + 1, 1, 1) if month == 10 else dt.date(year, month + 3, 1)
+            yield start, next_start - dt.timedelta(days=1)
+
+
+def wordpress_jobs_quarter_cdx_url(start, end):
+    params = [
+        ("url", "jobs.wordpress.net/"),
+        ("from", start.strftime("%Y%m")),
+        ("to", end.strftime("%Y%m")),
+        ("matchType", "exact"),
+        ("filter", "statuscode:200"),
+        ("filter", "mimetype:text/html"),
+        ("collapse", "timestamp:6"),
+        ("output", "json"),
+        ("fl", "timestamp,original,digest"),
+    ]
+    return f"{WAYBACK_CDX_API}?{urllib.parse.urlencode(params)}"
+
+
+def fetch_wordpress_jobs_quarter_cdx_row(start, end):
+    url = wordpress_jobs_quarter_cdx_url(start, end)
+    payload, _headers = fetch_with_retries(fetch_json, url, f"WordPress Jobs CDX {start.isoformat()}", attempts=3, delay=1.5)
+    if not isinstance(payload, list) or len(payload) < 2:
+        return None
+    header = payload[0]
+    candidates = []
+    for item in payload[1:]:
+        if not isinstance(item, list) or len(item) != len(header):
+            continue
+        row = dict(zip(header, item))
+        timestamp = str(row.get("timestamp") or "")
+        if re.match(r"^\d{14}$", timestamp):
+            candidates.append(row)
+    return candidates[0] if candidates else None
+
+
+def fetch_wordpress_jobs_board_quarterly_snapshots(skip_network=False):
+    fallback_snapshots = read_existing_table("wordpress_jobs_board_quarterly_snapshots")
+    fallback_categories = read_existing_table("wordpress_jobs_board_quarterly_categories")
+    if skip_network and fallback_snapshots:
+        return fallback_snapshots, fallback_categories
+    if skip_network:
+        return [], []
+
+    snapshots = []
+    category_rows = []
+    seen_dates = set()
+    for start, end in wordpress_jobs_quarter_windows():
+        try:
+            cdx_row = fetch_wordpress_jobs_quarter_cdx_row(start, end)
+        except Exception as exc:
+            eprint(f"WordPress Jobs quarterly CDX failed for {start.isoformat()}: {exc}")
+            continue
+        if not cdx_row:
+            continue
+        timestamp = str(cdx_row.get("timestamp") or "")
+        snapshot_date = f"{timestamp[0:4]}-{timestamp[4:6]}-{timestamp[6:8]}"
+        if snapshot_date in seen_dates:
+            continue
+        seen_dates.add(snapshot_date)
+        original_url = str(cdx_row.get("original") or WORDPRESS_JOBS_URL)
+        replay_url = wayback_replay_url(timestamp, original_url)
+        try:
+            page_html, _headers = fetch_with_retries(fetch_text, replay_url, f"WordPress Jobs quarterly {timestamp}", attempts=3, delay=1.5)
+        except Exception as exc:
+            eprint(f"WordPress Jobs quarterly archive fetch failed for {timestamp}: {exc}")
+            continue
+        jobs = parse_wordpress_jobs_page(page_html)
+        if not jobs:
+            eprint(f"WordPress Jobs quarterly archive snapshot had no parseable jobs for {timestamp}")
+            continue
+        snapshot = wordpress_jobs_summary_row(
+            snapshot_date,
+            "wayback_quarterly",
+            replay_url,
+            jobs,
+            archive_timestamp=timestamp,
+            archive_digest=str(cdx_row.get("digest") or ""),
+            archive_original_url=original_url,
+        )
+        snapshot["quarter"] = start.isoformat()
+        snapshot["label"] = quarter_label(start.isoformat())
+        snapshots.append(snapshot)
+        for row in wordpress_jobs_category_rows(snapshot, jobs):
+            row["quarter"] = start.isoformat()
+            row["label"] = quarter_label(start.isoformat())
+            category_rows.append(row)
+        time.sleep(0.35)
+
+    try:
+        live_html, _headers = fetch_text(WORDPRESS_JOBS_URL)
+        live_jobs = parse_wordpress_jobs_page(live_html)
+    except Exception as exc:
+        eprint(f"WordPress Jobs current-page quarterly fetch failed: {exc}")
+        live_jobs = []
+    if live_jobs:
+        snapshot_date = live_snapshot_date()
+        current_quarter = quarter_start(snapshot_date) or snapshot_date
+        snapshots = [row for row in snapshots if row.get("quarter") != current_quarter]
+        category_rows = [row for row in category_rows if row.get("quarter") != current_quarter]
+        snapshot = wordpress_jobs_summary_row(snapshot_date, "current_page", WORDPRESS_JOBS_URL, live_jobs)
+        snapshot["quarter"] = current_quarter
+        snapshot["label"] = quarter_label(current_quarter)
+        snapshots.append(snapshot)
+        for row in wordpress_jobs_category_rows(snapshot, live_jobs):
+            row["quarter"] = current_quarter
+            row["label"] = quarter_label(current_quarter)
+            category_rows.append(row)
+
+    snapshots = sorted(snapshots, key=lambda row: (row.get("quarter", ""), row.get("snapshot_date", "")))
+    category_rows = sorted(category_rows, key=lambda row: (row.get("quarter", ""), row.get("category", "")))
+    return snapshots or fallback_snapshots, category_rows or fallback_categories
+
+
 def vip_case_studies_cache_path():
     return CACHE / "wpvip-case-studies.json"
 
@@ -5372,7 +5496,7 @@ def build_database(data, fetched):
             "job_demand",
             "partial",
             "Hacker News monthly Who is hiring? threads, Remote OK and Remotive current jobs, plus hiring-platform exports",
-            "HN Who is hiring WordPress/WooCommerce, PHP, and agency/studio mention counts, Remote OK and Remotive current remote-job term counts, WordPress Jobs board open-listing snapshots, a compact proxy-direction summary, and a job-demand companion view are included; broader multi-year labor-market demand still needs a hiring-platform time series.",
+            "HN Who is hiring WordPress/WooCommerce, PHP, and agency/studio mention counts, Remote OK and Remotive current remote-job term counts, annual and quarterly WordPress Jobs board open-listing snapshots, a compact proxy-direction summary, and a job-demand companion view are included; broader multi-year labor-market demand still needs a hiring-platform time series.",
         )
     )
     if not fetched.get("enterprise_vip_case_studies"):
@@ -6076,7 +6200,7 @@ def nice_ticks(max_value, count=4):
 
 def svg_line_chart(title, note, series_list, height=330, y_suffix="", start_zero=True, show_end_labels=True):
     width = 980
-    left, right, top, bottom = 72, 42, 66, 58
+    left, right, top, bottom = 72, 42, 28, 58
     plot_w = width - left - right
     plot_h = height - top - bottom
     dates = align_dates(series_list)
@@ -6107,8 +6231,6 @@ def svg_line_chart(title, note, series_list, height=330, y_suffix="", start_zero
 
     pieces = [
         f'<svg class="chart" viewBox="0 0 {width} {height}" role="img" aria-label="{html.escape(title)}">',
-        f'<text x="{left}" y="28" class="chart-title">{html.escape(title)}</text>',
-        f'<text x="{left}" y="50" class="chart-note">{html.escape(note)}</text>',
     ]
     for tick in ticks:
         tick_value = tick + (0 if start_zero else y_min)
@@ -6180,7 +6302,20 @@ def svg_line_chart(title, note, series_list, height=330, y_suffix="", start_zero
                 f'<text x="{item["x"]:.1f}" y="{item["y"]:.1f}" class="end-label" fill="{item["color"]}">{html.escape(item["label"])}</text>'
             )
     pieces.append("</svg>")
-    return "\n".join(pieces)
+    svg = "\n".join(pieces)
+    return "\n".join(
+        [
+            '<figure class="chart-frame">',
+            "  <figcaption>",
+            f"    <strong>{html.escape(title)}</strong>",
+            f"    <span>{html.escape(note)}</span>",
+            "  </figcaption>",
+            '  <div class="chart-scroll">',
+            svg,
+            "  </div>",
+            "</figure>",
+        ]
+    )
 
 
 def stat_card(label, value, note="", tone="neutral"):
@@ -6705,7 +6840,7 @@ def source_status_rows(fetched):
         ("HN hiring mentions", "partial" if fetched.get("hn_hiring_wordpress_quarterly") else "missing", "WordPress/WooCommerce, PHP, and agency/studio mentions in monthly Hacker News Who is hiring threads from 2012 onward; not a broad job-board index"),
         ("Remote OK jobs snapshot", "partial" if fetched.get("remoteok_job_signal_snapshot") else "missing", "Current Remote OK public API job snapshot with WordPress, WooCommerce, PHP, hosted-builder, CMS, and agency/studio term counts"),
         ("Remotive jobs snapshot", "partial" if fetched.get("remotive_job_signal_snapshot") else "missing", "Current Remotive public API job snapshot with WordPress, WooCommerce, PHP, hosted-builder, CMS, and agency/studio term counts"),
-        ("WordPress Jobs board", "partial" if fetched.get("wordpress_jobs_board_snapshots") else "missing", "Open-listing snapshots from jobs.wordpress.net current page and annual Internet Archive captures; WordPress-specific, not a broad hiring-platform index"),
+        ("WordPress Jobs board", "partial" if fetched.get("wordpress_jobs_board_snapshots") else "missing", "Open-listing snapshots from jobs.wordpress.net current page plus annual and quarterly Internet Archive captures; WordPress-specific, not a broad hiring-platform index"),
         ("Attention and demand summary", "covered" if fetched.get("attention_demand_summary") else "missing", "Derived compact comparison of Stack Overflow, Wikimedia, HN hiring, and WordPress Jobs proxy direction"),
         ("Enterprise adoption signal", "covered" if fetched.get("enterprise_vip_case_studies") else "missing", "Current public WordPress VIP case-study snapshot with industries and use cases"),
         ("WordPress.org plugin/theme directories", "covered" if fetched.get("directory_snapshots") else "missing", "Current plugin and theme counts"),
@@ -7003,6 +7138,9 @@ def build_report(data, fetched):
     remotive_terms = fetched.get("remotive_job_signal_snapshot", [])
     wordpress_jobs_snapshots = fetched.get("wordpress_jobs_board_snapshots", [])
     wordpress_jobs_categories = fetched.get("wordpress_jobs_board_category_snapshots", [])
+    wordpress_jobs_quarterly = fetched.get("wordpress_jobs_board_quarterly_snapshots", [])
+    wordpress_jobs_for_chart = wordpress_jobs_quarterly or wordpress_jobs_snapshots
+    wordpress_jobs_date_field = "quarter" if wordpress_jobs_quarterly else "snapshot_date"
     enterprise_vip_cases = fetched.get("enterprise_vip_case_studies", [])
     wordcamps = fetched.get("wordcamps", [])
     wordcamp_yearly = fetched.get("wordcamp_yearly", [])
@@ -7932,27 +8070,32 @@ def build_report(data, fetched):
         {
             "label": "Open listings",
             "color": COLORS["wordpress"],
-            "points": point_series(wordpress_jobs_snapshots, "snapshot_date", "total_jobs", "2016-01-01"),
+            "points": point_series(wordpress_jobs_for_chart, wordpress_jobs_date_field, "total_jobs", "2016-01-01"),
         },
         {
             "label": "Development",
             "color": COLORS["core"],
-            "points": point_series(wordpress_jobs_snapshots, "snapshot_date", "development_jobs", "2016-01-01"),
+            "points": point_series(wordpress_jobs_for_chart, wordpress_jobs_date_field, "development_jobs", "2016-01-01"),
         },
         {
             "label": "Project/freelance-style",
             "color": COLORS["orange"],
-            "points": point_series(wordpress_jobs_snapshots, "snapshot_date", "project_jobs", "2016-01-01"),
+            "points": point_series(wordpress_jobs_for_chart, wordpress_jobs_date_field, "project_jobs", "2016-01-01"),
         },
         {
             "label": "Support",
             "color": COLORS["green"],
-            "points": point_series(wordpress_jobs_snapshots, "snapshot_date", "support_jobs", "2016-01-01"),
+            "points": point_series(wordpress_jobs_for_chart, wordpress_jobs_date_field, "support_jobs", "2016-01-01"),
         },
     ]
     latest_jobs_snapshot = max(wordpress_jobs_snapshots, key=lambda row: row.get("snapshot_date", ""), default={})
     jobs_archive_snapshots = [row for row in wordpress_jobs_snapshots if row.get("source_type") == "wayback_archive"]
-    jobs_snapshot_dates = sorted(row.get("snapshot_date", "") for row in wordpress_jobs_snapshots if row.get("snapshot_date"))
+    jobs_quarterly_archive_snapshots = [row for row in wordpress_jobs_quarterly if row.get("source_type") == "wayback_quarterly"]
+    jobs_snapshot_dates = sorted(
+        row.get(wordpress_jobs_date_field, "")
+        for row in wordpress_jobs_for_chart
+        if row.get(wordpress_jobs_date_field)
+    )
     jobs_range_label = (
         f"{jobs_snapshot_dates[0]} to {jobs_snapshot_dates[-1]}"
         if jobs_snapshot_dates
@@ -8275,6 +8418,7 @@ p {{ margin:0 0 12px; }}
 .signal.slower {{ border-top-color:var(--red); }}
 .section {{ margin-top:22px; padding-top:8px; }}
 .grid-2 {{ display:grid; grid-template-columns:1fr 1fr; gap:18px; align-items:start; }}
+.grid-2 > *, .card, .section {{ min-width:0; }}
 .stats {{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin:14px 0 18px; }}
 .decision-stats {{ grid-template-columns:repeat(5,minmax(0,1fr)); }}
 .stat {{ border:1px solid var(--line); border-radius:8px; padding:14px; background:var(--soft); }}
@@ -8284,7 +8428,12 @@ p {{ margin:0 0 12px; }}
 .card {{ border:1px solid var(--line); border-radius:8px; padding:16px; background:#fff; }}
 .card .stats {{ grid-template-columns:repeat(2,minmax(0,1fr)); }}
 .small-note {{ color:var(--muted); font-size:13px; margin-top:2px; }}
-.chart {{ width:100%; height:auto; display:block; border:1px solid var(--line); border-radius:8px; background:#fff; margin:14px 0; }}
+.chart-frame {{ min-width:0; border:1px solid var(--line); border-radius:8px; background:#fff; margin:14px 0; padding:14px; overflow:hidden; }}
+.chart-frame figcaption {{ display:grid; gap:4px; margin:0 0 10px; }}
+.chart-frame figcaption strong {{ font-size:17px; line-height:1.25; }}
+.chart-frame figcaption span {{ color:var(--muted); font-size:13px; line-height:1.35; }}
+.chart-scroll {{ min-width:0; max-width:100%; overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch; }}
+.chart {{ width:100%; height:auto; display:block; border:0; border-radius:0; background:#fff; margin:0; overflow:hidden; }}
 .chart-title {{ font-size:20px; font-weight:800; fill:var(--ink); }}
 .chart-note {{ font-size:13px; fill:var(--muted); }}
 .axis, .legend, .end-label {{ font-size:12px; fill:var(--muted); }}
@@ -8398,6 +8547,7 @@ p {{ margin:0 0 12px; }}
   .evidence-row {{ grid-template-columns:1fr; }}
   .goal-row {{ grid-template-columns:1fr; }}
   .page {{ padding:24px 16px 48px; }}
+  .chart-scroll .chart {{ min-width:680px; }}
 }}
 </style>
 </head>
@@ -9251,7 +9401,7 @@ p {{ margin:0 0 12px; }}
       </div>
     </div>
     <div class="grid-2">
-      {svg_line_chart("WordPress Jobs board open listings", "Annual archived snapshots plus the current jobs.wordpress.net page. This is WordPress-specific open-listing demand, not a broad labor-market index.", wordpress_jobs_series)}
+      {svg_line_chart("WordPress Jobs board open listings", "Quarterly Wayback snapshots plus the current jobs.wordpress.net page. This is WordPress-specific open-listing demand, not a broad labor-market index.", wordpress_jobs_series)}
       <div class="card">
         <h3>Jobs-board readout</h3>
         <p>Open listings on jobs.wordpress.net add a WordPress-specific demand signal. The series is a snapshot view: it counts visible open listings on captured pages, not total postings over the whole year.</p>
@@ -9259,7 +9409,7 @@ p {{ margin:0 0 12px; }}
           {stat_card("Latest open listings", compact(latest_jobs_total), latest_jobs_snapshot.get("snapshot_date", "not fetched"), "soft")}
           {stat_card("Development share", pct(latest_jobs_development_share), f"{compact(latest_development_jobs)} current listings", "soft")}
           {stat_card("Project-style share", pct(latest_jobs_project_share), f"{compact(latest_project_jobs)} current listings", "soft")}
-          {stat_card("Archive snapshots", compact(len(jobs_archive_snapshots)), jobs_range_label, "good" if jobs_archive_snapshots else "watch")}
+          {stat_card("Quarterly snapshots", compact(len(jobs_quarterly_archive_snapshots)), jobs_range_label, "good" if jobs_quarterly_archive_snapshots else "watch")}
         </div>
         {''.join(horizontal_count_metric(str(row.get("category", "")), num(row.get("open_jobs")), max_latest_jobs_category, COLORS["community"] if row.get("category_slug") == "project" else COLORS["core"], " listings") for row in latest_jobs_categories[:6])}
       </div>
@@ -9729,6 +9879,10 @@ def main():
         fetched["wordpress_jobs_board_snapshots"],
         fetched["wordpress_jobs_board_category_snapshots"],
     ) = fetch_wordpress_jobs_board_snapshots(args.skip_network)
+    (
+        fetched["wordpress_jobs_board_quarterly_snapshots"],
+        fetched["wordpress_jobs_board_quarterly_categories"],
+    ) = fetch_wordpress_jobs_board_quarterly_snapshots(args.skip_network)
     fetched["enterprise_vip_case_studies"] = fetch_wordpress_vip_case_studies(args.skip_network)
     fetched["directory_snapshots"] = fetch_wordpress_directory_snapshots(args.skip_network)
     (

@@ -70,7 +70,7 @@ GAP_SUMMARIES = {
     ),
     "job_demand": (
         "Hiring demand",
-        "HN hiring threads, Remote OK and Remotive current jobs, and WordPress Jobs snapshots are in.",
+        "HN hiring threads, Remote OK and Remotive current jobs, and annual plus quarterly WordPress Jobs board snapshots are in.",
         "Add a broad hiring-platform export.",
     ),
     "new_site_share_history": (
@@ -85,8 +85,8 @@ GAP_SUMMARIES = {
     ),
     "support_forum_history": (
         "Support history",
-        "Current support queues and unresolved snapshots are in.",
-        "Add long-running topic and reply history.",
+        "Current support queues plus quarterly Wayback support-view estimates are in.",
+        "Add full topic and reply history if a stable export is available.",
     ),
 }
 
@@ -167,7 +167,7 @@ def render():
             "Quarterly preference",
             "Prefer quarterly time series where the data supports it.",
             "Covered",
-            "Core, Gutenberg, PR, classification, Make/Core, dev-note, archived support-view estimates, support snapshot buckets, Stack Overflow, Wikimedia, HN hiring, plugin downloads, and many market/demand charts use quarterly or monthly-to-quarterly series where available.",
+            "Core, Gutenberg, PR, classification, Make/Core, dev-note, archived support-view estimates, support snapshot buckets, Stack Overflow, Wikimedia, HN hiring, quarterly WordPress Jobs board snapshots, plugin downloads, and many market/demand charts use quarterly or monthly-to-quarterly series where available.",
         ),
         audit_row(
             "Refreshable source metadata",

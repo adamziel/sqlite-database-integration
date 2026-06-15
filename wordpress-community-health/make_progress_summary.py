@@ -87,7 +87,7 @@ GAP_SUMMARIES = {
     },
     "job_demand": {
         "title": "Hiring demand",
-        "current": "HN hiring threads, Remote OK and Remotive current jobs, and WordPress Jobs snapshots are in.",
+        "current": "HN hiring threads, Remote OK and Remotive current jobs, and annual plus quarterly WordPress Jobs board snapshots are in.",
         "next": "Add a broad hiring-platform export.",
     },
     "new_site_share_history": {
@@ -220,7 +220,7 @@ def main():
             link_card("New-site choice", "Current newly found-site, recurring crawl, and traffic-tier readout.", "new_site_choice.html", "amber"),
             link_card("Developer interest", "Help-seeking, public attention, npm and Packagist packages, GitHub topic breadth, hiring proxies, PR flow, and review-comment activity.", "developer_interest.html", "amber"),
             link_card("Search interest", "Wikimedia pageviews, Stack Overflow questions, and autocomplete query-intent snapshots.", "search_interest.html", "amber"),
-            link_card("Job demand", "HN hiring mentions, Remote OK and Remotive current jobs, WordPress Jobs snapshots, and jobs-board categories.", "job_demand.html", "amber"),
+            link_card("Job demand", "HN hiring mentions, Remote OK and Remotive current jobs, quarterly WordPress Jobs snapshots, and jobs-board categories.", "job_demand.html", "amber"),
             link_card("Ecosystem activity", "Non-ticket community channels, plugin and theme breadth, and current ecosystem snapshots.", "ecosystem_activity.html", "green"),
             link_card("Support load", "Current support queues, archive estimates, age buckets, and major-plugin support counts.", "support_load.html", "amber"),
             link_card("Decision brief", "SQLite-generated one-page summary for quick sharing and review.", "decision_brief.html", "amber"),
@@ -237,7 +237,7 @@ def main():
             timeline_item("Tickets", "Built quarterly Core Trac and Gutenberg GitHub metrics for new/closed flow, backlog, reporters, first-time reporters, newcomer return cohorts, bug/feature mix, response time, closure time, stale share, and contributor concentration."),
             timeline_item("Classification", "Loaded bug, feature request, documentation, support, and other classification outputs into the SQLite-backed pipeline."),
             timeline_item("Ecosystem", "Added Core release credits and committers, Make/Core posts and comments, dev notes, WordCamps, events, translation snapshots, Five for the Future, support snapshots, archived support-view estimates, plugin/theme directory samples, plugin and theme search breadth, major plugin stats, and enterprise case studies."),
-            timeline_item("Adoption", "Added W3Techs, HTTP Archive, BuiltWith, WordPress.org runtime stats, Stack Overflow, Wikimedia, autocomplete query-intent snapshots, Packagist Composer package snapshots, GitHub topic-search breadth, Hacker News hiring threads, Remote OK and Remotive current jobs, WordPress Jobs snapshots, compact new-site summaries, and attention/demand proxy summaries."),
+            timeline_item("Adoption", "Added W3Techs, HTTP Archive, BuiltWith, WordPress.org runtime stats, Stack Overflow, Wikimedia, autocomplete query-intent snapshots, Packagist Composer package snapshots, GitHub topic-search breadth, Hacker News hiring threads, Remote OK and Remotive current jobs, annual and quarterly WordPress Jobs snapshots, compact new-site summaries, and attention/demand proxy summaries."),
             timeline_item("Companions", 'Added focused pages for <a href="project_load.html">Project Load</a>, <a href="market_position.html">Market Position</a>, <a href="new_site_choice.html">New-site Choice</a>, <a href="search_interest.html">Search Interest</a>, <a href="developer_interest.html">Developer Interest</a>, <a href="job_demand.html">Job Demand</a>, <a href="support_load.html">Support Load</a>, <a href="contributor_depth.html">Contributor Depth</a>, <a href="ecosystem_activity.html">Ecosystem Activity</a>, and <a href="source_gap_plan.html">Source Gap Plan</a>.'),
             timeline_item("Decision brief", "Added <code>make_decision_brief.py</code> so installed share, current new-site proxy, closure ratios, first-time reporter retention, backlog age, contributor concentration, npm package downloads, and theme sample counts regenerate from SQLite."),
             timeline_item("Evidence map", "Added <code>decision_question_evidence</code>, a SQLite-backed map that labels each decision answer as direct, mixed, or proxy-backed evidence."),

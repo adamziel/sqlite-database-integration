@@ -172,6 +172,7 @@ def multi_line_chart(title, note, series, value_decimals=0):
         '<article class="chart-card">',
         f'<h2>{esc(title)}</h2>',
         f'<p>{esc(note)}</p>',
+        '<div class="chart-scroll">',
         f'<svg viewBox="0 0 {width} {height}" role="img" aria-label="{esc(title)}">',
     ]
     for tick in [0, y_top / 2, y_top]:
@@ -194,6 +195,7 @@ def multi_line_chart(title, note, series, value_decimals=0):
     pieces.append(f'<text x="{left}" y="{height - 16}" class="axis">{esc(first_label)}</text>')
     pieces.append(f'<text x="{width - right}" y="{height - 16}" class="axis" text-anchor="end">{esc(last_label)}</text>')
     pieces.append("</svg>")
+    pieces.append("</div>")
     pieces.append('<div class="legend">')
     for item in series:
         latest_value = item["points"][-1][1]
@@ -216,6 +218,11 @@ def main():
         hn_summary = rows(conn, "SELECT * FROM hn_hiring_demand_summary ORDER BY window")
         jobs = rows(conn, "SELECT * FROM wordpress_jobs_board_snapshots ORDER BY snapshot_date")
         categories = rows(conn, "SELECT * FROM wordpress_jobs_board_category_snapshots ORDER BY snapshot_date, category")
+        quarterly_jobs = (
+            rows(conn, "SELECT * FROM wordpress_jobs_board_quarterly_snapshots ORDER BY quarter, snapshot_date")
+            if table_exists(conn, "wordpress_jobs_board_quarterly_snapshots")
+            else []
+        )
         attention = rows(conn, "SELECT * FROM attention_demand_summary WHERE signal IN ('hn_wordpress_woocommerce_hiring_rate','wordpress_jobs_open_listings','wordpress_jobs_development_listings')")
         remoteok_terms = (
             rows(conn, "SELECT * FROM remoteok_job_signal_snapshot ORDER BY CAST(matching_jobs AS REAL) DESC, term")
@@ -243,6 +250,9 @@ def main():
 
     latest_hn = latest(hn, "quarter")
     latest_jobs = latest(jobs, "snapshot_date")
+    jobs_for_chart = quarterly_jobs or jobs
+    jobs_chart_date_key = "quarter" if quarterly_jobs else "snapshot_date"
+    jobs_chart_label = (lambda value: quarter_label(value)) if quarterly_jobs else date_year
     summary_by_window = {row.get("window"): row for row in hn_summary}
     latest_4q = summary_by_window.get("latest_4q", {})
     pre_2024 = summary_by_window.get("pre_2024", {})
@@ -344,12 +354,12 @@ def main():
     )
     jobs_chart = multi_line_chart(
         "WordPress Jobs board snapshots",
-        "Annual archived snapshots plus the current jobs.wordpress.net page. These are visible open listings, not total postings over each year.",
+        "Quarterly Wayback snapshots plus the current jobs.wordpress.net page. These are visible open listings, not total postings over each quarter.",
         [
-            {"name": "All listings", "color": COLORS["blue"], "points": point_series(jobs, "snapshot_date", "total_jobs", date_year)},
-            {"name": "Development", "color": COLORS["green"], "points": point_series(jobs, "snapshot_date", "development_jobs", date_year)},
-            {"name": "Project", "color": COLORS["amber"], "points": point_series(jobs, "snapshot_date", "project_jobs", date_year)},
-            {"name": "Remote", "color": COLORS["violet"], "points": point_series(jobs, "snapshot_date", "remote_jobs", date_year)},
+            {"name": "All listings", "color": COLORS["blue"], "points": point_series(jobs_for_chart, jobs_chart_date_key, "total_jobs", jobs_chart_label)},
+            {"name": "Development", "color": COLORS["green"], "points": point_series(jobs_for_chart, jobs_chart_date_key, "development_jobs", jobs_chart_label)},
+            {"name": "Project", "color": COLORS["amber"], "points": point_series(jobs_for_chart, jobs_chart_date_key, "project_jobs", jobs_chart_label)},
+            {"name": "Remote", "color": COLORS["violet"], "points": point_series(jobs_for_chart, jobs_chart_date_key, "remote_jobs", jobs_chart_label)},
         ],
         value_decimals=0,
     )
@@ -453,9 +463,11 @@ def main():
     .metric strong {{ display:block; font-size:32px; line-height:1; margin:6px 0 8px; }}
     .metric p {{ font-size:14px; }}
     .grid {{ display:grid; grid-template-columns:1fr 1fr; gap:14px; align-items:start; }}
+    .grid > *, .charts > *, .section, .chart-card {{ min-width:0; }}
     .charts {{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px; }}
     .chart-card p, .section p {{ font-size:14px; margin-bottom:10px; }}
-    svg {{ display:block; width:100%; height:auto; overflow:visible; }}
+    svg {{ display:block; width:100%; height:auto; overflow:hidden; }}
+    .chart-scroll {{ min-width:0; max-width:100%; overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch; }}
     .gridline {{ stroke:#e6edf5; stroke-width:1; }}
     .axis {{ fill:#64748b; font-size:12px; }}
     .legend {{ display:flex; flex-wrap:wrap; gap:8px 13px; margin-top:8px; font-size:13px; color:var(--muted); }}
@@ -482,6 +494,7 @@ def main():
       .metrics, .grid, .charts {{ grid-template-columns:1fr; }}
       .metric {{ min-height:auto; }}
       .signal-row {{ align-items:flex-start; flex-direction:column; }}
+      .chart-scroll svg {{ min-width:640px; }}
       .signal-row b, .bar-label strong {{ white-space:normal; }}
     }}
   </style>
@@ -537,7 +550,7 @@ def main():
     </article>
   </section>
 
-  <p class="footer-note">Rows come from <code>hn_hiring_wordpress_quarterly</code>, <code>hn_hiring_demand_summary</code>, <code>remoteok_job_signal_snapshot</code>, <code>remoteok_matching_jobs_snapshot</code>, <code>remotive_job_signal_snapshot</code>, <code>remotive_matching_jobs_snapshot</code>, <code>wordpress_jobs_board_snapshots</code>, <code>wordpress_jobs_board_category_snapshots</code>, and <code>attention_demand_summary</code>. Remote OK source snapshot collected {esc(remoteok_collected[:10])}; Remotive source snapshot collected {esc(remotive_collected[:10])}. Integrity check: <code>{esc(integrity)}</code>.</p>
+  <p class="footer-note">Rows come from <code>hn_hiring_wordpress_quarterly</code>, <code>hn_hiring_demand_summary</code>, <code>remoteok_job_signal_snapshot</code>, <code>remoteok_matching_jobs_snapshot</code>, <code>remotive_job_signal_snapshot</code>, <code>remotive_matching_jobs_snapshot</code>, <code>wordpress_jobs_board_snapshots</code>, <code>wordpress_jobs_board_category_snapshots</code>, <code>wordpress_jobs_board_quarterly_snapshots</code>, <code>wordpress_jobs_board_quarterly_categories</code>, and <code>attention_demand_summary</code>. Remote OK source snapshot collected {esc(remoteok_collected[:10])}; Remotive source snapshot collected {esc(remotive_collected[:10])}. Integrity check: <code>{esc(integrity)}</code>.</p>
 </main>
 </body>
 </html>

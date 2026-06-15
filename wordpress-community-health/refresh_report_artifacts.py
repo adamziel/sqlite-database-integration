@@ -71,6 +71,7 @@ HTML_ARTIFACTS = {
         "WordPress job demand",
         "HN hiring mention rates",
         "WordPress Jobs board snapshots",
+        "wordpress_jobs_board_quarterly_snapshots",
         "Remotive current term matches",
     ],
     "search_interest.html": [

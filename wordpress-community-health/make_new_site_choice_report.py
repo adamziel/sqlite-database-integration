@@ -271,6 +271,86 @@ def multi_line_chart(title, note, series, value_decimals=1, y_suffix="%", start_
     return "\n".join(pieces)
 
 
+def stacked_area_chart(title, note, layers):
+    clean = []
+    for layer in layers:
+        points = [(str(label), num(value)) for label, value in layer.get("points", []) if label]
+        if points:
+            clean.append(
+                {
+                    "name": layer["name"],
+                    "color": layer["color"],
+                    "points": dict(points),
+                }
+            )
+    labels = sorted({label for layer in clean for label in layer["points"]})
+    if not clean or not labels:
+        return ""
+    width, height = 760, 330
+    left, right, top, bottom = 58, 28, 46, 72
+    plot_w = width - left - right
+    plot_h = height - top - bottom
+
+    def x(index):
+        if len(labels) <= 1:
+            return left + plot_w
+        return left + index / (len(labels) - 1) * plot_w
+
+    def y(value):
+        return top + (1 - max(0, min(100, value)) / 100) * plot_h
+
+    pieces = [
+        '<article class="chart-card">',
+        f'<h2>{esc(title)}</h2>',
+        f'<p>{esc(note)}</p>',
+        f'<svg viewBox="0 0 {width} {height}" role="img" aria-label="{esc(title)}">',
+    ]
+    for tick in [0, 25, 50, 75, 100]:
+        yy = y(tick)
+        pieces.append(f'<line x1="{left}" x2="{width - right}" y1="{yy:.1f}" y2="{yy:.1f}" class="gridline" />')
+        pieces.append(f'<text x="{left - 9}" y="{yy + 4:.1f}" class="axis" text-anchor="end">{tick}%</text>')
+    x_ticks = labels if len(labels) <= 6 else [labels[round(i * (len(labels) - 1) / 5)] for i in range(6)]
+    seen = set()
+    for label in x_ticks:
+        if label in seen:
+            continue
+        seen.add(label)
+        pieces.append(f'<text x="{x(labels.index(label)):.1f}" y="{height - 34}" class="axis" text-anchor="middle">{esc(label[:7])}</text>')
+    cumulative = {label: 0.0 for label in labels}
+    latest_values = []
+    for layer in clean:
+        top_points = []
+        bottom_points = []
+        for index, label in enumerate(labels):
+            bottom_value = cumulative[label]
+            value = layer["points"].get(label, 0)
+            top_value = bottom_value + value
+            cumulative[label] = top_value
+            top_points.append((x(index), y(top_value)))
+            bottom_points.append((x(index), y(bottom_value)))
+        top_path = " ".join(
+            ("M" if index == 0 else "L") + f"{xx:.1f},{yy:.1f}"
+            for index, (xx, yy) in enumerate(top_points)
+        )
+        bottom_path = " ".join(f"L{xx:.1f},{yy:.1f}" for xx, yy in reversed(bottom_points))
+        pieces.append(f'<path d="{top_path} {bottom_path} Z" fill="{esc(layer["color"])}" opacity="0.78" />')
+        pieces.append(
+            f'<path d="{top_path}" fill="none" stroke="{esc(layer["color"])}" stroke-width="1.5" '
+            'stroke-linejoin="round" />'
+        )
+        latest_values.append((layer["name"], layer["color"], layer["points"].get(labels[-1], 0)))
+    pieces.append("</svg>")
+    pieces.append('<div class="legend">')
+    for name, color, latest in latest_values:
+        pieces.append(
+            f'<span><i style="background:{esc(color)}"></i>{esc(name)} '
+            f'<b>{pct(latest)}</b></span>'
+        )
+    pieces.append("</div>")
+    pieces.append("</article>")
+    return "\n".join(pieces)
+
+
 def points_for(rows_, technology, value_key):
     return [
         (row.get("label") or row.get("date", "")[:7], row.get(value_key))
@@ -530,8 +610,68 @@ def main():
     site_latest_all = num(site_all_by_date.get(site_latest_date, {}).get("mobile_origins"))
     site_latest_rows = [row for row in site_rows if row.get("date") == site_latest_date]
     site_latest_by_tech = {row.get("technology"): row for row in site_latest_rows}
-    site_latest_top = sorted(site_latest_rows, key=lambda row: num(row.get("mobile_origins")), reverse=True)[:12]
-    site_latest_max = max([num(row.get("mobile_origins")) for row in site_latest_top] or [1])
+    site_by_date_tech = {
+        (row.get("date"), row.get("technology")): row
+        for row in site_rows
+    }
+    bucket_defs = [
+        ("all_other", "All other sites/tools", [], COLORS["ink"]),
+        ("wordpress", "WordPress", ["WordPress"], COLORS["WordPress"]),
+        ("shopify", "Shopify", ["Shopify"], COLORS["Shopify"]),
+        (
+            "other_builders",
+            "Other CMS/builders",
+            ["Wix", "Squarespace", "Webflow", "Duda", "Tilda"],
+            COLORS["Wix"],
+        ),
+        ("nextjs", "Next.js", ["Next.js"], "#111827"),
+        (
+            "static_generators",
+            "Static/app generators",
+            ["Nuxt.js", "Astro", "Gatsby", "Hugo", "Jekyll", "Eleventy"],
+            COLORS["violet"],
+        ),
+        ("ai_builders", "AI/visual builders", ["Framer Sites", "Lovable", "Base44"], "#dc2626"),
+    ]
+    bucket_points = {key: [] for key, _label, _technologies, _color in bucket_defs}
+    latest_buckets = {}
+    for date_value in site_dates:
+        all_mobile = num(site_all_by_date.get(date_value, {}).get("mobile_origins"))
+        if not all_mobile:
+            continue
+        selected = 0
+        counts = {}
+        for key, _label, technologies, _color in bucket_defs:
+            if key == "all_other":
+                continue
+            count = sum(
+                num(site_by_date_tech.get((date_value, technology), {}).get("mobile_origins"))
+                for technology in technologies
+            )
+            counts[key] = count
+            selected += count
+        counts["all_other"] = max(0, all_mobile - selected)
+        for key, label, technologies, color in bucket_defs:
+            count = counts.get(key, 0)
+            share = count / all_mobile * 100 if all_mobile else 0
+            bucket_points[key].append((date_value, share))
+            if date_value == site_latest_date:
+                latest_buckets[key] = {
+                    "label": label,
+                    "technologies": technologies,
+                    "color": color,
+                    "mobile_origins": count,
+                    "share": share,
+                }
+    split_layers = [
+        {
+            "name": label,
+            "color": color,
+            "points": bucket_points.get(key, []),
+        }
+        for key, label, _technologies, color in bucket_defs
+    ]
+    latest_bucket_max = max([row.get("share", 0) for row in latest_buckets.values()] or [1])
     wp_all_site = {
         row.get("date"): num(row.get("value"))
         for row in market_share
@@ -688,69 +828,20 @@ def main():
         y_suffix="",
         start_zero=False,
     )
-    broad_site_chart = multi_line_chart(
-        "Broad site-creation signals",
-        "Selected HTTP Archive technology detections as a share of all mobile origins. These detections overlap, so the lines should not be summed.",
-        [
-            {
-                "name": tech,
-                "color": site_latest_by_tech.get(tech, {}).get("color") or COLORS.get(tech, COLORS["ink"]),
-                "points": points_for(site_rows, tech, "mobile_all_origin_share_pct"),
-            }
-            for tech in ["WordPress", "Shopify", "Wix", "Next.js", "Vercel", "Nuxt.js", "Astro", "Lovable"]
-        ],
-        value_decimals=1,
-        y_suffix="%",
+    all_sites_split_chart = stacked_area_chart(
+        "All sites by selected site-creation signal",
+        "Stacked share of all HTTP Archive mobile origins. Buckets use aggregate technology detections and all other sites/tools is the residual after selected buckets.",
+        split_layers,
     )
-    static_site_chart = multi_line_chart(
-        "Static and app framework detected origins",
-        "Next.js and Nuxt.js are static/hybrid app-framework signals; Astro, Gatsby, Hugo, Jekyll, and Eleventy are closer SSG signals.",
-        [
-            {
-                "name": tech,
-                "color": site_latest_by_tech.get(tech, {}).get("color") or COLORS.get(tech, COLORS["ink"]),
-                "points": points_for(site_rows, tech, "mobile_origins"),
-            }
-            for tech in ["Next.js", "Nuxt.js", "Astro", "Gatsby", "Hugo", "Jekyll", "Eleventy"]
-        ],
-        value_decimals=0,
-        y_suffix="",
-    )
-    ai_builder_chart = multi_line_chart(
-        "AI-era builder detected origins",
-        "Lovable and Base44 are direct AI-builder signals in HTTP Archive/Wappalyzer data. Framer Sites is a broader visual-builder signal with AI-assisted creation features.",
-        [
-            {
-                "name": tech,
-                "color": site_latest_by_tech.get(tech, {}).get("color") or COLORS.get(tech, COLORS["ink"]),
-                "points": points_for(site_rows, tech, "mobile_origins"),
-            }
-            for tech in ["Framer Sites", "Lovable", "Base44"]
-        ],
-        value_decimals=0,
-        y_suffix="",
-    )
-    no_cms_chart = multi_line_chart(
-        "W3Techs no-CMS/custom/static residual",
-        "Inferred from WordPress all-site share divided by WordPress CMS-share. This approximates sites without a detected CMS: custom builds, static HTML, SSG output, web apps, and unknowns.",
-        [
-            {
-                "name": "No CMS/custom/static/unknown",
-                "color": COLORS["amber"],
-                "points": no_cms_points,
-            }
-        ],
-        value_decimals=1,
-        y_suffix="%",
-    )
-    latest_site_bars = "".join(
+    latest_split_bars = "".join(
         bar_row(
-            f"{row.get('technology')} - {pct(row.get('mobile_all_origin_share_pct'))} all origins",
-            row.get("mobile_origins"),
-            site_latest_max,
+            row.get("label"),
+            row.get("share"),
+            latest_bucket_max,
             row.get("color") or COLORS["ink"],
+            suffix="%",
         )
-        for row in site_latest_top
+        for row in latest_buckets.values()
     )
     origin_chart = multi_line_chart(
         "Quarterly detected mobile origins",
@@ -917,25 +1008,12 @@ def main():
     </section>
 
     <section class="grid" style="margin-top:14px">
-      {broad_site_chart}
+      {all_sites_split_chart}
       <article class="panel">
-        <h2>Latest broad detected-origin counts</h2>
-        <p>Latest HTTP Archive mobile-crawl detections across CMS/builders, app frameworks, static generators, deployment surfaces, and AI-era builders. Labels show share of all HTTP Archive mobile origins.</p>
-        <div class="bar-stack">{latest_site_bars}</div>
-        <p class="footer-note">Latest all-origin denominator: {compact(site_latest_all)} mobile origins on {esc(site_latest_date)}. Overlapping detections mean these are technology-presence signals, not additive market shares.</p>
-      </article>
-    </section>
-
-    <section class="grid" style="margin-top:14px">
-      {static_site_chart}
-      {ai_builder_chart}
-    </section>
-
-    <section class="grid" style="margin-top:14px">
-      {no_cms_chart}
-      <article class="panel">
-        <h2>Plain HTML and custom sites</h2>
-        <p>Pure HTML is not a named technology in the aggregate HTTP Archive API. The best public proxy here is the W3Techs no-CMS/custom/static/unknown residual, currently {pct(no_cms_latest)}. It includes hand-coded HTML, custom apps, static generators, and sites whose CMS is not detected.</p>
+        <h2>Latest all-sites bucket split</h2>
+        <p>Latest selected-bucket split from the same area chart. All other sites/tools includes pure HTML, custom apps, unknown/no detected tool, deployment-only signals, and tools outside the selected buckets.</p>
+        <div class="bar-stack">{latest_split_bars}</div>
+        <p class="footer-note">Latest all-origin denominator: {compact(site_latest_all)} mobile origins on {esc(site_latest_date)}. Buckets use aggregate detections, so this is directional rather than origin-level deduplicated.</p>
       </article>
     </section>
 

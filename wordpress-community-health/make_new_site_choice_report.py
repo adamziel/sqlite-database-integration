@@ -4,8 +4,11 @@ import sqlite3
 from pathlib import Path
 
 
-ROOT = Path("/Users/admin/wordpress_community_health")
+ROOT = Path(__file__).resolve().parent
+SOURCE_ROOT = Path("/Users/admin/wordpress_community_health")
 DB_PATH = ROOT / "community_health.sqlite"
+if not DB_PATH.exists():
+    DB_PATH = SOURCE_ROOT / "community_health.sqlite"
 OUT = ROOT / "new_site_choice.html"
 
 COLORS = {
@@ -187,7 +190,7 @@ def tier_line_chart(title, note, rows_):
     return "\n".join(pieces)
 
 
-def multi_line_chart(title, note, series, value_decimals=1, y_suffix="%"):
+def multi_line_chart(title, note, series, value_decimals=1, y_suffix="%", start_zero=True):
     clean = []
     for item in series:
         points = [(str(label), num(value)) for label, value in item.get("points", []) if value is not None]
@@ -200,8 +203,15 @@ def multi_line_chart(title, note, series, value_decimals=1, y_suffix="%"):
     plot_w = width - left - right
     plot_h = height - top - bottom
     values = [value for item in clean for _label, value in item["points"]]
+    y_min = 0 if start_zero else min(values or [0])
     y_max = max(values or [1])
-    y_top = max(1, y_max + max(1, y_max * 0.1))
+    if y_min == y_max:
+        y_max = y_min + 1
+    span = y_max - y_min
+    y_bottom = y_min - (0 if start_zero else span * 0.08)
+    y_top = y_max + max(1 if start_zero else span * 0.08, abs(y_max) * 0.05)
+    if y_bottom == y_top:
+        y_top = y_bottom + 1
     max_points = max(len(item["points"]) for item in clean)
 
     def x(index):
@@ -210,7 +220,7 @@ def multi_line_chart(title, note, series, value_decimals=1, y_suffix="%"):
         return left + index / (max_points - 1) * plot_w
 
     def y(value):
-        return top + (1 - value / y_top) * plot_h
+        return top + (1 - ((value - y_bottom) / (y_top - y_bottom))) * plot_h
 
     def fmt(value):
         if y_suffix == "":
@@ -223,7 +233,11 @@ def multi_line_chart(title, note, series, value_decimals=1, y_suffix="%"):
         f'<p>{esc(note)}</p>',
         f'<svg viewBox="0 0 {width} {height}" role="img" aria-label="{esc(title)}">',
     ]
-    for tick in [0, y_top / 2, y_top]:
+    if start_zero:
+        ticks = [0, y_top / 2, y_top]
+    else:
+        ticks = [y_bottom, 0, y_top] if y_bottom < 0 < y_top else [y_bottom, (y_bottom + y_top) / 2, y_top]
+    for tick in ticks:
         yy = y(tick)
         pieces.append(f'<line x1="{left}" x2="{width - right}" y1="{yy:.1f}" y2="{yy:.1f}" class="gridline" />')
         pieces.append(f'<text x="{left - 9}" y="{yy + 4:.1f}" class="axis" text-anchor="end">{esc(fmt(tick))}</text>')
@@ -263,6 +277,50 @@ def points_for(rows_, technology, value_key):
         for row in rows_
         if row.get("technology") == technology
     ]
+
+
+def derive_quarterly_change_rows(rows_):
+    by_technology = {}
+    for row in rows_:
+        technology = row.get("technology")
+        if not technology:
+            continue
+        by_technology.setdefault(technology, []).append(row)
+
+    changes = []
+    for technology, tech_rows in sorted(by_technology.items()):
+        previous = None
+        for row in sorted(tech_rows, key=lambda item: item.get("date", "")):
+            if previous is None:
+                previous = row
+                continue
+            origin_delta = num(row.get("mobile_origins")) - num(previous.get("mobile_origins"))
+            share_delta = num(row.get("mobile_tracked_share_pct")) - num(previous.get("mobile_tracked_share_pct"))
+            changes.append(
+                {
+                    "date": row.get("date", ""),
+                    "label": row.get("label", ""),
+                    "technology": technology,
+                    "months": row.get("months", ""),
+                    "mobile_origins": row.get("mobile_origins", ""),
+                    "mobile_origin_delta": origin_delta,
+                    "mobile_tracked_share_pct": row.get("mobile_tracked_share_pct", ""),
+                    "mobile_tracked_share_delta_pts": share_delta,
+                    "positive_mobile_origin_delta": max(0, origin_delta),
+                }
+            )
+            previous = row
+
+    totals = {}
+    for row in changes:
+        totals[row["date"]] = totals.get(row["date"], 0) + row["positive_mobile_origin_delta"]
+    for row in changes:
+        total = totals.get(row["date"], 0)
+        row["tracked_positive_mobile_origin_delta"] = total
+        row["positive_delta_tracked_share_pct"] = (
+            row["positive_mobile_origin_delta"] / total * 100 if total else 0
+        )
+    return changes
 
 
 def rank_snapshot(rows_):
@@ -413,6 +471,19 @@ def main():
     http_change = by_signal.get("http_archive_tracked_share_change", {})
     top_1m = by_signal.get("builtwith_top_1m_tracked_share", {})
     long_tail = by_signal.get("builtwith_long_tail_tracked_share", {})
+    http_change_rows = derive_quarterly_change_rows(http_share)
+    wp_change_rows = sorted(
+        [row for row in http_change_rows if row.get("technology") == "WordPress"],
+        key=lambda row: row.get("date", ""),
+    )
+    wp_latest_change = wp_change_rows[-1] if wp_change_rows else {}
+    wp_latest_change_label = wp_latest_change.get("label", "")
+    wp_latest_change_months = int(num(wp_latest_change.get("months"))) if wp_latest_change else 0
+    wp_latest_change_note = (
+        f"{wp_latest_change_label}; {wp_latest_change_months}/3 months"
+        if wp_latest_change_label and wp_latest_change_months and wp_latest_change_months < 3
+        else wp_latest_change_label
+    )
 
     metrics = "".join(
         [
@@ -439,6 +510,18 @@ def main():
                 signed_pts(http_change.get("wordpress_value")),
                 "WordPress tracked-share change since 2020-01",
                 "amber",
+            ),
+            metric_card(
+                "Latest q/q share change",
+                signed_pts(wp_latest_change.get("mobile_tracked_share_delta_pts")),
+                wp_latest_change_note or "HTTP Archive quarter change",
+                "amber",
+            ),
+            metric_card(
+                "Latest net origin change",
+                compact(wp_latest_change.get("mobile_origin_delta")),
+                "WordPress detected mobile origins",
+                "amber" if num(wp_latest_change.get("mobile_origin_delta")) < 0 else "blue",
             ),
             metric_card("Top 1M tracked share", pct(top_1m.get("wordpress_share_pct")), "BuiltWith current traffic-tier snapshot", "violet"),
             metric_card("Long-tail tracked share", pct(long_tail.get("wordpress_share_pct")), "BuiltWith current outside-Top-1M snapshot", "violet"),
@@ -495,6 +578,48 @@ def main():
         ],
         value_decimals=1,
         y_suffix="%",
+    )
+    positive_delta_share_chart = multi_line_chart(
+        "WordPress share of positive net additions",
+        "Share of positive quarter-over-quarter mobile-origin additions within the tracked set. Quarters where WordPress lost detected origins are shown as 0%.",
+        [
+            {
+                "name": "WordPress positive net-addition share",
+                "color": COLORS["WordPress"],
+                "points": points_for(http_change_rows, "WordPress", "positive_delta_tracked_share_pct"),
+            }
+        ],
+        value_decimals=1,
+        y_suffix="%",
+    )
+    share_change_chart = multi_line_chart(
+        "WordPress tracked-share change by quarter",
+        "Quarter-over-quarter change in WordPress mobile tracked share, in percentage points. This is crawl-share movement, not literal first-published-site share.",
+        [
+            {
+                "name": "WordPress q/q share change",
+                "color": COLORS["amber"],
+                "points": points_for(http_change_rows, "WordPress", "mobile_tracked_share_delta_pts"),
+            }
+        ],
+        value_decimals=1,
+        y_suffix=" pts",
+        start_zero=False,
+    )
+    origin_change_chart = multi_line_chart(
+        "Net detected mobile-origin change",
+        "Quarter-over-quarter change in average mobile detected origins. Use this as a noisy proxy for newly observed presence, not as a count of newly published websites.",
+        [
+            {
+                "name": tech,
+                "color": COLORS[tech],
+                "points": points_for(http_change_rows, tech, "mobile_origin_delta"),
+            }
+            for tech in tech_order
+        ],
+        value_decimals=0,
+        y_suffix="",
+        start_zero=False,
     )
     origin_chart = multi_line_chart(
         "Quarterly detected mobile origins",
@@ -648,6 +773,25 @@ def main():
 
     <section class="grid" style="margin-top:14px">
       {share_chart}
+      <article class="panel">
+        <h2>Source limit</h2>
+        <p>No public source found in this pass exposes a historical first-published-site cohort by CMS. This view therefore combines BuiltWith's current newly found-site pipeline with HTTP Archive quarterly detected-origin proxies.</p>
+        <div class="readout">
+          <div><strong>Closest current signal</strong><span>BuiltWith Net New Pipeline gives current 30/90-day newly found counts where public pages expose them.</span></div>
+          <div><strong>Closest historical signal</strong><span>HTTP Archive gives recurring monthly technology adoption counts by detected origin.</span></div>
+          <div><strong>True cohort need</strong><span>Requires origin-level first-seen joins in BigQuery or a historical BuiltWith export.</span></div>
+        </div>
+        <p class="footer-note">Checked sources: <a href="https://trends.builtwith.com/cms/WordPress">BuiltWith Net New Pipeline</a>, <a href="https://github.com/HTTPArchive/tech-report-apis">HTTP Archive Technology Report API</a>, <a href="https://har.fyi/guides/getting-started/">HTTP Archive BigQuery guide</a>, and <a href="https://w3techs.com/technologies">W3Techs methodology</a>.</p>
+      </article>
+    </section>
+
+    <section class="grid" style="margin-top:14px">
+      {positive_delta_share_chart}
+      {share_change_chart}
+    </section>
+
+    <section class="grid" style="margin-top:14px">
+      {origin_change_chart}
       {origin_chart}
     </section>
 

@@ -1293,6 +1293,71 @@ def derive_http_archive_tracked_share_quarterly(monthly_rows):
     return rows
 
 
+def derive_http_archive_quarterly_detected_origin_change(quarterly_rows):
+    by_technology = defaultdict(list)
+    for row in quarterly_rows or []:
+        technology = row.get("technology") or ""
+        if not technology:
+            continue
+        if (row.get("rank") or "ALL") != "ALL" or (row.get("geo") or "ALL") != "ALL":
+            continue
+        by_technology[technology].append(row)
+
+    rows = []
+    collected_at = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
+    for technology, items in sorted(by_technology.items()):
+        previous = None
+        for item in sorted(items, key=lambda value: value.get("quarter", "")):
+            if previous is None:
+                previous = item
+                continue
+            origin_delta = num(item.get("avg_mobile_origins")) - num(previous.get("avg_mobile_origins"))
+            share_delta = fnum(item.get("avg_mobile_tracked_share_pct")) - fnum(
+                previous.get("avg_mobile_tracked_share_pct")
+            )
+            rows.append(
+                {
+                    "quarter": item.get("quarter", ""),
+                    "label": item.get("label", ""),
+                    "technology": technology,
+                    "rank": item.get("rank", "ALL"),
+                    "geo": item.get("geo", "ALL"),
+                    "months": item.get("months", ""),
+                    "avg_mobile_origins": item.get("avg_mobile_origins", ""),
+                    "previous_avg_mobile_origins": previous.get("avg_mobile_origins", ""),
+                    "mobile_origin_delta": round(origin_delta, 2),
+                    "mobile_tracked_share_pct": item.get("avg_mobile_tracked_share_pct", ""),
+                    "previous_mobile_tracked_share_pct": previous.get("avg_mobile_tracked_share_pct", ""),
+                    "mobile_tracked_share_delta_pts": round(share_delta, 4),
+                    "latest_month": item.get("latest_month", ""),
+                    "source": "Derived quarter-over-quarter proxy from HTTP Archive tracked-share quarterly rows",
+                    "source_url": HTTP_ARCHIVE_TECH_REPORT_URL,
+                    "collected_at": collected_at,
+                }
+            )
+            previous = item
+
+    positive_totals = defaultdict(float)
+    for row in rows:
+        positive_totals[row.get("quarter", "")] += max(0, num(row.get("mobile_origin_delta")))
+
+    for row in rows:
+        positive_delta = max(0, num(row.get("mobile_origin_delta")))
+        total_positive = positive_totals.get(row.get("quarter", ""), 0)
+        row["positive_mobile_origin_delta"] = round(positive_delta, 2)
+        row["tracked_positive_mobile_origin_delta"] = round(total_positive, 2)
+        row["positive_delta_tracked_share_pct"] = (
+            round(positive_delta / total_positive * 100, 4) if total_positive else 0
+        )
+        if num(row.get("mobile_origin_delta")) > 0:
+            row["mobile_origin_delta_direction"] = "gain"
+        elif num(row.get("mobile_origin_delta")) < 0:
+            row["mobile_origin_delta_direction"] = "loss"
+        else:
+            row["mobile_origin_delta_direction"] = "flat"
+    return rows
+
+
 def derive_builder_momentum_summary(quarterly_rows):
     grouped = defaultdict(list)
     for row in quarterly_rows or []:
@@ -5592,7 +5657,7 @@ def build_database(data, fetched):
                 "new_site_share_history",
                 "partial",
                 "BuiltWith historical trends or HTTP Archive cohort queries",
-                "Current report includes BuiltWith current Net New Pipeline, HTTP Archive monthly origin counts, quarterly derived tracked-share history, builder momentum summaries, rank-tier detected-origin adoption, a compact new-site choice summary, and a dedicated new-site choice companion view; not a multi-year newly created site cohort.",
+                "Current report includes BuiltWith current Net New Pipeline, HTTP Archive monthly origin counts, quarterly derived tracked-share history, quarter-over-quarter detected-origin change proxies, builder momentum summaries, rank-tier detected-origin adoption, a compact new-site choice summary, and a dedicated new-site choice companion view; not a multi-year first-published-site cohort.",
             )
         )
     else:
@@ -7063,7 +7128,7 @@ def source_status_rows(fetched):
         (
             "Newly detected sites",
             "partial" if SOURCE_FILES["builtwith_new_site_snapshot"].exists() else "missing",
-            "Current BuiltWith Net New Pipeline snapshot plus HTTP Archive monthly origin counts, quarterly derived tracked-share trend, builder momentum summaries, rank-tier detected-origin adoption, and a dedicated new-site choice companion view; multi-year new-site creation still needs paid BuiltWith or cohort queries",
+            "Current BuiltWith Net New Pipeline snapshot plus HTTP Archive monthly origin counts, quarterly derived tracked-share trend, quarter-over-quarter detected-origin change proxies, builder momentum summaries, rank-tier detected-origin adoption, and a dedicated new-site choice companion view; multi-year first-published-site history still needs paid BuiltWith or origin-level cohort queries",
         ),
         (
             "New-site choice summary",
@@ -7314,6 +7379,8 @@ def build_report(data, fetched):
     market_rows = fetched.get("market_share", [])
     http_archive_adoption = fetched.get("http_archive_adoption_monthly", [])
     http_archive_tracked_share = fetched.get("http_archive_tracked_share_monthly", [])
+    http_archive_tracked_share_quarterly = fetched.get("http_archive_tracked_share_quarterly", [])
+    http_archive_quarterly_change = fetched.get("http_archive_quarterly_detected_origin_change", [])
     http_archive_rank_adoption = fetched.get("http_archive_rank_adoption_snapshot", [])
     http_archive_cwv = fetched.get("http_archive_cwv_monthly", [])
     wporg_ecosystem_stats = fetched.get("wporg_ecosystem_stats_snapshot", [])
@@ -7965,6 +8032,56 @@ def build_report(data, fetched):
         }
         for row in HTTP_ARCHIVE_ADOPTION_TECHNOLOGIES
     ]
+    http_archive_quarter_share_series = [
+        {
+            "label": row["label"],
+            "color": row["color"],
+            "points": sorted(
+                (item["quarter"], float(item.get("avg_mobile_tracked_share_pct") or 0))
+                for item in http_archive_tracked_share_quarterly
+                if item.get("technology") == row["technology"]
+            ),
+        }
+        for row in HTTP_ARCHIVE_ADOPTION_TECHNOLOGIES
+    ]
+    http_archive_positive_delta_share_series = [
+        {
+            "label": "WordPress positive net-addition share",
+            "color": COLORS["wordpress"],
+            "points": sorted(
+                (item["quarter"], float(item.get("positive_delta_tracked_share_pct") or 0))
+                for item in http_archive_quarterly_change
+                if item.get("technology") == "WordPress"
+            ),
+        }
+    ]
+    http_archive_net_origin_change_series = [
+        {
+            "label": row["label"],
+            "color": row["color"],
+            "points": sorted(
+                (item["quarter"], float(item.get("mobile_origin_delta") or 0))
+                for item in http_archive_quarterly_change
+                if item.get("technology") == row["technology"]
+            ),
+        }
+        for row in HTTP_ARCHIVE_ADOPTION_TECHNOLOGIES
+    ]
+    http_quarter_wp_changes = sorted(
+        [row for row in http_archive_quarterly_change if row.get("technology") == "WordPress"],
+        key=lambda row: row.get("quarter", ""),
+    )
+    http_quarter_latest_wp = http_quarter_wp_changes[-1] if http_quarter_wp_changes else {}
+    http_quarter_latest_label = http_quarter_latest_wp.get("label", "")
+    http_quarter_latest_months = int(num(http_quarter_latest_wp.get("months"))) if http_quarter_latest_wp else 0
+    http_quarter_latest_note = (
+        f"{http_quarter_latest_label}; {http_quarter_latest_months}/3 months"
+        if http_quarter_latest_label and http_quarter_latest_months and http_quarter_latest_months < 3
+        else http_quarter_latest_label
+    )
+    http_quarter_wp_origin_delta = num(http_quarter_latest_wp.get("mobile_origin_delta"))
+    http_quarter_wp_share_delta = fnum(http_quarter_latest_wp.get("mobile_tracked_share_delta_pts"))
+    http_quarter_wp_positive_share = fnum(http_quarter_latest_wp.get("positive_delta_tracked_share_pct"))
     http_share_dates = sorted({row.get("date", "") for row in http_archive_tracked_share if row.get("date")})
     http_share_first_date = http_share_dates[0] if http_share_dates else ""
     http_share_latest_date = http_share_dates[-1] if http_share_dates else ""
@@ -9704,6 +9821,24 @@ p {{ margin:0 0 12px; }}
       </div>
     </div>
     <div class="grid-2">
+      {svg_line_chart("Quarterly detected-origin share", "HTTP Archive mobile-crawl share averaged by quarter across WordPress, Shopify, Wix, Squarespace, and Webflow. This is recurring detected-origin share, not a first-published-site cohort.", http_archive_quarter_share_series, y_suffix="%")}
+      <div class="card">
+        <h3>Quarterly change readout</h3>
+        <p>The public sources do not expose a historical first-published-site CMS cohort. The closest public quarter-level proxy here is HTTP Archive detected-origin movement: how the recurring crawl's detected origins changed from one quarter to the next.</p>
+        <div class="stats">
+          {stat_card("Latest quarter", http_quarter_latest_label or "n/a", http_quarter_latest_note or "not fetched", "soft" if http_quarter_latest_months and http_quarter_latest_months < 3 else "good")}
+          {stat_card("WP tracked-share q/q", f"{http_quarter_wp_share_delta:+.1f} pts" if http_quarter_latest_wp else "n/a", "quarter-over-quarter", "watch" if http_quarter_wp_share_delta < 0 else "soft")}
+          {stat_card("WP net origin change", compact(http_quarter_wp_origin_delta) if http_quarter_latest_wp else "n/a", "mobile detected origins", "watch" if http_quarter_wp_origin_delta < 0 else "soft")}
+          {stat_card("WP share of additions", pct(http_quarter_wp_positive_share), "positive net additions only", "watch" if http_quarter_wp_positive_share == 0 else "soft")}
+        </div>
+        <p class="small-note">Rows are stored in SQLite as <code>http_archive_quarterly_detected_origin_change</code>. A 0% addition share means WordPress had no positive net detected-origin growth that quarter while at least one tracked peer did. Sources checked: <a href="https://trends.builtwith.com/cms/WordPress">BuiltWith Net New Pipeline</a>, <a href="https://github.com/HTTPArchive/tech-report-apis">HTTP Archive Technology Report API</a>, <a href="https://har.fyi/guides/getting-started/">HTTP Archive BigQuery guide</a>, and <a href="https://w3techs.com/technologies">W3Techs methodology</a>.</p>
+      </div>
+    </div>
+    <div class="grid-2">
+      {svg_line_chart("WordPress share of positive net additions", "Share of positive quarter-over-quarter mobile-origin additions within the tracked set. Quarters where WordPress lost detected origins are shown as 0% rather than counted as new-site gains.", http_archive_positive_delta_share_series, y_suffix="%")}
+      {svg_line_chart("Net detected mobile-origin change", "Quarter-over-quarter change in average mobile detected origins. This is crawl-sample movement and technology detection, not a literal count of newly published websites.", http_archive_net_origin_change_series, start_zero=False)}
+    </div>
+    <div class="grid-2">
       <div class="card">
         <h3>Newly found site pipeline</h3>
         <p>BuiltWith public Net New Pipeline counts for the last 90 days. Squarespace's top-level CMS page does not expose new-site counts, so it is excluded from this share.</p>
@@ -10109,6 +10244,9 @@ def main():
     fetched["builder_momentum_summary"] = derive_builder_momentum_summary(
         fetched["http_archive_tracked_share_quarterly"]
     )
+    fetched["http_archive_quarterly_detected_origin_change"] = derive_http_archive_quarterly_detected_origin_change(
+        fetched["http_archive_tracked_share_quarterly"]
+    )
     fetched["http_archive_rank_adoption_snapshot"] = fetch_http_archive_rank_adoption_snapshot(args.skip_network)
     fetched["http_archive_cwv_monthly"] = fetch_http_archive_cwv_monthly(args.skip_network)
     fetched["wporg_ecosystem_stats_snapshot"] = fetch_wporg_ecosystem_stats_snapshot(args.skip_network)
@@ -10193,6 +10331,9 @@ def main():
     )
     if args.skip_network:
         apply_skip_network_db_fallback(fetched)
+        fetched["http_archive_quarterly_detected_origin_change"] = derive_http_archive_quarterly_detected_origin_change(
+            fetched.get("http_archive_tracked_share_quarterly", [])
+        )
     fetched["ecommerce_platform_share_quarterly"] = derive_ecommerce_platform_share_quarterly(
         fetched.get("builtwith_technology_history", [])
     )

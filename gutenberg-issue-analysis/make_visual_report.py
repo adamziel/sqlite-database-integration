@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import csv
+import datetime as dt
 import html
 import json
 import statistics
@@ -7,11 +8,14 @@ from collections import Counter
 from pathlib import Path
 
 
-ROOT = Path("/Users/admin/gutenberg_issue_analysis")
+ROOT = Path(__file__).resolve().parent
 QUARTERLY = ROOT / "quarterly_metrics.csv"
 MONTHLY = ROOT / "monthly_metrics.csv"
-OUT = ROOT / "final_report.html"
+ISSUES = ROOT / "issues_inventory.csv"
+OUT = ROOT / "index.html"
 SAMPLES = ROOT / "samples"
+REPORT_START = dt.datetime(2021, 6, 11, tzinfo=dt.timezone.utc)
+REPORT_END = dt.datetime(2026, 6, 12, tzinfo=dt.timezone.utc)
 
 PERIOD_ORDER = ["growth", "plateau", "decline"]
 PERIOD_LABELS = {
@@ -31,11 +35,51 @@ LINE_COLORS = {
     "creator": "#7c3aed",
     "first": "#ea580c",
 }
+VIEW_CONFIGS = [
+    {
+        "key": "all",
+        "button": "All issues",
+        "title": "All Gutenberg issues",
+        "subject": "issues",
+        "note": "All WordPress/gutenberg issues in the five-year inventory, excluding pull requests.",
+    },
+    {
+        "key": "bugs",
+        "button": "Bugs",
+        "title": "Bug-labeled Gutenberg issues",
+        "subject": "bug reports",
+        "note": 'Issues with the current GitHub label "[Type] Bug". Labels are current API fields, not historical labels at creation time.',
+    },
+    {
+        "key": "feature_requests",
+        "button": "Feature requests",
+        "title": "Feature-request Gutenberg issues",
+        "subject": "feature requests",
+        "note": 'Issues with the current GitHub label "[Type] Enhancement", used here as Gutenberg\'s feature-request time-series view.',
+    },
+]
 
 
 def read_csv(path):
     with path.open(newline="", encoding="utf-8") as f:
         return list(csv.DictReader(f))
+
+
+def parse_datetime(value):
+    if not value:
+        return None
+    return dt.datetime.fromisoformat(value.replace("Z", "+00:00"))
+
+
+def parse_period_start(value):
+    return dt.datetime.fromisoformat(value + "T00:00:00+00:00")
+
+
+def add_months(value, months):
+    month_index = value.month - 1 + months
+    year = value.year + month_index // 12
+    month = month_index % 12 + 1
+    return value.replace(year=year, month=month)
 
 
 def i(row, key):
@@ -56,6 +100,105 @@ def fmt_int(value):
 
 def esc(value):
     return html.escape(str(value))
+
+
+def labels(row):
+    return {part.strip().lower() for part in (row.get("labels") or "").split("|") if part.strip()}
+
+
+def matches_view(row, view_key):
+    if view_key == "all":
+        return True
+    row_labels = labels(row)
+    if view_key == "bugs":
+        return "[type] bug" in row_labels
+    if view_key == "feature_requests":
+        return "[type] enhancement" in row_labels
+    return False
+
+
+def enrich_issues(rows):
+    enriched = []
+    for row in rows:
+        copy = dict(row)
+        copy["_created"] = parse_datetime(row["created_at"])
+        copy["_closed"] = parse_datetime(row.get("closed_at") or "")
+        enriched.append(copy)
+    return enriched
+
+
+def issue_metrics_for_period(issues, view_key, start, end):
+    matched = [row for row in issues if matches_view(row, view_key)]
+    created_rows = [row for row in matched if start <= row["_created"] < end]
+    closed_rows = [row for row in matched if row["_closed"] and start <= row["_closed"] < end]
+    open_at_end = [
+        row
+        for row in matched
+        if row["_created"] < end and (not row["_closed"] or row["_closed"] >= end)
+    ]
+    first_seen = {}
+    for row in matched:
+        author = row.get("author_login") or ""
+        if not author:
+            continue
+        if author not in first_seen or row["_created"] < first_seen[author]:
+            first_seen[author] = row["_created"]
+    creators = {row.get("author_login") or "" for row in created_rows if row.get("author_login")}
+    first_time = {
+        author
+        for author in creators
+        if start <= first_seen.get(author, REPORT_END) < end
+    }
+    old_closed = [
+        row for row in closed_rows
+        if row["_closed"] and (row["_closed"] - row["_created"]).days >= 365
+    ]
+    return {
+        "open_at_end": len(open_at_end),
+        "created": len(created_rows),
+        "closed": len(closed_rows),
+        "unique_creators": len(creators),
+        "first_time_creators": len(first_time),
+        "old_closed_365d": len(old_closed),
+    }
+
+
+def build_filtered_quarters(base_rows, issues, view_key):
+    rows = []
+    for base in base_rows:
+        start = max(parse_period_start(base["quarter"]), REPORT_START)
+        end = min(add_months(parse_period_start(base["quarter"]), 3), REPORT_END)
+        metrics = issue_metrics_for_period(issues, view_key, start, end)
+        rows.append({
+            "quarter": base["quarter"],
+            "period": base["period"],
+            "open_at_end": str(metrics["open_at_end"]),
+            "created": str(metrics["created"]),
+            "closed": str(metrics["closed"]),
+            "net_created_minus_closed": str(metrics["created"] - metrics["closed"]),
+            "unique_creators": str(metrics["unique_creators"]),
+            "first_time_creators": str(metrics["first_time_creators"]),
+            "old_closed_365d": str(metrics["old_closed_365d"]),
+        })
+    return rows
+
+
+def build_filtered_months(base_rows, issues, view_key):
+    rows = []
+    for base in base_rows:
+        start = max(parse_period_start(base["month"]), REPORT_START)
+        end = min(add_months(parse_period_start(base["month"]), 1), REPORT_END)
+        metrics = issue_metrics_for_period(issues, view_key, start, end)
+        rows.append({
+            "month": base["month"],
+            "period": base["period"],
+            "open_at_end": str(metrics["open_at_end"]),
+            "created": str(metrics["created"]),
+            "closed": str(metrics["closed"]),
+            "net": str(metrics["created"] - metrics["closed"]),
+            "unique_creators": str(metrics["unique_creators"]),
+        })
+    return rows
 
 
 def code_counts(path):
@@ -460,15 +603,43 @@ def closure_codes_svg(old_counts, recent_counts):
     return "\n".join(parts)
 
 
-def discussion(summary):
+def discussion(summary, subject):
     return f"""
     <section class="discussion">
       <h2>Short Discussion</h2>
-      <p><b>The strongest signal is fewer new issues.</b> In the full-quarter averages, new issues fell from {f1(summary["growth"]["created"])} per quarter during growth to {f1(summary["decline"]["created"])} during decline. That is a large inflow change, and it starts before the biggest cleanup pulse.</p>
-      <p><b>Closures also matter.</b> The monthly net-flow chart shows several months where closures exceeded new issues, especially late 2025 and the partial June 2026 window. That means the falling open count is partly backlog cleanup, not only fewer reports.</p>
+      <p><b>The strongest signal is fewer new {esc(subject)}.</b> In the full-quarter averages, new {esc(subject)} fell from {f1(summary["growth"]["created"])} per quarter during growth to {f1(summary["decline"]["created"])} during decline. That is a large inflow change, and it starts before the biggest cleanup pulse.</p>
+      <p><b>Closures also matter.</b> The monthly net-flow chart shows several months where closures exceeded new {esc(subject)}, especially late 2025 and the partial June 2026 window. That means the falling open count is partly backlog cleanup, not only fewer reports.</p>
       <p><b>Fewer people are filing issues on GitHub.</b> Unique creators fell from {f1(summary["growth"]["unique"])} to {f1(summary["decline"]["unique"])} per quarter, and first-time creators fell from {f1(summary["growth"]["first"])} to {f1(summary["decline"]["first"])}. So the reporting funnel itself looks smaller.</p>
       <p><b>The cautious interpretation:</b> GitHub issue activity is lower, and old backlog is being cleaned up. That does not prove Gutenberg has fewer real-world problems; it means fewer problems are being reported or managed as open GitHub issues, while maintainers are also closing older threads.</p>
     </section>
+    """
+
+
+def view_panel(config, quarters, months, active=False):
+    summary = summarize_periods(quarters)
+    hidden = "" if active else " hidden"
+    active_class = " is-active" if active else ""
+    return f"""
+  <section class="view-panel{active_class}" data-view-panel="{esc(config["key"])}"{hidden}>
+    <section class="view-intro">
+      <h2>{esc(config["title"])}</h2>
+      <p>{esc(config["note"])}</p>
+    </section>
+
+    <h2>Timeline</h2>
+    <section class="chart-card">{open_timeline_svg(quarters)}</section>
+
+    <h2>New and Closed Issues</h2>
+    <section class="chart-card">{flow_svg(quarters)}</section>
+
+    <h2>Where The Decline Comes From</h2>
+    <section class="chart-card">{net_monthly_svg(months)}</section>
+
+    <h2>Reporting Trend</h2>
+    <section class="chart-card">{reporter_trend_svg(quarters)}</section>
+
+    {discussion(summary, config["subject"])}
+  </section>
     """
 
 
@@ -488,7 +659,33 @@ def artifact_links():
 def build_html():
     quarters = read_csv(QUARTERLY)
     months = read_csv(MONTHLY)
-    summary = summarize_periods(quarters)
+    issues = enrich_issues(read_csv(ISSUES))
+    view_rows = {
+        "all": {
+            "quarters": quarters,
+            "months": months,
+        }
+    }
+    for config in VIEW_CONFIGS:
+        if config["key"] == "all":
+            continue
+        view_rows[config["key"]] = {
+            "quarters": build_filtered_quarters(quarters, issues, config["key"]),
+            "months": build_filtered_months(months, issues, config["key"]),
+        }
+    buttons = "\n".join(
+        f'    <button class="view-button{" is-active" if idx == 0 else ""}" type="button" data-view-button="{esc(config["key"])}" aria-pressed="{"true" if idx == 0 else "false"}">{esc(config["button"])}</button>'
+        for idx, config in enumerate(VIEW_CONFIGS)
+    )
+    panels = "\n".join(
+        view_panel(
+            config,
+            view_rows[config["key"]]["quarters"],
+            view_rows[config["key"]]["months"],
+            active=idx == 0,
+        )
+        for idx, config in enumerate(VIEW_CONFIGS)
+    )
 
     old_counts, _ = code_counts(SAMPLES / "coded_decline_closed_old.csv")
     recent_counts, _ = code_counts(SAMPLES / "coded_decline_closed_recent.csv")
@@ -521,6 +718,12 @@ h2 {{ margin: 38px 0 14px; font-size: 24px; }}
 h3 {{ margin: 0 0 8px; font-size: 18px; }}
 p {{ margin: 8px 0 0; color: var(--muted); }}
 .kicker {{ color: var(--green); font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 8px; }}
+.view-switch {{ display: inline-flex; flex-wrap: wrap; gap: 6px; margin-top: 18px; padding: 5px; position: sticky; top: 10px; z-index: 20; max-width: 100%; border: 1px solid var(--line); border-radius: 8px; background: #ffffff; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12); }}
+.view-button {{ appearance: none; border: 0; border-radius: 6px; background: transparent; color: #475569; cursor: pointer; font: inherit; font-weight: 800; padding: 9px 12px; }}
+.view-button.is-active {{ background: #172033; color: #ffffff; }}
+.view-panel[hidden] {{ display: none; }}
+.view-intro {{ background: #ffffff; border: 1px solid var(--line); border-radius: 8px; margin-top: 22px; padding: 18px 20px; }}
+.view-intro h2 {{ margin: 0 0 8px; }}
 .answer-card, .chart-card {{ background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 16px; }}
 .grid-2 {{ display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }}
 .answers {{ display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }}
@@ -564,21 +767,14 @@ ul {{ color: var(--muted); }}
   <section class="hero">
     <div class="kicker">WordPress/gutenberg issue analysis</div>
     <h1>Why open issues grew, stalled, then started declining</h1>
+    <p>Switch between all issues, bugs, and feature requests at any point while scrolling.</p>
   </section>
 
-  <h2>Timeline</h2>
-  <section class="chart-card">{open_timeline_svg(quarters)}</section>
+  <nav class="view-switch" aria-label="Issue type view">
+{buttons}
+  </nav>
 
-  <h2>New and Closed Issues</h2>
-  <section class="chart-card">{flow_svg(quarters)}</section>
-
-  <h2>Where The Decline Comes From</h2>
-  <section class="chart-card">{net_monthly_svg(months)}</section>
-
-  <h2>Reporting Trend</h2>
-  <section class="chart-card">{reporter_trend_svg(quarters)}</section>
-
-  {discussion(summary)}
+{panels}
 
   <details>
     <summary>Optional: what sampled closures looked like</summary>
@@ -601,11 +797,33 @@ ul {{ color: var(--muted); }}
       <li>No off-GitHub channels such as Trac, support forums, Slack, or Make/Core were crawled.</li>
     </ul>
     <div class="artifact-links">{artifact_links()}</div>
-  </details>
+</details>
 </main>
+<script>
+  const buttons = [...document.querySelectorAll("[data-view-button]")];
+  const panels = [...document.querySelectorAll("[data-view-panel]")];
+
+  function setView(view) {{
+    for (const button of buttons) {{
+      const active = button.dataset.viewButton === view;
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-pressed", active ? "true" : "false");
+    }}
+    for (const panel of panels) {{
+      const active = panel.dataset.viewPanel === view;
+      panel.hidden = !active;
+      panel.classList.toggle("is-active", active);
+    }}
+  }}
+
+  for (const button of buttons) {{
+    button.addEventListener("click", () => setView(button.dataset.viewButton));
+  }}
+</script>
 </body>
 </html>
 """
+    html_doc = "\n".join(line.rstrip() for line in html_doc.splitlines()) + "\n"
     OUT.write_text(html_doc, encoding="utf-8")
 
 

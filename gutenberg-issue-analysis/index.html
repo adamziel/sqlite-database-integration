@@ -26,6 +26,12 @@ h2 { margin: 38px 0 14px; font-size: 24px; }
 h3 { margin: 0 0 8px; font-size: 18px; }
 p { margin: 8px 0 0; color: var(--muted); }
 .kicker { color: var(--green); font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 8px; }
+.view-switch { display: inline-flex; flex-wrap: wrap; gap: 6px; margin-top: 18px; padding: 5px; position: sticky; top: 10px; z-index: 20; max-width: 100%; border: 1px solid var(--line); border-radius: 8px; background: #ffffff; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12); }
+.view-button { appearance: none; border: 0; border-radius: 6px; background: transparent; color: #475569; cursor: pointer; font: inherit; font-weight: 800; padding: 9px 12px; }
+.view-button.is-active { background: #172033; color: #ffffff; }
+.view-panel[hidden] { display: none; }
+.view-intro { background: #ffffff; border: 1px solid var(--line); border-radius: 8px; margin-top: 22px; padding: 18px 20px; }
+.view-intro h2 { margin: 0 0 8px; }
 .answer-card, .chart-card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 16px; }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .answers { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
@@ -69,10 +75,24 @@ ul { color: var(--muted); }
   <section class="hero">
     <div class="kicker">WordPress/gutenberg issue analysis</div>
     <h1>Why open issues grew, stalled, then started declining</h1>
+    <p>Switch between all issues, bugs, and feature requests at any point while scrolling.</p>
   </section>
 
-  <h2>Timeline</h2>
-  <section class="chart-card"><svg viewBox="0 0 1120 360" role="img" aria-label="Open issue timeline">
+  <nav class="view-switch" aria-label="Issue type view">
+    <button class="view-button is-active" type="button" data-view-button="all" aria-pressed="true">All issues</button>
+    <button class="view-button" type="button" data-view-button="bugs" aria-pressed="false">Bugs</button>
+    <button class="view-button" type="button" data-view-button="feature_requests" aria-pressed="false">Feature requests</button>
+  </nav>
+
+
+  <section class="view-panel is-active" data-view-panel="all">
+    <section class="view-intro">
+      <h2>All Gutenberg issues</h2>
+      <p>All WordPress/gutenberg issues in the five-year inventory, excluding pull requests.</p>
+    </section>
+
+    <h2>Timeline</h2>
+    <section class="chart-card"><svg viewBox="0 0 1120 360" role="img" aria-label="Open issue timeline">
 <text x="74" y="24" class="chart-title">Open issues over time</text>
 <text x="74" y="42" class="chart-note">Backlog grew through 2024, peaked, then declined after early 2025.</text>
 <rect x="74.0" y="92" width="581.9" height="210" fill="#dbeafe" opacity="0.55"/>
@@ -123,8 +143,8 @@ ul { color: var(--muted); }
 <text x="1078.0" y="135.8" text-anchor="end" class="callout-text">Latest 5,570</text>
 </svg></section>
 
-  <h2>New and Closed Issues</h2>
-  <section class="chart-card"><svg viewBox="0 0 1120 360" role="img" aria-label="Created and closed issues per quarter">
+    <h2>New and Closed Issues</h2>
+    <section class="chart-card"><svg viewBox="0 0 1120 360" role="img" aria-label="Created and closed issues per quarter">
 <text x="70" y="24" class="chart-title">New and closed issues by quarter</text>
 <text x="70" y="42" class="chart-note">Blue is newly opened issues. Red is closed issues. The gap narrows in 2024 and flips after early 2025.</text>
 <line x1="70" y1="304.0" x2="1086" y2="304.0" class="grid"/>
@@ -197,8 +217,8 @@ ul { color: var(--muted); }
 <rect x="946" y="12" width="12" height="12" fill="#dc2626"/><text x="964" y="23" class="legend-text">Closed</text>
 </svg></section>
 
-  <h2>Where The Decline Comes From</h2>
-  <section class="chart-card"><svg viewBox="0 0 1120 260" role="img" aria-label="Monthly net issue flow">
+    <h2>Where The Decline Comes From</h2>
+    <section class="chart-card"><svg viewBox="0 0 1120 260" role="img" aria-label="Monthly net issue flow">
 <text x="68" y="24" class="chart-title">Monthly net flow around the turn</text>
 <text x="68" y="42" class="chart-note">Bars below zero mean closures exceeded new issues. Late 2025 and June 2026 show cleanup pulses.</text>
 <line x1="68" y1="148.0" x2="1088" y2="148.0" stroke="#334155" stroke-width="1.2"/>
@@ -228,8 +248,8 @@ ul { color: var(--muted); }
 <rect x="1048.7" y="148.0" width="30.1" height="31.3" fill="#dc2626" rx="2"><title>2026-06-01 net: -124</title></rect>
 </svg></section>
 
-  <h2>Reporting Trend</h2>
-  <section class="chart-card"><svg viewBox="0 0 1120 360" role="img" aria-label="People opening issues on GitHub">
+    <h2>Reporting Trend</h2>
+    <section class="chart-card"><svg viewBox="0 0 1120 360" role="img" aria-label="People opening issues on GitHub">
 <text x="74" y="24" class="chart-title">Fewer people are opening issues on GitHub</text>
 <text x="74" y="42" class="chart-note">Purple is unique issue creators. Orange is first-time issue creators. Both shrink after early 2025.</text>
 <rect x="74.0" y="94" width="581.9" height="208" fill="#dbeafe" opacity="0.42"/>
@@ -301,7 +321,7 @@ ul { color: var(--muted); }
 <rect x="916" y="12" width="12" height="12" fill="#ea580c"/><text x="934" y="23" class="legend-text">First-time creators</text>
 </svg></section>
 
-  
+
     <section class="discussion">
       <h2>Short Discussion</h2>
       <p><b>The strongest signal is fewer new issues.</b> In the full-quarter averages, new issues fell from 967.6 per quarter during growth to 534.0 during decline. That is a large inflow change, and it starts before the biggest cleanup pulse.</p>
@@ -309,7 +329,495 @@ ul { color: var(--muted); }
       <p><b>Fewer people are filing issues on GitHub.</b> Unique creators fell from 333.0 to 203.2 per quarter, and first-time creators fell from 121.3 to 62.5. So the reporting funnel itself looks smaller.</p>
       <p><b>The cautious interpretation:</b> GitHub issue activity is lower, and old backlog is being cleaned up. That does not prove Gutenberg has fewer real-world problems; it means fewer problems are being reported or managed as open GitHub issues, while maintainers are also closing older threads.</p>
     </section>
-    
+
+  </section>
+
+
+  <section class="view-panel" data-view-panel="bugs" hidden>
+    <section class="view-intro">
+      <h2>Bug-labeled Gutenberg issues</h2>
+      <p>Issues with the current GitHub label &quot;[Type] Bug&quot;. Labels are current API fields, not historical labels at creation time.</p>
+    </section>
+
+    <h2>Timeline</h2>
+    <section class="chart-card"><svg viewBox="0 0 1120 360" role="img" aria-label="Open issue timeline">
+<text x="74" y="24" class="chart-title">Open issues over time</text>
+<text x="74" y="42" class="chart-note">Backlog grew through 2024, peaked, then declined after early 2025.</text>
+<rect x="74.0" y="92" width="581.9" height="210" fill="#dbeafe" opacity="0.55"/>
+<text x="364.9" y="286" text-anchor="middle" class="phase-label">Growth</text>
+<rect x="655.9" y="92" width="202.4" height="210" fill="#fef3c7" opacity="0.55"/>
+<text x="757.1" y="286" text-anchor="middle" class="phase-label">Plateau</text>
+<rect x="858.3" y="92" width="227.7" height="210" fill="#fee2e2" opacity="0.55"/>
+<text x="972.2" y="286" text-anchor="middle" class="phase-label">Decline</text>
+<line x1="74" y1="302.0" x2="1086" y2="302.0" class="grid"/>
+<text x="64" y="306.0" text-anchor="end" class="axis">500</text>
+<line x1="74" y1="232.0" x2="1086" y2="232.0" class="grid"/>
+<text x="64" y="236.0" text-anchor="end" class="axis">1,000</text>
+<line x1="74" y1="162.0" x2="1086" y2="162.0" class="grid"/>
+<text x="64" y="166.0" text-anchor="end" class="axis">1,500</text>
+<line x1="74" y1="92.0" x2="1086" y2="92.0" class="grid"/>
+<text x="64" y="96.0" text-anchor="end" class="axis">2,000</text>
+<polyline points="74.0,261.5 124.6,259.6 175.2,246.3 225.8,233.0 276.4,222.5 327.0,230.7 377.6,220.8 428.2,207.5 478.8,183.8 529.4,182.0 580.0,163.3 630.6,144.9 681.2,124.8 731.8,105.9 782.4,108.5 833.0,104.3 883.6,108.2 934.2,111.7 984.8,124.1 1035.4,121.0 1086.0,134.4" fill="none" stroke="#0f766e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="74.0" cy="261.5" r="4.5" fill="#0f766e"><title>2021-04-01: 789</title></circle>
+<text x="74.0" y="334" text-anchor="middle" class="axis">2021</text>
+<circle cx="124.6" cy="259.6" r="4.5" fill="#0f766e"><title>2021-07-01: 803</title></circle>
+<circle cx="175.2" cy="246.3" r="4.5" fill="#0f766e"><title>2021-10-01: 898</title></circle>
+<circle cx="225.8" cy="233.0" r="4.5" fill="#0f766e"><title>2022-01-01: 993</title></circle>
+<text x="225.8" y="334" text-anchor="middle" class="axis">2022</text>
+<circle cx="276.4" cy="222.5" r="4.5" fill="#0f766e"><title>2022-04-01: 1,068</title></circle>
+<circle cx="327.0" cy="230.7" r="4.5" fill="#0f766e"><title>2022-07-01: 1,009</title></circle>
+<circle cx="377.6" cy="220.8" r="4.5" fill="#0f766e"><title>2022-10-01: 1,080</title></circle>
+<circle cx="428.2" cy="207.5" r="4.5" fill="#0f766e"><title>2023-01-01: 1,175</title></circle>
+<text x="428.2" y="334" text-anchor="middle" class="axis">2023</text>
+<circle cx="478.8" cy="183.8" r="4.5" fill="#0f766e"><title>2023-04-01: 1,344</title></circle>
+<circle cx="529.4" cy="182.0" r="4.5" fill="#0f766e"><title>2023-07-01: 1,357</title></circle>
+<circle cx="580.0" cy="163.3" r="4.5" fill="#0f766e"><title>2023-10-01: 1,491</title></circle>
+<circle cx="630.6" cy="144.9" r="4.5" fill="#0f766e"><title>2024-01-01: 1,622</title></circle>
+<text x="630.6" y="334" text-anchor="middle" class="axis">2024</text>
+<circle cx="681.2" cy="124.8" r="4.5" fill="#0f766e"><title>2024-04-01: 1,766</title></circle>
+<circle cx="731.8" cy="105.9" r="4.5" fill="#0f766e"><title>2024-07-01: 1,901</title></circle>
+<circle cx="782.4" cy="108.5" r="4.5" fill="#0f766e"><title>2024-10-01: 1,882</title></circle>
+<circle cx="833.0" cy="104.3" r="4.5" fill="#0f766e"><title>2025-01-01: 1,912</title></circle>
+<text x="833.0" y="334" text-anchor="middle" class="axis">2025</text>
+<circle cx="883.6" cy="108.2" r="4.5" fill="#0f766e"><title>2025-04-01: 1,884</title></circle>
+<circle cx="934.2" cy="111.7" r="4.5" fill="#0f766e"><title>2025-07-01: 1,859</title></circle>
+<circle cx="984.8" cy="124.1" r="4.5" fill="#0f766e"><title>2025-10-01: 1,771</title></circle>
+<circle cx="1035.4" cy="121.0" r="4.5" fill="#0f766e"><title>2026-01-01: 1,793</title></circle>
+<text x="1035.4" y="334" text-anchor="middle" class="axis">2026</text>
+<circle cx="1086.0" cy="134.4" r="4.5" fill="#0f766e"><title>2026-04-01: 1,697</title></circle>
+<text x="833.0" y="90.3" text-anchor="middle" class="callout-text">Peak 1,912</text>
+<text x="1078.0" y="122.4" text-anchor="end" class="callout-text">Latest 1,697</text>
+</svg></section>
+
+    <h2>New and Closed Issues</h2>
+    <section class="chart-card"><svg viewBox="0 0 1120 360" role="img" aria-label="Created and closed issues per quarter">
+<text x="70" y="24" class="chart-title">New and closed issues by quarter</text>
+<text x="70" y="42" class="chart-note">Blue is newly opened issues. Red is closed issues. The gap narrows in 2024 and flips after early 2025.</text>
+<line x1="70" y1="304.0" x2="1086" y2="304.0" class="grid"/>
+<text x="60" y="308.0" text-anchor="end" class="axis">0</text>
+<line x1="70" y1="238.1" x2="1086" y2="238.1" class="grid"/>
+<text x="60" y="242.1" text-anchor="end" class="axis">200</text>
+<line x1="70" y1="172.1" x2="1086" y2="172.1" class="grid"/>
+<text x="60" y="176.1" text-anchor="end" class="axis">400</text>
+<line x1="70" y1="106.2" x2="1086" y2="106.2" class="grid"/>
+<text x="60" y="110.2" text-anchor="end" class="axis">600</text>
+<line x1="70" y1="40.2" x2="1086" y2="40.2" class="grid"/>
+<text x="60" y="44.2" text-anchor="end" class="axis">800</text>
+<polyline points="70.0,277.6 120.8,224.5 171.6,195.9 222.4,211.0 273.2,220.6 324.0,209.4 374.8,221.6 425.6,180.7 476.4,162.6 527.2,158.3 578.0,172.4 628.8,141.1 679.6,154.0 730.4,131.6 781.2,169.8 832.0,217.9 882.8,256.9 933.6,238.4 984.4,193.2 1035.2,215.6 1086.0,248.3" fill="none" stroke="#2563eb" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="70.0,278.9 120.8,229.2 171.6,227.2 222.4,242.3 273.2,245.3 324.0,189.9 374.8,245.0 425.6,212.0 476.4,218.3 527.2,162.6 578.0,216.6 628.8,184.3 679.6,201.5 730.4,176.1 781.2,163.5 832.0,227.8 882.8,247.6 933.6,230.1 984.4,164.2 1035.2,222.9 1086.0,216.6" fill="none" stroke="#dc2626" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="70.0" cy="277.6" r="4" fill="#2563eb"><title>2021-04-01 new issues: 80</title></circle>
+<circle cx="70.0" cy="278.9" r="4" fill="#dc2626"><title>2021-04-01 closed issues: 76</title></circle>
+<text x="70.0" y="336" text-anchor="middle" class="axis">2021</text>
+<circle cx="120.8" cy="224.5" r="4" fill="#2563eb"><title>2021-07-01 new issues: 241</title></circle>
+<circle cx="120.8" cy="229.2" r="4" fill="#dc2626"><title>2021-07-01 closed issues: 227</title></circle>
+<circle cx="171.6" cy="195.9" r="4" fill="#2563eb"><title>2021-10-01 new issues: 328</title></circle>
+<circle cx="171.6" cy="227.2" r="4" fill="#dc2626"><title>2021-10-01 closed issues: 233</title></circle>
+<circle cx="222.4" cy="211.0" r="4" fill="#2563eb"><title>2022-01-01 new issues: 282</title></circle>
+<circle cx="222.4" cy="242.3" r="4" fill="#dc2626"><title>2022-01-01 closed issues: 187</title></circle>
+<text x="222.4" y="336" text-anchor="middle" class="axis">2022</text>
+<circle cx="273.2" cy="220.6" r="4" fill="#2563eb"><title>2022-04-01 new issues: 253</title></circle>
+<circle cx="273.2" cy="245.3" r="4" fill="#dc2626"><title>2022-04-01 closed issues: 178</title></circle>
+<circle cx="324.0" cy="209.4" r="4" fill="#2563eb"><title>2022-07-01 new issues: 287</title></circle>
+<circle cx="324.0" cy="189.9" r="4" fill="#dc2626"><title>2022-07-01 closed issues: 346</title></circle>
+<circle cx="374.8" cy="221.6" r="4" fill="#2563eb"><title>2022-10-01 new issues: 250</title></circle>
+<circle cx="374.8" cy="245.0" r="4" fill="#dc2626"><title>2022-10-01 closed issues: 179</title></circle>
+<circle cx="425.6" cy="180.7" r="4" fill="#2563eb"><title>2023-01-01 new issues: 374</title></circle>
+<circle cx="425.6" cy="212.0" r="4" fill="#dc2626"><title>2023-01-01 closed issues: 279</title></circle>
+<text x="425.6" y="336" text-anchor="middle" class="axis">2023</text>
+<circle cx="476.4" cy="162.6" r="4" fill="#2563eb"><title>2023-04-01 new issues: 429</title></circle>
+<circle cx="476.4" cy="218.3" r="4" fill="#dc2626"><title>2023-04-01 closed issues: 260</title></circle>
+<circle cx="527.2" cy="158.3" r="4" fill="#2563eb"><title>2023-07-01 new issues: 442</title></circle>
+<circle cx="527.2" cy="162.6" r="4" fill="#dc2626"><title>2023-07-01 closed issues: 429</title></circle>
+<circle cx="578.0" cy="172.4" r="4" fill="#2563eb"><title>2023-10-01 new issues: 399</title></circle>
+<circle cx="578.0" cy="216.6" r="4" fill="#dc2626"><title>2023-10-01 closed issues: 265</title></circle>
+<circle cx="628.8" cy="141.1" r="4" fill="#2563eb"><title>2024-01-01 new issues: 494</title></circle>
+<circle cx="628.8" cy="184.3" r="4" fill="#dc2626"><title>2024-01-01 closed issues: 363</title></circle>
+<text x="628.8" y="336" text-anchor="middle" class="axis">2024</text>
+<circle cx="679.6" cy="154.0" r="4" fill="#2563eb"><title>2024-04-01 new issues: 455</title></circle>
+<circle cx="679.6" cy="201.5" r="4" fill="#dc2626"><title>2024-04-01 closed issues: 311</title></circle>
+<circle cx="730.4" cy="131.6" r="4" fill="#2563eb"><title>2024-07-01 new issues: 523</title></circle>
+<circle cx="730.4" cy="176.1" r="4" fill="#dc2626"><title>2024-07-01 closed issues: 388</title></circle>
+<circle cx="781.2" cy="169.8" r="4" fill="#2563eb"><title>2024-10-01 new issues: 407</title></circle>
+<circle cx="781.2" cy="163.5" r="4" fill="#dc2626"><title>2024-10-01 closed issues: 426</title></circle>
+<circle cx="832.0" cy="217.9" r="4" fill="#2563eb"><title>2025-01-01 new issues: 261</title></circle>
+<circle cx="832.0" cy="227.8" r="4" fill="#dc2626"><title>2025-01-01 closed issues: 231</title></circle>
+<text x="832.0" y="336" text-anchor="middle" class="axis">2025</text>
+<circle cx="882.8" cy="256.9" r="4" fill="#2563eb"><title>2025-04-01 new issues: 143</title></circle>
+<circle cx="882.8" cy="247.6" r="4" fill="#dc2626"><title>2025-04-01 closed issues: 171</title></circle>
+<circle cx="933.6" cy="238.4" r="4" fill="#2563eb"><title>2025-07-01 new issues: 199</title></circle>
+<circle cx="933.6" cy="230.1" r="4" fill="#dc2626"><title>2025-07-01 closed issues: 224</title></circle>
+<circle cx="984.4" cy="193.2" r="4" fill="#2563eb"><title>2025-10-01 new issues: 336</title></circle>
+<circle cx="984.4" cy="164.2" r="4" fill="#dc2626"><title>2025-10-01 closed issues: 424</title></circle>
+<circle cx="1035.2" cy="215.6" r="4" fill="#2563eb"><title>2026-01-01 new issues: 268</title></circle>
+<circle cx="1035.2" cy="222.9" r="4" fill="#dc2626"><title>2026-01-01 closed issues: 246</title></circle>
+<text x="1035.2" y="336" text-anchor="middle" class="axis">2026</text>
+<circle cx="1086.0" cy="248.3" r="4" fill="#2563eb"><title>2026-04-01 new issues: 169</title></circle>
+<circle cx="1086.0" cy="216.6" r="4" fill="#dc2626"><title>2026-04-01 closed issues: 265</title></circle>
+<rect x="856" y="12" width="12" height="12" fill="#2563eb"/><text x="874" y="23" class="legend-text">Created</text>
+<rect x="946" y="12" width="12" height="12" fill="#dc2626"/><text x="964" y="23" class="legend-text">Closed</text>
+</svg></section>
+
+    <h2>Where The Decline Comes From</h2>
+    <section class="chart-card"><svg viewBox="0 0 1120 260" role="img" aria-label="Monthly net issue flow">
+<text x="68" y="24" class="chart-title">Monthly net flow around the turn</text>
+<text x="68" y="42" class="chart-note">Bars below zero mean closures exceeded new issues. Late 2025 and June 2026 show cleanup pulses.</text>
+<line x1="68" y1="148.0" x2="1088" y2="148.0" stroke="#334155" stroke-width="1.2"/>
+<rect x="77.2" y="143.3" width="30.1" height="4.7" fill="#2563eb" rx="2"><title>2024-10-01 net: +9</title></rect>
+<text x="92.3" y="236" text-anchor="middle" class="axis">2024</text>
+<rect x="125.8" y="148.0" width="30.1" height="15.8" fill="#dc2626" rx="2"><title>2024-11-01 net: -30</title></rect>
+<rect x="174.4" y="146.9" width="30.1" height="1.1" fill="#2563eb" rx="2"><title>2024-12-01 net: +2</title></rect>
+<rect x="222.9" y="134.3" width="30.1" height="13.7" fill="#2563eb" rx="2"><title>2025-01-01 net: +26</title></rect>
+<text x="238.0" y="236" text-anchor="middle" class="axis">2025</text>
+<rect x="271.5" y="142.2" width="30.1" height="5.8" fill="#2563eb" rx="2"><title>2025-02-01 net: +11</title></rect>
+<rect x="320.1" y="148.0" width="30.1" height="3.7" fill="#dc2626" rx="2"><title>2025-03-01 net: -7</title></rect>
+<rect x="368.7" y="148.0" width="30.1" height="5.3" fill="#dc2626" rx="2"><title>2025-04-01 net: -10</title></rect>
+<rect x="417.2" y="148.0" width="30.1" height="10.5" fill="#dc2626" rx="2"><title>2025-05-01 net: -20</title></rect>
+<rect x="465.8" y="146.9" width="30.1" height="1.1" fill="#2563eb" rx="2"><title>2025-06-01 net: +2</title></rect>
+<rect x="514.4" y="148.0" width="30.1" height="24.7" fill="#dc2626" rx="2"><title>2025-07-01 net: -47</title></rect>
+<rect x="562.9" y="148.0" width="30.1" height="3.7" fill="#dc2626" rx="2"><title>2025-08-01 net: -7</title></rect>
+<rect x="611.5" y="132.7" width="30.1" height="15.3" fill="#2563eb" rx="2"><title>2025-09-01 net: +29</title></rect>
+<rect x="660.1" y="139.1" width="30.1" height="8.9" fill="#2563eb" rx="2"><title>2025-10-01 net: +17</title></rect>
+<rect x="708.7" y="148.0" width="30.1" height="16.3" fill="#dc2626" rx="2"><title>2025-11-01 net: -31</title></rect>
+<rect x="757.2" y="148.0" width="30.1" height="38.9" fill="#dc2626" rx="2"><title>2025-12-01 net: -74</title></rect>
+<rect x="805.8" y="148.0" width="30.1" height="8.9" fill="#dc2626" rx="2"><title>2026-01-01 net: -17</title></rect>
+<text x="820.9" y="236" text-anchor="middle" class="axis">2026</text>
+<rect x="854.4" y="138.0" width="30.1" height="10.0" fill="#2563eb" rx="2"><title>2026-02-01 net: +19</title></rect>
+<rect x="902.9" y="137.5" width="30.1" height="10.5" fill="#2563eb" rx="2"><title>2026-03-01 net: +20</title></rect>
+<rect x="951.5" y="148.0" width="30.1" height="8.4" fill="#dc2626" rx="2"><title>2026-04-01 net: -16</title></rect>
+<rect x="1000.1" y="148.0" width="30.1" height="5.3" fill="#dc2626" rx="2"><title>2026-05-01 net: -10</title></rect>
+<rect x="1048.7" y="148.0" width="30.1" height="36.8" fill="#dc2626" rx="2"><title>2026-06-01 net: -70</title></rect>
+</svg></section>
+
+    <h2>Reporting Trend</h2>
+    <section class="chart-card"><svg viewBox="0 0 1120 360" role="img" aria-label="People opening issues on GitHub">
+<text x="74" y="24" class="chart-title">Fewer people are opening issues on GitHub</text>
+<text x="74" y="42" class="chart-note">Purple is unique issue creators. Orange is first-time issue creators. Both shrink after early 2025.</text>
+<rect x="74.0" y="94" width="581.9" height="208" fill="#dbeafe" opacity="0.42"/>
+<rect x="655.9" y="94" width="202.4" height="208" fill="#fef3c7" opacity="0.42"/>
+<rect x="858.3" y="94" width="227.7" height="208" fill="#fee2e2" opacity="0.42"/>
+<line x1="74" y1="302.0" x2="1086" y2="302.0" class="grid"/>
+<text x="64" y="306.0" text-anchor="end" class="axis">0</text>
+<line x1="74" y1="265.8" x2="1086" y2="265.8" class="grid"/>
+<text x="64" y="269.8" text-anchor="end" class="axis">50</text>
+<line x1="74" y1="229.5" x2="1086" y2="229.5" class="grid"/>
+<text x="64" y="233.5" text-anchor="end" class="axis">100</text>
+<line x1="74" y1="193.3" x2="1086" y2="193.3" class="grid"/>
+<text x="64" y="197.3" text-anchor="end" class="axis">150</text>
+<line x1="74" y1="157.1" x2="1086" y2="157.1" class="grid"/>
+<text x="64" y="161.1" text-anchor="end" class="axis">200</text>
+<line x1="74" y1="120.8" x2="1086" y2="120.8" class="grid"/>
+<text x="64" y="124.8" text-anchor="end" class="axis">250</text>
+<line x1="74" y1="84.6" x2="1086" y2="84.6" class="grid"/>
+<text x="64" y="88.6" text-anchor="end" class="axis">300</text>
+<polyline points="74.0,262.1 124.6,201.3 175.2,190.4 225.8,181.7 276.4,191.8 327.0,204.9 377.6,188.9 428.2,173.7 478.8,177.3 529.4,172.3 580.0,178.8 630.6,152.7 681.2,139.7 731.8,123.0 782.4,165.0 833.0,213.6 883.6,227.4 934.2,224.5 984.8,183.1 1035.4,201.3 1086.0,217.9" fill="none" stroke="#7c3aed" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="74.0,293.3 124.6,260.7 175.2,271.6 225.8,247.6 276.4,249.1 327.0,260.0 377.6,253.4 428.2,252.0 478.8,255.6 529.4,253.4 580.0,255.6 630.6,246.9 681.2,225.2 731.8,235.3 782.4,246.2 833.0,270.1 883.6,269.4 934.2,273.7 984.8,257.1 1035.4,267.2 1086.0,270.1" fill="none" stroke="#ea580c" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="74.0" cy="262.1" r="4.2" fill="#7c3aed"><title>2021-04-01 unique creators: 55</title></circle>
+<circle cx="74.0" cy="293.3" r="4.2" fill="#ea580c"><title>2021-04-01 first-time creators: 12</title></circle>
+<text x="74.0" y="336" text-anchor="middle" class="axis">2021</text>
+<circle cx="124.6" cy="201.3" r="4.2" fill="#7c3aed"><title>2021-07-01 unique creators: 139</title></circle>
+<circle cx="124.6" cy="260.7" r="4.2" fill="#ea580c"><title>2021-07-01 first-time creators: 57</title></circle>
+<circle cx="175.2" cy="190.4" r="4.2" fill="#7c3aed"><title>2021-10-01 unique creators: 154</title></circle>
+<circle cx="175.2" cy="271.6" r="4.2" fill="#ea580c"><title>2021-10-01 first-time creators: 42</title></circle>
+<circle cx="225.8" cy="181.7" r="4.2" fill="#7c3aed"><title>2022-01-01 unique creators: 166</title></circle>
+<circle cx="225.8" cy="247.6" r="4.2" fill="#ea580c"><title>2022-01-01 first-time creators: 75</title></circle>
+<text x="225.8" y="336" text-anchor="middle" class="axis">2022</text>
+<circle cx="276.4" cy="191.8" r="4.2" fill="#7c3aed"><title>2022-04-01 unique creators: 152</title></circle>
+<circle cx="276.4" cy="249.1" r="4.2" fill="#ea580c"><title>2022-04-01 first-time creators: 73</title></circle>
+<circle cx="327.0" cy="204.9" r="4.2" fill="#7c3aed"><title>2022-07-01 unique creators: 134</title></circle>
+<circle cx="327.0" cy="260.0" r="4.2" fill="#ea580c"><title>2022-07-01 first-time creators: 58</title></circle>
+<circle cx="377.6" cy="188.9" r="4.2" fill="#7c3aed"><title>2022-10-01 unique creators: 156</title></circle>
+<circle cx="377.6" cy="253.4" r="4.2" fill="#ea580c"><title>2022-10-01 first-time creators: 67</title></circle>
+<circle cx="428.2" cy="173.7" r="4.2" fill="#7c3aed"><title>2023-01-01 unique creators: 177</title></circle>
+<circle cx="428.2" cy="252.0" r="4.2" fill="#ea580c"><title>2023-01-01 first-time creators: 69</title></circle>
+<text x="428.2" y="336" text-anchor="middle" class="axis">2023</text>
+<circle cx="478.8" cy="177.3" r="4.2" fill="#7c3aed"><title>2023-04-01 unique creators: 172</title></circle>
+<circle cx="478.8" cy="255.6" r="4.2" fill="#ea580c"><title>2023-04-01 first-time creators: 64</title></circle>
+<circle cx="529.4" cy="172.3" r="4.2" fill="#7c3aed"><title>2023-07-01 unique creators: 179</title></circle>
+<circle cx="529.4" cy="253.4" r="4.2" fill="#ea580c"><title>2023-07-01 first-time creators: 67</title></circle>
+<circle cx="580.0" cy="178.8" r="4.2" fill="#7c3aed"><title>2023-10-01 unique creators: 170</title></circle>
+<circle cx="580.0" cy="255.6" r="4.2" fill="#ea580c"><title>2023-10-01 first-time creators: 64</title></circle>
+<circle cx="630.6" cy="152.7" r="4.2" fill="#7c3aed"><title>2024-01-01 unique creators: 206</title></circle>
+<circle cx="630.6" cy="246.9" r="4.2" fill="#ea580c"><title>2024-01-01 first-time creators: 76</title></circle>
+<text x="630.6" y="336" text-anchor="middle" class="axis">2024</text>
+<circle cx="681.2" cy="139.7" r="4.2" fill="#7c3aed"><title>2024-04-01 unique creators: 224</title></circle>
+<circle cx="681.2" cy="225.2" r="4.2" fill="#ea580c"><title>2024-04-01 first-time creators: 106</title></circle>
+<circle cx="731.8" cy="123.0" r="4.2" fill="#7c3aed"><title>2024-07-01 unique creators: 247</title></circle>
+<circle cx="731.8" cy="235.3" r="4.2" fill="#ea580c"><title>2024-07-01 first-time creators: 92</title></circle>
+<circle cx="782.4" cy="165.0" r="4.2" fill="#7c3aed"><title>2024-10-01 unique creators: 189</title></circle>
+<circle cx="782.4" cy="246.2" r="4.2" fill="#ea580c"><title>2024-10-01 first-time creators: 77</title></circle>
+<circle cx="833.0" cy="213.6" r="4.2" fill="#7c3aed"><title>2025-01-01 unique creators: 122</title></circle>
+<circle cx="833.0" cy="270.1" r="4.2" fill="#ea580c"><title>2025-01-01 first-time creators: 44</title></circle>
+<text x="833.0" y="336" text-anchor="middle" class="axis">2025</text>
+<circle cx="883.6" cy="227.4" r="4.2" fill="#7c3aed"><title>2025-04-01 unique creators: 103</title></circle>
+<circle cx="883.6" cy="269.4" r="4.2" fill="#ea580c"><title>2025-04-01 first-time creators: 45</title></circle>
+<circle cx="934.2" cy="224.5" r="4.2" fill="#7c3aed"><title>2025-07-01 unique creators: 107</title></circle>
+<circle cx="934.2" cy="273.7" r="4.2" fill="#ea580c"><title>2025-07-01 first-time creators: 39</title></circle>
+<circle cx="984.8" cy="183.1" r="4.2" fill="#7c3aed"><title>2025-10-01 unique creators: 164</title></circle>
+<circle cx="984.8" cy="257.1" r="4.2" fill="#ea580c"><title>2025-10-01 first-time creators: 62</title></circle>
+<circle cx="1035.4" cy="201.3" r="4.2" fill="#7c3aed"><title>2026-01-01 unique creators: 139</title></circle>
+<circle cx="1035.4" cy="267.2" r="4.2" fill="#ea580c"><title>2026-01-01 first-time creators: 48</title></circle>
+<text x="1035.4" y="336" text-anchor="middle" class="axis">2026</text>
+<circle cx="1086.0" cy="217.9" r="4.2" fill="#7c3aed"><title>2026-04-01 unique creators: 116</title></circle>
+<circle cx="1086.0" cy="270.1" r="4.2" fill="#ea580c"><title>2026-04-01 first-time creators: 44</title></circle>
+<rect x="776" y="12" width="12" height="12" fill="#7c3aed"/><text x="794" y="23" class="legend-text">Unique creators</text>
+<rect x="916" y="12" width="12" height="12" fill="#ea580c"/><text x="934" y="23" class="legend-text">First-time creators</text>
+</svg></section>
+
+
+    <section class="discussion">
+      <h2>Short Discussion</h2>
+      <p><b>The strongest signal is fewer new bug reports.</b> In the full-quarter averages, new bug reports fell from 343.5 per quarter during growth to 236.5 during decline. That is a large inflow change, and it starts before the biggest cleanup pulse.</p>
+      <p><b>Closures also matter.</b> The monthly net-flow chart shows several months where closures exceeded new bug reports, especially late 2025 and the partial June 2026 window. That means the falling open count is partly backlog cleanup, not only fewer reports.</p>
+      <p><b>Fewer people are filing issues on GitHub.</b> Unique creators fell from 164.1 to 128.2 per quarter, and first-time creators fell from 64.7 to 48.5. So the reporting funnel itself looks smaller.</p>
+      <p><b>The cautious interpretation:</b> GitHub issue activity is lower, and old backlog is being cleaned up. That does not prove Gutenberg has fewer real-world problems; it means fewer problems are being reported or managed as open GitHub issues, while maintainers are also closing older threads.</p>
+    </section>
+
+  </section>
+
+
+  <section class="view-panel" data-view-panel="feature_requests" hidden>
+    <section class="view-intro">
+      <h2>Feature-request Gutenberg issues</h2>
+      <p>Issues with the current GitHub label &quot;[Type] Enhancement&quot;, used here as Gutenberg&#x27;s feature-request time-series view.</p>
+    </section>
+
+    <h2>Timeline</h2>
+    <section class="chart-card"><svg viewBox="0 0 1120 360" role="img" aria-label="Open issue timeline">
+<text x="74" y="24" class="chart-title">Open issues over time</text>
+<text x="74" y="42" class="chart-note">Backlog grew through 2024, peaked, then declined after early 2025.</text>
+<rect x="74.0" y="92" width="581.9" height="210" fill="#dbeafe" opacity="0.55"/>
+<text x="364.9" y="286" text-anchor="middle" class="phase-label">Growth</text>
+<rect x="655.9" y="92" width="202.4" height="210" fill="#fef3c7" opacity="0.55"/>
+<text x="757.1" y="286" text-anchor="middle" class="phase-label">Plateau</text>
+<rect x="858.3" y="92" width="227.7" height="210" fill="#fee2e2" opacity="0.55"/>
+<text x="972.2" y="286" text-anchor="middle" class="phase-label">Decline</text>
+<line x1="74" y1="302.0" x2="1086" y2="302.0" class="grid"/>
+<text x="64" y="306.0" text-anchor="end" class="axis">1,000</text>
+<line x1="74" y1="260.0" x2="1086" y2="260.0" class="grid"/>
+<text x="64" y="264.0" text-anchor="end" class="axis">1,500</text>
+<line x1="74" y1="218.0" x2="1086" y2="218.0" class="grid"/>
+<text x="64" y="222.0" text-anchor="end" class="axis">2,000</text>
+<line x1="74" y1="176.0" x2="1086" y2="176.0" class="grid"/>
+<text x="64" y="180.0" text-anchor="end" class="axis">2,500</text>
+<line x1="74" y1="134.0" x2="1086" y2="134.0" class="grid"/>
+<text x="64" y="138.0" text-anchor="end" class="axis">3,000</text>
+<line x1="74" y1="92.0" x2="1086" y2="92.0" class="grid"/>
+<text x="64" y="96.0" text-anchor="end" class="axis">3,500</text>
+<polyline points="74.0,278.5 124.6,268.7 175.2,257.4 225.8,242.4 276.4,229.2 327.0,215.0 377.6,203.3 428.2,185.3 478.8,170.7 529.4,160.0 580.0,143.0 630.6,131.4 681.2,125.0 731.8,118.1 782.4,119.6 833.0,119.5 883.6,126.8 934.2,127.0 984.8,137.9 1035.4,135.7 1086.0,139.5" fill="none" stroke="#0f766e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="74.0" cy="278.5" r="4.5" fill="#0f766e"><title>2021-04-01: 1,280</title></circle>
+<text x="74.0" y="334" text-anchor="middle" class="axis">2021</text>
+<circle cx="124.6" cy="268.7" r="4.5" fill="#0f766e"><title>2021-07-01: 1,397</title></circle>
+<circle cx="175.2" cy="257.4" r="4.5" fill="#0f766e"><title>2021-10-01: 1,531</title></circle>
+<circle cx="225.8" cy="242.4" r="4.5" fill="#0f766e"><title>2022-01-01: 1,709</title></circle>
+<text x="225.8" y="334" text-anchor="middle" class="axis">2022</text>
+<circle cx="276.4" cy="229.2" r="4.5" fill="#0f766e"><title>2022-04-01: 1,867</title></circle>
+<circle cx="327.0" cy="215.0" r="4.5" fill="#0f766e"><title>2022-07-01: 2,036</title></circle>
+<circle cx="377.6" cy="203.3" r="4.5" fill="#0f766e"><title>2022-10-01: 2,175</title></circle>
+<circle cx="428.2" cy="185.3" r="4.5" fill="#0f766e"><title>2023-01-01: 2,389</title></circle>
+<text x="428.2" y="334" text-anchor="middle" class="axis">2023</text>
+<circle cx="478.8" cy="170.7" r="4.5" fill="#0f766e"><title>2023-04-01: 2,563</title></circle>
+<circle cx="529.4" cy="160.0" r="4.5" fill="#0f766e"><title>2023-07-01: 2,691</title></circle>
+<circle cx="580.0" cy="143.0" r="4.5" fill="#0f766e"><title>2023-10-01: 2,893</title></circle>
+<circle cx="630.6" cy="131.4" r="4.5" fill="#0f766e"><title>2024-01-01: 3,031</title></circle>
+<text x="630.6" y="334" text-anchor="middle" class="axis">2024</text>
+<circle cx="681.2" cy="125.0" r="4.5" fill="#0f766e"><title>2024-04-01: 3,107</title></circle>
+<circle cx="731.8" cy="118.1" r="4.5" fill="#0f766e"><title>2024-07-01: 3,189</title></circle>
+<circle cx="782.4" cy="119.6" r="4.5" fill="#0f766e"><title>2024-10-01: 3,171</title></circle>
+<circle cx="833.0" cy="119.5" r="4.5" fill="#0f766e"><title>2025-01-01: 3,173</title></circle>
+<text x="833.0" y="334" text-anchor="middle" class="axis">2025</text>
+<circle cx="883.6" cy="126.8" r="4.5" fill="#0f766e"><title>2025-04-01: 3,086</title></circle>
+<circle cx="934.2" cy="127.0" r="4.5" fill="#0f766e"><title>2025-07-01: 3,083</title></circle>
+<circle cx="984.8" cy="137.9" r="4.5" fill="#0f766e"><title>2025-10-01: 2,953</title></circle>
+<circle cx="1035.4" cy="135.7" r="4.5" fill="#0f766e"><title>2026-01-01: 2,980</title></circle>
+<text x="1035.4" y="334" text-anchor="middle" class="axis">2026</text>
+<circle cx="1086.0" cy="139.5" r="4.5" fill="#0f766e"><title>2026-04-01: 2,934</title></circle>
+<text x="731.8" y="104.1" text-anchor="middle" class="callout-text">Peak 3,189</text>
+<text x="1078.0" y="127.5" text-anchor="end" class="callout-text">Latest 2,934</text>
+</svg></section>
+
+    <h2>New and Closed Issues</h2>
+    <section class="chart-card"><svg viewBox="0 0 1120 360" role="img" aria-label="Created and closed issues per quarter">
+<text x="70" y="24" class="chart-title">New and closed issues by quarter</text>
+<text x="70" y="42" class="chart-note">Blue is newly opened issues. Red is closed issues. The gap narrows in 2024 and flips after early 2025.</text>
+<line x1="70" y1="304.0" x2="1086" y2="304.0" class="grid"/>
+<text x="60" y="308.0" text-anchor="end" class="axis">0</text>
+<line x1="70" y1="260.7" x2="1086" y2="260.7" class="grid"/>
+<text x="60" y="264.7" text-anchor="end" class="axis">100</text>
+<line x1="70" y1="217.5" x2="1086" y2="217.5" class="grid"/>
+<text x="60" y="221.5" text-anchor="end" class="axis">200</text>
+<line x1="70" y1="174.2" x2="1086" y2="174.2" class="grid"/>
+<text x="60" y="178.2" text-anchor="end" class="axis">300</text>
+<line x1="70" y1="130.9" x2="1086" y2="130.9" class="grid"/>
+<text x="60" y="134.9" text-anchor="end" class="axis">400</text>
+<line x1="70" y1="87.7" x2="1086" y2="87.7" class="grid"/>
+<text x="60" y="91.7" text-anchor="end" class="axis">500</text>
+<polyline points="70.0,287.1 120.8,199.7 171.6,205.4 222.4,188.5 273.2,202.3 324.0,182.0 374.8,203.6 425.6,155.2 476.4,156.9 527.2,148.7 578.0,152.6 628.8,163.8 679.6,188.9 730.4,164.3 781.2,193.2 832.0,252.1 882.8,262.0 933.6,236.1 984.4,200.2 1035.2,203.2 1086.0,259.4" fill="none" stroke="#2563eb" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="70.0,294.9 120.8,250.4 171.6,263.3 222.4,265.5 273.2,270.7 324.0,255.1 374.8,263.8 425.6,247.8 476.4,232.2 527.2,204.1 578.0,240.0 628.8,223.5 679.6,221.8 730.4,199.7 781.2,185.5 832.0,252.9 882.8,224.4 933.6,234.8 984.4,143.9 1035.2,214.9 1086.0,239.5" fill="none" stroke="#dc2626" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="70.0" cy="287.1" r="4" fill="#2563eb"><title>2021-04-01 new issues: 39</title></circle>
+<circle cx="70.0" cy="294.9" r="4" fill="#dc2626"><title>2021-04-01 closed issues: 21</title></circle>
+<text x="70.0" y="336" text-anchor="middle" class="axis">2021</text>
+<circle cx="120.8" cy="199.7" r="4" fill="#2563eb"><title>2021-07-01 new issues: 241</title></circle>
+<circle cx="120.8" cy="250.4" r="4" fill="#dc2626"><title>2021-07-01 closed issues: 124</title></circle>
+<circle cx="171.6" cy="205.4" r="4" fill="#2563eb"><title>2021-10-01 new issues: 228</title></circle>
+<circle cx="171.6" cy="263.3" r="4" fill="#dc2626"><title>2021-10-01 closed issues: 94</title></circle>
+<circle cx="222.4" cy="188.5" r="4" fill="#2563eb"><title>2022-01-01 new issues: 267</title></circle>
+<circle cx="222.4" cy="265.5" r="4" fill="#dc2626"><title>2022-01-01 closed issues: 89</title></circle>
+<text x="222.4" y="336" text-anchor="middle" class="axis">2022</text>
+<circle cx="273.2" cy="202.3" r="4" fill="#2563eb"><title>2022-04-01 new issues: 235</title></circle>
+<circle cx="273.2" cy="270.7" r="4" fill="#dc2626"><title>2022-04-01 closed issues: 77</title></circle>
+<circle cx="324.0" cy="182.0" r="4" fill="#2563eb"><title>2022-07-01 new issues: 282</title></circle>
+<circle cx="324.0" cy="255.1" r="4" fill="#dc2626"><title>2022-07-01 closed issues: 113</title></circle>
+<circle cx="374.8" cy="203.6" r="4" fill="#2563eb"><title>2022-10-01 new issues: 232</title></circle>
+<circle cx="374.8" cy="263.8" r="4" fill="#dc2626"><title>2022-10-01 closed issues: 93</title></circle>
+<circle cx="425.6" cy="155.2" r="4" fill="#2563eb"><title>2023-01-01 new issues: 344</title></circle>
+<circle cx="425.6" cy="247.8" r="4" fill="#dc2626"><title>2023-01-01 closed issues: 130</title></circle>
+<text x="425.6" y="336" text-anchor="middle" class="axis">2023</text>
+<circle cx="476.4" cy="156.9" r="4" fill="#2563eb"><title>2023-04-01 new issues: 340</title></circle>
+<circle cx="476.4" cy="232.2" r="4" fill="#dc2626"><title>2023-04-01 closed issues: 166</title></circle>
+<circle cx="527.2" cy="148.7" r="4" fill="#2563eb"><title>2023-07-01 new issues: 359</title></circle>
+<circle cx="527.2" cy="204.1" r="4" fill="#dc2626"><title>2023-07-01 closed issues: 231</title></circle>
+<circle cx="578.0" cy="152.6" r="4" fill="#2563eb"><title>2023-10-01 new issues: 350</title></circle>
+<circle cx="578.0" cy="240.0" r="4" fill="#dc2626"><title>2023-10-01 closed issues: 148</title></circle>
+<circle cx="628.8" cy="163.8" r="4" fill="#2563eb"><title>2024-01-01 new issues: 324</title></circle>
+<circle cx="628.8" cy="223.5" r="4" fill="#dc2626"><title>2024-01-01 closed issues: 186</title></circle>
+<text x="628.8" y="336" text-anchor="middle" class="axis">2024</text>
+<circle cx="679.6" cy="188.9" r="4" fill="#2563eb"><title>2024-04-01 new issues: 266</title></circle>
+<circle cx="679.6" cy="221.8" r="4" fill="#dc2626"><title>2024-04-01 closed issues: 190</title></circle>
+<circle cx="730.4" cy="164.3" r="4" fill="#2563eb"><title>2024-07-01 new issues: 323</title></circle>
+<circle cx="730.4" cy="199.7" r="4" fill="#dc2626"><title>2024-07-01 closed issues: 241</title></circle>
+<circle cx="781.2" cy="193.2" r="4" fill="#2563eb"><title>2024-10-01 new issues: 256</title></circle>
+<circle cx="781.2" cy="185.5" r="4" fill="#dc2626"><title>2024-10-01 closed issues: 274</title></circle>
+<circle cx="832.0" cy="252.1" r="4" fill="#2563eb"><title>2025-01-01 new issues: 120</title></circle>
+<circle cx="832.0" cy="252.9" r="4" fill="#dc2626"><title>2025-01-01 closed issues: 118</title></circle>
+<text x="832.0" y="336" text-anchor="middle" class="axis">2025</text>
+<circle cx="882.8" cy="262.0" r="4" fill="#2563eb"><title>2025-04-01 new issues: 97</title></circle>
+<circle cx="882.8" cy="224.4" r="4" fill="#dc2626"><title>2025-04-01 closed issues: 184</title></circle>
+<circle cx="933.6" cy="236.1" r="4" fill="#2563eb"><title>2025-07-01 new issues: 157</title></circle>
+<circle cx="933.6" cy="234.8" r="4" fill="#dc2626"><title>2025-07-01 closed issues: 160</title></circle>
+<circle cx="984.4" cy="200.2" r="4" fill="#2563eb"><title>2025-10-01 new issues: 240</title></circle>
+<circle cx="984.4" cy="143.9" r="4" fill="#dc2626"><title>2025-10-01 closed issues: 370</title></circle>
+<circle cx="1035.2" cy="203.2" r="4" fill="#2563eb"><title>2026-01-01 new issues: 233</title></circle>
+<circle cx="1035.2" cy="214.9" r="4" fill="#dc2626"><title>2026-01-01 closed issues: 206</title></circle>
+<text x="1035.2" y="336" text-anchor="middle" class="axis">2026</text>
+<circle cx="1086.0" cy="259.4" r="4" fill="#2563eb"><title>2026-04-01 new issues: 103</title></circle>
+<circle cx="1086.0" cy="239.5" r="4" fill="#dc2626"><title>2026-04-01 closed issues: 149</title></circle>
+<rect x="856" y="12" width="12" height="12" fill="#2563eb"/><text x="874" y="23" class="legend-text">Created</text>
+<rect x="946" y="12" width="12" height="12" fill="#dc2626"/><text x="964" y="23" class="legend-text">Closed</text>
+</svg></section>
+
+    <h2>Where The Decline Comes From</h2>
+    <section class="chart-card"><svg viewBox="0 0 1120 260" role="img" aria-label="Monthly net issue flow">
+<text x="68" y="24" class="chart-title">Monthly net flow around the turn</text>
+<text x="68" y="42" class="chart-note">Bars below zero mean closures exceeded new issues. Late 2025 and June 2026 show cleanup pulses.</text>
+<line x1="68" y1="148.0" x2="1088" y2="148.0" stroke="#334155" stroke-width="1.2"/>
+<rect x="77.2" y="148.0" width="30.1" height="4.9" fill="#dc2626" rx="2"><title>2024-10-01 net: -8</title></rect>
+<text x="92.3" y="236" text-anchor="middle" class="axis">2024</text>
+<rect x="125.8" y="148.0" width="30.1" height="14.8" fill="#dc2626" rx="2"><title>2024-11-01 net: -24</title></rect>
+<rect x="174.4" y="139.3" width="30.1" height="8.7" fill="#2563eb" rx="2"><title>2024-12-01 net: +14</title></rect>
+<rect x="222.9" y="145.5" width="30.1" height="2.5" fill="#2563eb" rx="2"><title>2025-01-01 net: +4</title></rect>
+<text x="238.0" y="236" text-anchor="middle" class="axis">2025</text>
+<rect x="271.5" y="144.3" width="30.1" height="3.7" fill="#2563eb" rx="2"><title>2025-02-01 net: +6</title></rect>
+<rect x="320.1" y="148.0" width="30.1" height="4.9" fill="#dc2626" rx="2"><title>2025-03-01 net: -8</title></rect>
+<rect x="368.7" y="148.0" width="30.1" height="24.1" fill="#dc2626" rx="2"><title>2025-04-01 net: -39</title></rect>
+<rect x="417.2" y="148.0" width="30.1" height="31.5" fill="#dc2626" rx="2"><title>2025-05-01 net: -51</title></rect>
+<rect x="465.8" y="146.1" width="30.1" height="1.9" fill="#2563eb" rx="2"><title>2025-06-01 net: +3</title></rect>
+<rect x="514.4" y="148.0" width="30.1" height="16.1" fill="#dc2626" rx="2"><title>2025-07-01 net: -26</title></rect>
+<rect x="562.9" y="140.6" width="30.1" height="7.4" fill="#2563eb" rx="2"><title>2025-08-01 net: +12</title></rect>
+<rect x="611.5" y="141.2" width="30.1" height="6.8" fill="#2563eb" rx="2"><title>2025-09-01 net: +11</title></rect>
+<rect x="660.1" y="148.0" width="30.1" height="16.1" fill="#dc2626" rx="2"><title>2025-10-01 net: -26</title></rect>
+<rect x="708.7" y="148.0" width="30.1" height="29.1" fill="#dc2626" rx="2"><title>2025-11-01 net: -47</title></rect>
+<rect x="757.2" y="148.0" width="30.1" height="35.3" fill="#dc2626" rx="2"><title>2025-12-01 net: -57</title></rect>
+<rect x="805.8" y="144.9" width="30.1" height="3.1" fill="#2563eb" rx="2"><title>2026-01-01 net: +5</title></rect>
+<text x="820.9" y="236" text-anchor="middle" class="axis">2026</text>
+<rect x="854.4" y="144.9" width="30.1" height="3.1" fill="#2563eb" rx="2"><title>2026-02-01 net: +5</title></rect>
+<rect x="902.9" y="137.5" width="30.1" height="10.5" fill="#2563eb" rx="2"><title>2026-03-01 net: +17</title></rect>
+<rect x="951.5" y="148.0" width="30.1" height="6.2" fill="#dc2626" rx="2"><title>2026-04-01 net: -10</title></rect>
+<rect x="1000.1" y="148.0" width="30.1" height="2.5" fill="#dc2626" rx="2"><title>2026-05-01 net: -4</title></rect>
+<rect x="1048.7" y="148.0" width="30.1" height="19.8" fill="#dc2626" rx="2"><title>2026-06-01 net: -32</title></rect>
+</svg></section>
+
+    <h2>Reporting Trend</h2>
+    <section class="chart-card"><svg viewBox="0 0 1120 360" role="img" aria-label="People opening issues on GitHub">
+<text x="74" y="24" class="chart-title">Fewer people are opening issues on GitHub</text>
+<text x="74" y="42" class="chart-note">Purple is unique issue creators. Orange is first-time issue creators. Both shrink after early 2025.</text>
+<rect x="74.0" y="94" width="581.9" height="208" fill="#dbeafe" opacity="0.42"/>
+<rect x="655.9" y="94" width="202.4" height="208" fill="#fef3c7" opacity="0.42"/>
+<rect x="858.3" y="94" width="227.7" height="208" fill="#fee2e2" opacity="0.42"/>
+<line x1="74" y1="302.0" x2="1086" y2="302.0" class="grid"/>
+<text x="64" y="306.0" text-anchor="end" class="axis">0</text>
+<line x1="74" y1="245.8" x2="1086" y2="245.8" class="grid"/>
+<text x="64" y="249.8" text-anchor="end" class="axis">50</text>
+<line x1="74" y1="189.6" x2="1086" y2="189.6" class="grid"/>
+<text x="64" y="193.6" text-anchor="end" class="axis">100</text>
+<line x1="74" y1="133.4" x2="1086" y2="133.4" class="grid"/>
+<text x="64" y="137.4" text-anchor="end" class="axis">150</text>
+<line x1="74" y1="77.1" x2="1086" y2="77.1" class="grid"/>
+<text x="64" y="81.1" text-anchor="end" class="axis">200</text>
+<polyline points="74.0,267.1 124.6,168.2 175.2,181.7 225.8,141.2 276.4,178.3 327.0,157.0 377.6,164.8 428.2,139.0 478.8,142.3 529.4,150.2 580.0,157.0 630.6,157.0 681.2,154.7 731.8,154.7 782.4,173.8 833.0,214.3 883.6,230.0 934.2,205.3 984.8,186.2 1035.4,198.6 1086.0,226.7" fill="none" stroke="#7c3aed" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="74.0,288.5 124.6,250.3 175.2,252.5 225.8,230.0 276.4,252.5 327.0,239.0 377.6,240.2 428.2,231.2 478.8,240.2 529.4,254.8 580.0,260.4 630.6,251.4 681.2,248.0 731.8,249.2 782.4,254.8 833.0,268.3 883.6,268.3 934.2,271.6 984.8,267.1 1035.4,272.8 1086.0,272.8" fill="none" stroke="#ea580c" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="74.0" cy="267.1" r="4.2" fill="#7c3aed"><title>2021-04-01 unique creators: 31</title></circle>
+<circle cx="74.0" cy="288.5" r="4.2" fill="#ea580c"><title>2021-04-01 first-time creators: 12</title></circle>
+<text x="74.0" y="336" text-anchor="middle" class="axis">2021</text>
+<circle cx="124.6" cy="168.2" r="4.2" fill="#7c3aed"><title>2021-07-01 unique creators: 119</title></circle>
+<circle cx="124.6" cy="250.3" r="4.2" fill="#ea580c"><title>2021-07-01 first-time creators: 46</title></circle>
+<circle cx="175.2" cy="181.7" r="4.2" fill="#7c3aed"><title>2021-10-01 unique creators: 107</title></circle>
+<circle cx="175.2" cy="252.5" r="4.2" fill="#ea580c"><title>2021-10-01 first-time creators: 44</title></circle>
+<circle cx="225.8" cy="141.2" r="4.2" fill="#7c3aed"><title>2022-01-01 unique creators: 143</title></circle>
+<circle cx="225.8" cy="230.0" r="4.2" fill="#ea580c"><title>2022-01-01 first-time creators: 64</title></circle>
+<text x="225.8" y="336" text-anchor="middle" class="axis">2022</text>
+<circle cx="276.4" cy="178.3" r="4.2" fill="#7c3aed"><title>2022-04-01 unique creators: 110</title></circle>
+<circle cx="276.4" cy="252.5" r="4.2" fill="#ea580c"><title>2022-04-01 first-time creators: 44</title></circle>
+<circle cx="327.0" cy="157.0" r="4.2" fill="#7c3aed"><title>2022-07-01 unique creators: 129</title></circle>
+<circle cx="327.0" cy="239.0" r="4.2" fill="#ea580c"><title>2022-07-01 first-time creators: 56</title></circle>
+<circle cx="377.6" cy="164.8" r="4.2" fill="#7c3aed"><title>2022-10-01 unique creators: 122</title></circle>
+<circle cx="377.6" cy="240.2" r="4.2" fill="#ea580c"><title>2022-10-01 first-time creators: 55</title></circle>
+<circle cx="428.2" cy="139.0" r="4.2" fill="#7c3aed"><title>2023-01-01 unique creators: 145</title></circle>
+<circle cx="428.2" cy="231.2" r="4.2" fill="#ea580c"><title>2023-01-01 first-time creators: 63</title></circle>
+<text x="428.2" y="336" text-anchor="middle" class="axis">2023</text>
+<circle cx="478.8" cy="142.3" r="4.2" fill="#7c3aed"><title>2023-04-01 unique creators: 142</title></circle>
+<circle cx="478.8" cy="240.2" r="4.2" fill="#ea580c"><title>2023-04-01 first-time creators: 55</title></circle>
+<circle cx="529.4" cy="150.2" r="4.2" fill="#7c3aed"><title>2023-07-01 unique creators: 135</title></circle>
+<circle cx="529.4" cy="254.8" r="4.2" fill="#ea580c"><title>2023-07-01 first-time creators: 42</title></circle>
+<circle cx="580.0" cy="157.0" r="4.2" fill="#7c3aed"><title>2023-10-01 unique creators: 129</title></circle>
+<circle cx="580.0" cy="260.4" r="4.2" fill="#ea580c"><title>2023-10-01 first-time creators: 37</title></circle>
+<circle cx="630.6" cy="157.0" r="4.2" fill="#7c3aed"><title>2024-01-01 unique creators: 129</title></circle>
+<circle cx="630.6" cy="251.4" r="4.2" fill="#ea580c"><title>2024-01-01 first-time creators: 45</title></circle>
+<text x="630.6" y="336" text-anchor="middle" class="axis">2024</text>
+<circle cx="681.2" cy="154.7" r="4.2" fill="#7c3aed"><title>2024-04-01 unique creators: 131</title></circle>
+<circle cx="681.2" cy="248.0" r="4.2" fill="#ea580c"><title>2024-04-01 first-time creators: 48</title></circle>
+<circle cx="731.8" cy="154.7" r="4.2" fill="#7c3aed"><title>2024-07-01 unique creators: 131</title></circle>
+<circle cx="731.8" cy="249.2" r="4.2" fill="#ea580c"><title>2024-07-01 first-time creators: 47</title></circle>
+<circle cx="782.4" cy="173.8" r="4.2" fill="#7c3aed"><title>2024-10-01 unique creators: 114</title></circle>
+<circle cx="782.4" cy="254.8" r="4.2" fill="#ea580c"><title>2024-10-01 first-time creators: 42</title></circle>
+<circle cx="833.0" cy="214.3" r="4.2" fill="#7c3aed"><title>2025-01-01 unique creators: 78</title></circle>
+<circle cx="833.0" cy="268.3" r="4.2" fill="#ea580c"><title>2025-01-01 first-time creators: 30</title></circle>
+<text x="833.0" y="336" text-anchor="middle" class="axis">2025</text>
+<circle cx="883.6" cy="230.0" r="4.2" fill="#7c3aed"><title>2025-04-01 unique creators: 64</title></circle>
+<circle cx="883.6" cy="268.3" r="4.2" fill="#ea580c"><title>2025-04-01 first-time creators: 30</title></circle>
+<circle cx="934.2" cy="205.3" r="4.2" fill="#7c3aed"><title>2025-07-01 unique creators: 86</title></circle>
+<circle cx="934.2" cy="271.6" r="4.2" fill="#ea580c"><title>2025-07-01 first-time creators: 27</title></circle>
+<circle cx="984.8" cy="186.2" r="4.2" fill="#7c3aed"><title>2025-10-01 unique creators: 103</title></circle>
+<circle cx="984.8" cy="267.1" r="4.2" fill="#ea580c"><title>2025-10-01 first-time creators: 31</title></circle>
+<circle cx="1035.4" cy="198.6" r="4.2" fill="#7c3aed"><title>2026-01-01 unique creators: 92</title></circle>
+<circle cx="1035.4" cy="272.8" r="4.2" fill="#ea580c"><title>2026-01-01 first-time creators: 26</title></circle>
+<text x="1035.4" y="336" text-anchor="middle" class="axis">2026</text>
+<circle cx="1086.0" cy="226.7" r="4.2" fill="#7c3aed"><title>2026-04-01 unique creators: 67</title></circle>
+<circle cx="1086.0" cy="272.8" r="4.2" fill="#ea580c"><title>2026-04-01 first-time creators: 26</title></circle>
+<rect x="776" y="12" width="12" height="12" fill="#7c3aed"/><text x="794" y="23" class="legend-text">Unique creators</text>
+<rect x="916" y="12" width="12" height="12" fill="#ea580c"/><text x="934" y="23" class="legend-text">First-time creators</text>
+</svg></section>
+
+
+    <section class="discussion">
+      <h2>Short Discussion</h2>
+      <p><b>The strongest signal is fewer new feature requests.</b> In the full-quarter averages, new feature requests fell from 291.1 per quarter during growth to 181.8 during decline. That is a large inflow change, and it starts before the biggest cleanup pulse.</p>
+      <p><b>Closures also matter.</b> The monthly net-flow chart shows several months where closures exceeded new feature requests, especially late 2025 and the partial June 2026 window. That means the falling open count is partly backlog cleanup, not only fewer reports.</p>
+      <p><b>Fewer people are filing issues on GitHub.</b> Unique creators fell from 128.2 to 86.2 per quarter, and first-time creators fell from 50.1 to 28.5. So the reporting funnel itself looks smaller.</p>
+      <p><b>The cautious interpretation:</b> GitHub issue activity is lower, and old backlog is being cleaned up. That does not prove Gutenberg has fewer real-world problems; it means fewer problems are being reported or managed as open GitHub issues, while maintainers are also closing older threads.</p>
+    </section>
+
+  </section>
+
 
   <details>
     <summary>Optional: what sampled closures looked like</summary>
@@ -367,7 +875,28 @@ ul { color: var(--muted); }
 <a href="samples/coded_growth_created.csv">Growth sample coding</a>
 <a href="samples/coded_plateau_created.csv">Plateau sample coding</a>
 <a href="samples/coded_decline_created.csv">Decline sample coding</a></div>
-  </details>
+</details>
 </main>
+<script>
+  const buttons = [...document.querySelectorAll("[data-view-button]")];
+  const panels = [...document.querySelectorAll("[data-view-panel]")];
+
+  function setView(view) {
+    for (const button of buttons) {
+      const active = button.dataset.viewButton === view;
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-pressed", active ? "true" : "false");
+    }
+    for (const panel of panels) {
+      const active = panel.dataset.viewPanel === view;
+      panel.hidden = !active;
+      panel.classList.toggle("is-active", active);
+    }
+  }
+
+  for (const button of buttons) {
+    button.addEventListener("click", () => setView(button.dataset.viewButton));
+  }
+</script>
 </body>
 </html>

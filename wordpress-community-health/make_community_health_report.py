@@ -103,6 +103,7 @@ SKIP_NETWORK_DB_FALLBACK_TABLES = [
     "theme_directory_activity_sample",
     "wordcamps",
     "wordcamp_yearly",
+    "wordcamp_quarterly",
     "wp_event_snapshots",
     "wp_events",
     "translation_snapshots",
@@ -1239,16 +1240,11 @@ def derive_http_archive_tracked_share_monthly(adoption_rows):
 
 
 def quarter_start(date_value):
-    raw = str(date_value or "")
-    if len(raw) < 7:
+    parsed = parse_iso(date_value)
+    if not parsed:
         return ""
-    try:
-        year = int(raw[:4])
-        month = int(raw[5:7])
-    except ValueError:
-        return ""
-    start_month = ((month - 1) // 3) * 3 + 1
-    return f"{year:04d}-{start_month:02d}-01"
+    start_month = ((parsed.month - 1) // 3) * 3 + 1
+    return f"{parsed.year:04d}-{start_month:02d}-01"
 
 
 def derive_http_archive_tracked_share_quarterly(monthly_rows):
@@ -4681,6 +4677,57 @@ def derive_wordcamp_yearly(wordcamps):
     return rows
 
 
+def derive_wordcamp_quarterly(wordcamps):
+    buckets = defaultdict(
+        lambda: {
+            "events": 0,
+            "events_with_attendance_estimate": 0,
+            "anticipated_attendance": 0,
+            "virtual_events": 0,
+            "regions": set(),
+        }
+    )
+    for row in wordcamps:
+        started = parse_iso(row.get("start_date"))
+        if not started:
+            continue
+        quarter = quarter_start(row.get("start_date"))
+        bucket = buckets[quarter]
+        bucket["events"] += 1
+        try:
+            raw = json.loads(row.get("raw_json") or "{}")
+        except json.JSONDecodeError:
+            raw = {}
+        estimate = parse_attendee_estimate(raw.get("Number of Anticipated Attendees"))
+        if estimate:
+            bucket["events_with_attendance_estimate"] += 1
+            bucket["anticipated_attendance"] += estimate
+        if boolish(raw.get("Virtual event only")):
+            bucket["virtual_events"] += 1
+        region = strip_html(raw.get("Host region"))
+        if region:
+            bucket["regions"].add(region)
+    rows = []
+    for quarter, values in sorted(buckets.items()):
+        events = values["events"]
+        with_estimate = values["events_with_attendance_estimate"]
+        rows.append(
+            {
+                "quarter": quarter,
+                "label": quarter_label(quarter),
+                "events": events,
+                "events_with_attendance_estimate": with_estimate,
+                "attendance_estimate_coverage_pct": round(with_estimate / events * 100, 2) if events else 0,
+                "anticipated_attendance": values["anticipated_attendance"],
+                "virtual_events": values["virtual_events"],
+                "in_person_or_unspecified_events": events - values["virtual_events"],
+                "regions": len(values["regions"]),
+                "source": "Derived from WordCamp Central API records",
+            }
+        )
+    return rows
+
+
 def fetch_wordpress_events(skip_network=False):
     if skip_network:
         return [], []
@@ -7192,6 +7239,7 @@ def build_report(data, fetched):
     enterprise_vip_cases = fetched.get("enterprise_vip_case_studies", [])
     wordcamps = fetched.get("wordcamps", [])
     wordcamp_yearly = fetched.get("wordcamp_yearly", [])
+    wordcamp_quarterly = fetched.get("wordcamp_quarterly", [])
     wp_event_snapshots = fetched.get("wp_event_snapshots", [])
     wp_events = fetched.get("wp_events", [])
     make_posts = fetched.get("make_core_posts", [])
@@ -7411,6 +7459,11 @@ def build_report(data, fetched):
     dev_note_quarter_points = point_series(make_dev_note_quarterly, "quarter", "dev_notes", "2008-01-01")
     dev_note_author_points = point_series(make_dev_note_quarterly, "quarter", "unique_authors", "2008-01-01")
     wordcamp_years = count_by_year(wordcamps, "start_date")
+    wordcamp_quarter_points = point_series(
+        [row for row in wordcamp_quarterly if "2006-01-01" <= row.get("quarter", "") <= f"{END.year - 1:04d}-10-01"],
+        "quarter",
+        "events",
+    )
     wordcamp_attendance_points = point_series(wordcamp_yearly, "year", "anticipated_attendance", "2006-01-01")
     wordcamp_attendance_coverage_points = point_series(wordcamp_yearly, "year", "events_with_attendance_estimate", "2006-01-01")
     latest_wordcamp_year = max(wordcamp_yearly, key=lambda row: row.get("year", "")) if wordcamp_yearly else {}
@@ -8935,8 +8988,8 @@ p {{ margin:0 0 12px; }}
       ])}
     </div>
     <div class="grid-2">
-      {svg_line_chart("WordCamp records by year", "WordCamp Central event records by start year. Recent future/scheduled records may be incomplete.", [
-          {"label": "WordCamps", "color": COLORS["gutenberg"], "points": wordcamp_years},
+      {svg_line_chart("WordCamp records by quarter", "WordCamp Central event records grouped by start quarter through the latest complete year.", [
+          {"label": "WordCamps", "color": COLORS["gutenberg"], "points": wordcamp_quarter_points or wordcamp_years},
       ])}
       <div class="card">
         <h3>Make/Core discussion readout</h3>
@@ -9999,6 +10052,7 @@ def main():
     )
     if args.skip_network:
         apply_skip_network_db_fallback(fetched)
+    fetched["wordcamp_quarterly"] = derive_wordcamp_quarterly(fetched.get("wordcamps", []))
     fetched["new_site_choice_summary"] = derive_new_site_choice_summary(
         data.get("builtwith_new_site_snapshot", []),
         fetched.get("http_archive_tracked_share_monthly", []),

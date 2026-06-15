@@ -55,6 +55,10 @@ def rows(conn, sql, params=()):
     return [dict(row) for row in conn.execute(sql, params).fetchall()]
 
 
+def table_exists(conn, name):
+    return bool(one(conn, "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (name,)))
+
+
 def latest(rows_, key="date"):
     if not rows_:
         return {}
@@ -197,6 +201,11 @@ def main():
         choice_rows = rows(conn, "SELECT * FROM new_site_choice_summary ORDER BY signal")
         attention_rows = rows(conn, "SELECT * FROM attention_demand_summary ORDER BY signal")
         tier_rows = rows(conn, "SELECT * FROM builtwith_tier_share_snapshot ORDER BY CAST(tier_order AS INTEGER)")
+        ecommerce_share_rows = (
+            rows(conn, "SELECT * FROM ecommerce_platform_share_quarterly ORDER BY quarter, technology")
+            if table_exists(conn, "ecommerce_platform_share_quarterly")
+            else []
+        )
         builtwith_new = rows(conn, "SELECT * FROM builtwith_new_site_snapshot ORDER BY technology")
         http_rows = rows(
             conn,
@@ -230,6 +239,24 @@ def main():
     http_change = choice_by_signal.get("http_archive_tracked_share_change", {})
     top_1m = choice_by_signal.get("builtwith_top_1m_tracked_share", {})
     long_tail = choice_by_signal.get("builtwith_long_tail_tracked_share", {})
+    latest_woocommerce_share = latest(
+        [row for row in ecommerce_share_rows if row.get("technology") == "WooCommerce"],
+        "quarter",
+    )
+    latest_shopify_share = latest(
+        [row for row in ecommerce_share_rows if row.get("technology") == "Shopify"],
+        "quarter",
+    )
+    woocommerce_share_points = [
+        (row.get("label") or row.get("quarter", ""), row.get("entire_internet_share_pct"))
+        for row in ecommerce_share_rows
+        if row.get("technology") == "WooCommerce"
+    ][-48:]
+    woocommerce_top1m_share_points = [
+        (row.get("label") or row.get("quarter", ""), row.get("top_1m_share_pct"))
+        for row in ecommerce_share_rows
+        if row.get("technology") == "WooCommerce"
+    ][-48:]
 
     builtwith_by_tech = {row.get("technology"): row for row in builtwith_new}
     total_major_plugin_installs = sum(num(row.get("active_installs")) for row in plugin_rows)
@@ -273,6 +300,7 @@ def main():
             metric_card("HTTP tracked share", pct(http_latest.get("wordpress_share_pct")), f"{num(http_change.get('wordpress_value')):+.1f} pts since 2020-01-01", "green"),
             metric_card("Top 1M tracked share", pct(top_1m.get("wordpress_share_pct")), "BuiltWith current traffic-tier snapshot", "violet"),
             metric_card("Long-tail tracked share", pct(long_tail.get("wordpress_share_pct")), "BuiltWith current outside-Top-1M snapshot", "violet"),
+            metric_card("WooCommerce ecommerce share", pct(latest_woocommerce_share.get("entire_internet_share_pct")), "BuiltWith Shopify + WooCommerce live-site set", "violet"),
             metric_card("Major plugin installs", compact(total_major_plugin_installs), "Fixed major-plugin WordPress.org API sample", "amber"),
             metric_card("Enterprise cases", compact(len(vip_rows)), "Current WordPress VIP case-study snapshot", "amber"),
             metric_card("Latest core release", latest_release.get("version", "n/a"), latest_release.get("release_date", "WordPress release archive"), "blue"),
@@ -287,6 +315,7 @@ def main():
             signal_row("Current new-site proxy", f"BuiltWith 90-day tracked pipeline: WordPress to {builtwith_90.get('next_peer', 'next peer')} ratio is {num(builtwith_90.get('wordpress_to_next_peer_ratio')):.2f}x.", pct(builtwith_90.get("wordpress_share_pct")), "green"),
             signal_row("Recurring crawl share", f"HTTP Archive tracked share latest month; peer set is WordPress, Shopify, Wix, Squarespace, and Webflow.", pct(http_latest.get("wordpress_share_pct")), "green"),
             signal_row("Traffic tier", f"BuiltWith current Top 1M and long-tail tracked shares bracket where WordPress appears across site sizes.", f"{pct(top_1m.get('wordpress_share_pct'))} / {pct(long_tail.get('wordpress_share_pct'))}", "violet"),
+            signal_row("WooCommerce ecommerce", f"BuiltWith live-site history shows WooCommerce within a tracked Shopify plus WooCommerce ecommerce set.", pct(latest_woocommerce_share.get("entire_internet_share_pct")), "violet"),
             signal_row("Attention and demand", "All available public/developer/hiring proxy summaries are lower than their baselines.", "Lower", "amber"),
         ]
     )
@@ -463,6 +492,24 @@ def main():
 
     <section class="grid" style="margin-top:14px">
       <div class="section">
+        <h2>WooCommerce ecommerce share</h2>
+        <p class="note">BuiltWith ecommerce history grouped quarterly. Share is within the fetched Shopify plus WooCommerce live-site set, not the whole ecommerce market.</p>
+        {line_chart("WooCommerce live-site share", woocommerce_share_points, COLORS["violet"])}
+      </div>
+      <div class="section">
+        <h2>WooCommerce Top 1M share</h2>
+        <p class="note">Traffic-tier share inside the same Shopify plus WooCommerce tracked set.</p>
+        {line_chart("WooCommerce Top 1M share", woocommerce_top1m_share_points, COLORS["violet"])}
+        <div class="readout">
+          <div><strong>{pct(latest_woocommerce_share.get("entire_internet_share_pct"))}</strong><span>WooCommerce latest live-site share</span></div>
+          <div><strong>{pct(latest_shopify_share.get("entire_internet_share_pct"))}</strong><span>Shopify latest live-site share</span></div>
+          <div><strong>{latest_woocommerce_share.get("label", "n/a")}</strong><span>latest WooCommerce quarter in SQLite</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid" style="margin-top:14px">
+      <div class="section">
         <h2>Installed-base platform context</h2>
         <p class="note">Current WordPress.org active-install stats. This is not a growth trend, but it shows the deployment context behind the installed base.</p>
         <div class="bar-stack">{wp_version_bars}</div>
@@ -494,7 +541,7 @@ def main():
           <div><strong>Recent share is softer.</strong><span>W3Techs and HTTP Archive show WordPress still leading while its share is lower than recent baselines.</span></div>
           <div><strong>New-site history is partial.</strong><span>BuiltWith and HTTP Archive are useful current proxies; the source gap plan covers the ideal cohort source.</span></div>
         </div>
-        <p class="footer-note">Rows come from existing SQLite tables including <code>market_share</code>, <code>new_site_choice_summary</code>, <code>http_archive_tracked_share_monthly</code>, <code>builtwith_tier_share_snapshot</code>, <code>builtwith_new_site_snapshot</code>, <code>wporg_ecosystem_stats_snapshot</code>, <code>core_releases</code>, <code>core_release_credits</code>, <code>core_release_committers</code>, and <code>attention_demand_summary</code>. Integrity check: <code>{esc(integrity)}</code>.</p>
+        <p class="footer-note">Rows come from existing SQLite tables including <code>market_share</code>, <code>new_site_choice_summary</code>, <code>http_archive_tracked_share_monthly</code>, <code>builtwith_tier_share_snapshot</code>, <code>builtwith_new_site_snapshot</code>, <code>ecommerce_platform_share_quarterly</code>, <code>wporg_ecosystem_stats_snapshot</code>, <code>core_releases</code>, <code>core_release_credits</code>, <code>core_release_committers</code>, and <code>attention_demand_summary</code>. Integrity check: <code>{esc(integrity)}</code>.</p>
       </div>
     </section>
   </main>

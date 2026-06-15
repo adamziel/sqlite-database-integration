@@ -87,6 +87,7 @@ SKIP_NETWORK_DB_FALLBACK_TABLES = [
     "enterprise_vip_case_studies",
     "builtwith_technology_snapshots",
     "builtwith_technology_history",
+    "ecommerce_platform_share_quarterly",
     "new_site_choice_summary",
     "directory_snapshots",
     "directory_activity_snapshots",
@@ -1347,6 +1348,55 @@ def derive_builder_momentum_summary(quarterly_rows):
             }
         )
     rows.sort(key=lambda row: fnum(row.get("latest_mobile_tracked_share_pct")), reverse=True)
+    return rows
+
+
+def derive_ecommerce_platform_share_quarterly(history_rows):
+    grouped = defaultdict(list)
+    for row in history_rows or []:
+        if row.get("category") != "eCommerce":
+            continue
+        tech = row.get("technology") or ""
+        if tech not in {"Shopify", "WooCommerce"}:
+            continue
+        quarter = quarter_start(row.get("date"))
+        if not quarter:
+            continue
+        grouped[quarter].append(row)
+
+    latest_by_tech = {}
+    rows = []
+    for quarter in sorted(grouped):
+        for row in sorted(grouped[quarter], key=lambda item: item.get("date", "")):
+            tech = row.get("technology") or ""
+            if tech not in latest_by_tech or row.get("date", "") >= latest_by_tech[tech].get("date", ""):
+                latest_by_tech[tech] = row
+        if not all(tech in latest_by_tech for tech in ("Shopify", "WooCommerce")):
+            continue
+        quarter_rows = [latest_by_tech["Shopify"], latest_by_tech["WooCommerce"]]
+        totals = {
+            "entire_internet": sum(num(row.get("entire_internet")) for row in quarter_rows),
+            "top_1m": sum(num(row.get("top_1m")) for row in quarter_rows),
+            "top_100k": sum(num(row.get("top_100k")) for row in quarter_rows),
+            "top_10k": sum(num(row.get("top_10k")) for row in quarter_rows),
+            "top_1k": sum(num(row.get("top_1k")) for row in quarter_rows),
+        }
+        for row in quarter_rows:
+            out = {
+                "quarter": quarter,
+                "label": quarter_label(quarter),
+                "date": row.get("date", ""),
+                "technology": row.get("technology", ""),
+                "category": row.get("category", ""),
+                "source_url": row.get("source_url", ""),
+                "source": "Derived from BuiltWith ecommerce technology history; share is within Shopify plus WooCommerce rows using latest known values carried forward by quarter.",
+            }
+            for metric, total in totals.items():
+                value = num(row.get(metric))
+                out[metric] = value
+                out[f"tracked_{metric}_total"] = total
+                out[f"{metric}_share_pct"] = round(value / total * 100, 2) if total else 0
+            rows.append(out)
     return rows
 
 
@@ -7332,6 +7382,7 @@ def build_report(data, fetched):
     new_site_choice_summary = fetched.get("new_site_choice_summary", [])
     builtwith_technology_snapshots = fetched.get("builtwith_technology_snapshots", [])
     builtwith_technology_history = fetched.get("builtwith_technology_history", [])
+    ecommerce_platform_share_q = fetched.get("ecommerce_platform_share_quarterly", [])
     contributor_depth = fetched.get("contributor_depth_buckets", [])
     contributor_retention = fetched.get("contributor_retention_cohorts", [])
     contributor_concentration_summary = fetched.get("contributor_concentration_summary", [])
@@ -7747,6 +7798,36 @@ def build_report(data, fetched):
         }
         for tech, color in builtwith_ecommerce_history_techs
     ]
+    ecommerce_share_series = [
+        {
+            "label": tech,
+            "color": color,
+            "points": sorted(
+                (row["quarter"], num(row.get("entire_internet_share_pct")))
+                for row in ecommerce_platform_share_q
+                if row.get("technology") == tech and row.get("quarter") >= "2010-01-01"
+            ),
+        }
+        for tech, color in builtwith_ecommerce_history_techs
+    ]
+    ecommerce_top1m_share_series = [
+        {
+            "label": tech,
+            "color": color,
+            "points": sorted(
+                (row["quarter"], num(row.get("top_1m_share_pct")))
+                for row in ecommerce_platform_share_q
+                if row.get("technology") == tech and row.get("quarter") >= "2010-01-01"
+            ),
+        }
+        for tech, color in builtwith_ecommerce_history_techs
+    ]
+    latest_ecommerce_share = max(ecommerce_platform_share_q, key=lambda row: row.get("quarter", "")) if ecommerce_platform_share_q else {}
+    latest_woocommerce_share = max(
+        [row for row in ecommerce_platform_share_q if row.get("technology") == "WooCommerce"],
+        key=lambda row: row.get("quarter", ""),
+        default={},
+    )
     woocommerce_builtwith = builtwith_live_by_tech.get("WooCommerce", {})
     woocommerce_plugin = max(
         [row for row in plugin_activity_rows if row.get("slug") == "woocommerce"],
@@ -9658,17 +9739,23 @@ p {{ margin:0 0 12px; }}
       {svg_line_chart("BuiltWith ecommerce Top 1M presence", "Historical live-site counts among the Top 1M traffic tier.", builtwith_top1m_series)}
     </div>
     <div class="grid-2">
+      {svg_line_chart("BuiltWith ecommerce tracked share", "Quarterly share within the two fetched BuiltWith ecommerce technologies: Shopify plus WooCommerce.", ecommerce_share_series, y_suffix="%")}
+      {svg_line_chart("BuiltWith ecommerce Top 1M share", "Quarterly Top 1M share within the same Shopify plus WooCommerce tracked set.", ecommerce_top1m_share_series, y_suffix="%")}
+    </div>
+    <div class="grid-2">
       <div class="card">
         <h3>WooCommerce ecommerce signal</h3>
         <p>WooCommerce appears in both BuiltWith ecommerce tracking and the WordPress.org plugin directory.</p>
         <div class="stats">
           {stat_card("BuiltWith live", compact(num(woocommerce_builtwith.get("total_live"))), "WooCommerce ecommerce page", "good")}
           {stat_card("BuiltWith 90 days", compact(num(woocommerce_builtwith.get("new_last_3_months"))), "recently found sites", "good")}
+          {stat_card("Tracked share", pct(num(latest_woocommerce_share.get("entire_internet_share_pct"))), "WooCommerce of Shopify + WooCommerce", "soft")}
           {stat_card("Top 1M", compact(num(woocommerce_builtwith.get("top_1m"))), "BuiltWith traffic tier", "soft")}
           {stat_card("Plugin installs", compact(num(woocommerce_plugin.get("active_installs"))), "WordPress.org active installs", "good")}
         </div>
         {horizontal_count_metric("WooCommerce live sites", num(woocommerce_builtwith.get("total_live")), builtwith_ecommerce_live_max, COLORS["purple"], "")}
         {horizontal_count_metric("WooCommerce Top 1M", num(woocommerce_builtwith.get("top_1m")), max([num(row.get("top_1m")) for row in builtwith_ecommerce_live_rows] or [1]), COLORS["purple"], "")}
+        {horizontal_count_metric("WooCommerce tracked share", num(latest_woocommerce_share.get("entire_internet_share_pct")), 100, COLORS["purple"], "%")}
       </div>
       <div class="card">
         <h3>BuiltWith ecommerce footprint</h3>
@@ -10106,6 +10193,9 @@ def main():
     )
     if args.skip_network:
         apply_skip_network_db_fallback(fetched)
+    fetched["ecommerce_platform_share_quarterly"] = derive_ecommerce_platform_share_quarterly(
+        fetched.get("builtwith_technology_history", [])
+    )
     fetched["wordcamp_quarterly"] = derive_wordcamp_quarterly(fetched.get("wordcamps", []))
     fetched["wp_event_activity_quarterly"] = derive_wp_event_activity_quarterly(fetched.get("wp_events", []))
     fetched["new_site_choice_summary"] = derive_new_site_choice_summary(

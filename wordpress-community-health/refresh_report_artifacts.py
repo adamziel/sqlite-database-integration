@@ -47,6 +47,7 @@ HTML_ARTIFACTS = {
         "Plugin ecosystem breadth",
         "Theme ecosystem breadth",
         "WordCamp records by quarter",
+        "Upcoming events by quarter",
         "Make/Core discussion",
     ],
     "market_position.html": [

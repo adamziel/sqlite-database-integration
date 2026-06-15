@@ -191,6 +191,11 @@ def main():
         fttf = rows(conn, "SELECT * FROM fttf_snapshots")
         support = rows(conn, "SELECT * FROM support_forum_snapshot_summary")
         events = rows(conn, "SELECT * FROM wp_event_snapshots")
+        event_activity_quarterly = (
+            rows(conn, "SELECT * FROM wp_event_activity_quarterly ORDER BY quarter")
+            if table_exists(conn, "wp_event_activity_quarterly")
+            else []
+        )
         plugin_maintenance = rows(conn, "SELECT * FROM plugin_maintenance_summary")
         plugin_activity_quarterly = (
             rows(conn, "SELECT * FROM plugin_directory_activity_quarterly ORDER BY quarter")
@@ -229,6 +234,7 @@ def main():
     latest_fttf = latest(fttf, "snapshot_date")
     latest_support = latest(support, "snapshot_at")
     latest_events = latest(events, "snapshot_date")
+    latest_event_quarter = latest(event_activity_quarterly, "quarter")
     latest_plugin_maintenance = latest(plugin_maintenance, "snapshot_date")
     latest_plugin_activity = latest(plugin_activity_quarterly, "quarter")
 
@@ -282,6 +288,12 @@ def main():
     wordcamp_quarter_points = [
         (row.get("label") or row.get("quarter", ""), row.get("events")) for row in complete_wordcamp_quarters[-40:]
     ]
+    event_quarter_points = [
+        (row.get("label") or row.get("quarter", ""), row.get("events")) for row in event_activity_quarterly[-8:]
+    ]
+    meetup_group_quarter_points = [
+        (row.get("label") or row.get("quarter", ""), row.get("unique_meetup_groups")) for row in event_activity_quarterly[-8:]
+    ]
     release_prop_points = [(row.get("version"), row.get("props_count")) for row in release_credits[-10:]]
 
     metric_html = "".join(
@@ -291,6 +303,7 @@ def main():
             metric_card("WordCamps in 2025", compact(latest_wc_full.get("events")), f"{compact(latest_wc_full.get('anticipated_attendance'))} anticipated attendance", "violet"),
             metric_card("Latest full WordCamp quarter", compact(latest_wc_quarter.get("events")), f"{latest_wc_quarter.get('label', 'n/a')} records", "violet"),
             metric_card("Upcoming events", compact(latest_events.get("event_count")), f"{compact(latest_events.get('meetup_count'))} Meetups, {compact(latest_events.get('wordcamp_count'))} WordCamps", "green"),
+            metric_card("Event-calendar quarter", compact(latest_event_quarter.get("events")), f"{latest_event_quarter.get('label', 'n/a')}: {compact(latest_event_quarter.get('unique_meetup_groups'))} groups", "green"),
             metric_card("Translation locales", compact(latest_translation.get("locale_count")), f"{compact(latest_translation.get('locale_contributor_profile_sum'))} contributor profiles", "blue"),
             metric_card("Five for the Future hours", compact(latest_fttf.get("pledged_hours_per_week")), f"{compact(latest_fttf.get('pledges_fetched'))} pledges fetched", "violet"),
             metric_card("Support topics sampled", compact(latest_support.get("topics")), f"{pct(latest_support.get('resolved_share_pct'))} resolved in current queue", "amber"),
@@ -310,6 +323,7 @@ def main():
             signal_row("WordCamps", f"Latest full-year event count uses {latest_wc_full.get('label', 'n/a')}", f"{compact(latest_wc_full.get('events'))}", "blue"),
             signal_row("WordCamp quarterly history", f"Latest complete quarter in the derived table is {latest_wc_quarter.get('label', 'n/a')}", f"{compact(latest_wc_quarter.get('events'))} events", "blue"),
             signal_row("Events calendar", f"{compact(latest_events.get('unique_meetup_groups'))} unique Meetup groups in current events snapshot", f"{compact(latest_events.get('event_count'))} events", "green"),
+            signal_row("Upcoming event quarters", f"Latest scheduled quarter is {latest_event_quarter.get('label', 'n/a')}", f"{compact(latest_event_quarter.get('events'))} events", "green"),
             signal_row("Translation", f"{compact(latest_translation.get('core_dev_90_plus'))} Core dev locales are at least 90% translated", f"{compact(latest_translation.get('locale_count'))} locales", "blue"),
             signal_row("Pledged contribution", "Current Five for the Future public pledge listing", f"{compact(latest_fttf.get('pledged_hours_per_week'))} hrs/wk", "violet"),
             signal_row("Support queue", f"{compact(latest_support.get('participants'))} participants in current support snapshot", f"{pct(latest_support.get('unresolved_share_pct'))} unresolved", "amber"),
@@ -328,6 +342,8 @@ def main():
             sparkline("Plugin additions by quarter", plugin_added_points, "#159957"),
             sparkline("Plugin updates by quarter", plugin_updated_points, "#2563eb"),
             sparkline("WordCamp records by quarter", wordcamp_quarter_points or wordcamp_points, "#2563eb"),
+            sparkline("Upcoming events by quarter", event_quarter_points, "#159957"),
+            sparkline("Meetup groups by quarter", meetup_group_quarter_points, "#0891b2"),
             sparkline("Core release props", release_prop_points, "#b7791f"),
         ]
     )
@@ -461,7 +477,7 @@ def main():
         <div><strong>Some signals are snapshots.</strong><span>Events, support queues, plugin freshness, translation, and pledge counts are current-state views, while WordCamp, Make/Core, and release rows have historical shape.</span></div>
         <div><strong>Use this with tracker data.</strong><span>Fewer first-time reporters does not mean the whole ecosystem is inactive; it means tracker participation is softer than before.</span></div>
       </div>
-      <p class="footer-note">Rows come from existing SQLite tables including <code>wordcamp_yearly</code>, <code>wordcamp_quarterly</code>, <code>make_core_comment_quarterly</code>, <code>make_core_dev_note_quarterly</code>, <code>core_release_credits</code>, <code>translation_snapshots</code>, <code>fttf_snapshots</code>, <code>support_forum_snapshot_summary</code>, <code>directory_activity_snapshots</code>, <code>plugin_directory_activity_sample</code>, <code>plugin_directory_activity_quarterly</code>, <code>plugin_search_snapshot</code>, <code>theme_search_snapshot</code>, and <code>theme_directory_activity_sample</code>. Integrity check: <code>{esc(integrity)}</code>. Latest WordCamp row in the database is {esc(latest_wc_any.get("label", "n/a"))}; current and future years are partial. Theme sample flags include {compact(theme_commercial)} commercial and {compact(theme_community)} community themes.</p>
+      <p class="footer-note">Rows come from existing SQLite tables including <code>wordcamp_yearly</code>, <code>wordcamp_quarterly</code>, <code>wp_event_activity_quarterly</code>, <code>make_core_comment_quarterly</code>, <code>make_core_dev_note_quarterly</code>, <code>core_release_credits</code>, <code>translation_snapshots</code>, <code>fttf_snapshots</code>, <code>support_forum_snapshot_summary</code>, <code>directory_activity_snapshots</code>, <code>plugin_directory_activity_sample</code>, <code>plugin_directory_activity_quarterly</code>, <code>plugin_search_snapshot</code>, <code>theme_search_snapshot</code>, and <code>theme_directory_activity_sample</code>. Integrity check: <code>{esc(integrity)}</code>. Latest WordCamp row in the database is {esc(latest_wc_any.get("label", "n/a"))}; current and future years are partial. Theme sample flags include {compact(theme_commercial)} commercial and {compact(theme_community)} community themes.</p>
     </section>
   </main>
 </body>

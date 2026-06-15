@@ -132,6 +132,11 @@
         <strong>293</strong>
         <p>273 Meetups, 20 WordCamps</p>
       </article>
+      <article class="metric green">
+        <h3>Event-calendar quarter</h3>
+        <strong>5</strong>
+        <p>2027-Q2: 3 groups</p>
+      </article>
       <article class="metric blue">
         <h3>Translation locales</h3>
         <strong>202</strong>
@@ -220,6 +225,13 @@
             <span>152 unique Meetup groups in current events snapshot</span>
           </div>
           <b>293 events</b>
+        </div>
+        <div class="signal-row green">
+          <div>
+            <strong>Upcoming event quarters</strong>
+            <span>Latest scheduled quarter is 2027-Q2</span>
+          </div>
+          <b>5 events</b>
         </div>
         <div class="signal-row blue">
           <div>
@@ -350,6 +362,34 @@
 <text x="500" y="158" class="axis" text-anchor="end">2025-Q4</text>
 <text x="500" y="21" class="spark-end" text-anchor="end">41</text>
 </svg>
+<svg class="spark" viewBox="0 0 520 168" role="img" aria-label="Upcoming events by quarter">
+<text x="44" y="20" class="spark-title">Upcoming events by quarter</text>
+<line x1="44" x2="500" y1="134.0" y2="134.0" class="spark-grid" />
+<text x="36" y="138.0" class="axis" text-anchor="end">0</text>
+<line x1="44" x2="500" y1="84.0" y2="84.0" class="spark-grid" />
+<text x="36" y="88.0" class="axis" text-anchor="end">65</text>
+<line x1="44" x2="500" y1="34.0" y2="34.0" class="spark-grid" />
+<text x="36" y="38.0" class="axis" text-anchor="end">130</text>
+<path d="M44.0,44.8 L158.0,36.3 L272.0,104.8 L386.0,128.6 L500.0,130.2" fill="none" stroke="#159957" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="500.0" cy="130.2" r="4" fill="#159957" />
+<text x="44" y="158" class="axis">2026-Q2</text>
+<text x="500" y="158" class="axis" text-anchor="end">2027-Q2</text>
+<text x="500" y="21" class="spark-end" text-anchor="end">5</text>
+</svg>
+<svg class="spark" viewBox="0 0 520 168" role="img" aria-label="Meetup groups by quarter">
+<text x="44" y="20" class="spark-title">Meetup groups by quarter</text>
+<line x1="44" x2="500" y1="134.0" y2="134.0" class="spark-grid" />
+<text x="36" y="138.0" class="axis" text-anchor="end">0</text>
+<line x1="44" x2="500" y1="84.0" y2="84.0" class="spark-grid" />
+<text x="36" y="88.0" class="axis" text-anchor="end">55</text>
+<line x1="44" x2="500" y1="34.0" y2="34.0" class="spark-grid" />
+<text x="36" y="38.0" class="axis" text-anchor="end">110</text>
+<path d="M44.0,35.8 L158.0,76.7 L272.0,118.5 L386.0,130.4 L500.0,131.3" fill="none" stroke="#0891b2" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="500.0" cy="131.3" r="4" fill="#0891b2" />
+<text x="44" y="158" class="axis">2026-Q2</text>
+<text x="500" y="158" class="axis" text-anchor="end">2027-Q2</text>
+<text x="500" y="21" class="spark-end" text-anchor="end">3</text>
+</svg>
 <svg class="spark" viewBox="0 0 520 168" role="img" aria-label="Core release props">
 <text x="44" y="20" class="spark-title">Core release props</text>
 <line x1="44" x2="500" y1="134.0" y2="134.0" class="spark-grid" />
@@ -462,7 +502,7 @@
         <div><strong>Some signals are snapshots.</strong><span>Events, support queues, plugin freshness, translation, and pledge counts are current-state views, while WordCamp, Make/Core, and release rows have historical shape.</span></div>
         <div><strong>Use this with tracker data.</strong><span>Fewer first-time reporters does not mean the whole ecosystem is inactive; it means tracker participation is softer than before.</span></div>
       </div>
-      <p class="footer-note">Rows come from existing SQLite tables including <code>wordcamp_yearly</code>, <code>wordcamp_quarterly</code>, <code>make_core_comment_quarterly</code>, <code>make_core_dev_note_quarterly</code>, <code>core_release_credits</code>, <code>translation_snapshots</code>, <code>fttf_snapshots</code>, <code>support_forum_snapshot_summary</code>, <code>directory_activity_snapshots</code>, <code>plugin_directory_activity_sample</code>, <code>plugin_directory_activity_quarterly</code>, <code>plugin_search_snapshot</code>, <code>theme_search_snapshot</code>, and <code>theme_directory_activity_sample</code>. Integrity check: <code>ok</code>. Latest WordCamp row in the database is 2027; current and future years are partial. Theme sample flags include 222 commercial and 18 community themes.</p>
+      <p class="footer-note">Rows come from existing SQLite tables including <code>wordcamp_yearly</code>, <code>wordcamp_quarterly</code>, <code>wp_event_activity_quarterly</code>, <code>make_core_comment_quarterly</code>, <code>make_core_dev_note_quarterly</code>, <code>core_release_credits</code>, <code>translation_snapshots</code>, <code>fttf_snapshots</code>, <code>support_forum_snapshot_summary</code>, <code>directory_activity_snapshots</code>, <code>plugin_directory_activity_sample</code>, <code>plugin_directory_activity_quarterly</code>, <code>plugin_search_snapshot</code>, <code>theme_search_snapshot</code>, and <code>theme_directory_activity_sample</code>. Integrity check: <code>ok</code>. Latest WordCamp row in the database is 2027; current and future years are partial. Theme sample flags include 222 commercial and 18 community themes.</p>
     </section>
   </main>
 </body>

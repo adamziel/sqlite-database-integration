@@ -106,6 +106,7 @@ SKIP_NETWORK_DB_FALLBACK_TABLES = [
     "wordcamp_quarterly",
     "wp_event_snapshots",
     "wp_events",
+    "wp_event_activity_quarterly",
     "translation_snapshots",
     "translation_locale_snapshot",
     "translation_core_dev_status",
@@ -4784,6 +4785,53 @@ def fetch_wordpress_events(skip_network=False):
     return [snapshot], sorted(event_rows, key=lambda row: (row["event_date"], row["title"]))
 
 
+def derive_wp_event_activity_quarterly(events):
+    buckets = defaultdict(
+        lambda: {
+            "events": 0,
+            "meetup_events": 0,
+            "wordcamp_events": 0,
+            "online_events": 0,
+            "in_person_events": 0,
+            "meetup_groups": set(),
+        }
+    )
+    for row in events:
+        quarter = quarter_start(row.get("event_date"))
+        if not quarter:
+            continue
+        bucket = buckets[quarter]
+        event_type = str(row.get("type") or "")
+        bucket["events"] += 1
+        if event_type == "meetup":
+            bucket["meetup_events"] += 1
+        if event_type == "wordcamp":
+            bucket["wordcamp_events"] += 1
+        if row.get("location") == "online":
+            bucket["online_events"] += 1
+        else:
+            bucket["in_person_events"] += 1
+        if row.get("meetup"):
+            bucket["meetup_groups"].add(row.get("meetup"))
+    rows = []
+    for quarter, values in sorted(buckets.items()):
+        rows.append(
+            {
+                "quarter": quarter,
+                "label": quarter_label(quarter),
+                "events": values["events"],
+                "meetup_events": values["meetup_events"],
+                "wordcamp_events": values["wordcamp_events"],
+                "online_events": values["online_events"],
+                "in_person_events": values["in_person_events"],
+                "unique_meetup_groups": len(values["meetup_groups"]),
+                "source": "Derived from events.wordpress.org upcoming event map payload",
+                "source_url": EVENTS_WORDPRESS_URL,
+            }
+        )
+    return rows
+
+
 def fetch_make_core_posts(skip_network=False):
     if skip_network:
         return []
@@ -7242,6 +7290,7 @@ def build_report(data, fetched):
     wordcamp_quarterly = fetched.get("wordcamp_quarterly", [])
     wp_event_snapshots = fetched.get("wp_event_snapshots", [])
     wp_events = fetched.get("wp_events", [])
+    wp_event_activity_quarterly = fetched.get("wp_event_activity_quarterly", [])
     make_posts = fetched.get("make_core_posts", [])
     make_comments = fetched.get("make_core_comments", [])
     make_comment_quarterly = fetched.get("make_core_comment_quarterly", [])
@@ -7517,6 +7566,10 @@ def build_report(data, fetched):
     event_month_points = count_by_month(wp_events, "event_date")
     meetup_month_points = count_by_month(wp_events, "event_date", "meetup")
     wordcamp_month_points = count_by_month(wp_events, "event_date", "wordcamp")
+    event_quarter_points = point_series(wp_event_activity_quarterly, "quarter", "events")
+    meetup_quarter_points = point_series(wp_event_activity_quarterly, "quarter", "meetup_events")
+    wordcamp_event_quarter_points = point_series(wp_event_activity_quarterly, "quarter", "wordcamp_events")
+    meetup_group_quarter_points = point_series(wp_event_activity_quarterly, "quarter", "unique_meetup_groups")
     support_view_by_name = {row.get("view"): row for row in support_views}
     support_topic_count = len(support_topics)
     support_resolved_count = sum(1 for row in support_topics if row.get("is_resolved") == "1")
@@ -9067,10 +9120,11 @@ p {{ margin:0 0 12px; }}
       </div>
     </div>
     <div class="grid-2">
-      {svg_line_chart("Upcoming WordPress events by month", "Current events.wordpress.org listing, including Meetups and WordCamps.", [
-          {"label": "All events", "color": COLORS["core"], "points": event_month_points},
-          {"label": "Meetups", "color": COLORS["gutenberg"], "points": meetup_month_points},
-          {"label": "WordCamps", "color": COLORS["community"], "points": wordcamp_month_points},
+      {svg_line_chart("Upcoming WordPress events by quarter", "Current events.wordpress.org listing grouped by scheduled quarter, including Meetups and WordCamps.", [
+          {"label": "All events", "color": COLORS["core"], "points": event_quarter_points or event_month_points},
+          {"label": "Meetups", "color": COLORS["gutenberg"], "points": meetup_quarter_points or meetup_month_points},
+          {"label": "WordCamps", "color": COLORS["community"], "points": wordcamp_event_quarter_points or wordcamp_month_points},
+          {"label": "Meetup groups", "color": COLORS["prs"], "points": meetup_group_quarter_points},
       ])}
       <div class="card">
         <h3>Upcoming event snapshot</h3>
@@ -10053,6 +10107,7 @@ def main():
     if args.skip_network:
         apply_skip_network_db_fallback(fetched)
     fetched["wordcamp_quarterly"] = derive_wordcamp_quarterly(fetched.get("wordcamps", []))
+    fetched["wp_event_activity_quarterly"] = derive_wp_event_activity_quarterly(fetched.get("wp_events", []))
     fetched["new_site_choice_summary"] = derive_new_site_choice_summary(
         data.get("builtwith_new_site_snapshot", []),
         fetched.get("http_archive_tracked_share_monthly", []),

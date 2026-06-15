@@ -145,6 +145,22 @@
       stroke: #e2e8f0;
       stroke-width: 1;
     }
+    .event-line {
+      stroke: #64748b;
+      stroke-width: 1.2;
+      stroke-dasharray: 4 4;
+      opacity: .8;
+    }
+    .event-label-bg {
+      fill: #ffffff;
+      stroke: #cbd5e1;
+      stroke-width: 1;
+    }
+    .event-label {
+      font-size: 11px;
+      font-weight: 700;
+      fill: #334155;
+    }
     .zero-line {
       stroke: #334155;
       stroke-width: 1.3;
@@ -225,142 +241,172 @@
 </div>
 
     <section class="chart-band">
-      <svg viewBox="0 0 1120 365" role="img" aria-label="Open Core Trac tickets over time">
+      <svg viewBox="0 0 1120 425" role="img" aria-label="Open Core Trac tickets over time">
 <text x="76" y="24" class="chart-title">Open Core Trac tickets over time</text>
 <text x="76" y="46" class="chart-note">Backlog peaked at 8,442 in 2024-Q4; latest sampled count is 8,223.</text>
 <rect x="76" y="60" width="12" height="12" rx="2" fill="#0f766e"/>
 <text x="94" y="71" class="legend-text">Open tickets</text>
-<line x1="76" y1="307.0" x2="1086" y2="307.0" class="grid"/>
-<text x="66" y="311.0" text-anchor="end" class="axis">0</text>
-<line x1="76" y1="255.5" x2="1086" y2="255.5" class="grid"/>
-<text x="66" y="259.5" text-anchor="end" class="axis">2,000</text>
-<line x1="76" y1="203.9" x2="1086" y2="203.9" class="grid"/>
-<text x="66" y="207.9" text-anchor="end" class="axis">4,000</text>
-<line x1="76" y1="152.4" x2="1086" y2="152.4" class="grid"/>
-<text x="66" y="156.4" text-anchor="end" class="axis">6,000</text>
-<line x1="76" y1="100.9" x2="1086" y2="100.9" class="grid"/>
-<text x="66" y="104.9" text-anchor="end" class="axis">8,000</text>
-<line x1="76" y1="49.4" x2="1086" y2="49.4" class="grid"/>
-<text x="66" y="53.4" text-anchor="end" class="axis">10,000</text>
-<polyline points="76.0,307.0 86.9,307.0 97.7,307.0 108.6,307.0 119.4,307.0 130.3,304.9 141.2,303.1 152.0,301.4 162.9,301.8 173.7,298.3 184.6,295.8 195.5,295.0 206.3,292.4 217.2,288.4 228.0,290.0 238.9,294.3 249.8,294.8 260.6,292.5 271.5,291.0 282.3,288.3 293.2,286.2 304.1,279.6 314.9,276.9 325.8,278.3 336.6,274.3 347.5,284.7 358.4,278.2 369.2,276.5 380.1,271.7 390.9,267.2 401.8,253.5 412.7,255.4 423.5,247.9 434.4,241.6 445.2,234.3 456.1,230.0 467.0,227.5 477.8,223.8 488.7,221.0 499.5,218.2 510.4,213.0 521.3,208.6 532.1,223.1 543.0,215.1 553.8,224.2 564.7,219.2 575.6,213.0 586.4,214.4 597.3,213.1 608.2,208.4 619.0,215.7 629.9,221.5 640.7,215.4 651.6,212.1 662.5,205.9 673.3,196.9 684.2,188.8 695.0,180.3 705.9,175.3 716.8,168.7 727.6,163.7 738.5,153.4 749.3,146.9 760.2,139.1 771.1,137.4 781.9,136.2 792.8,143.6 803.6,137.3 814.5,136.5 825.4,132.1 836.2,130.7 847.1,133.2 857.9,130.5 868.8,129.1 879.7,123.5 890.5,121.1 901.4,113.8 912.2,110.0 923.1,109.7 934.0,105.8 944.8,105.1 955.7,101.4 966.5,96.5 977.4,91.1 988.3,91.0 999.1,91.2 1010.0,92.1 1020.8,89.5 1031.7,90.6 1042.6,94.3 1053.4,98.8 1064.3,100.9 1075.1,99.4 1086.0,95.1" fill="none" stroke="#0f766e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-<circle cx="76.0" cy="307.0" r="4" fill="#0f766e"><title>2003-Q1 Open tickets: 0</title></circle>
-<circle cx="86.9" cy="307.0" r="4" fill="#0f766e"><title>2003-Q2 Open tickets: 0</title></circle>
-<circle cx="97.7" cy="307.0" r="4" fill="#0f766e"><title>2003-Q3 Open tickets: 0</title></circle>
-<circle cx="108.6" cy="307.0" r="4" fill="#0f766e"><title>2003-Q4 Open tickets: 0</title></circle>
-<circle cx="119.4" cy="307.0" r="4" fill="#0f766e"><title>2004-Q1 Open tickets: 0</title></circle>
-<circle cx="130.3" cy="304.9" r="4" fill="#0f766e"><title>2004-Q2 Open tickets: 82</title></circle>
-<circle cx="141.2" cy="303.1" r="4" fill="#0f766e"><title>2004-Q3 Open tickets: 152</title></circle>
-<circle cx="152.0" cy="301.4" r="4" fill="#0f766e"><title>2004-Q4 Open tickets: 216</title></circle>
-<circle cx="162.9" cy="301.8" r="4" fill="#0f766e"><title>2005-Q1 Open tickets: 202</title></circle>
-<circle cx="173.7" cy="298.3" r="4" fill="#0f766e"><title>2005-Q2 Open tickets: 338</title></circle>
-<circle cx="184.6" cy="295.8" r="4" fill="#0f766e"><title>2005-Q3 Open tickets: 435</title></circle>
-<circle cx="195.5" cy="295.0" r="4" fill="#0f766e"><title>2005-Q4 Open tickets: 464</title></circle>
-<circle cx="206.3" cy="292.4" r="4" fill="#0f766e"><title>2006-Q1 Open tickets: 568</title></circle>
-<circle cx="217.2" cy="288.4" r="4" fill="#0f766e"><title>2006-Q2 Open tickets: 721</title></circle>
-<circle cx="228.0" cy="290.0" r="4" fill="#0f766e"><title>2006-Q3 Open tickets: 661</title></circle>
-<circle cx="238.9" cy="294.3" r="4" fill="#0f766e"><title>2006-Q4 Open tickets: 492</title></circle>
-<circle cx="249.8" cy="294.8" r="4" fill="#0f766e"><title>2007-Q1 Open tickets: 472</title></circle>
-<circle cx="260.6" cy="292.5" r="4" fill="#0f766e"><title>2007-Q2 Open tickets: 561</title></circle>
-<circle cx="271.5" cy="291.0" r="4" fill="#0f766e"><title>2007-Q3 Open tickets: 622</title></circle>
-<circle cx="282.3" cy="288.3" r="4" fill="#0f766e"><title>2007-Q4 Open tickets: 724</title></circle>
-<circle cx="293.2" cy="286.2" r="4" fill="#0f766e"><title>2008-Q1 Open tickets: 806</title></circle>
-<circle cx="304.1" cy="279.6" r="4" fill="#0f766e"><title>2008-Q2 Open tickets: 1,062</title></circle>
-<circle cx="314.9" cy="276.9" r="4" fill="#0f766e"><title>2008-Q3 Open tickets: 1,170</title></circle>
-<circle cx="325.8" cy="278.3" r="4" fill="#0f766e"><title>2008-Q4 Open tickets: 1,112</title></circle>
-<circle cx="336.6" cy="274.3" r="4" fill="#0f766e"><title>2009-Q1 Open tickets: 1,268</title></circle>
-<circle cx="347.5" cy="284.7" r="4" fill="#0f766e"><title>2009-Q2 Open tickets: 864</title></circle>
-<circle cx="358.4" cy="278.2" r="4" fill="#0f766e"><title>2009-Q3 Open tickets: 1,116</title></circle>
-<circle cx="369.2" cy="276.5" r="4" fill="#0f766e"><title>2009-Q4 Open tickets: 1,182</title></circle>
-<circle cx="380.1" cy="271.7" r="4" fill="#0f766e"><title>2010-Q1 Open tickets: 1,370</title></circle>
-<circle cx="390.9" cy="267.2" r="4" fill="#0f766e"><title>2010-Q2 Open tickets: 1,545</title></circle>
-<circle cx="401.8" cy="253.5" r="4" fill="#0f766e"><title>2010-Q3 Open tickets: 2,075</title></circle>
-<circle cx="412.7" cy="255.4" r="4" fill="#0f766e"><title>2010-Q4 Open tickets: 2,004</title></circle>
-<circle cx="423.5" cy="247.9" r="4" fill="#0f766e"><title>2011-Q1 Open tickets: 2,295</title></circle>
-<circle cx="434.4" cy="241.6" r="4" fill="#0f766e"><title>2011-Q2 Open tickets: 2,540</title></circle>
-<circle cx="445.2" cy="234.3" r="4" fill="#0f766e"><title>2011-Q3 Open tickets: 2,820</title></circle>
-<circle cx="456.1" cy="230.0" r="4" fill="#0f766e"><title>2011-Q4 Open tickets: 2,987</title></circle>
-<circle cx="467.0" cy="227.5" r="4" fill="#0f766e"><title>2012-Q1 Open tickets: 3,084</title></circle>
-<circle cx="477.8" cy="223.8" r="4" fill="#0f766e"><title>2012-Q2 Open tickets: 3,230</title></circle>
-<circle cx="488.7" cy="221.0" r="4" fill="#0f766e"><title>2012-Q3 Open tickets: 3,339</title></circle>
-<circle cx="499.5" cy="218.2" r="4" fill="#0f766e"><title>2012-Q4 Open tickets: 3,445</title></circle>
-<circle cx="510.4" cy="213.0" r="4" fill="#0f766e"><title>2013-Q1 Open tickets: 3,648</title></circle>
-<circle cx="521.3" cy="208.6" r="4" fill="#0f766e"><title>2013-Q2 Open tickets: 3,819</title></circle>
-<circle cx="532.1" cy="223.1" r="4" fill="#0f766e"><title>2013-Q3 Open tickets: 3,257</title></circle>
-<circle cx="543.0" cy="215.1" r="4" fill="#0f766e"><title>2013-Q4 Open tickets: 3,566</title></circle>
-<circle cx="553.8" cy="224.2" r="4" fill="#0f766e"><title>2014-Q1 Open tickets: 3,215</title></circle>
-<circle cx="564.7" cy="219.2" r="4" fill="#0f766e"><title>2014-Q2 Open tickets: 3,406</title></circle>
-<circle cx="575.6" cy="213.0" r="4" fill="#0f766e"><title>2014-Q3 Open tickets: 3,650</title></circle>
-<circle cx="586.4" cy="214.4" r="4" fill="#0f766e"><title>2014-Q4 Open tickets: 3,596</title></circle>
-<circle cx="597.3" cy="213.1" r="4" fill="#0f766e"><title>2015-Q1 Open tickets: 3,644</title></circle>
-<circle cx="608.2" cy="208.4" r="4" fill="#0f766e"><title>2015-Q2 Open tickets: 3,825</title></circle>
-<circle cx="619.0" cy="215.7" r="4" fill="#0f766e"><title>2015-Q3 Open tickets: 3,542</title></circle>
-<circle cx="629.9" cy="221.5" r="4" fill="#0f766e"><title>2015-Q4 Open tickets: 3,318</title></circle>
-<circle cx="640.7" cy="215.4" r="4" fill="#0f766e"><title>2016-Q1 Open tickets: 3,554</title></circle>
-<circle cx="651.6" cy="212.1" r="4" fill="#0f766e"><title>2016-Q2 Open tickets: 3,682</title></circle>
-<circle cx="662.5" cy="205.9" r="4" fill="#0f766e"><title>2016-Q3 Open tickets: 3,924</title></circle>
-<circle cx="673.3" cy="196.9" r="4" fill="#0f766e"><title>2016-Q4 Open tickets: 4,274</title></circle>
-<circle cx="684.2" cy="188.8" r="4" fill="#0f766e"><title>2017-Q1 Open tickets: 4,588</title></circle>
-<circle cx="695.0" cy="180.3" r="4" fill="#0f766e"><title>2017-Q2 Open tickets: 4,916</title></circle>
-<circle cx="705.9" cy="175.3" r="4" fill="#0f766e"><title>2017-Q3 Open tickets: 5,110</title></circle>
-<circle cx="716.8" cy="168.7" r="4" fill="#0f766e"><title>2017-Q4 Open tickets: 5,367</title></circle>
-<circle cx="727.6" cy="163.7" r="4" fill="#0f766e"><title>2018-Q1 Open tickets: 5,563</title></circle>
-<circle cx="738.5" cy="153.4" r="4" fill="#0f766e"><title>2018-Q2 Open tickets: 5,961</title></circle>
-<circle cx="749.3" cy="146.9" r="4" fill="#0f766e"><title>2018-Q3 Open tickets: 6,212</title></circle>
-<circle cx="760.2" cy="139.1" r="4" fill="#0f766e"><title>2018-Q4 Open tickets: 6,517</title></circle>
-<circle cx="771.1" cy="137.4" r="4" fill="#0f766e"><title>2019-Q1 Open tickets: 6,584</title></circle>
-<circle cx="781.9" cy="136.2" r="4" fill="#0f766e"><title>2019-Q2 Open tickets: 6,629</title></circle>
-<circle cx="792.8" cy="143.6" r="4" fill="#0f766e"><title>2019-Q3 Open tickets: 6,342</title></circle>
-<circle cx="803.6" cy="137.3" r="4" fill="#0f766e"><title>2019-Q4 Open tickets: 6,588</title></circle>
-<circle cx="814.5" cy="136.5" r="4" fill="#0f766e"><title>2020-Q1 Open tickets: 6,618</title></circle>
-<circle cx="825.4" cy="132.1" r="4" fill="#0f766e"><title>2020-Q2 Open tickets: 6,789</title></circle>
-<circle cx="836.2" cy="130.7" r="4" fill="#0f766e"><title>2020-Q3 Open tickets: 6,843</title></circle>
-<circle cx="847.1" cy="133.2" r="4" fill="#0f766e"><title>2020-Q4 Open tickets: 6,745</title></circle>
-<circle cx="857.9" cy="130.5" r="4" fill="#0f766e"><title>2021-Q1 Open tickets: 6,851</title></circle>
-<circle cx="868.8" cy="129.1" r="4" fill="#0f766e"><title>2021-Q2 Open tickets: 6,906</title></circle>
-<circle cx="879.7" cy="123.5" r="4" fill="#0f766e"><title>2021-Q3 Open tickets: 7,123</title></circle>
-<circle cx="890.5" cy="121.1" r="4" fill="#0f766e"><title>2021-Q4 Open tickets: 7,214</title></circle>
-<circle cx="901.4" cy="113.8" r="4" fill="#0f766e"><title>2022-Q1 Open tickets: 7,497</title></circle>
-<circle cx="912.2" cy="110.0" r="4" fill="#0f766e"><title>2022-Q2 Open tickets: 7,648</title></circle>
-<circle cx="923.1" cy="109.7" r="4" fill="#0f766e"><title>2022-Q3 Open tickets: 7,657</title></circle>
-<circle cx="934.0" cy="105.8" r="4" fill="#0f766e"><title>2022-Q4 Open tickets: 7,809</title></circle>
-<circle cx="944.8" cy="105.1" r="4" fill="#0f766e"><title>2023-Q1 Open tickets: 7,837</title></circle>
-<circle cx="955.7" cy="101.4" r="4" fill="#0f766e"><title>2023-Q2 Open tickets: 7,978</title></circle>
-<circle cx="966.5" cy="96.5" r="4" fill="#0f766e"><title>2023-Q3 Open tickets: 8,172</title></circle>
-<circle cx="977.4" cy="91.1" r="4" fill="#0f766e"><title>2023-Q4 Open tickets: 8,379</title></circle>
-<circle cx="988.3" cy="91.0" r="4" fill="#0f766e"><title>2024-Q1 Open tickets: 8,384</title></circle>
-<circle cx="999.1" cy="91.2" r="4" fill="#0f766e"><title>2024-Q2 Open tickets: 8,376</title></circle>
-<circle cx="1010.0" cy="92.1" r="4" fill="#0f766e"><title>2024-Q3 Open tickets: 8,341</title></circle>
-<circle cx="1020.8" cy="89.5" r="4" fill="#0f766e"><title>2024-Q4 Open tickets: 8,442</title></circle>
-<circle cx="1031.7" cy="90.6" r="4" fill="#0f766e"><title>2025-Q1 Open tickets: 8,400</title></circle>
-<circle cx="1042.6" cy="94.3" r="4" fill="#0f766e"><title>2025-Q2 Open tickets: 8,256</title></circle>
-<circle cx="1053.4" cy="98.8" r="4" fill="#0f766e"><title>2025-Q3 Open tickets: 8,082</title></circle>
-<circle cx="1064.3" cy="100.9" r="4" fill="#0f766e"><title>2025-Q4 Open tickets: 8,001</title></circle>
-<circle cx="1075.1" cy="99.4" r="4" fill="#0f766e"><title>2026-Q1 Open tickets: 8,058</title></circle>
-<circle cx="1086.0" cy="95.1" r="4" fill="#0f766e"><title>2026-Q2 Open tickets: 8,223</title></circle>
-<text x="76.0" y="341" text-anchor="middle" class="axis">2003</text>
-<text x="119.4" y="341" text-anchor="middle" class="axis">2004</text>
-<text x="162.9" y="341" text-anchor="middle" class="axis">2005</text>
-<text x="206.3" y="341" text-anchor="middle" class="axis">2006</text>
-<text x="249.8" y="341" text-anchor="middle" class="axis">2007</text>
-<text x="293.2" y="341" text-anchor="middle" class="axis">2008</text>
-<text x="336.6" y="341" text-anchor="middle" class="axis">2009</text>
-<text x="380.1" y="341" text-anchor="middle" class="axis">2010</text>
-<text x="423.5" y="341" text-anchor="middle" class="axis">2011</text>
-<text x="467.0" y="341" text-anchor="middle" class="axis">2012</text>
-<text x="510.4" y="341" text-anchor="middle" class="axis">2013</text>
-<text x="553.8" y="341" text-anchor="middle" class="axis">2014</text>
-<text x="597.3" y="341" text-anchor="middle" class="axis">2015</text>
-<text x="640.7" y="341" text-anchor="middle" class="axis">2016</text>
-<text x="684.2" y="341" text-anchor="middle" class="axis">2017</text>
-<text x="727.6" y="341" text-anchor="middle" class="axis">2018</text>
-<text x="771.1" y="341" text-anchor="middle" class="axis">2019</text>
-<text x="814.5" y="341" text-anchor="middle" class="axis">2020</text>
-<text x="857.9" y="341" text-anchor="middle" class="axis">2021</text>
-<text x="901.4" y="341" text-anchor="middle" class="axis">2022</text>
-<text x="944.8" y="341" text-anchor="middle" class="axis">2023</text>
-<text x="988.3" y="341" text-anchor="middle" class="axis">2024</text>
-<text x="1031.7" y="341" text-anchor="middle" class="axis">2025</text>
-<text x="1075.1" y="341" text-anchor="middle" class="axis">2026</text>
+<line x1="76" y1="367.0" x2="1086" y2="367.0" class="grid"/>
+<text x="66" y="371.0" text-anchor="end" class="axis">0</text>
+<line x1="76" y1="317.4" x2="1086" y2="317.4" class="grid"/>
+<text x="66" y="321.4" text-anchor="end" class="axis">2,000</text>
+<line x1="76" y1="267.7" x2="1086" y2="267.7" class="grid"/>
+<text x="66" y="271.7" text-anchor="end" class="axis">4,000</text>
+<line x1="76" y1="218.1" x2="1086" y2="218.1" class="grid"/>
+<text x="66" y="222.1" text-anchor="end" class="axis">6,000</text>
+<line x1="76" y1="168.4" x2="1086" y2="168.4" class="grid"/>
+<text x="66" y="172.4" text-anchor="end" class="axis">8,000</text>
+<line x1="76" y1="118.8" x2="1086" y2="118.8" class="grid"/>
+<text x="66" y="122.8" text-anchor="end" class="axis">10,000</text>
+<g class="event-marker">
+<title>2018-12-06 Gutenberg (5.0)</title>
+<line x1="768.0" y1="156" x2="768.0" y2="367" class="event-line"/>
+<rect x="706.5" y="69.0" width="123.0" height="18" rx="4" class="event-label-bg"/>
+<text x="768.0" y="82.0" text-anchor="middle" class="event-label">Gutenberg (5.0)</text>
+</g>
+<g class="event-marker">
+<title>2022-01-25 FSE (5.9)</title>
+<line x1="904.4" y1="156" x2="904.4" y2="367" class="event-line"/>
+<rect x="863.9" y="88.0" width="81.0" height="18" rx="4" class="event-label-bg"/>
+<text x="904.4" y="101.0" text-anchor="middle" class="event-label">FSE (5.9)</text>
+</g>
+<g class="event-marker">
+<title>2024-09-17 WCUS 2024</title>
+<line x1="1019.3" y1="156" x2="1019.3" y2="367" class="event-line"/>
+<rect x="978.8" y="107.0" width="81.0" height="18" rx="4" class="event-label-bg"/>
+<text x="1019.3" y="120.0" text-anchor="middle" class="event-label">WCUS 2024</text>
+</g>
+<g class="event-marker">
+<title>2025-01-09 contribution reduction</title>
+<line x1="1032.8" y1="156" x2="1032.8" y2="367" class="event-line"/>
+<rect x="914.0" y="126.0" width="172.0" height="18" rx="4" class="event-label-bg"/>
+<text x="1000.0" y="139.0" text-anchor="middle" class="event-label">contribution reduction</text>
+</g>
+<g class="event-marker">
+<title>2025-05-29 contribution resumption</title>
+<line x1="1049.5" y1="156" x2="1049.5" y2="367" class="event-line"/>
+<rect x="914.0" y="69.0" width="172.0" height="18" rx="4" class="event-label-bg"/>
+<text x="1000.0" y="82.0" text-anchor="middle" class="event-label">contribution resumption</text>
+</g>
+<polyline points="76.0,367.0 86.9,367.0 97.7,367.0 108.6,367.0 119.4,367.0 130.3,365.0 141.2,363.2 152.0,361.6 162.9,362.0 173.7,358.6 184.6,356.2 195.5,355.5 206.3,352.9 217.2,349.1 228.0,350.6 238.9,354.8 249.8,355.3 260.6,353.1 271.5,351.6 282.3,349.0 293.2,347.0 304.1,340.6 314.9,338.0 325.8,339.4 336.6,335.5 347.5,345.6 358.4,339.3 369.2,337.7 380.1,333.0 390.9,328.6 401.8,315.5 412.7,317.3 423.5,310.0 434.4,303.9 445.2,297.0 456.1,292.9 467.0,290.4 477.8,286.8 488.7,284.1 499.5,281.5 510.4,276.4 521.3,272.2 532.1,286.1 543.0,278.5 553.8,287.2 564.7,282.5 575.6,276.4 586.4,277.7 597.3,276.5 608.2,272.1 619.0,279.1 629.9,284.6 640.7,278.8 651.6,275.6 662.5,269.6 673.3,260.9 684.2,253.1 695.0,245.0 705.9,240.2 716.8,233.8 727.6,228.9 738.5,219.0 749.3,212.8 760.2,205.2 771.1,203.6 781.9,202.4 792.8,209.6 803.6,203.5 814.5,202.7 825.4,198.5 836.2,197.1 847.1,199.6 857.9,196.9 868.8,195.6 879.7,190.2 890.5,187.9 901.4,180.9 912.2,177.1 923.1,176.9 934.0,173.2 944.8,172.5 955.7,169.0 966.5,164.1 977.4,159.0 988.3,158.9 999.1,159.1 1010.0,159.9 1020.8,157.4 1031.7,158.5 1042.6,162.1 1053.4,166.4 1064.3,168.4 1075.1,167.0 1086.0,162.9" fill="none" stroke="#0f766e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="76.0" cy="367.0" r="4" fill="#0f766e"><title>2003-Q1 Open tickets: 0</title></circle>
+<circle cx="86.9" cy="367.0" r="4" fill="#0f766e"><title>2003-Q2 Open tickets: 0</title></circle>
+<circle cx="97.7" cy="367.0" r="4" fill="#0f766e"><title>2003-Q3 Open tickets: 0</title></circle>
+<circle cx="108.6" cy="367.0" r="4" fill="#0f766e"><title>2003-Q4 Open tickets: 0</title></circle>
+<circle cx="119.4" cy="367.0" r="4" fill="#0f766e"><title>2004-Q1 Open tickets: 0</title></circle>
+<circle cx="130.3" cy="365.0" r="4" fill="#0f766e"><title>2004-Q2 Open tickets: 82</title></circle>
+<circle cx="141.2" cy="363.2" r="4" fill="#0f766e"><title>2004-Q3 Open tickets: 152</title></circle>
+<circle cx="152.0" cy="361.6" r="4" fill="#0f766e"><title>2004-Q4 Open tickets: 216</title></circle>
+<circle cx="162.9" cy="362.0" r="4" fill="#0f766e"><title>2005-Q1 Open tickets: 202</title></circle>
+<circle cx="173.7" cy="358.6" r="4" fill="#0f766e"><title>2005-Q2 Open tickets: 338</title></circle>
+<circle cx="184.6" cy="356.2" r="4" fill="#0f766e"><title>2005-Q3 Open tickets: 435</title></circle>
+<circle cx="195.5" cy="355.5" r="4" fill="#0f766e"><title>2005-Q4 Open tickets: 464</title></circle>
+<circle cx="206.3" cy="352.9" r="4" fill="#0f766e"><title>2006-Q1 Open tickets: 568</title></circle>
+<circle cx="217.2" cy="349.1" r="4" fill="#0f766e"><title>2006-Q2 Open tickets: 721</title></circle>
+<circle cx="228.0" cy="350.6" r="4" fill="#0f766e"><title>2006-Q3 Open tickets: 661</title></circle>
+<circle cx="238.9" cy="354.8" r="4" fill="#0f766e"><title>2006-Q4 Open tickets: 492</title></circle>
+<circle cx="249.8" cy="355.3" r="4" fill="#0f766e"><title>2007-Q1 Open tickets: 472</title></circle>
+<circle cx="260.6" cy="353.1" r="4" fill="#0f766e"><title>2007-Q2 Open tickets: 561</title></circle>
+<circle cx="271.5" cy="351.6" r="4" fill="#0f766e"><title>2007-Q3 Open tickets: 622</title></circle>
+<circle cx="282.3" cy="349.0" r="4" fill="#0f766e"><title>2007-Q4 Open tickets: 724</title></circle>
+<circle cx="293.2" cy="347.0" r="4" fill="#0f766e"><title>2008-Q1 Open tickets: 806</title></circle>
+<circle cx="304.1" cy="340.6" r="4" fill="#0f766e"><title>2008-Q2 Open tickets: 1,062</title></circle>
+<circle cx="314.9" cy="338.0" r="4" fill="#0f766e"><title>2008-Q3 Open tickets: 1,170</title></circle>
+<circle cx="325.8" cy="339.4" r="4" fill="#0f766e"><title>2008-Q4 Open tickets: 1,112</title></circle>
+<circle cx="336.6" cy="335.5" r="4" fill="#0f766e"><title>2009-Q1 Open tickets: 1,268</title></circle>
+<circle cx="347.5" cy="345.6" r="4" fill="#0f766e"><title>2009-Q2 Open tickets: 864</title></circle>
+<circle cx="358.4" cy="339.3" r="4" fill="#0f766e"><title>2009-Q3 Open tickets: 1,116</title></circle>
+<circle cx="369.2" cy="337.7" r="4" fill="#0f766e"><title>2009-Q4 Open tickets: 1,182</title></circle>
+<circle cx="380.1" cy="333.0" r="4" fill="#0f766e"><title>2010-Q1 Open tickets: 1,370</title></circle>
+<circle cx="390.9" cy="328.6" r="4" fill="#0f766e"><title>2010-Q2 Open tickets: 1,545</title></circle>
+<circle cx="401.8" cy="315.5" r="4" fill="#0f766e"><title>2010-Q3 Open tickets: 2,075</title></circle>
+<circle cx="412.7" cy="317.3" r="4" fill="#0f766e"><title>2010-Q4 Open tickets: 2,004</title></circle>
+<circle cx="423.5" cy="310.0" r="4" fill="#0f766e"><title>2011-Q1 Open tickets: 2,295</title></circle>
+<circle cx="434.4" cy="303.9" r="4" fill="#0f766e"><title>2011-Q2 Open tickets: 2,540</title></circle>
+<circle cx="445.2" cy="297.0" r="4" fill="#0f766e"><title>2011-Q3 Open tickets: 2,820</title></circle>
+<circle cx="456.1" cy="292.9" r="4" fill="#0f766e"><title>2011-Q4 Open tickets: 2,987</title></circle>
+<circle cx="467.0" cy="290.4" r="4" fill="#0f766e"><title>2012-Q1 Open tickets: 3,084</title></circle>
+<circle cx="477.8" cy="286.8" r="4" fill="#0f766e"><title>2012-Q2 Open tickets: 3,230</title></circle>
+<circle cx="488.7" cy="284.1" r="4" fill="#0f766e"><title>2012-Q3 Open tickets: 3,339</title></circle>
+<circle cx="499.5" cy="281.5" r="4" fill="#0f766e"><title>2012-Q4 Open tickets: 3,445</title></circle>
+<circle cx="510.4" cy="276.4" r="4" fill="#0f766e"><title>2013-Q1 Open tickets: 3,648</title></circle>
+<circle cx="521.3" cy="272.2" r="4" fill="#0f766e"><title>2013-Q2 Open tickets: 3,819</title></circle>
+<circle cx="532.1" cy="286.1" r="4" fill="#0f766e"><title>2013-Q3 Open tickets: 3,257</title></circle>
+<circle cx="543.0" cy="278.5" r="4" fill="#0f766e"><title>2013-Q4 Open tickets: 3,566</title></circle>
+<circle cx="553.8" cy="287.2" r="4" fill="#0f766e"><title>2014-Q1 Open tickets: 3,215</title></circle>
+<circle cx="564.7" cy="282.5" r="4" fill="#0f766e"><title>2014-Q2 Open tickets: 3,406</title></circle>
+<circle cx="575.6" cy="276.4" r="4" fill="#0f766e"><title>2014-Q3 Open tickets: 3,650</title></circle>
+<circle cx="586.4" cy="277.7" r="4" fill="#0f766e"><title>2014-Q4 Open tickets: 3,596</title></circle>
+<circle cx="597.3" cy="276.5" r="4" fill="#0f766e"><title>2015-Q1 Open tickets: 3,644</title></circle>
+<circle cx="608.2" cy="272.1" r="4" fill="#0f766e"><title>2015-Q2 Open tickets: 3,825</title></circle>
+<circle cx="619.0" cy="279.1" r="4" fill="#0f766e"><title>2015-Q3 Open tickets: 3,542</title></circle>
+<circle cx="629.9" cy="284.6" r="4" fill="#0f766e"><title>2015-Q4 Open tickets: 3,318</title></circle>
+<circle cx="640.7" cy="278.8" r="4" fill="#0f766e"><title>2016-Q1 Open tickets: 3,554</title></circle>
+<circle cx="651.6" cy="275.6" r="4" fill="#0f766e"><title>2016-Q2 Open tickets: 3,682</title></circle>
+<circle cx="662.5" cy="269.6" r="4" fill="#0f766e"><title>2016-Q3 Open tickets: 3,924</title></circle>
+<circle cx="673.3" cy="260.9" r="4" fill="#0f766e"><title>2016-Q4 Open tickets: 4,274</title></circle>
+<circle cx="684.2" cy="253.1" r="4" fill="#0f766e"><title>2017-Q1 Open tickets: 4,588</title></circle>
+<circle cx="695.0" cy="245.0" r="4" fill="#0f766e"><title>2017-Q2 Open tickets: 4,916</title></circle>
+<circle cx="705.9" cy="240.2" r="4" fill="#0f766e"><title>2017-Q3 Open tickets: 5,110</title></circle>
+<circle cx="716.8" cy="233.8" r="4" fill="#0f766e"><title>2017-Q4 Open tickets: 5,367</title></circle>
+<circle cx="727.6" cy="228.9" r="4" fill="#0f766e"><title>2018-Q1 Open tickets: 5,563</title></circle>
+<circle cx="738.5" cy="219.0" r="4" fill="#0f766e"><title>2018-Q2 Open tickets: 5,961</title></circle>
+<circle cx="749.3" cy="212.8" r="4" fill="#0f766e"><title>2018-Q3 Open tickets: 6,212</title></circle>
+<circle cx="760.2" cy="205.2" r="4" fill="#0f766e"><title>2018-Q4 Open tickets: 6,517</title></circle>
+<circle cx="771.1" cy="203.6" r="4" fill="#0f766e"><title>2019-Q1 Open tickets: 6,584</title></circle>
+<circle cx="781.9" cy="202.4" r="4" fill="#0f766e"><title>2019-Q2 Open tickets: 6,629</title></circle>
+<circle cx="792.8" cy="209.6" r="4" fill="#0f766e"><title>2019-Q3 Open tickets: 6,342</title></circle>
+<circle cx="803.6" cy="203.5" r="4" fill="#0f766e"><title>2019-Q4 Open tickets: 6,588</title></circle>
+<circle cx="814.5" cy="202.7" r="4" fill="#0f766e"><title>2020-Q1 Open tickets: 6,618</title></circle>
+<circle cx="825.4" cy="198.5" r="4" fill="#0f766e"><title>2020-Q2 Open tickets: 6,789</title></circle>
+<circle cx="836.2" cy="197.1" r="4" fill="#0f766e"><title>2020-Q3 Open tickets: 6,843</title></circle>
+<circle cx="847.1" cy="199.6" r="4" fill="#0f766e"><title>2020-Q4 Open tickets: 6,745</title></circle>
+<circle cx="857.9" cy="196.9" r="4" fill="#0f766e"><title>2021-Q1 Open tickets: 6,851</title></circle>
+<circle cx="868.8" cy="195.6" r="4" fill="#0f766e"><title>2021-Q2 Open tickets: 6,906</title></circle>
+<circle cx="879.7" cy="190.2" r="4" fill="#0f766e"><title>2021-Q3 Open tickets: 7,123</title></circle>
+<circle cx="890.5" cy="187.9" r="4" fill="#0f766e"><title>2021-Q4 Open tickets: 7,214</title></circle>
+<circle cx="901.4" cy="180.9" r="4" fill="#0f766e"><title>2022-Q1 Open tickets: 7,497</title></circle>
+<circle cx="912.2" cy="177.1" r="4" fill="#0f766e"><title>2022-Q2 Open tickets: 7,648</title></circle>
+<circle cx="923.1" cy="176.9" r="4" fill="#0f766e"><title>2022-Q3 Open tickets: 7,657</title></circle>
+<circle cx="934.0" cy="173.2" r="4" fill="#0f766e"><title>2022-Q4 Open tickets: 7,809</title></circle>
+<circle cx="944.8" cy="172.5" r="4" fill="#0f766e"><title>2023-Q1 Open tickets: 7,837</title></circle>
+<circle cx="955.7" cy="169.0" r="4" fill="#0f766e"><title>2023-Q2 Open tickets: 7,978</title></circle>
+<circle cx="966.5" cy="164.1" r="4" fill="#0f766e"><title>2023-Q3 Open tickets: 8,172</title></circle>
+<circle cx="977.4" cy="159.0" r="4" fill="#0f766e"><title>2023-Q4 Open tickets: 8,379</title></circle>
+<circle cx="988.3" cy="158.9" r="4" fill="#0f766e"><title>2024-Q1 Open tickets: 8,384</title></circle>
+<circle cx="999.1" cy="159.1" r="4" fill="#0f766e"><title>2024-Q2 Open tickets: 8,376</title></circle>
+<circle cx="1010.0" cy="159.9" r="4" fill="#0f766e"><title>2024-Q3 Open tickets: 8,341</title></circle>
+<circle cx="1020.8" cy="157.4" r="4" fill="#0f766e"><title>2024-Q4 Open tickets: 8,442</title></circle>
+<circle cx="1031.7" cy="158.5" r="4" fill="#0f766e"><title>2025-Q1 Open tickets: 8,400</title></circle>
+<circle cx="1042.6" cy="162.1" r="4" fill="#0f766e"><title>2025-Q2 Open tickets: 8,256</title></circle>
+<circle cx="1053.4" cy="166.4" r="4" fill="#0f766e"><title>2025-Q3 Open tickets: 8,082</title></circle>
+<circle cx="1064.3" cy="168.4" r="4" fill="#0f766e"><title>2025-Q4 Open tickets: 8,001</title></circle>
+<circle cx="1075.1" cy="167.0" r="4" fill="#0f766e"><title>2026-Q1 Open tickets: 8,058</title></circle>
+<circle cx="1086.0" cy="162.9" r="4" fill="#0f766e"><title>2026-Q2 Open tickets: 8,223</title></circle>
+<text x="76.0" y="401" text-anchor="middle" class="axis">2003</text>
+<text x="119.4" y="401" text-anchor="middle" class="axis">2004</text>
+<text x="162.9" y="401" text-anchor="middle" class="axis">2005</text>
+<text x="206.3" y="401" text-anchor="middle" class="axis">2006</text>
+<text x="249.8" y="401" text-anchor="middle" class="axis">2007</text>
+<text x="293.2" y="401" text-anchor="middle" class="axis">2008</text>
+<text x="336.6" y="401" text-anchor="middle" class="axis">2009</text>
+<text x="380.1" y="401" text-anchor="middle" class="axis">2010</text>
+<text x="423.5" y="401" text-anchor="middle" class="axis">2011</text>
+<text x="467.0" y="401" text-anchor="middle" class="axis">2012</text>
+<text x="510.4" y="401" text-anchor="middle" class="axis">2013</text>
+<text x="553.8" y="401" text-anchor="middle" class="axis">2014</text>
+<text x="597.3" y="401" text-anchor="middle" class="axis">2015</text>
+<text x="640.7" y="401" text-anchor="middle" class="axis">2016</text>
+<text x="684.2" y="401" text-anchor="middle" class="axis">2017</text>
+<text x="727.6" y="401" text-anchor="middle" class="axis">2018</text>
+<text x="771.1" y="401" text-anchor="middle" class="axis">2019</text>
+<text x="814.5" y="401" text-anchor="middle" class="axis">2020</text>
+<text x="857.9" y="401" text-anchor="middle" class="axis">2021</text>
+<text x="901.4" y="401" text-anchor="middle" class="axis">2022</text>
+<text x="944.8" y="401" text-anchor="middle" class="axis">2023</text>
+<text x="988.3" y="401" text-anchor="middle" class="axis">2024</text>
+<text x="1031.7" y="401" text-anchor="middle" class="axis">2025</text>
+<text x="1075.1" y="401" text-anchor="middle" class="axis">2026</text>
 </svg>
     </section>
 
@@ -1330,142 +1376,172 @@
 </div>
 
     <section class="chart-band">
-      <svg viewBox="0 0 1120 365" role="img" aria-label="Open Core Trac bugs over time">
+      <svg viewBox="0 0 1120 425" role="img" aria-label="Open Core Trac bugs over time">
 <text x="76" y="24" class="chart-title">Open Core Trac bugs over time</text>
 <text x="76" y="46" class="chart-note">Backlog peaked at 4,891 in 2024-Q4; latest sampled count is 4,664.</text>
 <rect x="76" y="60" width="12" height="12" rx="2" fill="#0f766e"/>
 <text x="94" y="71" class="legend-text">Open tickets</text>
-<line x1="76" y1="307.0" x2="1086" y2="307.0" class="grid"/>
-<text x="66" y="311.0" text-anchor="end" class="axis">0</text>
-<line x1="76" y1="263.2" x2="1086" y2="263.2" class="grid"/>
-<text x="66" y="267.2" text-anchor="end" class="axis">1,000</text>
-<line x1="76" y1="219.4" x2="1086" y2="219.4" class="grid"/>
-<text x="66" y="223.4" text-anchor="end" class="axis">2,000</text>
-<line x1="76" y1="175.6" x2="1086" y2="175.6" class="grid"/>
-<text x="66" y="179.6" text-anchor="end" class="axis">3,000</text>
-<line x1="76" y1="131.8" x2="1086" y2="131.8" class="grid"/>
-<text x="66" y="135.8" text-anchor="end" class="axis">4,000</text>
-<line x1="76" y1="88.0" x2="1086" y2="88.0" class="grid"/>
-<text x="66" y="92.0" text-anchor="end" class="axis">5,000</text>
-<polyline points="76.0,307.0 86.9,307.0 97.7,307.0 108.6,307.0 119.4,307.0 130.3,304.4 141.2,302.5 152.0,300.1 162.9,300.1 173.7,295.3 184.6,291.6 195.5,291.0 206.3,287.9 217.2,282.8 228.0,286.2 238.9,292.4 249.8,293.7 260.6,292.1 271.5,292.2 282.3,289.6 293.2,287.2 304.1,280.4 314.9,278.2 325.8,281.6 336.6,278.6 347.5,290.8 358.4,285.1 369.2,285.8 380.1,278.4 390.9,276.9 401.8,263.2 412.7,267.1 423.5,261.1 434.4,255.0 445.2,249.8 456.1,247.0 467.0,244.5 477.8,242.1 488.7,241.0 499.5,239.7 510.4,234.8 521.3,231.7 532.1,241.4 543.0,232.2 553.8,240.6 564.7,234.9 575.6,228.8 586.4,229.4 597.3,228.4 608.2,223.3 619.0,229.6 629.9,232.9 640.7,227.1 651.6,222.7 662.5,218.6 673.3,211.7 684.2,203.5 695.0,195.5 705.9,189.8 716.8,182.2 727.6,178.4 738.5,168.6 749.3,161.7 760.2,152.2 771.1,148.5 781.9,147.5 792.8,156.2 803.6,149.5 814.5,148.4 825.4,143.2 836.2,142.8 847.1,145.6 857.9,142.8 868.8,140.1 879.7,133.6 890.5,131.6 901.4,122.6 912.2,117.9 923.1,115.9 934.0,112.6 944.8,112.0 955.7,107.1 966.5,99.5 977.4,94.9 988.3,93.8 999.1,94.8 1010.0,95.7 1020.8,92.8 1031.7,94.2 1042.6,98.8 1053.4,104.3 1064.3,106.9 1075.1,105.6 1086.0,102.7" fill="none" stroke="#0f766e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-<circle cx="76.0" cy="307.0" r="4" fill="#0f766e"><title>2003-Q1 Open tickets: 0</title></circle>
-<circle cx="86.9" cy="307.0" r="4" fill="#0f766e"><title>2003-Q2 Open tickets: 0</title></circle>
-<circle cx="97.7" cy="307.0" r="4" fill="#0f766e"><title>2003-Q3 Open tickets: 0</title></circle>
-<circle cx="108.6" cy="307.0" r="4" fill="#0f766e"><title>2003-Q4 Open tickets: 0</title></circle>
-<circle cx="119.4" cy="307.0" r="4" fill="#0f766e"><title>2004-Q1 Open tickets: 0</title></circle>
-<circle cx="130.3" cy="304.4" r="4" fill="#0f766e"><title>2004-Q2 Open tickets: 59</title></circle>
-<circle cx="141.2" cy="302.5" r="4" fill="#0f766e"><title>2004-Q3 Open tickets: 103</title></circle>
-<circle cx="152.0" cy="300.1" r="4" fill="#0f766e"><title>2004-Q4 Open tickets: 158</title></circle>
-<circle cx="162.9" cy="300.1" r="4" fill="#0f766e"><title>2005-Q1 Open tickets: 158</title></circle>
-<circle cx="173.7" cy="295.3" r="4" fill="#0f766e"><title>2005-Q2 Open tickets: 266</title></circle>
-<circle cx="184.6" cy="291.6" r="4" fill="#0f766e"><title>2005-Q3 Open tickets: 352</title></circle>
-<circle cx="195.5" cy="291.0" r="4" fill="#0f766e"><title>2005-Q4 Open tickets: 366</title></circle>
-<circle cx="206.3" cy="287.9" r="4" fill="#0f766e"><title>2006-Q1 Open tickets: 436</title></circle>
-<circle cx="217.2" cy="282.8" r="4" fill="#0f766e"><title>2006-Q2 Open tickets: 552</title></circle>
-<circle cx="228.0" cy="286.2" r="4" fill="#0f766e"><title>2006-Q3 Open tickets: 476</title></circle>
-<circle cx="238.9" cy="292.4" r="4" fill="#0f766e"><title>2006-Q4 Open tickets: 334</title></circle>
-<circle cx="249.8" cy="293.7" r="4" fill="#0f766e"><title>2007-Q1 Open tickets: 303</title></circle>
-<circle cx="260.6" cy="292.1" r="4" fill="#0f766e"><title>2007-Q2 Open tickets: 340</title></circle>
-<circle cx="271.5" cy="292.2" r="4" fill="#0f766e"><title>2007-Q3 Open tickets: 338</title></circle>
-<circle cx="282.3" cy="289.6" r="4" fill="#0f766e"><title>2007-Q4 Open tickets: 398</title></circle>
-<circle cx="293.2" cy="287.2" r="4" fill="#0f766e"><title>2008-Q1 Open tickets: 452</title></circle>
-<circle cx="304.1" cy="280.4" r="4" fill="#0f766e"><title>2008-Q2 Open tickets: 607</title></circle>
-<circle cx="314.9" cy="278.2" r="4" fill="#0f766e"><title>2008-Q3 Open tickets: 658</title></circle>
-<circle cx="325.8" cy="281.6" r="4" fill="#0f766e"><title>2008-Q4 Open tickets: 581</title></circle>
-<circle cx="336.6" cy="278.6" r="4" fill="#0f766e"><title>2009-Q1 Open tickets: 649</title></circle>
-<circle cx="347.5" cy="290.8" r="4" fill="#0f766e"><title>2009-Q2 Open tickets: 371</title></circle>
-<circle cx="358.4" cy="285.1" r="4" fill="#0f766e"><title>2009-Q3 Open tickets: 499</title></circle>
-<circle cx="369.2" cy="285.8" r="4" fill="#0f766e"><title>2009-Q4 Open tickets: 485</title></circle>
-<circle cx="380.1" cy="278.4" r="4" fill="#0f766e"><title>2010-Q1 Open tickets: 654</title></circle>
-<circle cx="390.9" cy="276.9" r="4" fill="#0f766e"><title>2010-Q2 Open tickets: 687</title></circle>
-<circle cx="401.8" cy="263.2" r="4" fill="#0f766e"><title>2010-Q3 Open tickets: 999</title></circle>
-<circle cx="412.7" cy="267.1" r="4" fill="#0f766e"><title>2010-Q4 Open tickets: 911</title></circle>
-<circle cx="423.5" cy="261.1" r="4" fill="#0f766e"><title>2011-Q1 Open tickets: 1,048</title></circle>
-<circle cx="434.4" cy="255.0" r="4" fill="#0f766e"><title>2011-Q2 Open tickets: 1,187</title></circle>
-<circle cx="445.2" cy="249.8" r="4" fill="#0f766e"><title>2011-Q3 Open tickets: 1,307</title></circle>
-<circle cx="456.1" cy="247.0" r="4" fill="#0f766e"><title>2011-Q4 Open tickets: 1,370</title></circle>
-<circle cx="467.0" cy="244.5" r="4" fill="#0f766e"><title>2012-Q1 Open tickets: 1,427</title></circle>
-<circle cx="477.8" cy="242.1" r="4" fill="#0f766e"><title>2012-Q2 Open tickets: 1,482</title></circle>
-<circle cx="488.7" cy="241.0" r="4" fill="#0f766e"><title>2012-Q3 Open tickets: 1,506</title></circle>
-<circle cx="499.5" cy="239.7" r="4" fill="#0f766e"><title>2012-Q4 Open tickets: 1,537</title></circle>
-<circle cx="510.4" cy="234.8" r="4" fill="#0f766e"><title>2013-Q1 Open tickets: 1,648</title></circle>
-<circle cx="521.3" cy="231.7" r="4" fill="#0f766e"><title>2013-Q2 Open tickets: 1,720</title></circle>
-<circle cx="532.1" cy="241.4" r="4" fill="#0f766e"><title>2013-Q3 Open tickets: 1,498</title></circle>
-<circle cx="543.0" cy="232.2" r="4" fill="#0f766e"><title>2013-Q4 Open tickets: 1,708</title></circle>
-<circle cx="553.8" cy="240.6" r="4" fill="#0f766e"><title>2014-Q1 Open tickets: 1,517</title></circle>
-<circle cx="564.7" cy="234.9" r="4" fill="#0f766e"><title>2014-Q2 Open tickets: 1,647</title></circle>
-<circle cx="575.6" cy="228.8" r="4" fill="#0f766e"><title>2014-Q3 Open tickets: 1,786</title></circle>
-<circle cx="586.4" cy="229.4" r="4" fill="#0f766e"><title>2014-Q4 Open tickets: 1,771</title></circle>
-<circle cx="597.3" cy="228.4" r="4" fill="#0f766e"><title>2015-Q1 Open tickets: 1,794</title></circle>
-<circle cx="608.2" cy="223.3" r="4" fill="#0f766e"><title>2015-Q2 Open tickets: 1,912</title></circle>
-<circle cx="619.0" cy="229.6" r="4" fill="#0f766e"><title>2015-Q3 Open tickets: 1,768</title></circle>
-<circle cx="629.9" cy="232.9" r="4" fill="#0f766e"><title>2015-Q4 Open tickets: 1,691</title></circle>
-<circle cx="640.7" cy="227.1" r="4" fill="#0f766e"><title>2016-Q1 Open tickets: 1,825</title></circle>
-<circle cx="651.6" cy="222.7" r="4" fill="#0f766e"><title>2016-Q2 Open tickets: 1,924</title></circle>
-<circle cx="662.5" cy="218.6" r="4" fill="#0f766e"><title>2016-Q3 Open tickets: 2,019</title></circle>
-<circle cx="673.3" cy="211.7" r="4" fill="#0f766e"><title>2016-Q4 Open tickets: 2,175</title></circle>
-<circle cx="684.2" cy="203.5" r="4" fill="#0f766e"><title>2017-Q1 Open tickets: 2,362</title></circle>
-<circle cx="695.0" cy="195.5" r="4" fill="#0f766e"><title>2017-Q2 Open tickets: 2,545</title></circle>
-<circle cx="705.9" cy="189.8" r="4" fill="#0f766e"><title>2017-Q3 Open tickets: 2,675</title></circle>
-<circle cx="716.8" cy="182.2" r="4" fill="#0f766e"><title>2017-Q4 Open tickets: 2,849</title></circle>
-<circle cx="727.6" cy="178.4" r="4" fill="#0f766e"><title>2018-Q1 Open tickets: 2,937</title></circle>
-<circle cx="738.5" cy="168.6" r="4" fill="#0f766e"><title>2018-Q2 Open tickets: 3,160</title></circle>
-<circle cx="749.3" cy="161.7" r="4" fill="#0f766e"><title>2018-Q3 Open tickets: 3,318</title></circle>
-<circle cx="760.2" cy="152.2" r="4" fill="#0f766e"><title>2018-Q4 Open tickets: 3,534</title></circle>
-<circle cx="771.1" cy="148.5" r="4" fill="#0f766e"><title>2019-Q1 Open tickets: 3,618</title></circle>
-<circle cx="781.9" cy="147.5" r="4" fill="#0f766e"><title>2019-Q2 Open tickets: 3,642</title></circle>
-<circle cx="792.8" cy="156.2" r="4" fill="#0f766e"><title>2019-Q3 Open tickets: 3,443</title></circle>
-<circle cx="803.6" cy="149.5" r="4" fill="#0f766e"><title>2019-Q4 Open tickets: 3,597</title></circle>
-<circle cx="814.5" cy="148.4" r="4" fill="#0f766e"><title>2020-Q1 Open tickets: 3,622</title></circle>
-<circle cx="825.4" cy="143.2" r="4" fill="#0f766e"><title>2020-Q2 Open tickets: 3,740</title></circle>
-<circle cx="836.2" cy="142.8" r="4" fill="#0f766e"><title>2020-Q3 Open tickets: 3,749</title></circle>
-<circle cx="847.1" cy="145.6" r="4" fill="#0f766e"><title>2020-Q4 Open tickets: 3,684</title></circle>
-<circle cx="857.9" cy="142.8" r="4" fill="#0f766e"><title>2021-Q1 Open tickets: 3,749</title></circle>
-<circle cx="868.8" cy="140.1" r="4" fill="#0f766e"><title>2021-Q2 Open tickets: 3,810</title></circle>
-<circle cx="879.7" cy="133.6" r="4" fill="#0f766e"><title>2021-Q3 Open tickets: 3,959</title></circle>
-<circle cx="890.5" cy="131.6" r="4" fill="#0f766e"><title>2021-Q4 Open tickets: 4,005</title></circle>
-<circle cx="901.4" cy="122.6" r="4" fill="#0f766e"><title>2022-Q1 Open tickets: 4,209</title></circle>
-<circle cx="912.2" cy="117.9" r="4" fill="#0f766e"><title>2022-Q2 Open tickets: 4,317</title></circle>
-<circle cx="923.1" cy="115.9" r="4" fill="#0f766e"><title>2022-Q3 Open tickets: 4,362</title></circle>
-<circle cx="934.0" cy="112.6" r="4" fill="#0f766e"><title>2022-Q4 Open tickets: 4,439</title></circle>
-<circle cx="944.8" cy="112.0" r="4" fill="#0f766e"><title>2023-Q1 Open tickets: 4,453</title></circle>
-<circle cx="955.7" cy="107.1" r="4" fill="#0f766e"><title>2023-Q2 Open tickets: 4,565</title></circle>
-<circle cx="966.5" cy="99.5" r="4" fill="#0f766e"><title>2023-Q3 Open tickets: 4,737</title></circle>
-<circle cx="977.4" cy="94.9" r="4" fill="#0f766e"><title>2023-Q4 Open tickets: 4,842</title></circle>
-<circle cx="988.3" cy="93.8" r="4" fill="#0f766e"><title>2024-Q1 Open tickets: 4,867</title></circle>
-<circle cx="999.1" cy="94.8" r="4" fill="#0f766e"><title>2024-Q2 Open tickets: 4,845</title></circle>
-<circle cx="1010.0" cy="95.7" r="4" fill="#0f766e"><title>2024-Q3 Open tickets: 4,824</title></circle>
-<circle cx="1020.8" cy="92.8" r="4" fill="#0f766e"><title>2024-Q4 Open tickets: 4,891</title></circle>
-<circle cx="1031.7" cy="94.2" r="4" fill="#0f766e"><title>2025-Q1 Open tickets: 4,859</title></circle>
-<circle cx="1042.6" cy="98.8" r="4" fill="#0f766e"><title>2025-Q2 Open tickets: 4,753</title></circle>
-<circle cx="1053.4" cy="104.3" r="4" fill="#0f766e"><title>2025-Q3 Open tickets: 4,628</title></circle>
-<circle cx="1064.3" cy="106.9" r="4" fill="#0f766e"><title>2025-Q4 Open tickets: 4,569</title></circle>
-<circle cx="1075.1" cy="105.6" r="4" fill="#0f766e"><title>2026-Q1 Open tickets: 4,598</title></circle>
-<circle cx="1086.0" cy="102.7" r="4" fill="#0f766e"><title>2026-Q2 Open tickets: 4,664</title></circle>
-<text x="76.0" y="341" text-anchor="middle" class="axis">2003</text>
-<text x="119.4" y="341" text-anchor="middle" class="axis">2004</text>
-<text x="162.9" y="341" text-anchor="middle" class="axis">2005</text>
-<text x="206.3" y="341" text-anchor="middle" class="axis">2006</text>
-<text x="249.8" y="341" text-anchor="middle" class="axis">2007</text>
-<text x="293.2" y="341" text-anchor="middle" class="axis">2008</text>
-<text x="336.6" y="341" text-anchor="middle" class="axis">2009</text>
-<text x="380.1" y="341" text-anchor="middle" class="axis">2010</text>
-<text x="423.5" y="341" text-anchor="middle" class="axis">2011</text>
-<text x="467.0" y="341" text-anchor="middle" class="axis">2012</text>
-<text x="510.4" y="341" text-anchor="middle" class="axis">2013</text>
-<text x="553.8" y="341" text-anchor="middle" class="axis">2014</text>
-<text x="597.3" y="341" text-anchor="middle" class="axis">2015</text>
-<text x="640.7" y="341" text-anchor="middle" class="axis">2016</text>
-<text x="684.2" y="341" text-anchor="middle" class="axis">2017</text>
-<text x="727.6" y="341" text-anchor="middle" class="axis">2018</text>
-<text x="771.1" y="341" text-anchor="middle" class="axis">2019</text>
-<text x="814.5" y="341" text-anchor="middle" class="axis">2020</text>
-<text x="857.9" y="341" text-anchor="middle" class="axis">2021</text>
-<text x="901.4" y="341" text-anchor="middle" class="axis">2022</text>
-<text x="944.8" y="341" text-anchor="middle" class="axis">2023</text>
-<text x="988.3" y="341" text-anchor="middle" class="axis">2024</text>
-<text x="1031.7" y="341" text-anchor="middle" class="axis">2025</text>
-<text x="1075.1" y="341" text-anchor="middle" class="axis">2026</text>
+<line x1="76" y1="367.0" x2="1086" y2="367.0" class="grid"/>
+<text x="66" y="371.0" text-anchor="end" class="axis">0</text>
+<line x1="76" y1="324.8" x2="1086" y2="324.8" class="grid"/>
+<text x="66" y="328.8" text-anchor="end" class="axis">1,000</text>
+<line x1="76" y1="282.6" x2="1086" y2="282.6" class="grid"/>
+<text x="66" y="286.6" text-anchor="end" class="axis">2,000</text>
+<line x1="76" y1="240.4" x2="1086" y2="240.4" class="grid"/>
+<text x="66" y="244.4" text-anchor="end" class="axis">3,000</text>
+<line x1="76" y1="198.2" x2="1086" y2="198.2" class="grid"/>
+<text x="66" y="202.2" text-anchor="end" class="axis">4,000</text>
+<line x1="76" y1="156.0" x2="1086" y2="156.0" class="grid"/>
+<text x="66" y="160.0" text-anchor="end" class="axis">5,000</text>
+<g class="event-marker">
+<title>2018-12-06 Gutenberg (5.0)</title>
+<line x1="768.0" y1="156" x2="768.0" y2="367" class="event-line"/>
+<rect x="706.5" y="69.0" width="123.0" height="18" rx="4" class="event-label-bg"/>
+<text x="768.0" y="82.0" text-anchor="middle" class="event-label">Gutenberg (5.0)</text>
+</g>
+<g class="event-marker">
+<title>2022-01-25 FSE (5.9)</title>
+<line x1="904.4" y1="156" x2="904.4" y2="367" class="event-line"/>
+<rect x="863.9" y="88.0" width="81.0" height="18" rx="4" class="event-label-bg"/>
+<text x="904.4" y="101.0" text-anchor="middle" class="event-label">FSE (5.9)</text>
+</g>
+<g class="event-marker">
+<title>2024-09-17 WCUS 2024</title>
+<line x1="1019.3" y1="156" x2="1019.3" y2="367" class="event-line"/>
+<rect x="978.8" y="107.0" width="81.0" height="18" rx="4" class="event-label-bg"/>
+<text x="1019.3" y="120.0" text-anchor="middle" class="event-label">WCUS 2024</text>
+</g>
+<g class="event-marker">
+<title>2025-01-09 contribution reduction</title>
+<line x1="1032.8" y1="156" x2="1032.8" y2="367" class="event-line"/>
+<rect x="914.0" y="126.0" width="172.0" height="18" rx="4" class="event-label-bg"/>
+<text x="1000.0" y="139.0" text-anchor="middle" class="event-label">contribution reduction</text>
+</g>
+<g class="event-marker">
+<title>2025-05-29 contribution resumption</title>
+<line x1="1049.5" y1="156" x2="1049.5" y2="367" class="event-line"/>
+<rect x="914.0" y="69.0" width="172.0" height="18" rx="4" class="event-label-bg"/>
+<text x="1000.0" y="82.0" text-anchor="middle" class="event-label">contribution resumption</text>
+</g>
+<polyline points="76.0,367.0 86.9,367.0 97.7,367.0 108.6,367.0 119.4,367.0 130.3,364.5 141.2,362.7 152.0,360.3 162.9,360.3 173.7,355.8 184.6,352.1 195.5,351.6 206.3,348.6 217.2,343.7 228.0,346.9 238.9,352.9 249.8,354.2 260.6,352.7 271.5,352.7 282.3,350.2 293.2,347.9 304.1,341.4 314.9,339.2 325.8,342.5 336.6,339.6 347.5,351.3 358.4,345.9 369.2,346.5 380.1,339.4 390.9,338.0 401.8,324.8 412.7,328.6 423.5,322.8 434.4,316.9 445.2,311.8 456.1,309.2 467.0,306.8 477.8,304.5 488.7,303.4 499.5,302.1 510.4,297.5 521.3,294.4 532.1,303.8 543.0,294.9 553.8,303.0 564.7,297.5 575.6,291.6 586.4,292.3 597.3,291.3 608.2,286.3 619.0,292.4 629.9,295.6 640.7,290.0 651.6,285.8 662.5,281.8 673.3,275.2 684.2,267.3 695.0,259.6 705.9,254.1 716.8,246.8 727.6,243.1 738.5,233.6 749.3,227.0 760.2,217.9 771.1,214.3 781.9,213.3 792.8,221.7 803.6,215.2 814.5,214.2 825.4,209.2 836.2,208.8 847.1,211.5 857.9,208.8 868.8,206.2 879.7,199.9 890.5,198.0 901.4,189.4 912.2,184.8 923.1,182.9 934.0,179.7 944.8,179.1 955.7,174.4 966.5,167.1 977.4,162.7 988.3,161.6 999.1,162.5 1010.0,163.4 1020.8,160.6 1031.7,162.0 1042.6,166.4 1053.4,171.7 1064.3,174.2 1075.1,173.0 1086.0,170.2" fill="none" stroke="#0f766e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="76.0" cy="367.0" r="4" fill="#0f766e"><title>2003-Q1 Open tickets: 0</title></circle>
+<circle cx="86.9" cy="367.0" r="4" fill="#0f766e"><title>2003-Q2 Open tickets: 0</title></circle>
+<circle cx="97.7" cy="367.0" r="4" fill="#0f766e"><title>2003-Q3 Open tickets: 0</title></circle>
+<circle cx="108.6" cy="367.0" r="4" fill="#0f766e"><title>2003-Q4 Open tickets: 0</title></circle>
+<circle cx="119.4" cy="367.0" r="4" fill="#0f766e"><title>2004-Q1 Open tickets: 0</title></circle>
+<circle cx="130.3" cy="364.5" r="4" fill="#0f766e"><title>2004-Q2 Open tickets: 59</title></circle>
+<circle cx="141.2" cy="362.7" r="4" fill="#0f766e"><title>2004-Q3 Open tickets: 103</title></circle>
+<circle cx="152.0" cy="360.3" r="4" fill="#0f766e"><title>2004-Q4 Open tickets: 158</title></circle>
+<circle cx="162.9" cy="360.3" r="4" fill="#0f766e"><title>2005-Q1 Open tickets: 158</title></circle>
+<circle cx="173.7" cy="355.8" r="4" fill="#0f766e"><title>2005-Q2 Open tickets: 266</title></circle>
+<circle cx="184.6" cy="352.1" r="4" fill="#0f766e"><title>2005-Q3 Open tickets: 352</title></circle>
+<circle cx="195.5" cy="351.6" r="4" fill="#0f766e"><title>2005-Q4 Open tickets: 366</title></circle>
+<circle cx="206.3" cy="348.6" r="4" fill="#0f766e"><title>2006-Q1 Open tickets: 436</title></circle>
+<circle cx="217.2" cy="343.7" r="4" fill="#0f766e"><title>2006-Q2 Open tickets: 552</title></circle>
+<circle cx="228.0" cy="346.9" r="4" fill="#0f766e"><title>2006-Q3 Open tickets: 476</title></circle>
+<circle cx="238.9" cy="352.9" r="4" fill="#0f766e"><title>2006-Q4 Open tickets: 334</title></circle>
+<circle cx="249.8" cy="354.2" r="4" fill="#0f766e"><title>2007-Q1 Open tickets: 303</title></circle>
+<circle cx="260.6" cy="352.7" r="4" fill="#0f766e"><title>2007-Q2 Open tickets: 340</title></circle>
+<circle cx="271.5" cy="352.7" r="4" fill="#0f766e"><title>2007-Q3 Open tickets: 338</title></circle>
+<circle cx="282.3" cy="350.2" r="4" fill="#0f766e"><title>2007-Q4 Open tickets: 398</title></circle>
+<circle cx="293.2" cy="347.9" r="4" fill="#0f766e"><title>2008-Q1 Open tickets: 452</title></circle>
+<circle cx="304.1" cy="341.4" r="4" fill="#0f766e"><title>2008-Q2 Open tickets: 607</title></circle>
+<circle cx="314.9" cy="339.2" r="4" fill="#0f766e"><title>2008-Q3 Open tickets: 658</title></circle>
+<circle cx="325.8" cy="342.5" r="4" fill="#0f766e"><title>2008-Q4 Open tickets: 581</title></circle>
+<circle cx="336.6" cy="339.6" r="4" fill="#0f766e"><title>2009-Q1 Open tickets: 649</title></circle>
+<circle cx="347.5" cy="351.3" r="4" fill="#0f766e"><title>2009-Q2 Open tickets: 371</title></circle>
+<circle cx="358.4" cy="345.9" r="4" fill="#0f766e"><title>2009-Q3 Open tickets: 499</title></circle>
+<circle cx="369.2" cy="346.5" r="4" fill="#0f766e"><title>2009-Q4 Open tickets: 485</title></circle>
+<circle cx="380.1" cy="339.4" r="4" fill="#0f766e"><title>2010-Q1 Open tickets: 654</title></circle>
+<circle cx="390.9" cy="338.0" r="4" fill="#0f766e"><title>2010-Q2 Open tickets: 687</title></circle>
+<circle cx="401.8" cy="324.8" r="4" fill="#0f766e"><title>2010-Q3 Open tickets: 999</title></circle>
+<circle cx="412.7" cy="328.6" r="4" fill="#0f766e"><title>2010-Q4 Open tickets: 911</title></circle>
+<circle cx="423.5" cy="322.8" r="4" fill="#0f766e"><title>2011-Q1 Open tickets: 1,048</title></circle>
+<circle cx="434.4" cy="316.9" r="4" fill="#0f766e"><title>2011-Q2 Open tickets: 1,187</title></circle>
+<circle cx="445.2" cy="311.8" r="4" fill="#0f766e"><title>2011-Q3 Open tickets: 1,307</title></circle>
+<circle cx="456.1" cy="309.2" r="4" fill="#0f766e"><title>2011-Q4 Open tickets: 1,370</title></circle>
+<circle cx="467.0" cy="306.8" r="4" fill="#0f766e"><title>2012-Q1 Open tickets: 1,427</title></circle>
+<circle cx="477.8" cy="304.5" r="4" fill="#0f766e"><title>2012-Q2 Open tickets: 1,482</title></circle>
+<circle cx="488.7" cy="303.4" r="4" fill="#0f766e"><title>2012-Q3 Open tickets: 1,506</title></circle>
+<circle cx="499.5" cy="302.1" r="4" fill="#0f766e"><title>2012-Q4 Open tickets: 1,537</title></circle>
+<circle cx="510.4" cy="297.5" r="4" fill="#0f766e"><title>2013-Q1 Open tickets: 1,648</title></circle>
+<circle cx="521.3" cy="294.4" r="4" fill="#0f766e"><title>2013-Q2 Open tickets: 1,720</title></circle>
+<circle cx="532.1" cy="303.8" r="4" fill="#0f766e"><title>2013-Q3 Open tickets: 1,498</title></circle>
+<circle cx="543.0" cy="294.9" r="4" fill="#0f766e"><title>2013-Q4 Open tickets: 1,708</title></circle>
+<circle cx="553.8" cy="303.0" r="4" fill="#0f766e"><title>2014-Q1 Open tickets: 1,517</title></circle>
+<circle cx="564.7" cy="297.5" r="4" fill="#0f766e"><title>2014-Q2 Open tickets: 1,647</title></circle>
+<circle cx="575.6" cy="291.6" r="4" fill="#0f766e"><title>2014-Q3 Open tickets: 1,786</title></circle>
+<circle cx="586.4" cy="292.3" r="4" fill="#0f766e"><title>2014-Q4 Open tickets: 1,771</title></circle>
+<circle cx="597.3" cy="291.3" r="4" fill="#0f766e"><title>2015-Q1 Open tickets: 1,794</title></circle>
+<circle cx="608.2" cy="286.3" r="4" fill="#0f766e"><title>2015-Q2 Open tickets: 1,912</title></circle>
+<circle cx="619.0" cy="292.4" r="4" fill="#0f766e"><title>2015-Q3 Open tickets: 1,768</title></circle>
+<circle cx="629.9" cy="295.6" r="4" fill="#0f766e"><title>2015-Q4 Open tickets: 1,691</title></circle>
+<circle cx="640.7" cy="290.0" r="4" fill="#0f766e"><title>2016-Q1 Open tickets: 1,825</title></circle>
+<circle cx="651.6" cy="285.8" r="4" fill="#0f766e"><title>2016-Q2 Open tickets: 1,924</title></circle>
+<circle cx="662.5" cy="281.8" r="4" fill="#0f766e"><title>2016-Q3 Open tickets: 2,019</title></circle>
+<circle cx="673.3" cy="275.2" r="4" fill="#0f766e"><title>2016-Q4 Open tickets: 2,175</title></circle>
+<circle cx="684.2" cy="267.3" r="4" fill="#0f766e"><title>2017-Q1 Open tickets: 2,362</title></circle>
+<circle cx="695.0" cy="259.6" r="4" fill="#0f766e"><title>2017-Q2 Open tickets: 2,545</title></circle>
+<circle cx="705.9" cy="254.1" r="4" fill="#0f766e"><title>2017-Q3 Open tickets: 2,675</title></circle>
+<circle cx="716.8" cy="246.8" r="4" fill="#0f766e"><title>2017-Q4 Open tickets: 2,849</title></circle>
+<circle cx="727.6" cy="243.1" r="4" fill="#0f766e"><title>2018-Q1 Open tickets: 2,937</title></circle>
+<circle cx="738.5" cy="233.6" r="4" fill="#0f766e"><title>2018-Q2 Open tickets: 3,160</title></circle>
+<circle cx="749.3" cy="227.0" r="4" fill="#0f766e"><title>2018-Q3 Open tickets: 3,318</title></circle>
+<circle cx="760.2" cy="217.9" r="4" fill="#0f766e"><title>2018-Q4 Open tickets: 3,534</title></circle>
+<circle cx="771.1" cy="214.3" r="4" fill="#0f766e"><title>2019-Q1 Open tickets: 3,618</title></circle>
+<circle cx="781.9" cy="213.3" r="4" fill="#0f766e"><title>2019-Q2 Open tickets: 3,642</title></circle>
+<circle cx="792.8" cy="221.7" r="4" fill="#0f766e"><title>2019-Q3 Open tickets: 3,443</title></circle>
+<circle cx="803.6" cy="215.2" r="4" fill="#0f766e"><title>2019-Q4 Open tickets: 3,597</title></circle>
+<circle cx="814.5" cy="214.2" r="4" fill="#0f766e"><title>2020-Q1 Open tickets: 3,622</title></circle>
+<circle cx="825.4" cy="209.2" r="4" fill="#0f766e"><title>2020-Q2 Open tickets: 3,740</title></circle>
+<circle cx="836.2" cy="208.8" r="4" fill="#0f766e"><title>2020-Q3 Open tickets: 3,749</title></circle>
+<circle cx="847.1" cy="211.5" r="4" fill="#0f766e"><title>2020-Q4 Open tickets: 3,684</title></circle>
+<circle cx="857.9" cy="208.8" r="4" fill="#0f766e"><title>2021-Q1 Open tickets: 3,749</title></circle>
+<circle cx="868.8" cy="206.2" r="4" fill="#0f766e"><title>2021-Q2 Open tickets: 3,810</title></circle>
+<circle cx="879.7" cy="199.9" r="4" fill="#0f766e"><title>2021-Q3 Open tickets: 3,959</title></circle>
+<circle cx="890.5" cy="198.0" r="4" fill="#0f766e"><title>2021-Q4 Open tickets: 4,005</title></circle>
+<circle cx="901.4" cy="189.4" r="4" fill="#0f766e"><title>2022-Q1 Open tickets: 4,209</title></circle>
+<circle cx="912.2" cy="184.8" r="4" fill="#0f766e"><title>2022-Q2 Open tickets: 4,317</title></circle>
+<circle cx="923.1" cy="182.9" r="4" fill="#0f766e"><title>2022-Q3 Open tickets: 4,362</title></circle>
+<circle cx="934.0" cy="179.7" r="4" fill="#0f766e"><title>2022-Q4 Open tickets: 4,439</title></circle>
+<circle cx="944.8" cy="179.1" r="4" fill="#0f766e"><title>2023-Q1 Open tickets: 4,453</title></circle>
+<circle cx="955.7" cy="174.4" r="4" fill="#0f766e"><title>2023-Q2 Open tickets: 4,565</title></circle>
+<circle cx="966.5" cy="167.1" r="4" fill="#0f766e"><title>2023-Q3 Open tickets: 4,737</title></circle>
+<circle cx="977.4" cy="162.7" r="4" fill="#0f766e"><title>2023-Q4 Open tickets: 4,842</title></circle>
+<circle cx="988.3" cy="161.6" r="4" fill="#0f766e"><title>2024-Q1 Open tickets: 4,867</title></circle>
+<circle cx="999.1" cy="162.5" r="4" fill="#0f766e"><title>2024-Q2 Open tickets: 4,845</title></circle>
+<circle cx="1010.0" cy="163.4" r="4" fill="#0f766e"><title>2024-Q3 Open tickets: 4,824</title></circle>
+<circle cx="1020.8" cy="160.6" r="4" fill="#0f766e"><title>2024-Q4 Open tickets: 4,891</title></circle>
+<circle cx="1031.7" cy="162.0" r="4" fill="#0f766e"><title>2025-Q1 Open tickets: 4,859</title></circle>
+<circle cx="1042.6" cy="166.4" r="4" fill="#0f766e"><title>2025-Q2 Open tickets: 4,753</title></circle>
+<circle cx="1053.4" cy="171.7" r="4" fill="#0f766e"><title>2025-Q3 Open tickets: 4,628</title></circle>
+<circle cx="1064.3" cy="174.2" r="4" fill="#0f766e"><title>2025-Q4 Open tickets: 4,569</title></circle>
+<circle cx="1075.1" cy="173.0" r="4" fill="#0f766e"><title>2026-Q1 Open tickets: 4,598</title></circle>
+<circle cx="1086.0" cy="170.2" r="4" fill="#0f766e"><title>2026-Q2 Open tickets: 4,664</title></circle>
+<text x="76.0" y="401" text-anchor="middle" class="axis">2003</text>
+<text x="119.4" y="401" text-anchor="middle" class="axis">2004</text>
+<text x="162.9" y="401" text-anchor="middle" class="axis">2005</text>
+<text x="206.3" y="401" text-anchor="middle" class="axis">2006</text>
+<text x="249.8" y="401" text-anchor="middle" class="axis">2007</text>
+<text x="293.2" y="401" text-anchor="middle" class="axis">2008</text>
+<text x="336.6" y="401" text-anchor="middle" class="axis">2009</text>
+<text x="380.1" y="401" text-anchor="middle" class="axis">2010</text>
+<text x="423.5" y="401" text-anchor="middle" class="axis">2011</text>
+<text x="467.0" y="401" text-anchor="middle" class="axis">2012</text>
+<text x="510.4" y="401" text-anchor="middle" class="axis">2013</text>
+<text x="553.8" y="401" text-anchor="middle" class="axis">2014</text>
+<text x="597.3" y="401" text-anchor="middle" class="axis">2015</text>
+<text x="640.7" y="401" text-anchor="middle" class="axis">2016</text>
+<text x="684.2" y="401" text-anchor="middle" class="axis">2017</text>
+<text x="727.6" y="401" text-anchor="middle" class="axis">2018</text>
+<text x="771.1" y="401" text-anchor="middle" class="axis">2019</text>
+<text x="814.5" y="401" text-anchor="middle" class="axis">2020</text>
+<text x="857.9" y="401" text-anchor="middle" class="axis">2021</text>
+<text x="901.4" y="401" text-anchor="middle" class="axis">2022</text>
+<text x="944.8" y="401" text-anchor="middle" class="axis">2023</text>
+<text x="988.3" y="401" text-anchor="middle" class="axis">2024</text>
+<text x="1031.7" y="401" text-anchor="middle" class="axis">2025</text>
+<text x="1075.1" y="401" text-anchor="middle" class="axis">2026</text>
 </svg>
     </section>
 
@@ -2344,144 +2420,174 @@
 </div>
 
     <section class="chart-band">
-      <svg viewBox="0 0 1120 365" role="img" aria-label="Open Core Trac feature requests over time">
+      <svg viewBox="0 0 1120 425" role="img" aria-label="Open Core Trac feature requests over time">
 <text x="76" y="24" class="chart-title">Open Core Trac feature requests over time</text>
 <text x="76" y="46" class="chart-note">Backlog peaked at 527 in 2025-Q1; latest sampled count is 524.</text>
 <rect x="76" y="60" width="12" height="12" rx="2" fill="#0f766e"/>
 <text x="94" y="71" class="legend-text">Open tickets</text>
-<line x1="76" y1="307.0" x2="1086" y2="307.0" class="grid"/>
-<text x="66" y="311.0" text-anchor="end" class="axis">0</text>
-<line x1="76" y1="270.5" x2="1086" y2="270.5" class="grid"/>
-<text x="66" y="274.5" text-anchor="end" class="axis">100</text>
-<line x1="76" y1="234.0" x2="1086" y2="234.0" class="grid"/>
-<text x="66" y="238.0" text-anchor="end" class="axis">200</text>
-<line x1="76" y1="197.5" x2="1086" y2="197.5" class="grid"/>
-<text x="66" y="201.5" text-anchor="end" class="axis">300</text>
-<line x1="76" y1="161.0" x2="1086" y2="161.0" class="grid"/>
-<text x="66" y="165.0" text-anchor="end" class="axis">400</text>
-<line x1="76" y1="124.5" x2="1086" y2="124.5" class="grid"/>
-<text x="66" y="128.5" text-anchor="end" class="axis">500</text>
-<line x1="76" y1="88.0" x2="1086" y2="88.0" class="grid"/>
-<text x="66" y="92.0" text-anchor="end" class="axis">600</text>
-<polyline points="76.0,307.0 86.9,307.0 97.7,307.0 108.6,307.0 119.4,307.0 130.3,307.0 141.2,307.0 152.0,307.0 162.9,307.0 173.7,307.0 184.6,307.0 195.5,307.0 206.3,307.0 217.2,307.0 228.0,307.0 238.9,306.3 249.8,305.5 260.6,303.7 271.5,303.0 282.3,301.9 293.2,300.8 304.1,298.6 314.9,297.5 325.8,291.7 336.6,284.7 347.5,288.8 358.4,281.4 369.2,277.8 380.1,270.1 390.9,257.4 401.8,243.5 412.7,244.6 423.5,241.7 434.4,235.1 445.2,231.1 456.1,230.0 467.0,228.5 477.8,224.1 488.7,221.2 499.5,220.9 510.4,218.3 521.3,213.6 532.1,230.7 543.0,228.9 553.8,239.8 564.7,235.5 575.6,230.0 586.4,234.0 597.3,233.6 608.2,229.3 619.0,235.1 629.9,242.4 640.7,240.9 651.6,238.7 662.5,229.6 673.3,220.5 684.2,219.0 695.0,213.9 705.9,209.9 716.8,202.2 727.6,195.7 738.5,190.2 749.3,184.7 760.2,182.2 771.1,183.6 781.9,186.2 792.8,189.5 803.6,182.9 814.5,176.3 825.4,173.4 836.2,166.8 847.1,167.2 857.9,163.9 868.8,160.3 879.7,154.4 890.5,151.1 901.4,146.0 912.2,146.4 923.1,147.1 934.0,143.1 944.8,142.4 955.7,138.0 966.5,133.3 977.4,130.3 988.3,129.2 999.1,125.6 1010.0,123.0 1020.8,115.7 1031.7,114.6 1042.6,115.7 1053.4,118.7 1064.3,121.2 1075.1,120.1 1086.0,115.7" fill="none" stroke="#0f766e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-<circle cx="76.0" cy="307.0" r="4" fill="#0f766e"><title>2003-Q1 Open tickets: 0</title></circle>
-<circle cx="86.9" cy="307.0" r="4" fill="#0f766e"><title>2003-Q2 Open tickets: 0</title></circle>
-<circle cx="97.7" cy="307.0" r="4" fill="#0f766e"><title>2003-Q3 Open tickets: 0</title></circle>
-<circle cx="108.6" cy="307.0" r="4" fill="#0f766e"><title>2003-Q4 Open tickets: 0</title></circle>
-<circle cx="119.4" cy="307.0" r="4" fill="#0f766e"><title>2004-Q1 Open tickets: 0</title></circle>
-<circle cx="130.3" cy="307.0" r="4" fill="#0f766e"><title>2004-Q2 Open tickets: 0</title></circle>
-<circle cx="141.2" cy="307.0" r="4" fill="#0f766e"><title>2004-Q3 Open tickets: 0</title></circle>
-<circle cx="152.0" cy="307.0" r="4" fill="#0f766e"><title>2004-Q4 Open tickets: 0</title></circle>
-<circle cx="162.9" cy="307.0" r="4" fill="#0f766e"><title>2005-Q1 Open tickets: 0</title></circle>
-<circle cx="173.7" cy="307.0" r="4" fill="#0f766e"><title>2005-Q2 Open tickets: 0</title></circle>
-<circle cx="184.6" cy="307.0" r="4" fill="#0f766e"><title>2005-Q3 Open tickets: 0</title></circle>
-<circle cx="195.5" cy="307.0" r="4" fill="#0f766e"><title>2005-Q4 Open tickets: 0</title></circle>
-<circle cx="206.3" cy="307.0" r="4" fill="#0f766e"><title>2006-Q1 Open tickets: 0</title></circle>
-<circle cx="217.2" cy="307.0" r="4" fill="#0f766e"><title>2006-Q2 Open tickets: 0</title></circle>
-<circle cx="228.0" cy="307.0" r="4" fill="#0f766e"><title>2006-Q3 Open tickets: 0</title></circle>
-<circle cx="238.9" cy="306.3" r="4" fill="#0f766e"><title>2006-Q4 Open tickets: 2</title></circle>
-<circle cx="249.8" cy="305.5" r="4" fill="#0f766e"><title>2007-Q1 Open tickets: 4</title></circle>
-<circle cx="260.6" cy="303.7" r="4" fill="#0f766e"><title>2007-Q2 Open tickets: 9</title></circle>
-<circle cx="271.5" cy="303.0" r="4" fill="#0f766e"><title>2007-Q3 Open tickets: 11</title></circle>
-<circle cx="282.3" cy="301.9" r="4" fill="#0f766e"><title>2007-Q4 Open tickets: 14</title></circle>
-<circle cx="293.2" cy="300.8" r="4" fill="#0f766e"><title>2008-Q1 Open tickets: 17</title></circle>
-<circle cx="304.1" cy="298.6" r="4" fill="#0f766e"><title>2008-Q2 Open tickets: 23</title></circle>
-<circle cx="314.9" cy="297.5" r="4" fill="#0f766e"><title>2008-Q3 Open tickets: 26</title></circle>
-<circle cx="325.8" cy="291.7" r="4" fill="#0f766e"><title>2008-Q4 Open tickets: 42</title></circle>
-<circle cx="336.6" cy="284.7" r="4" fill="#0f766e"><title>2009-Q1 Open tickets: 61</title></circle>
-<circle cx="347.5" cy="288.8" r="4" fill="#0f766e"><title>2009-Q2 Open tickets: 50</title></circle>
-<circle cx="358.4" cy="281.4" r="4" fill="#0f766e"><title>2009-Q3 Open tickets: 70</title></circle>
-<circle cx="369.2" cy="277.8" r="4" fill="#0f766e"><title>2009-Q4 Open tickets: 80</title></circle>
-<circle cx="380.1" cy="270.1" r="4" fill="#0f766e"><title>2010-Q1 Open tickets: 101</title></circle>
-<circle cx="390.9" cy="257.4" r="4" fill="#0f766e"><title>2010-Q2 Open tickets: 136</title></circle>
-<circle cx="401.8" cy="243.5" r="4" fill="#0f766e"><title>2010-Q3 Open tickets: 174</title></circle>
-<circle cx="412.7" cy="244.6" r="4" fill="#0f766e"><title>2010-Q4 Open tickets: 171</title></circle>
-<circle cx="423.5" cy="241.7" r="4" fill="#0f766e"><title>2011-Q1 Open tickets: 179</title></circle>
-<circle cx="434.4" cy="235.1" r="4" fill="#0f766e"><title>2011-Q2 Open tickets: 197</title></circle>
-<circle cx="445.2" cy="231.1" r="4" fill="#0f766e"><title>2011-Q3 Open tickets: 208</title></circle>
-<circle cx="456.1" cy="230.0" r="4" fill="#0f766e"><title>2011-Q4 Open tickets: 211</title></circle>
-<circle cx="467.0" cy="228.5" r="4" fill="#0f766e"><title>2012-Q1 Open tickets: 215</title></circle>
-<circle cx="477.8" cy="224.1" r="4" fill="#0f766e"><title>2012-Q2 Open tickets: 227</title></circle>
-<circle cx="488.7" cy="221.2" r="4" fill="#0f766e"><title>2012-Q3 Open tickets: 235</title></circle>
-<circle cx="499.5" cy="220.9" r="4" fill="#0f766e"><title>2012-Q4 Open tickets: 236</title></circle>
-<circle cx="510.4" cy="218.3" r="4" fill="#0f766e"><title>2013-Q1 Open tickets: 243</title></circle>
-<circle cx="521.3" cy="213.6" r="4" fill="#0f766e"><title>2013-Q2 Open tickets: 256</title></circle>
-<circle cx="532.1" cy="230.7" r="4" fill="#0f766e"><title>2013-Q3 Open tickets: 209</title></circle>
-<circle cx="543.0" cy="228.9" r="4" fill="#0f766e"><title>2013-Q4 Open tickets: 214</title></circle>
-<circle cx="553.8" cy="239.8" r="4" fill="#0f766e"><title>2014-Q1 Open tickets: 184</title></circle>
-<circle cx="564.7" cy="235.5" r="4" fill="#0f766e"><title>2014-Q2 Open tickets: 196</title></circle>
-<circle cx="575.6" cy="230.0" r="4" fill="#0f766e"><title>2014-Q3 Open tickets: 211</title></circle>
-<circle cx="586.4" cy="234.0" r="4" fill="#0f766e"><title>2014-Q4 Open tickets: 200</title></circle>
-<circle cx="597.3" cy="233.6" r="4" fill="#0f766e"><title>2015-Q1 Open tickets: 201</title></circle>
-<circle cx="608.2" cy="229.3" r="4" fill="#0f766e"><title>2015-Q2 Open tickets: 213</title></circle>
-<circle cx="619.0" cy="235.1" r="4" fill="#0f766e"><title>2015-Q3 Open tickets: 197</title></circle>
-<circle cx="629.9" cy="242.4" r="4" fill="#0f766e"><title>2015-Q4 Open tickets: 177</title></circle>
-<circle cx="640.7" cy="240.9" r="4" fill="#0f766e"><title>2016-Q1 Open tickets: 181</title></circle>
-<circle cx="651.6" cy="238.7" r="4" fill="#0f766e"><title>2016-Q2 Open tickets: 187</title></circle>
-<circle cx="662.5" cy="229.6" r="4" fill="#0f766e"><title>2016-Q3 Open tickets: 212</title></circle>
-<circle cx="673.3" cy="220.5" r="4" fill="#0f766e"><title>2016-Q4 Open tickets: 237</title></circle>
-<circle cx="684.2" cy="219.0" r="4" fill="#0f766e"><title>2017-Q1 Open tickets: 241</title></circle>
-<circle cx="695.0" cy="213.9" r="4" fill="#0f766e"><title>2017-Q2 Open tickets: 255</title></circle>
-<circle cx="705.9" cy="209.9" r="4" fill="#0f766e"><title>2017-Q3 Open tickets: 266</title></circle>
-<circle cx="716.8" cy="202.2" r="4" fill="#0f766e"><title>2017-Q4 Open tickets: 287</title></circle>
-<circle cx="727.6" cy="195.7" r="4" fill="#0f766e"><title>2018-Q1 Open tickets: 305</title></circle>
-<circle cx="738.5" cy="190.2" r="4" fill="#0f766e"><title>2018-Q2 Open tickets: 320</title></circle>
-<circle cx="749.3" cy="184.7" r="4" fill="#0f766e"><title>2018-Q3 Open tickets: 335</title></circle>
-<circle cx="760.2" cy="182.2" r="4" fill="#0f766e"><title>2018-Q4 Open tickets: 342</title></circle>
-<circle cx="771.1" cy="183.6" r="4" fill="#0f766e"><title>2019-Q1 Open tickets: 338</title></circle>
-<circle cx="781.9" cy="186.2" r="4" fill="#0f766e"><title>2019-Q2 Open tickets: 331</title></circle>
-<circle cx="792.8" cy="189.5" r="4" fill="#0f766e"><title>2019-Q3 Open tickets: 322</title></circle>
-<circle cx="803.6" cy="182.9" r="4" fill="#0f766e"><title>2019-Q4 Open tickets: 340</title></circle>
-<circle cx="814.5" cy="176.3" r="4" fill="#0f766e"><title>2020-Q1 Open tickets: 358</title></circle>
-<circle cx="825.4" cy="173.4" r="4" fill="#0f766e"><title>2020-Q2 Open tickets: 366</title></circle>
-<circle cx="836.2" cy="166.8" r="4" fill="#0f766e"><title>2020-Q3 Open tickets: 384</title></circle>
-<circle cx="847.1" cy="167.2" r="4" fill="#0f766e"><title>2020-Q4 Open tickets: 383</title></circle>
-<circle cx="857.9" cy="163.9" r="4" fill="#0f766e"><title>2021-Q1 Open tickets: 392</title></circle>
-<circle cx="868.8" cy="160.3" r="4" fill="#0f766e"><title>2021-Q2 Open tickets: 402</title></circle>
-<circle cx="879.7" cy="154.4" r="4" fill="#0f766e"><title>2021-Q3 Open tickets: 418</title></circle>
-<circle cx="890.5" cy="151.1" r="4" fill="#0f766e"><title>2021-Q4 Open tickets: 427</title></circle>
-<circle cx="901.4" cy="146.0" r="4" fill="#0f766e"><title>2022-Q1 Open tickets: 441</title></circle>
-<circle cx="912.2" cy="146.4" r="4" fill="#0f766e"><title>2022-Q2 Open tickets: 440</title></circle>
-<circle cx="923.1" cy="147.1" r="4" fill="#0f766e"><title>2022-Q3 Open tickets: 438</title></circle>
-<circle cx="934.0" cy="143.1" r="4" fill="#0f766e"><title>2022-Q4 Open tickets: 449</title></circle>
-<circle cx="944.8" cy="142.4" r="4" fill="#0f766e"><title>2023-Q1 Open tickets: 451</title></circle>
-<circle cx="955.7" cy="138.0" r="4" fill="#0f766e"><title>2023-Q2 Open tickets: 463</title></circle>
-<circle cx="966.5" cy="133.3" r="4" fill="#0f766e"><title>2023-Q3 Open tickets: 476</title></circle>
-<circle cx="977.4" cy="130.3" r="4" fill="#0f766e"><title>2023-Q4 Open tickets: 484</title></circle>
-<circle cx="988.3" cy="129.2" r="4" fill="#0f766e"><title>2024-Q1 Open tickets: 487</title></circle>
-<circle cx="999.1" cy="125.6" r="4" fill="#0f766e"><title>2024-Q2 Open tickets: 497</title></circle>
-<circle cx="1010.0" cy="123.0" r="4" fill="#0f766e"><title>2024-Q3 Open tickets: 504</title></circle>
-<circle cx="1020.8" cy="115.7" r="4" fill="#0f766e"><title>2024-Q4 Open tickets: 524</title></circle>
-<circle cx="1031.7" cy="114.6" r="4" fill="#0f766e"><title>2025-Q1 Open tickets: 527</title></circle>
-<circle cx="1042.6" cy="115.7" r="4" fill="#0f766e"><title>2025-Q2 Open tickets: 524</title></circle>
-<circle cx="1053.4" cy="118.7" r="4" fill="#0f766e"><title>2025-Q3 Open tickets: 516</title></circle>
-<circle cx="1064.3" cy="121.2" r="4" fill="#0f766e"><title>2025-Q4 Open tickets: 509</title></circle>
-<circle cx="1075.1" cy="120.1" r="4" fill="#0f766e"><title>2026-Q1 Open tickets: 512</title></circle>
-<circle cx="1086.0" cy="115.7" r="4" fill="#0f766e"><title>2026-Q2 Open tickets: 524</title></circle>
-<text x="76.0" y="341" text-anchor="middle" class="axis">2003</text>
-<text x="119.4" y="341" text-anchor="middle" class="axis">2004</text>
-<text x="162.9" y="341" text-anchor="middle" class="axis">2005</text>
-<text x="206.3" y="341" text-anchor="middle" class="axis">2006</text>
-<text x="249.8" y="341" text-anchor="middle" class="axis">2007</text>
-<text x="293.2" y="341" text-anchor="middle" class="axis">2008</text>
-<text x="336.6" y="341" text-anchor="middle" class="axis">2009</text>
-<text x="380.1" y="341" text-anchor="middle" class="axis">2010</text>
-<text x="423.5" y="341" text-anchor="middle" class="axis">2011</text>
-<text x="467.0" y="341" text-anchor="middle" class="axis">2012</text>
-<text x="510.4" y="341" text-anchor="middle" class="axis">2013</text>
-<text x="553.8" y="341" text-anchor="middle" class="axis">2014</text>
-<text x="597.3" y="341" text-anchor="middle" class="axis">2015</text>
-<text x="640.7" y="341" text-anchor="middle" class="axis">2016</text>
-<text x="684.2" y="341" text-anchor="middle" class="axis">2017</text>
-<text x="727.6" y="341" text-anchor="middle" class="axis">2018</text>
-<text x="771.1" y="341" text-anchor="middle" class="axis">2019</text>
-<text x="814.5" y="341" text-anchor="middle" class="axis">2020</text>
-<text x="857.9" y="341" text-anchor="middle" class="axis">2021</text>
-<text x="901.4" y="341" text-anchor="middle" class="axis">2022</text>
-<text x="944.8" y="341" text-anchor="middle" class="axis">2023</text>
-<text x="988.3" y="341" text-anchor="middle" class="axis">2024</text>
-<text x="1031.7" y="341" text-anchor="middle" class="axis">2025</text>
-<text x="1075.1" y="341" text-anchor="middle" class="axis">2026</text>
+<line x1="76" y1="367.0" x2="1086" y2="367.0" class="grid"/>
+<text x="66" y="371.0" text-anchor="end" class="axis">0</text>
+<line x1="76" y1="331.8" x2="1086" y2="331.8" class="grid"/>
+<text x="66" y="335.8" text-anchor="end" class="axis">100</text>
+<line x1="76" y1="296.7" x2="1086" y2="296.7" class="grid"/>
+<text x="66" y="300.7" text-anchor="end" class="axis">200</text>
+<line x1="76" y1="261.5" x2="1086" y2="261.5" class="grid"/>
+<text x="66" y="265.5" text-anchor="end" class="axis">300</text>
+<line x1="76" y1="226.3" x2="1086" y2="226.3" class="grid"/>
+<text x="66" y="230.3" text-anchor="end" class="axis">400</text>
+<line x1="76" y1="191.2" x2="1086" y2="191.2" class="grid"/>
+<text x="66" y="195.2" text-anchor="end" class="axis">500</text>
+<line x1="76" y1="156.0" x2="1086" y2="156.0" class="grid"/>
+<text x="66" y="160.0" text-anchor="end" class="axis">600</text>
+<g class="event-marker">
+<title>2018-12-06 Gutenberg (5.0)</title>
+<line x1="768.0" y1="156" x2="768.0" y2="367" class="event-line"/>
+<rect x="706.5" y="69.0" width="123.0" height="18" rx="4" class="event-label-bg"/>
+<text x="768.0" y="82.0" text-anchor="middle" class="event-label">Gutenberg (5.0)</text>
+</g>
+<g class="event-marker">
+<title>2022-01-25 FSE (5.9)</title>
+<line x1="904.4" y1="156" x2="904.4" y2="367" class="event-line"/>
+<rect x="863.9" y="88.0" width="81.0" height="18" rx="4" class="event-label-bg"/>
+<text x="904.4" y="101.0" text-anchor="middle" class="event-label">FSE (5.9)</text>
+</g>
+<g class="event-marker">
+<title>2024-09-17 WCUS 2024</title>
+<line x1="1019.3" y1="156" x2="1019.3" y2="367" class="event-line"/>
+<rect x="978.8" y="107.0" width="81.0" height="18" rx="4" class="event-label-bg"/>
+<text x="1019.3" y="120.0" text-anchor="middle" class="event-label">WCUS 2024</text>
+</g>
+<g class="event-marker">
+<title>2025-01-09 contribution reduction</title>
+<line x1="1032.8" y1="156" x2="1032.8" y2="367" class="event-line"/>
+<rect x="914.0" y="126.0" width="172.0" height="18" rx="4" class="event-label-bg"/>
+<text x="1000.0" y="139.0" text-anchor="middle" class="event-label">contribution reduction</text>
+</g>
+<g class="event-marker">
+<title>2025-05-29 contribution resumption</title>
+<line x1="1049.5" y1="156" x2="1049.5" y2="367" class="event-line"/>
+<rect x="914.0" y="69.0" width="172.0" height="18" rx="4" class="event-label-bg"/>
+<text x="1000.0" y="82.0" text-anchor="middle" class="event-label">contribution resumption</text>
+</g>
+<polyline points="76.0,367.0 86.9,367.0 97.7,367.0 108.6,367.0 119.4,367.0 130.3,367.0 141.2,367.0 152.0,367.0 162.9,367.0 173.7,367.0 184.6,367.0 195.5,367.0 206.3,367.0 217.2,367.0 228.0,367.0 238.9,366.3 249.8,365.6 260.6,363.8 271.5,363.1 282.3,362.1 293.2,361.0 304.1,358.9 314.9,357.9 325.8,352.2 336.6,345.5 347.5,349.4 358.4,342.4 369.2,338.9 380.1,331.5 390.9,319.2 401.8,305.8 412.7,306.9 423.5,304.1 434.4,297.7 445.2,293.9 456.1,292.8 467.0,291.4 477.8,287.2 488.7,284.4 499.5,284.0 510.4,281.5 521.3,277.0 532.1,293.5 543.0,291.7 553.8,302.3 564.7,298.1 575.6,292.8 586.4,296.7 597.3,296.3 608.2,292.1 619.0,297.7 629.9,304.8 640.7,303.3 651.6,301.2 662.5,292.4 673.3,283.7 684.2,282.2 695.0,277.3 705.9,273.5 716.8,266.1 727.6,259.7 738.5,254.5 749.3,249.2 760.2,246.7 771.1,248.1 781.9,250.6 792.8,253.8 803.6,247.4 814.5,241.1 825.4,238.3 836.2,232.0 847.1,232.3 857.9,229.1 868.8,225.6 879.7,220.0 890.5,216.8 901.4,211.9 912.2,212.3 923.1,213.0 934.0,209.1 944.8,208.4 955.7,204.2 966.5,199.6 977.4,196.8 988.3,195.7 999.1,192.2 1010.0,189.8 1020.8,182.7 1031.7,181.7 1042.6,182.7 1053.4,185.5 1064.3,188.0 1075.1,186.9 1086.0,182.7" fill="none" stroke="#0f766e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="76.0" cy="367.0" r="4" fill="#0f766e"><title>2003-Q1 Open tickets: 0</title></circle>
+<circle cx="86.9" cy="367.0" r="4" fill="#0f766e"><title>2003-Q2 Open tickets: 0</title></circle>
+<circle cx="97.7" cy="367.0" r="4" fill="#0f766e"><title>2003-Q3 Open tickets: 0</title></circle>
+<circle cx="108.6" cy="367.0" r="4" fill="#0f766e"><title>2003-Q4 Open tickets: 0</title></circle>
+<circle cx="119.4" cy="367.0" r="4" fill="#0f766e"><title>2004-Q1 Open tickets: 0</title></circle>
+<circle cx="130.3" cy="367.0" r="4" fill="#0f766e"><title>2004-Q2 Open tickets: 0</title></circle>
+<circle cx="141.2" cy="367.0" r="4" fill="#0f766e"><title>2004-Q3 Open tickets: 0</title></circle>
+<circle cx="152.0" cy="367.0" r="4" fill="#0f766e"><title>2004-Q4 Open tickets: 0</title></circle>
+<circle cx="162.9" cy="367.0" r="4" fill="#0f766e"><title>2005-Q1 Open tickets: 0</title></circle>
+<circle cx="173.7" cy="367.0" r="4" fill="#0f766e"><title>2005-Q2 Open tickets: 0</title></circle>
+<circle cx="184.6" cy="367.0" r="4" fill="#0f766e"><title>2005-Q3 Open tickets: 0</title></circle>
+<circle cx="195.5" cy="367.0" r="4" fill="#0f766e"><title>2005-Q4 Open tickets: 0</title></circle>
+<circle cx="206.3" cy="367.0" r="4" fill="#0f766e"><title>2006-Q1 Open tickets: 0</title></circle>
+<circle cx="217.2" cy="367.0" r="4" fill="#0f766e"><title>2006-Q2 Open tickets: 0</title></circle>
+<circle cx="228.0" cy="367.0" r="4" fill="#0f766e"><title>2006-Q3 Open tickets: 0</title></circle>
+<circle cx="238.9" cy="366.3" r="4" fill="#0f766e"><title>2006-Q4 Open tickets: 2</title></circle>
+<circle cx="249.8" cy="365.6" r="4" fill="#0f766e"><title>2007-Q1 Open tickets: 4</title></circle>
+<circle cx="260.6" cy="363.8" r="4" fill="#0f766e"><title>2007-Q2 Open tickets: 9</title></circle>
+<circle cx="271.5" cy="363.1" r="4" fill="#0f766e"><title>2007-Q3 Open tickets: 11</title></circle>
+<circle cx="282.3" cy="362.1" r="4" fill="#0f766e"><title>2007-Q4 Open tickets: 14</title></circle>
+<circle cx="293.2" cy="361.0" r="4" fill="#0f766e"><title>2008-Q1 Open tickets: 17</title></circle>
+<circle cx="304.1" cy="358.9" r="4" fill="#0f766e"><title>2008-Q2 Open tickets: 23</title></circle>
+<circle cx="314.9" cy="357.9" r="4" fill="#0f766e"><title>2008-Q3 Open tickets: 26</title></circle>
+<circle cx="325.8" cy="352.2" r="4" fill="#0f766e"><title>2008-Q4 Open tickets: 42</title></circle>
+<circle cx="336.6" cy="345.5" r="4" fill="#0f766e"><title>2009-Q1 Open tickets: 61</title></circle>
+<circle cx="347.5" cy="349.4" r="4" fill="#0f766e"><title>2009-Q2 Open tickets: 50</title></circle>
+<circle cx="358.4" cy="342.4" r="4" fill="#0f766e"><title>2009-Q3 Open tickets: 70</title></circle>
+<circle cx="369.2" cy="338.9" r="4" fill="#0f766e"><title>2009-Q4 Open tickets: 80</title></circle>
+<circle cx="380.1" cy="331.5" r="4" fill="#0f766e"><title>2010-Q1 Open tickets: 101</title></circle>
+<circle cx="390.9" cy="319.2" r="4" fill="#0f766e"><title>2010-Q2 Open tickets: 136</title></circle>
+<circle cx="401.8" cy="305.8" r="4" fill="#0f766e"><title>2010-Q3 Open tickets: 174</title></circle>
+<circle cx="412.7" cy="306.9" r="4" fill="#0f766e"><title>2010-Q4 Open tickets: 171</title></circle>
+<circle cx="423.5" cy="304.1" r="4" fill="#0f766e"><title>2011-Q1 Open tickets: 179</title></circle>
+<circle cx="434.4" cy="297.7" r="4" fill="#0f766e"><title>2011-Q2 Open tickets: 197</title></circle>
+<circle cx="445.2" cy="293.9" r="4" fill="#0f766e"><title>2011-Q3 Open tickets: 208</title></circle>
+<circle cx="456.1" cy="292.8" r="4" fill="#0f766e"><title>2011-Q4 Open tickets: 211</title></circle>
+<circle cx="467.0" cy="291.4" r="4" fill="#0f766e"><title>2012-Q1 Open tickets: 215</title></circle>
+<circle cx="477.8" cy="287.2" r="4" fill="#0f766e"><title>2012-Q2 Open tickets: 227</title></circle>
+<circle cx="488.7" cy="284.4" r="4" fill="#0f766e"><title>2012-Q3 Open tickets: 235</title></circle>
+<circle cx="499.5" cy="284.0" r="4" fill="#0f766e"><title>2012-Q4 Open tickets: 236</title></circle>
+<circle cx="510.4" cy="281.5" r="4" fill="#0f766e"><title>2013-Q1 Open tickets: 243</title></circle>
+<circle cx="521.3" cy="277.0" r="4" fill="#0f766e"><title>2013-Q2 Open tickets: 256</title></circle>
+<circle cx="532.1" cy="293.5" r="4" fill="#0f766e"><title>2013-Q3 Open tickets: 209</title></circle>
+<circle cx="543.0" cy="291.7" r="4" fill="#0f766e"><title>2013-Q4 Open tickets: 214</title></circle>
+<circle cx="553.8" cy="302.3" r="4" fill="#0f766e"><title>2014-Q1 Open tickets: 184</title></circle>
+<circle cx="564.7" cy="298.1" r="4" fill="#0f766e"><title>2014-Q2 Open tickets: 196</title></circle>
+<circle cx="575.6" cy="292.8" r="4" fill="#0f766e"><title>2014-Q3 Open tickets: 211</title></circle>
+<circle cx="586.4" cy="296.7" r="4" fill="#0f766e"><title>2014-Q4 Open tickets: 200</title></circle>
+<circle cx="597.3" cy="296.3" r="4" fill="#0f766e"><title>2015-Q1 Open tickets: 201</title></circle>
+<circle cx="608.2" cy="292.1" r="4" fill="#0f766e"><title>2015-Q2 Open tickets: 213</title></circle>
+<circle cx="619.0" cy="297.7" r="4" fill="#0f766e"><title>2015-Q3 Open tickets: 197</title></circle>
+<circle cx="629.9" cy="304.8" r="4" fill="#0f766e"><title>2015-Q4 Open tickets: 177</title></circle>
+<circle cx="640.7" cy="303.3" r="4" fill="#0f766e"><title>2016-Q1 Open tickets: 181</title></circle>
+<circle cx="651.6" cy="301.2" r="4" fill="#0f766e"><title>2016-Q2 Open tickets: 187</title></circle>
+<circle cx="662.5" cy="292.4" r="4" fill="#0f766e"><title>2016-Q3 Open tickets: 212</title></circle>
+<circle cx="673.3" cy="283.7" r="4" fill="#0f766e"><title>2016-Q4 Open tickets: 237</title></circle>
+<circle cx="684.2" cy="282.2" r="4" fill="#0f766e"><title>2017-Q1 Open tickets: 241</title></circle>
+<circle cx="695.0" cy="277.3" r="4" fill="#0f766e"><title>2017-Q2 Open tickets: 255</title></circle>
+<circle cx="705.9" cy="273.5" r="4" fill="#0f766e"><title>2017-Q3 Open tickets: 266</title></circle>
+<circle cx="716.8" cy="266.1" r="4" fill="#0f766e"><title>2017-Q4 Open tickets: 287</title></circle>
+<circle cx="727.6" cy="259.7" r="4" fill="#0f766e"><title>2018-Q1 Open tickets: 305</title></circle>
+<circle cx="738.5" cy="254.5" r="4" fill="#0f766e"><title>2018-Q2 Open tickets: 320</title></circle>
+<circle cx="749.3" cy="249.2" r="4" fill="#0f766e"><title>2018-Q3 Open tickets: 335</title></circle>
+<circle cx="760.2" cy="246.7" r="4" fill="#0f766e"><title>2018-Q4 Open tickets: 342</title></circle>
+<circle cx="771.1" cy="248.1" r="4" fill="#0f766e"><title>2019-Q1 Open tickets: 338</title></circle>
+<circle cx="781.9" cy="250.6" r="4" fill="#0f766e"><title>2019-Q2 Open tickets: 331</title></circle>
+<circle cx="792.8" cy="253.8" r="4" fill="#0f766e"><title>2019-Q3 Open tickets: 322</title></circle>
+<circle cx="803.6" cy="247.4" r="4" fill="#0f766e"><title>2019-Q4 Open tickets: 340</title></circle>
+<circle cx="814.5" cy="241.1" r="4" fill="#0f766e"><title>2020-Q1 Open tickets: 358</title></circle>
+<circle cx="825.4" cy="238.3" r="4" fill="#0f766e"><title>2020-Q2 Open tickets: 366</title></circle>
+<circle cx="836.2" cy="232.0" r="4" fill="#0f766e"><title>2020-Q3 Open tickets: 384</title></circle>
+<circle cx="847.1" cy="232.3" r="4" fill="#0f766e"><title>2020-Q4 Open tickets: 383</title></circle>
+<circle cx="857.9" cy="229.1" r="4" fill="#0f766e"><title>2021-Q1 Open tickets: 392</title></circle>
+<circle cx="868.8" cy="225.6" r="4" fill="#0f766e"><title>2021-Q2 Open tickets: 402</title></circle>
+<circle cx="879.7" cy="220.0" r="4" fill="#0f766e"><title>2021-Q3 Open tickets: 418</title></circle>
+<circle cx="890.5" cy="216.8" r="4" fill="#0f766e"><title>2021-Q4 Open tickets: 427</title></circle>
+<circle cx="901.4" cy="211.9" r="4" fill="#0f766e"><title>2022-Q1 Open tickets: 441</title></circle>
+<circle cx="912.2" cy="212.3" r="4" fill="#0f766e"><title>2022-Q2 Open tickets: 440</title></circle>
+<circle cx="923.1" cy="213.0" r="4" fill="#0f766e"><title>2022-Q3 Open tickets: 438</title></circle>
+<circle cx="934.0" cy="209.1" r="4" fill="#0f766e"><title>2022-Q4 Open tickets: 449</title></circle>
+<circle cx="944.8" cy="208.4" r="4" fill="#0f766e"><title>2023-Q1 Open tickets: 451</title></circle>
+<circle cx="955.7" cy="204.2" r="4" fill="#0f766e"><title>2023-Q2 Open tickets: 463</title></circle>
+<circle cx="966.5" cy="199.6" r="4" fill="#0f766e"><title>2023-Q3 Open tickets: 476</title></circle>
+<circle cx="977.4" cy="196.8" r="4" fill="#0f766e"><title>2023-Q4 Open tickets: 484</title></circle>
+<circle cx="988.3" cy="195.7" r="4" fill="#0f766e"><title>2024-Q1 Open tickets: 487</title></circle>
+<circle cx="999.1" cy="192.2" r="4" fill="#0f766e"><title>2024-Q2 Open tickets: 497</title></circle>
+<circle cx="1010.0" cy="189.8" r="4" fill="#0f766e"><title>2024-Q3 Open tickets: 504</title></circle>
+<circle cx="1020.8" cy="182.7" r="4" fill="#0f766e"><title>2024-Q4 Open tickets: 524</title></circle>
+<circle cx="1031.7" cy="181.7" r="4" fill="#0f766e"><title>2025-Q1 Open tickets: 527</title></circle>
+<circle cx="1042.6" cy="182.7" r="4" fill="#0f766e"><title>2025-Q2 Open tickets: 524</title></circle>
+<circle cx="1053.4" cy="185.5" r="4" fill="#0f766e"><title>2025-Q3 Open tickets: 516</title></circle>
+<circle cx="1064.3" cy="188.0" r="4" fill="#0f766e"><title>2025-Q4 Open tickets: 509</title></circle>
+<circle cx="1075.1" cy="186.9" r="4" fill="#0f766e"><title>2026-Q1 Open tickets: 512</title></circle>
+<circle cx="1086.0" cy="182.7" r="4" fill="#0f766e"><title>2026-Q2 Open tickets: 524</title></circle>
+<text x="76.0" y="401" text-anchor="middle" class="axis">2003</text>
+<text x="119.4" y="401" text-anchor="middle" class="axis">2004</text>
+<text x="162.9" y="401" text-anchor="middle" class="axis">2005</text>
+<text x="206.3" y="401" text-anchor="middle" class="axis">2006</text>
+<text x="249.8" y="401" text-anchor="middle" class="axis">2007</text>
+<text x="293.2" y="401" text-anchor="middle" class="axis">2008</text>
+<text x="336.6" y="401" text-anchor="middle" class="axis">2009</text>
+<text x="380.1" y="401" text-anchor="middle" class="axis">2010</text>
+<text x="423.5" y="401" text-anchor="middle" class="axis">2011</text>
+<text x="467.0" y="401" text-anchor="middle" class="axis">2012</text>
+<text x="510.4" y="401" text-anchor="middle" class="axis">2013</text>
+<text x="553.8" y="401" text-anchor="middle" class="axis">2014</text>
+<text x="597.3" y="401" text-anchor="middle" class="axis">2015</text>
+<text x="640.7" y="401" text-anchor="middle" class="axis">2016</text>
+<text x="684.2" y="401" text-anchor="middle" class="axis">2017</text>
+<text x="727.6" y="401" text-anchor="middle" class="axis">2018</text>
+<text x="771.1" y="401" text-anchor="middle" class="axis">2019</text>
+<text x="814.5" y="401" text-anchor="middle" class="axis">2020</text>
+<text x="857.9" y="401" text-anchor="middle" class="axis">2021</text>
+<text x="901.4" y="401" text-anchor="middle" class="axis">2022</text>
+<text x="944.8" y="401" text-anchor="middle" class="axis">2023</text>
+<text x="988.3" y="401" text-anchor="middle" class="axis">2024</text>
+<text x="1031.7" y="401" text-anchor="middle" class="axis">2025</text>
+<text x="1075.1" y="401" text-anchor="middle" class="axis">2026</text>
 </svg>
     </section>
 

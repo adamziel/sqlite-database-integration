@@ -50,6 +50,9 @@ p { margin: 8px 0 0; color: var(--muted); }
 .phase-label { font: 700 12px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #334155; }
 .callout-text { font: 700 13px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #111827; }
 .legend-text { font: 12px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #4b5563; }
+.event-line { stroke: #64748b; stroke-width: 1.2; stroke-dasharray: 4 4; opacity: .8; }
+.event-label-bg { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1; }
+.event-label { font: 700 11px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #334155; }
 .phase-card-title { font: 800 20px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #111827; }
 .phase-card-note { font: 13px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #4b5563; }
 .metric-label { font: 13px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #334155; font-weight: 700; }
@@ -92,55 +95,85 @@ ul { color: var(--muted); }
     </section>
 
     <h2>Timeline</h2>
-    <section class="chart-card"><svg viewBox="0 0 1120 360" role="img" aria-label="Open issue timeline">
+    <section class="chart-card"><svg viewBox="0 0 1120 390" role="img" aria-label="Open issue timeline">
 <text x="74" y="24" class="chart-title">Open issues over time</text>
 <text x="74" y="42" class="chart-note">Backlog grew through 2024, peaked, then declined after early 2025.</text>
-<rect x="74.0" y="92" width="581.9" height="210" fill="#dbeafe" opacity="0.55"/>
-<text x="364.9" y="286" text-anchor="middle" class="phase-label">Growth</text>
-<rect x="655.9" y="92" width="202.4" height="210" fill="#fef3c7" opacity="0.55"/>
-<text x="757.1" y="286" text-anchor="middle" class="phase-label">Plateau</text>
-<rect x="858.3" y="92" width="227.7" height="210" fill="#fee2e2" opacity="0.55"/>
-<text x="972.2" y="286" text-anchor="middle" class="phase-label">Decline</text>
-<line x1="74" y1="302.0" x2="1086" y2="302.0" class="grid"/>
-<text x="64" y="306.0" text-anchor="end" class="axis">3,000</text>
-<line x1="74" y1="242.0" x2="1086" y2="242.0" class="grid"/>
-<text x="64" y="246.0" text-anchor="end" class="axis">4,000</text>
-<line x1="74" y1="182.0" x2="1086" y2="182.0" class="grid"/>
-<text x="64" y="186.0" text-anchor="end" class="axis">5,000</text>
-<line x1="74" y1="122.0" x2="1086" y2="122.0" class="grid"/>
-<text x="64" y="126.0" text-anchor="end" class="axis">6,000</text>
-<line x1="74" y1="62.0" x2="1086" y2="62.0" class="grid"/>
-<text x="64" y="66.0" text-anchor="end" class="axis">7,000</text>
-<polyline points="74.0,295.3 124.6,282.3 175.2,263.2 225.8,239.5 276.4,223.8 327.0,223.8 377.6,210.2 428.2,186.1 478.8,168.0 529.4,169.2 580.0,154.5 630.6,143.6 681.2,128.8 731.8,111.7 782.4,115.2 833.0,113.6 883.6,123.3 934.2,125.2 984.8,143.1 1035.4,138.4 1086.0,147.8" fill="none" stroke="#0f766e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-<circle cx="74.0" cy="295.3" r="4.5" fill="#0f766e"><title>2021-04-01: 3,112</title></circle>
-<text x="74.0" y="334" text-anchor="middle" class="axis">2021</text>
-<circle cx="124.6" cy="282.3" r="4.5" fill="#0f766e"><title>2021-07-01: 3,329</title></circle>
-<circle cx="175.2" cy="263.2" r="4.5" fill="#0f766e"><title>2021-10-01: 3,647</title></circle>
-<circle cx="225.8" cy="239.5" r="4.5" fill="#0f766e"><title>2022-01-01: 4,042</title></circle>
-<text x="225.8" y="334" text-anchor="middle" class="axis">2022</text>
-<circle cx="276.4" cy="223.8" r="4.5" fill="#0f766e"><title>2022-04-01: 4,303</title></circle>
-<circle cx="327.0" cy="223.8" r="4.5" fill="#0f766e"><title>2022-07-01: 4,304</title></circle>
-<circle cx="377.6" cy="210.2" r="4.5" fill="#0f766e"><title>2022-10-01: 4,530</title></circle>
-<circle cx="428.2" cy="186.1" r="4.5" fill="#0f766e"><title>2023-01-01: 4,932</title></circle>
-<text x="428.2" y="334" text-anchor="middle" class="axis">2023</text>
-<circle cx="478.8" cy="168.0" r="4.5" fill="#0f766e"><title>2023-04-01: 5,233</title></circle>
-<circle cx="529.4" cy="169.2" r="4.5" fill="#0f766e"><title>2023-07-01: 5,214</title></circle>
-<circle cx="580.0" cy="154.5" r="4.5" fill="#0f766e"><title>2023-10-01: 5,458</title></circle>
-<circle cx="630.6" cy="143.6" r="4.5" fill="#0f766e"><title>2024-01-01: 5,640</title></circle>
-<text x="630.6" y="334" text-anchor="middle" class="axis">2024</text>
-<circle cx="681.2" cy="128.8" r="4.5" fill="#0f766e"><title>2024-04-01: 5,887</title></circle>
-<circle cx="731.8" cy="111.7" r="4.5" fill="#0f766e"><title>2024-07-01: 6,171</title></circle>
-<circle cx="782.4" cy="115.2" r="4.5" fill="#0f766e"><title>2024-10-01: 6,114</title></circle>
-<circle cx="833.0" cy="113.6" r="4.5" fill="#0f766e"><title>2025-01-01: 6,140</title></circle>
-<text x="833.0" y="334" text-anchor="middle" class="axis">2025</text>
-<circle cx="883.6" cy="123.3" r="4.5" fill="#0f766e"><title>2025-04-01: 5,978</title></circle>
-<circle cx="934.2" cy="125.2" r="4.5" fill="#0f766e"><title>2025-07-01: 5,947</title></circle>
-<circle cx="984.8" cy="143.1" r="4.5" fill="#0f766e"><title>2025-10-01: 5,648</title></circle>
-<circle cx="1035.4" cy="138.4" r="4.5" fill="#0f766e"><title>2026-01-01: 5,726</title></circle>
-<text x="1035.4" y="334" text-anchor="middle" class="axis">2026</text>
-<circle cx="1086.0" cy="147.8" r="4.5" fill="#0f766e"><title>2026-04-01: 5,570</title></circle>
-<text x="731.8" y="97.7" text-anchor="middle" class="callout-text">Peak 6,171</text>
-<text x="1078.0" y="135.8" text-anchor="end" class="callout-text">Latest 5,570</text>
+<rect x="74.0" y="122" width="581.9" height="210" fill="#dbeafe" opacity="0.55"/>
+<text x="364.9" y="316" text-anchor="middle" class="phase-label">Growth</text>
+<rect x="655.9" y="122" width="202.4" height="210" fill="#fef3c7" opacity="0.55"/>
+<text x="757.1" y="316" text-anchor="middle" class="phase-label">Plateau</text>
+<rect x="858.3" y="122" width="227.7" height="210" fill="#fee2e2" opacity="0.55"/>
+<text x="972.2" y="316" text-anchor="middle" class="phase-label">Decline</text>
+<line x1="74" y1="332.0" x2="1086" y2="332.0" class="grid"/>
+<text x="64" y="336.0" text-anchor="end" class="axis">3,000</text>
+<line x1="74" y1="272.0" x2="1086" y2="272.0" class="grid"/>
+<text x="64" y="276.0" text-anchor="end" class="axis">4,000</text>
+<line x1="74" y1="212.0" x2="1086" y2="212.0" class="grid"/>
+<text x="64" y="216.0" text-anchor="end" class="axis">5,000</text>
+<line x1="74" y1="152.0" x2="1086" y2="152.0" class="grid"/>
+<text x="64" y="156.0" text-anchor="end" class="axis">6,000</text>
+<line x1="74" y1="92.0" x2="1086" y2="92.0" class="grid"/>
+<text x="64" y="96.0" text-anchor="end" class="axis">7,000</text>
+<g class="event-marker">
+<title>2018-12-06 Gutenberg (5.0)</title>
+<line x1="74.0" y1="122" x2="74.0" y2="332" class="event-line"/>
+<rect x="74.0" y="51.0" width="123.0" height="18" rx="4" class="event-label-bg"/>
+<text x="135.5" y="64.0" text-anchor="middle" class="event-label">Gutenberg (5.0)</text>
+</g>
+<g class="event-marker">
+<title>2022-01-25 FSE (5.9)</title>
+<line x1="239.7" y1="122" x2="239.7" y2="332" class="event-line"/>
+<rect x="199.2" y="71.0" width="81.0" height="18" rx="4" class="event-label-bg"/>
+<text x="239.7" y="84.0" text-anchor="middle" class="event-label">FSE (5.9)</text>
+</g>
+<g class="event-marker">
+<title>2024-09-17 WCUS 2024</title>
+<line x1="775.1" y1="122" x2="775.1" y2="332" class="event-line"/>
+<rect x="734.6" y="91.0" width="81.0" height="18" rx="4" class="event-label-bg"/>
+<text x="775.1" y="104.0" text-anchor="middle" class="event-label">WCUS 2024</text>
+</g>
+<g class="event-marker">
+<title>2025-01-09 contribution reduction</title>
+<line x1="838.3" y1="122" x2="838.3" y2="332" class="event-line"/>
+<rect x="752.3" y="51.0" width="172.0" height="18" rx="4" class="event-label-bg"/>
+<text x="838.3" y="64.0" text-anchor="middle" class="event-label">contribution reduction</text>
+</g>
+<g class="event-marker">
+<title>2025-05-29 contribution resumption</title>
+<line x1="915.9" y1="122" x2="915.9" y2="332" class="event-line"/>
+<rect x="829.9" y="71.0" width="172.0" height="18" rx="4" class="event-label-bg"/>
+<text x="915.9" y="84.0" text-anchor="middle" class="event-label">contribution resumption</text>
+</g>
+<polyline points="74.0,325.3 124.6,312.3 175.2,293.2 225.8,269.5 276.4,253.8 327.0,253.8 377.6,240.2 428.2,216.1 478.8,198.0 529.4,199.2 580.0,184.5 630.6,173.6 681.2,158.8 731.8,141.7 782.4,145.2 833.0,143.6 883.6,153.3 934.2,155.2 984.8,173.1 1035.4,168.4 1086.0,177.8" fill="none" stroke="#0f766e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="74.0" cy="325.3" r="4.5" fill="#0f766e"><title>2021-04-01: 3,112</title></circle>
+<text x="74.0" y="364" text-anchor="middle" class="axis">2021</text>
+<circle cx="124.6" cy="312.3" r="4.5" fill="#0f766e"><title>2021-07-01: 3,329</title></circle>
+<circle cx="175.2" cy="293.2" r="4.5" fill="#0f766e"><title>2021-10-01: 3,647</title></circle>
+<circle cx="225.8" cy="269.5" r="4.5" fill="#0f766e"><title>2022-01-01: 4,042</title></circle>
+<text x="225.8" y="364" text-anchor="middle" class="axis">2022</text>
+<circle cx="276.4" cy="253.8" r="4.5" fill="#0f766e"><title>2022-04-01: 4,303</title></circle>
+<circle cx="327.0" cy="253.8" r="4.5" fill="#0f766e"><title>2022-07-01: 4,304</title></circle>
+<circle cx="377.6" cy="240.2" r="4.5" fill="#0f766e"><title>2022-10-01: 4,530</title></circle>
+<circle cx="428.2" cy="216.1" r="4.5" fill="#0f766e"><title>2023-01-01: 4,932</title></circle>
+<text x="428.2" y="364" text-anchor="middle" class="axis">2023</text>
+<circle cx="478.8" cy="198.0" r="4.5" fill="#0f766e"><title>2023-04-01: 5,233</title></circle>
+<circle cx="529.4" cy="199.2" r="4.5" fill="#0f766e"><title>2023-07-01: 5,214</title></circle>
+<circle cx="580.0" cy="184.5" r="4.5" fill="#0f766e"><title>2023-10-01: 5,458</title></circle>
+<circle cx="630.6" cy="173.6" r="4.5" fill="#0f766e"><title>2024-01-01: 5,640</title></circle>
+<text x="630.6" y="364" text-anchor="middle" class="axis">2024</text>
+<circle cx="681.2" cy="158.8" r="4.5" fill="#0f766e"><title>2024-04-01: 5,887</title></circle>
+<circle cx="731.8" cy="141.7" r="4.5" fill="#0f766e"><title>2024-07-01: 6,171</title></circle>
+<circle cx="782.4" cy="145.2" r="4.5" fill="#0f766e"><title>2024-10-01: 6,114</title></circle>
+<circle cx="833.0" cy="143.6" r="4.5" fill="#0f766e"><title>2025-01-01: 6,140</title></circle>
+<text x="833.0" y="364" text-anchor="middle" class="axis">2025</text>
+<circle cx="883.6" cy="153.3" r="4.5" fill="#0f766e"><title>2025-04-01: 5,978</title></circle>
+<circle cx="934.2" cy="155.2" r="4.5" fill="#0f766e"><title>2025-07-01: 5,947</title></circle>
+<circle cx="984.8" cy="173.1" r="4.5" fill="#0f766e"><title>2025-10-01: 5,648</title></circle>
+<circle cx="1035.4" cy="168.4" r="4.5" fill="#0f766e"><title>2026-01-01: 5,726</title></circle>
+<text x="1035.4" y="364" text-anchor="middle" class="axis">2026</text>
+<circle cx="1086.0" cy="177.8" r="4.5" fill="#0f766e"><title>2026-04-01: 5,570</title></circle>
+<text x="731.8" y="127.7" text-anchor="middle" class="callout-text">Peak 6,171</text>
+<text x="1078.0" y="165.8" text-anchor="end" class="callout-text">Latest 5,570</text>
 </svg></section>
 
     <h2>New and Closed Issues</h2>
@@ -340,53 +373,83 @@ ul { color: var(--muted); }
     </section>
 
     <h2>Timeline</h2>
-    <section class="chart-card"><svg viewBox="0 0 1120 360" role="img" aria-label="Open issue timeline">
+    <section class="chart-card"><svg viewBox="0 0 1120 390" role="img" aria-label="Open issue timeline">
 <text x="74" y="24" class="chart-title">Open issues over time</text>
 <text x="74" y="42" class="chart-note">Backlog grew through 2024, peaked, then declined after early 2025.</text>
-<rect x="74.0" y="92" width="581.9" height="210" fill="#dbeafe" opacity="0.55"/>
-<text x="364.9" y="286" text-anchor="middle" class="phase-label">Growth</text>
-<rect x="655.9" y="92" width="202.4" height="210" fill="#fef3c7" opacity="0.55"/>
-<text x="757.1" y="286" text-anchor="middle" class="phase-label">Plateau</text>
-<rect x="858.3" y="92" width="227.7" height="210" fill="#fee2e2" opacity="0.55"/>
-<text x="972.2" y="286" text-anchor="middle" class="phase-label">Decline</text>
-<line x1="74" y1="302.0" x2="1086" y2="302.0" class="grid"/>
-<text x="64" y="306.0" text-anchor="end" class="axis">500</text>
-<line x1="74" y1="232.0" x2="1086" y2="232.0" class="grid"/>
-<text x="64" y="236.0" text-anchor="end" class="axis">1,000</text>
-<line x1="74" y1="162.0" x2="1086" y2="162.0" class="grid"/>
-<text x="64" y="166.0" text-anchor="end" class="axis">1,500</text>
-<line x1="74" y1="92.0" x2="1086" y2="92.0" class="grid"/>
-<text x="64" y="96.0" text-anchor="end" class="axis">2,000</text>
-<polyline points="74.0,261.5 124.6,259.6 175.2,246.3 225.8,233.0 276.4,222.5 327.0,230.7 377.6,220.8 428.2,207.5 478.8,183.8 529.4,182.0 580.0,163.3 630.6,144.9 681.2,124.8 731.8,105.9 782.4,108.5 833.0,104.3 883.6,108.2 934.2,111.7 984.8,124.1 1035.4,121.0 1086.0,134.4" fill="none" stroke="#0f766e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-<circle cx="74.0" cy="261.5" r="4.5" fill="#0f766e"><title>2021-04-01: 789</title></circle>
-<text x="74.0" y="334" text-anchor="middle" class="axis">2021</text>
-<circle cx="124.6" cy="259.6" r="4.5" fill="#0f766e"><title>2021-07-01: 803</title></circle>
-<circle cx="175.2" cy="246.3" r="4.5" fill="#0f766e"><title>2021-10-01: 898</title></circle>
-<circle cx="225.8" cy="233.0" r="4.5" fill="#0f766e"><title>2022-01-01: 993</title></circle>
-<text x="225.8" y="334" text-anchor="middle" class="axis">2022</text>
-<circle cx="276.4" cy="222.5" r="4.5" fill="#0f766e"><title>2022-04-01: 1,068</title></circle>
-<circle cx="327.0" cy="230.7" r="4.5" fill="#0f766e"><title>2022-07-01: 1,009</title></circle>
-<circle cx="377.6" cy="220.8" r="4.5" fill="#0f766e"><title>2022-10-01: 1,080</title></circle>
-<circle cx="428.2" cy="207.5" r="4.5" fill="#0f766e"><title>2023-01-01: 1,175</title></circle>
-<text x="428.2" y="334" text-anchor="middle" class="axis">2023</text>
-<circle cx="478.8" cy="183.8" r="4.5" fill="#0f766e"><title>2023-04-01: 1,344</title></circle>
-<circle cx="529.4" cy="182.0" r="4.5" fill="#0f766e"><title>2023-07-01: 1,357</title></circle>
-<circle cx="580.0" cy="163.3" r="4.5" fill="#0f766e"><title>2023-10-01: 1,491</title></circle>
-<circle cx="630.6" cy="144.9" r="4.5" fill="#0f766e"><title>2024-01-01: 1,622</title></circle>
-<text x="630.6" y="334" text-anchor="middle" class="axis">2024</text>
-<circle cx="681.2" cy="124.8" r="4.5" fill="#0f766e"><title>2024-04-01: 1,766</title></circle>
-<circle cx="731.8" cy="105.9" r="4.5" fill="#0f766e"><title>2024-07-01: 1,901</title></circle>
-<circle cx="782.4" cy="108.5" r="4.5" fill="#0f766e"><title>2024-10-01: 1,882</title></circle>
-<circle cx="833.0" cy="104.3" r="4.5" fill="#0f766e"><title>2025-01-01: 1,912</title></circle>
-<text x="833.0" y="334" text-anchor="middle" class="axis">2025</text>
-<circle cx="883.6" cy="108.2" r="4.5" fill="#0f766e"><title>2025-04-01: 1,884</title></circle>
-<circle cx="934.2" cy="111.7" r="4.5" fill="#0f766e"><title>2025-07-01: 1,859</title></circle>
-<circle cx="984.8" cy="124.1" r="4.5" fill="#0f766e"><title>2025-10-01: 1,771</title></circle>
-<circle cx="1035.4" cy="121.0" r="4.5" fill="#0f766e"><title>2026-01-01: 1,793</title></circle>
-<text x="1035.4" y="334" text-anchor="middle" class="axis">2026</text>
-<circle cx="1086.0" cy="134.4" r="4.5" fill="#0f766e"><title>2026-04-01: 1,697</title></circle>
-<text x="833.0" y="90.3" text-anchor="middle" class="callout-text">Peak 1,912</text>
-<text x="1078.0" y="122.4" text-anchor="end" class="callout-text">Latest 1,697</text>
+<rect x="74.0" y="122" width="581.9" height="210" fill="#dbeafe" opacity="0.55"/>
+<text x="364.9" y="316" text-anchor="middle" class="phase-label">Growth</text>
+<rect x="655.9" y="122" width="202.4" height="210" fill="#fef3c7" opacity="0.55"/>
+<text x="757.1" y="316" text-anchor="middle" class="phase-label">Plateau</text>
+<rect x="858.3" y="122" width="227.7" height="210" fill="#fee2e2" opacity="0.55"/>
+<text x="972.2" y="316" text-anchor="middle" class="phase-label">Decline</text>
+<line x1="74" y1="332.0" x2="1086" y2="332.0" class="grid"/>
+<text x="64" y="336.0" text-anchor="end" class="axis">500</text>
+<line x1="74" y1="262.0" x2="1086" y2="262.0" class="grid"/>
+<text x="64" y="266.0" text-anchor="end" class="axis">1,000</text>
+<line x1="74" y1="192.0" x2="1086" y2="192.0" class="grid"/>
+<text x="64" y="196.0" text-anchor="end" class="axis">1,500</text>
+<line x1="74" y1="122.0" x2="1086" y2="122.0" class="grid"/>
+<text x="64" y="126.0" text-anchor="end" class="axis">2,000</text>
+<g class="event-marker">
+<title>2018-12-06 Gutenberg (5.0)</title>
+<line x1="74.0" y1="122" x2="74.0" y2="332" class="event-line"/>
+<rect x="74.0" y="51.0" width="123.0" height="18" rx="4" class="event-label-bg"/>
+<text x="135.5" y="64.0" text-anchor="middle" class="event-label">Gutenberg (5.0)</text>
+</g>
+<g class="event-marker">
+<title>2022-01-25 FSE (5.9)</title>
+<line x1="239.7" y1="122" x2="239.7" y2="332" class="event-line"/>
+<rect x="199.2" y="71.0" width="81.0" height="18" rx="4" class="event-label-bg"/>
+<text x="239.7" y="84.0" text-anchor="middle" class="event-label">FSE (5.9)</text>
+</g>
+<g class="event-marker">
+<title>2024-09-17 WCUS 2024</title>
+<line x1="775.1" y1="122" x2="775.1" y2="332" class="event-line"/>
+<rect x="734.6" y="91.0" width="81.0" height="18" rx="4" class="event-label-bg"/>
+<text x="775.1" y="104.0" text-anchor="middle" class="event-label">WCUS 2024</text>
+</g>
+<g class="event-marker">
+<title>2025-01-09 contribution reduction</title>
+<line x1="838.3" y1="122" x2="838.3" y2="332" class="event-line"/>
+<rect x="752.3" y="51.0" width="172.0" height="18" rx="4" class="event-label-bg"/>
+<text x="838.3" y="64.0" text-anchor="middle" class="event-label">contribution reduction</text>
+</g>
+<g class="event-marker">
+<title>2025-05-29 contribution resumption</title>
+<line x1="915.9" y1="122" x2="915.9" y2="332" class="event-line"/>
+<rect x="829.9" y="71.0" width="172.0" height="18" rx="4" class="event-label-bg"/>
+<text x="915.9" y="84.0" text-anchor="middle" class="event-label">contribution resumption</text>
+</g>
+<polyline points="74.0,291.5 124.6,289.6 175.2,276.3 225.8,263.0 276.4,252.5 327.0,260.7 377.6,250.8 428.2,237.5 478.8,213.8 529.4,212.0 580.0,193.3 630.6,174.9 681.2,154.8 731.8,135.9 782.4,138.5 833.0,134.3 883.6,138.2 934.2,141.7 984.8,154.1 1035.4,151.0 1086.0,164.4" fill="none" stroke="#0f766e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="74.0" cy="291.5" r="4.5" fill="#0f766e"><title>2021-04-01: 789</title></circle>
+<text x="74.0" y="364" text-anchor="middle" class="axis">2021</text>
+<circle cx="124.6" cy="289.6" r="4.5" fill="#0f766e"><title>2021-07-01: 803</title></circle>
+<circle cx="175.2" cy="276.3" r="4.5" fill="#0f766e"><title>2021-10-01: 898</title></circle>
+<circle cx="225.8" cy="263.0" r="4.5" fill="#0f766e"><title>2022-01-01: 993</title></circle>
+<text x="225.8" y="364" text-anchor="middle" class="axis">2022</text>
+<circle cx="276.4" cy="252.5" r="4.5" fill="#0f766e"><title>2022-04-01: 1,068</title></circle>
+<circle cx="327.0" cy="260.7" r="4.5" fill="#0f766e"><title>2022-07-01: 1,009</title></circle>
+<circle cx="377.6" cy="250.8" r="4.5" fill="#0f766e"><title>2022-10-01: 1,080</title></circle>
+<circle cx="428.2" cy="237.5" r="4.5" fill="#0f766e"><title>2023-01-01: 1,175</title></circle>
+<text x="428.2" y="364" text-anchor="middle" class="axis">2023</text>
+<circle cx="478.8" cy="213.8" r="4.5" fill="#0f766e"><title>2023-04-01: 1,344</title></circle>
+<circle cx="529.4" cy="212.0" r="4.5" fill="#0f766e"><title>2023-07-01: 1,357</title></circle>
+<circle cx="580.0" cy="193.3" r="4.5" fill="#0f766e"><title>2023-10-01: 1,491</title></circle>
+<circle cx="630.6" cy="174.9" r="4.5" fill="#0f766e"><title>2024-01-01: 1,622</title></circle>
+<text x="630.6" y="364" text-anchor="middle" class="axis">2024</text>
+<circle cx="681.2" cy="154.8" r="4.5" fill="#0f766e"><title>2024-04-01: 1,766</title></circle>
+<circle cx="731.8" cy="135.9" r="4.5" fill="#0f766e"><title>2024-07-01: 1,901</title></circle>
+<circle cx="782.4" cy="138.5" r="4.5" fill="#0f766e"><title>2024-10-01: 1,882</title></circle>
+<circle cx="833.0" cy="134.3" r="4.5" fill="#0f766e"><title>2025-01-01: 1,912</title></circle>
+<text x="833.0" y="364" text-anchor="middle" class="axis">2025</text>
+<circle cx="883.6" cy="138.2" r="4.5" fill="#0f766e"><title>2025-04-01: 1,884</title></circle>
+<circle cx="934.2" cy="141.7" r="4.5" fill="#0f766e"><title>2025-07-01: 1,859</title></circle>
+<circle cx="984.8" cy="154.1" r="4.5" fill="#0f766e"><title>2025-10-01: 1,771</title></circle>
+<circle cx="1035.4" cy="151.0" r="4.5" fill="#0f766e"><title>2026-01-01: 1,793</title></circle>
+<text x="1035.4" y="364" text-anchor="middle" class="axis">2026</text>
+<circle cx="1086.0" cy="164.4" r="4.5" fill="#0f766e"><title>2026-04-01: 1,697</title></circle>
+<text x="833.0" y="120.3" text-anchor="middle" class="callout-text">Peak 1,912</text>
+<text x="1078.0" y="152.4" text-anchor="end" class="callout-text">Latest 1,697</text>
 </svg></section>
 
     <h2>New and Closed Issues</h2>
@@ -582,57 +645,87 @@ ul { color: var(--muted); }
     </section>
 
     <h2>Timeline</h2>
-    <section class="chart-card"><svg viewBox="0 0 1120 360" role="img" aria-label="Open issue timeline">
+    <section class="chart-card"><svg viewBox="0 0 1120 390" role="img" aria-label="Open issue timeline">
 <text x="74" y="24" class="chart-title">Open issues over time</text>
 <text x="74" y="42" class="chart-note">Backlog grew through 2024, peaked, then declined after early 2025.</text>
-<rect x="74.0" y="92" width="581.9" height="210" fill="#dbeafe" opacity="0.55"/>
-<text x="364.9" y="286" text-anchor="middle" class="phase-label">Growth</text>
-<rect x="655.9" y="92" width="202.4" height="210" fill="#fef3c7" opacity="0.55"/>
-<text x="757.1" y="286" text-anchor="middle" class="phase-label">Plateau</text>
-<rect x="858.3" y="92" width="227.7" height="210" fill="#fee2e2" opacity="0.55"/>
-<text x="972.2" y="286" text-anchor="middle" class="phase-label">Decline</text>
-<line x1="74" y1="302.0" x2="1086" y2="302.0" class="grid"/>
-<text x="64" y="306.0" text-anchor="end" class="axis">1,000</text>
-<line x1="74" y1="260.0" x2="1086" y2="260.0" class="grid"/>
-<text x="64" y="264.0" text-anchor="end" class="axis">1,500</text>
-<line x1="74" y1="218.0" x2="1086" y2="218.0" class="grid"/>
-<text x="64" y="222.0" text-anchor="end" class="axis">2,000</text>
-<line x1="74" y1="176.0" x2="1086" y2="176.0" class="grid"/>
-<text x="64" y="180.0" text-anchor="end" class="axis">2,500</text>
-<line x1="74" y1="134.0" x2="1086" y2="134.0" class="grid"/>
-<text x="64" y="138.0" text-anchor="end" class="axis">3,000</text>
-<line x1="74" y1="92.0" x2="1086" y2="92.0" class="grid"/>
-<text x="64" y="96.0" text-anchor="end" class="axis">3,500</text>
-<polyline points="74.0,278.5 124.6,268.7 175.2,257.4 225.8,242.4 276.4,229.2 327.0,215.0 377.6,203.3 428.2,185.3 478.8,170.7 529.4,160.0 580.0,143.0 630.6,131.4 681.2,125.0 731.8,118.1 782.4,119.6 833.0,119.5 883.6,126.8 934.2,127.0 984.8,137.9 1035.4,135.7 1086.0,139.5" fill="none" stroke="#0f766e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-<circle cx="74.0" cy="278.5" r="4.5" fill="#0f766e"><title>2021-04-01: 1,280</title></circle>
-<text x="74.0" y="334" text-anchor="middle" class="axis">2021</text>
-<circle cx="124.6" cy="268.7" r="4.5" fill="#0f766e"><title>2021-07-01: 1,397</title></circle>
-<circle cx="175.2" cy="257.4" r="4.5" fill="#0f766e"><title>2021-10-01: 1,531</title></circle>
-<circle cx="225.8" cy="242.4" r="4.5" fill="#0f766e"><title>2022-01-01: 1,709</title></circle>
-<text x="225.8" y="334" text-anchor="middle" class="axis">2022</text>
-<circle cx="276.4" cy="229.2" r="4.5" fill="#0f766e"><title>2022-04-01: 1,867</title></circle>
-<circle cx="327.0" cy="215.0" r="4.5" fill="#0f766e"><title>2022-07-01: 2,036</title></circle>
-<circle cx="377.6" cy="203.3" r="4.5" fill="#0f766e"><title>2022-10-01: 2,175</title></circle>
-<circle cx="428.2" cy="185.3" r="4.5" fill="#0f766e"><title>2023-01-01: 2,389</title></circle>
-<text x="428.2" y="334" text-anchor="middle" class="axis">2023</text>
-<circle cx="478.8" cy="170.7" r="4.5" fill="#0f766e"><title>2023-04-01: 2,563</title></circle>
-<circle cx="529.4" cy="160.0" r="4.5" fill="#0f766e"><title>2023-07-01: 2,691</title></circle>
-<circle cx="580.0" cy="143.0" r="4.5" fill="#0f766e"><title>2023-10-01: 2,893</title></circle>
-<circle cx="630.6" cy="131.4" r="4.5" fill="#0f766e"><title>2024-01-01: 3,031</title></circle>
-<text x="630.6" y="334" text-anchor="middle" class="axis">2024</text>
-<circle cx="681.2" cy="125.0" r="4.5" fill="#0f766e"><title>2024-04-01: 3,107</title></circle>
-<circle cx="731.8" cy="118.1" r="4.5" fill="#0f766e"><title>2024-07-01: 3,189</title></circle>
-<circle cx="782.4" cy="119.6" r="4.5" fill="#0f766e"><title>2024-10-01: 3,171</title></circle>
-<circle cx="833.0" cy="119.5" r="4.5" fill="#0f766e"><title>2025-01-01: 3,173</title></circle>
-<text x="833.0" y="334" text-anchor="middle" class="axis">2025</text>
-<circle cx="883.6" cy="126.8" r="4.5" fill="#0f766e"><title>2025-04-01: 3,086</title></circle>
-<circle cx="934.2" cy="127.0" r="4.5" fill="#0f766e"><title>2025-07-01: 3,083</title></circle>
-<circle cx="984.8" cy="137.9" r="4.5" fill="#0f766e"><title>2025-10-01: 2,953</title></circle>
-<circle cx="1035.4" cy="135.7" r="4.5" fill="#0f766e"><title>2026-01-01: 2,980</title></circle>
-<text x="1035.4" y="334" text-anchor="middle" class="axis">2026</text>
-<circle cx="1086.0" cy="139.5" r="4.5" fill="#0f766e"><title>2026-04-01: 2,934</title></circle>
-<text x="731.8" y="104.1" text-anchor="middle" class="callout-text">Peak 3,189</text>
-<text x="1078.0" y="127.5" text-anchor="end" class="callout-text">Latest 2,934</text>
+<rect x="74.0" y="122" width="581.9" height="210" fill="#dbeafe" opacity="0.55"/>
+<text x="364.9" y="316" text-anchor="middle" class="phase-label">Growth</text>
+<rect x="655.9" y="122" width="202.4" height="210" fill="#fef3c7" opacity="0.55"/>
+<text x="757.1" y="316" text-anchor="middle" class="phase-label">Plateau</text>
+<rect x="858.3" y="122" width="227.7" height="210" fill="#fee2e2" opacity="0.55"/>
+<text x="972.2" y="316" text-anchor="middle" class="phase-label">Decline</text>
+<line x1="74" y1="332.0" x2="1086" y2="332.0" class="grid"/>
+<text x="64" y="336.0" text-anchor="end" class="axis">1,000</text>
+<line x1="74" y1="290.0" x2="1086" y2="290.0" class="grid"/>
+<text x="64" y="294.0" text-anchor="end" class="axis">1,500</text>
+<line x1="74" y1="248.0" x2="1086" y2="248.0" class="grid"/>
+<text x="64" y="252.0" text-anchor="end" class="axis">2,000</text>
+<line x1="74" y1="206.0" x2="1086" y2="206.0" class="grid"/>
+<text x="64" y="210.0" text-anchor="end" class="axis">2,500</text>
+<line x1="74" y1="164.0" x2="1086" y2="164.0" class="grid"/>
+<text x="64" y="168.0" text-anchor="end" class="axis">3,000</text>
+<line x1="74" y1="122.0" x2="1086" y2="122.0" class="grid"/>
+<text x="64" y="126.0" text-anchor="end" class="axis">3,500</text>
+<g class="event-marker">
+<title>2018-12-06 Gutenberg (5.0)</title>
+<line x1="74.0" y1="122" x2="74.0" y2="332" class="event-line"/>
+<rect x="74.0" y="51.0" width="123.0" height="18" rx="4" class="event-label-bg"/>
+<text x="135.5" y="64.0" text-anchor="middle" class="event-label">Gutenberg (5.0)</text>
+</g>
+<g class="event-marker">
+<title>2022-01-25 FSE (5.9)</title>
+<line x1="239.7" y1="122" x2="239.7" y2="332" class="event-line"/>
+<rect x="199.2" y="71.0" width="81.0" height="18" rx="4" class="event-label-bg"/>
+<text x="239.7" y="84.0" text-anchor="middle" class="event-label">FSE (5.9)</text>
+</g>
+<g class="event-marker">
+<title>2024-09-17 WCUS 2024</title>
+<line x1="775.1" y1="122" x2="775.1" y2="332" class="event-line"/>
+<rect x="734.6" y="91.0" width="81.0" height="18" rx="4" class="event-label-bg"/>
+<text x="775.1" y="104.0" text-anchor="middle" class="event-label">WCUS 2024</text>
+</g>
+<g class="event-marker">
+<title>2025-01-09 contribution reduction</title>
+<line x1="838.3" y1="122" x2="838.3" y2="332" class="event-line"/>
+<rect x="752.3" y="51.0" width="172.0" height="18" rx="4" class="event-label-bg"/>
+<text x="838.3" y="64.0" text-anchor="middle" class="event-label">contribution reduction</text>
+</g>
+<g class="event-marker">
+<title>2025-05-29 contribution resumption</title>
+<line x1="915.9" y1="122" x2="915.9" y2="332" class="event-line"/>
+<rect x="829.9" y="71.0" width="172.0" height="18" rx="4" class="event-label-bg"/>
+<text x="915.9" y="84.0" text-anchor="middle" class="event-label">contribution resumption</text>
+</g>
+<polyline points="74.0,308.5 124.6,298.7 175.2,287.4 225.8,272.4 276.4,259.2 327.0,245.0 377.6,233.3 428.2,215.3 478.8,200.7 529.4,190.0 580.0,173.0 630.6,161.4 681.2,155.0 731.8,148.1 782.4,149.6 833.0,149.5 883.6,156.8 934.2,157.0 984.8,167.9 1035.4,165.7 1086.0,169.5" fill="none" stroke="#0f766e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="74.0" cy="308.5" r="4.5" fill="#0f766e"><title>2021-04-01: 1,280</title></circle>
+<text x="74.0" y="364" text-anchor="middle" class="axis">2021</text>
+<circle cx="124.6" cy="298.7" r="4.5" fill="#0f766e"><title>2021-07-01: 1,397</title></circle>
+<circle cx="175.2" cy="287.4" r="4.5" fill="#0f766e"><title>2021-10-01: 1,531</title></circle>
+<circle cx="225.8" cy="272.4" r="4.5" fill="#0f766e"><title>2022-01-01: 1,709</title></circle>
+<text x="225.8" y="364" text-anchor="middle" class="axis">2022</text>
+<circle cx="276.4" cy="259.2" r="4.5" fill="#0f766e"><title>2022-04-01: 1,867</title></circle>
+<circle cx="327.0" cy="245.0" r="4.5" fill="#0f766e"><title>2022-07-01: 2,036</title></circle>
+<circle cx="377.6" cy="233.3" r="4.5" fill="#0f766e"><title>2022-10-01: 2,175</title></circle>
+<circle cx="428.2" cy="215.3" r="4.5" fill="#0f766e"><title>2023-01-01: 2,389</title></circle>
+<text x="428.2" y="364" text-anchor="middle" class="axis">2023</text>
+<circle cx="478.8" cy="200.7" r="4.5" fill="#0f766e"><title>2023-04-01: 2,563</title></circle>
+<circle cx="529.4" cy="190.0" r="4.5" fill="#0f766e"><title>2023-07-01: 2,691</title></circle>
+<circle cx="580.0" cy="173.0" r="4.5" fill="#0f766e"><title>2023-10-01: 2,893</title></circle>
+<circle cx="630.6" cy="161.4" r="4.5" fill="#0f766e"><title>2024-01-01: 3,031</title></circle>
+<text x="630.6" y="364" text-anchor="middle" class="axis">2024</text>
+<circle cx="681.2" cy="155.0" r="4.5" fill="#0f766e"><title>2024-04-01: 3,107</title></circle>
+<circle cx="731.8" cy="148.1" r="4.5" fill="#0f766e"><title>2024-07-01: 3,189</title></circle>
+<circle cx="782.4" cy="149.6" r="4.5" fill="#0f766e"><title>2024-10-01: 3,171</title></circle>
+<circle cx="833.0" cy="149.5" r="4.5" fill="#0f766e"><title>2025-01-01: 3,173</title></circle>
+<text x="833.0" y="364" text-anchor="middle" class="axis">2025</text>
+<circle cx="883.6" cy="156.8" r="4.5" fill="#0f766e"><title>2025-04-01: 3,086</title></circle>
+<circle cx="934.2" cy="157.0" r="4.5" fill="#0f766e"><title>2025-07-01: 3,083</title></circle>
+<circle cx="984.8" cy="167.9" r="4.5" fill="#0f766e"><title>2025-10-01: 2,953</title></circle>
+<circle cx="1035.4" cy="165.7" r="4.5" fill="#0f766e"><title>2026-01-01: 2,980</title></circle>
+<text x="1035.4" y="364" text-anchor="middle" class="axis">2026</text>
+<circle cx="1086.0" cy="169.5" r="4.5" fill="#0f766e"><title>2026-04-01: 2,934</title></circle>
+<text x="731.8" y="134.1" text-anchor="middle" class="callout-text">Peak 3,189</text>
+<text x="1078.0" y="157.5" text-anchor="end" class="callout-text">Latest 2,934</text>
 </svg></section>
 
     <h2>New and Closed Issues</h2>

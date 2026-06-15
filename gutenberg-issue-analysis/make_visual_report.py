@@ -58,6 +58,13 @@ VIEW_CONFIGS = [
         "note": 'Issues with the current GitHub label "[Type] Enhancement", used here as Gutenberg\'s feature-request time-series view.',
     },
 ]
+TIMELINE_EVENTS = [
+    {"date": dt.datetime(2018, 12, 6, tzinfo=dt.timezone.utc), "label": "Gutenberg (5.0)"},
+    {"date": dt.datetime(2022, 1, 25, tzinfo=dt.timezone.utc), "label": "FSE (5.9)"},
+    {"date": dt.datetime(2024, 9, 17, tzinfo=dt.timezone.utc), "label": "WCUS 2024"},
+    {"date": dt.datetime(2025, 1, 9, tzinfo=dt.timezone.utc), "label": "contribution reduction"},
+    {"date": dt.datetime(2025, 5, 29, tzinfo=dt.timezone.utc), "label": "contribution resumption"},
+]
 
 
 def read_csv(path):
@@ -241,6 +248,36 @@ def scale(value, old_min, old_max, new_min, new_max):
     return new_min + (value - old_min) * (new_max - new_min) / (old_max - old_min)
 
 
+def x_for_date(rows, event_date, left, plot_w):
+    start = parse_period_start(rows[0]["quarter"])
+    end = parse_period_start(rows[-1]["quarter"])
+    if end <= start:
+        return left + plot_w / 2
+    clamped = min(max(event_date, start), end)
+    ratio = (clamped - start).total_seconds() / (end - start).total_seconds()
+    return left + ratio * plot_w
+
+
+def timeline_event_markers(rows, left, top, plot_w, plot_h, label_ys):
+    parts = []
+    for idx, event in enumerate(TIMELINE_EVENTS):
+        x = x_for_date(rows, event["date"], left, plot_w)
+        label = event["label"]
+        label_w = min(172, max(78, len(label) * 7 + 18))
+        label_x = min(max(x, left + label_w / 2), left + plot_w - label_w / 2)
+        label_y = label_ys[idx % len(label_ys)]
+        parts.append('<g class="event-marker">')
+        parts.append(f'<title>{event["date"].date().isoformat()} {esc(label)}</title>')
+        parts.append(f'<line x1="{x:.1f}" y1="{top}" x2="{x:.1f}" y2="{top + plot_h}" class="event-line"/>')
+        parts.append(
+            f'<rect x="{label_x - label_w / 2:.1f}" y="{label_y - 13:.1f}" '
+            f'width="{label_w:.1f}" height="18" rx="4" class="event-label-bg"/>'
+        )
+        parts.append(f'<text x="{label_x:.1f}" y="{label_y:.1f}" text-anchor="middle" class="event-label">{esc(label)}</text>')
+        parts.append("</g>")
+    return parts
+
+
 def axis_ticks(min_value, max_value, steps=5):
     span = max_value - min_value
     if span <= 0:
@@ -260,8 +297,8 @@ def axis_ticks(min_value, max_value, steps=5):
 
 
 def open_timeline_svg(rows):
-    width, height = 1120, 360
-    left, right, top, bottom = 74, 34, 92, 58
+    width, height = 1120, 390
+    left, right, top, bottom = 74, 34, 122, 58
     plot_w = width - left - right
     plot_h = height - top - bottom
     values = [i(r, "open_at_end") for r in rows]
@@ -297,6 +334,8 @@ def open_timeline_svg(rows):
         y = y_for(tick)
         parts.append(f'<line x1="{left}" y1="{y:.1f}" x2="{left + plot_w}" y2="{y:.1f}" class="grid"/>')
         parts.append(f'<text x="{left - 10}" y="{y + 4:.1f}" text-anchor="end" class="axis">{tick:,}</text>')
+
+    parts.extend(timeline_event_markers(rows, left, top, plot_w, plot_h, [64, 84, 104]))
 
     points = " ".join(f'{x_for(idx):.1f},{y_for(value):.1f}' for idx, value in enumerate(values))
     parts.append(f'<polyline points="{points}" fill="none" stroke="{LINE_COLORS["open"]}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>')
@@ -742,6 +781,9 @@ p {{ margin: 8px 0 0; color: var(--muted); }}
 .phase-label {{ font: 700 12px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #334155; }}
 .callout-text {{ font: 700 13px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #111827; }}
 .legend-text {{ font: 12px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #4b5563; }}
+.event-line {{ stroke: #64748b; stroke-width: 1.2; stroke-dasharray: 4 4; opacity: .8; }}
+.event-label-bg {{ fill: #ffffff; stroke: #cbd5e1; stroke-width: 1; }}
+.event-label {{ font: 700 11px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #334155; }}
 .phase-card-title {{ font: 800 20px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #111827; }}
 .phase-card-note {{ font: 13px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #4b5563; }}
 .metric-label {{ font: 13px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #334155; font-weight: 700; }}

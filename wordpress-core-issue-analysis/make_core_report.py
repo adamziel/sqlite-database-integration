@@ -27,9 +27,9 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 
-ROOT = Path("/Users/admin/wordpress_core_issue_analysis")
-RAW = ROOT / "raw"
-OUT = ROOT / "final_report.html"
+ROOT = Path(__file__).resolve().parent
+RAW = Path(os.environ.get("CORE_ANALYSIS_RAW", ROOT / "raw"))
+OUT = ROOT / "index.html"
 
 START = dt.datetime(2003, 1, 1, 0, 0, 0, tzinfo=dt.timezone.utc)
 END = dt.datetime(2026, 6, 11, 23, 59, 59, tzinfo=dt.timezone.utc)
@@ -93,6 +93,13 @@ LINE_COLORS = {
     "prs": "#0891b2",
     "pr_closed": "#be123c",
 }
+TIMELINE_EVENTS = [
+    {"date": dt.datetime(2018, 12, 6, tzinfo=dt.timezone.utc), "label": "Gutenberg (5.0)"},
+    {"date": dt.datetime(2022, 1, 25, tzinfo=dt.timezone.utc), "label": "FSE (5.9)"},
+    {"date": dt.datetime(2024, 9, 17, tzinfo=dt.timezone.utc), "label": "WCUS 2024"},
+    {"date": dt.datetime(2025, 1, 9, tzinfo=dt.timezone.utc), "label": "contribution reduction"},
+    {"date": dt.datetime(2025, 5, 29, tzinfo=dt.timezone.utc), "label": "contribution resumption"},
+]
 
 
 def ensure_dirs():
@@ -176,6 +183,43 @@ def scale(value, old_min, old_max, new_min, new_max):
     if old_max == old_min:
         return (new_min + new_max) / 2
     return new_min + (value - old_min) * (new_max - new_min) / (old_max - old_min)
+
+
+def parse_chart_date(value):
+    parsed = parse_iso_dt(value)
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=dt.timezone.utc)
+    return parsed
+
+
+def x_for_date(rows, event_date, left, plot_w, x_key):
+    start = parse_chart_date(rows[0][x_key])
+    end = parse_chart_date(rows[-1][x_key])
+    if end <= start:
+        return left + plot_w / 2
+    clamped = min(max(event_date, start), end)
+    ratio = (clamped - start).total_seconds() / (end - start).total_seconds()
+    return left + ratio * plot_w
+
+
+def timeline_event_markers(rows, left, top, plot_w, plot_h, x_key, label_ys, events):
+    parts = []
+    for idx, event in enumerate(events):
+        x = x_for_date(rows, event["date"], left, plot_w, x_key)
+        label = event["label"]
+        label_w = min(172, max(78, len(label) * 7 + 18))
+        label_x = min(max(x, left + label_w / 2), left + plot_w - label_w / 2)
+        label_y = label_ys[idx % len(label_ys)]
+        parts.append('<g class="event-marker">')
+        parts.append(f'<title>{event["date"].date().isoformat()} {esc(label)}</title>')
+        parts.append(f'<line x1="{x:.1f}" y1="{top}" x2="{x:.1f}" y2="{top + plot_h}" class="event-line"/>')
+        parts.append(
+            f'<rect x="{label_x - label_w / 2:.1f}" y="{label_y - 13:.1f}" '
+            f'width="{label_w:.1f}" height="18" rx="4" class="event-label-bg"/>'
+        )
+        parts.append(f'<text x="{label_x:.1f}" y="{label_y:.1f}" text-anchor="middle" class="event-label">{esc(label)}</text>')
+        parts.append("</g>")
+    return parts
 
 
 def axis_ticks(min_value, max_value, steps=4):
@@ -1070,9 +1114,14 @@ def numeric(row, key):
     return int(row[key])
 
 
-def line_chart_svg(rows, series, title, note, aria, height=365, x_key="quarter"):
+def line_chart_svg(rows, series, title, note, aria, height=365, x_key="quarter", event_markers=None):
     width = 1120
-    left, right, top, bottom = 76, 34, 88, 58
+    if event_markers:
+        height = max(height, 425)
+        top = 156
+    else:
+        top = 88
+    left, right, bottom = 76, 34, 58
     plot_w = width - left - right
     plot_h = height - top - bottom
     all_values = [numeric(row, key) for row in rows for key, _label, _color in series]
@@ -1105,6 +1154,8 @@ def line_chart_svg(rows, series, title, note, aria, height=365, x_key="quarter")
         y = y_for(tick)
         parts.append(f'<line x1="{left}" y1="{y:.1f}" x2="{left + plot_w}" y2="{y:.1f}" class="grid"/>')
         parts.append(f'<text x="{left - 10}" y="{y + 4:.1f}" text-anchor="end" class="axis">{tick:,}</text>')
+    if event_markers:
+        parts.extend(timeline_event_markers(rows, left, top, plot_w, plot_h, x_key, [82, 101, 120, 139], event_markers))
     for key, label, color in series:
         points = " ".join(
             f'{x_for(idx):.1f},{y_for(numeric(row, key)):.1f}'
@@ -1383,7 +1434,7 @@ def render_view_panel(slug, view, active=False):
     {metric_strip(summary, q_rows, gh_rows)}
 
     <section class="chart-band">
-      {line_chart_svg(q_rows, [("open_at_end", "Open tickets", LINE_COLORS["open"])], f"Open {chart_label} over time", f"Backlog peaked at {fmt_int(stats['peak_open'])} in {stats['peak_label']}; latest sampled count is {fmt_int(stats['latest_open'])}.", f"Open {chart_label} over time")}
+      {line_chart_svg(q_rows, [("open_at_end", "Open tickets", LINE_COLORS["open"])], f"Open {chart_label} over time", f"Backlog peaked at {fmt_int(stats['peak_open'])} in {stats['peak_label']}; latest sampled count is {fmt_int(stats['latest_open'])}.", f"Open {chart_label} over time", event_markers=TIMELINE_EVENTS)}
     </section>
 
     <section class="chart-band">
@@ -1484,9 +1535,14 @@ def render_report(data):
       gap: 6px;
       margin-top: 24px;
       padding: 5px;
+      position: sticky;
+      top: 10px;
+      z-index: 20;
+      max-width: 100%;
       border: 1px solid var(--rule);
       border-radius: 8px;
       background: #ffffff;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
     }}
     .view-button {{
       appearance: none;
@@ -1578,6 +1634,22 @@ def render_report(data):
     .grid {{
       stroke: #e2e8f0;
       stroke-width: 1;
+    }}
+    .event-line {{
+      stroke: #64748b;
+      stroke-width: 1.2;
+      stroke-dasharray: 4 4;
+      opacity: .8;
+    }}
+    .event-label-bg {{
+      fill: #ffffff;
+      stroke: #cbd5e1;
+      stroke-width: 1;
+    }}
+    .event-label {{
+      font-size: 11px;
+      font-weight: 700;
+      fill: #334155;
     }}
     .zero-line {{
       stroke: #334155;

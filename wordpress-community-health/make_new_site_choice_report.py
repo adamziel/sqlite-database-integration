@@ -281,6 +281,54 @@ def rank_snapshot(rows_):
     return "".join(bars)
 
 
+def rank_mix_panel(rows_):
+    if not rows_:
+        return ""
+    by_rank = {}
+    for row in rows_:
+        rank = row.get("rank")
+        if not rank:
+            continue
+        by_rank.setdefault(
+            rank,
+            {
+                "order": num(row.get("rank_order")),
+                "rows": [],
+                "total": 0,
+            },
+        )
+        by_rank[rank]["rows"].append(row)
+        by_rank[rank]["total"] += num(row.get("mobile_origins"))
+    rank_blocks = []
+    for rank, data in sorted(by_rank.items(), key=lambda item: item[1]["order"]):
+        bars = []
+        for row in sorted(data["rows"], key=lambda item: num(item.get("mobile_origins")), reverse=True):
+            technology = row.get("technology")
+            share = num(row.get("mobile_origins")) / data["total"] * 100 if data["total"] else 0
+            bars.append(
+                bar_row(
+                    technology,
+                    share,
+                    100,
+                    COLORS.get(technology, COLORS["blue"]),
+                    suffix="%",
+                )
+            )
+        rank_blocks.append(
+            f"""
+        <div class="rank-block">
+          <h3>{esc(rank)}</h3>
+          <div class="bar-stack">{''.join(bars)}</div>
+        </div>"""
+        )
+    return f"""
+      <article class="panel full">
+        <h2>HTTP Archive rank-tier peer mix</h2>
+        <p>Latest mobile-crawl detected-origin share within each HTTP Archive rank tier across WordPress, Shopify, Wix, Squarespace, and Webflow.</p>
+        <div class="rank-grid">{''.join(rank_blocks)}</div>
+      </article>"""
+
+
 def momentum_panel(rows_):
     if not rows_:
         return ""
@@ -552,10 +600,14 @@ def main():
     .readout div {{ border:1px solid var(--line); border-radius:8px; padding:12px; background:#fbfdff; }}
     .readout strong {{ display:block; margin-bottom:5px; }}
     .readout span {{ color:var(--muted); font-size:14px; }}
+    .rank-grid {{ display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; margin-top:14px; }}
+    .rank-block {{ border:1px solid var(--line); border-radius:8px; padding:12px; background:#fbfdff; min-width:0; }}
+    .rank-block .bar-label {{ display:block; }}
+    .rank-block .bar-label strong {{ display:block; margin-top:2px; }}
     .footer-note {{ margin-top:14px; background:#eef4ff; border:1px solid #cfe0ff; border-radius:8px; padding:14px 16px; color:#244067; }}
     @media (max-width:980px) {{
       .metrics {{ grid-template-columns:1fr 1fr; }}
-      .grid, .readout {{ grid-template-columns:1fr; }}
+      .grid, .readout, .rank-grid {{ grid-template-columns:1fr; }}
     }}
     @media (max-width:640px) {{
       main {{ padding:24px 14px 36px; }}
@@ -615,6 +667,7 @@ def main():
         <p>Latest mobile-crawl WordPress share among the five tracked technologies within each HTTP Archive rank tier.</p>
         <div class="bar-stack">{rank_snapshot(rank_rows)}</div>
       </article>
+      {rank_mix_panel(rank_rows)}
     </section>
   </main>
 </body>

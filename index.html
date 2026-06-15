@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>SQLite Database Integration Benchmarks</title>
+  <title>SQLite Database Integration Reports</title>
   <style>
     :root {
       color-scheme: light;
@@ -73,16 +73,17 @@
 </head>
 <body>
   <main>
-    <h1>SQLite Database Integration Benchmarks</h1>
-    <p>SQLite Database Integration benchmark reports generated from local production-methodology runs in June 2026.</p>
+    <h1>SQLite Database Integration Reports</h1>
+    <p>SQLite Database Integration benchmark, ticket-analysis, and WordPress health reports generated from local production-methodology runs in June 2026.</p>
     <p class="meta"><a href="assessment-status.html">Assessment status and evidence gaps</a></p>
 
-    <section class="grid" aria-label="Benchmark reports">
+    <section class="grid" aria-label="Reports">
       <article>
         <h2>Gutenberg Issues: Five-Year Trend</h2>
-        <p>Visual analysis of why open issues in WordPress/gutenberg grew, stalled, and started declining, with timeline, net-flow, and reporter-trend charts.</p>
+        <p>Visual analysis of why open issues in WordPress/gutenberg grew, stalled, and started declining, plus the current bug and feature-request category split.</p>
         <ul>
-          <li><a href="gutenberg-issue-analysis/">Visual report</a></li>
+          <li><a href="gutenberg-issue-analysis/">Five-year visual report</a></li>
+          <li><a href="wordpress-ticket-classification/#gutenberg-issues">Bug/feature-request split</a></li>
           <li><a href="gutenberg-issue-analysis/final_report.md">Narrative report</a></li>
           <li><a href="gutenberg-issue-analysis/quarterly_metrics.csv">Quarterly metrics CSV</a></li>
           <li><a href="gutenberg-issue-analysis/monthly_metrics.csv">Monthly metrics CSV</a></li>
@@ -90,10 +91,10 @@
       </article>
 
       <article>
-        <h2>WordPress Core Tickets: Since 2003</h2>
-        <p>Visual analysis of Core Trac backlog, ticket flow, reporter activity, closure mix, and GitHub code-review activity linked to Trac since 2003, with switches for all tickets, bugs, and feature requests.</p>
+        <h2>WordPress Trac Tickets: Since 2003</h2>
+        <p>Core Trac backlog, ticket flow, reporter activity, closure mix, and GitHub code-review activity since 2003, with all/bug/feature-request views and no stacked bar charts.</p>
         <ul>
-          <li><a href="wordpress-core-issue-analysis/">Visual report</a></li>
+          <li><a href="wordpress-core-issue-analysis/">Trac flow report</a></li>
           <li><a href="wordpress-core-issue-analysis/quarterly_metrics.csv">Quarterly metrics CSV</a></li>
           <li><a href="wordpress-core-issue-analysis/monthly_metrics.csv">Monthly metrics CSV</a></li>
           <li><a href="wordpress-core-issue-analysis/quarterly_metrics_bugs.csv">Bug quarterly CSV</a></li>
@@ -103,8 +104,19 @@
       </article>
 
       <article>
-        <h2>WordPress Ticket Classification</h2>
-        <p>Large-category classification for 32,144 Gutenberg GitHub issues and 64,951 WordPress Core Trac tickets, backed by a reusable local SQLite database.</p>
+        <h2>WordPress Community Health</h2>
+        <p>Combined adoption, participation, project-load, support, and ecosystem evidence for WordPress, with source coverage and decision notes.</p>
+        <ul>
+          <li><a href="wordpress-community-health/">Health report</a></li>
+          <li><a href="wordpress-community-health/decision_brief.html">Decision brief</a></li>
+          <li><a href="wordpress-community-health/project_load.html">Project load view</a></li>
+          <li><a href="wordpress-community-health/community_health.sqlite.gz">Source SQLite database</a></li>
+        </ul>
+      </article>
+
+      <article>
+        <h2>Gutenberg + Core Ticket Categories</h2>
+        <p>Large-category split for 32,144 Gutenberg GitHub issues and 64,951 WordPress Core Trac tickets, backed by a reusable local SQLite database.</p>
         <ul>
           <li><a href="wordpress-ticket-classification/">Visual report</a></li>
           <li><a href="wordpress-ticket-classification/classification_summary_gutenberg.csv">Gutenberg summary CSV</a></li>

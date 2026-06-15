@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import html
 import sqlite3
+from collections import defaultdict
 from pathlib import Path
 
 
@@ -187,7 +188,26 @@ def index_label(value):
     return f"{num(value):.0f}"
 
 
-def multi_line_chart(title, note, series, value_decimals=0):
+def share_point_series(rows_, key, group_key, value_key, target, groups, label_transform=quarter_label):
+    group_set = set(groups)
+    totals = defaultdict(float)
+    values = defaultdict(float)
+    for row in rows_:
+        group = row.get(group_key)
+        date_value = row.get(key)
+        if group not in group_set or not date_value:
+            continue
+        value = num(row.get(value_key))
+        totals[date_value] += value
+        if group == target:
+            values[date_value] += value
+    return [
+        (label_transform(date_value), values[date_value] / totals[date_value] * 100 if totals[date_value] else 0)
+        for date_value in sorted(totals)
+    ]
+
+
+def multi_line_chart(title, note, series, value_decimals=0, value_suffix=""):
     series = [
         {
             "name": item["name"],
@@ -217,7 +237,8 @@ def multi_line_chart(title, note, series, value_decimals=0):
         return top + (1 - value / y_top) * plot_h
 
     def fmt(value):
-        return compact(value) if value >= 1000 and value_decimals == 0 else f"{value:.{value_decimals}f}"
+        formatted = compact(value) if value >= 1000 and value_decimals == 0 else f"{value:.{value_decimals}f}"
+        return f"{formatted}{value_suffix}"
 
     pieces = [
         '<article class="chart-card">',
@@ -436,6 +457,34 @@ def main():
             for tech in tech_order
         ],
     )
+    wiki_share_chart = multi_line_chart(
+        "Share of tracked public attention",
+        "Quarterly share of Wikimedia pageviews across WordPress, Shopify, Wix, Squarespace, and Webflow. This shows share within the tracked peer set, not total web search.",
+        [
+            {
+                "name": tech,
+                "color": COLORS.get(tech.lower(), COLORS["blue"]),
+                "points": share_point_series(wiki, "quarter", "technology", "views", tech, builder_order),
+            }
+            for tech in builder_order
+        ],
+        value_decimals=1,
+        value_suffix="%",
+    )
+    stack_share_chart = multi_line_chart(
+        "Share of tracked developer-help questions",
+        "Quarterly share of Stack Overflow tag questions across the tracked WordPress, commerce, and builder tags. This is help-seeking share, not general developer interest.",
+        [
+            {
+                "name": tech,
+                "color": COLORS.get(tech.lower(), COLORS["blue"]),
+                "points": share_point_series(stack, "quarter", "technology", "question_count", tech, tech_order),
+            }
+            for tech in tech_order
+        ],
+        value_decimals=1,
+        value_suffix="%",
+    )
 
     max_views = max([num(row.get("views")) for row in latest_wiki_by_tech.values()] or [1])
     max_questions = max([num(row.get("question_count")) for row in latest_stack_by_tech.values()] or [1])
@@ -596,6 +645,8 @@ def main():
     </article>
 {wiki_index_chart}
 {stack_index_chart}
+{wiki_share_chart}
+{stack_share_chart}
 {wiki_chart}
 {stack_chart}
     <article class="chart-card">

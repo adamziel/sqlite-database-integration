@@ -136,7 +136,7 @@ def point_series(rows_, key, value_key, label_transform=quarter_label):
     ]
 
 
-def multi_line_chart(title, note, series, value_decimals=0):
+def multi_line_chart(title, note, series, value_decimals=0, value_suffix=""):
     series = [
         {
             "name": item["name"],
@@ -166,7 +166,8 @@ def multi_line_chart(title, note, series, value_decimals=0):
         return top + (1 - value / y_top) * plot_h
 
     def fmt(value):
-        return compact(value) if value >= 1000 and value_decimals == 0 else f"{value:.{value_decimals}f}"
+        formatted = compact(value) if value >= 1000 and value_decimals == 0 else f"{value:.{value_decimals}f}"
+        return f"{formatted}{value_suffix}"
 
     pieces = [
         '<article class="chart-card">',
@@ -221,6 +222,11 @@ def main():
         quarterly_jobs = (
             rows(conn, "SELECT * FROM wordpress_jobs_board_quarterly_snapshots ORDER BY quarter, snapshot_date")
             if table_exists(conn, "wordpress_jobs_board_quarterly_snapshots")
+            else []
+        )
+        quarterly_categories = (
+            rows(conn, "SELECT * FROM wordpress_jobs_board_quarterly_categories ORDER BY quarter, category")
+            if table_exists(conn, "wordpress_jobs_board_quarterly_categories")
             else []
         )
         attention = rows(conn, "SELECT * FROM attention_demand_summary WHERE signal IN ('hn_wordpress_woocommerce_hiring_rate','wordpress_jobs_open_listings','wordpress_jobs_development_listings')")
@@ -362,6 +368,55 @@ def main():
             {"name": "Remote", "color": COLORS["violet"], "points": point_series(jobs_for_chart, jobs_chart_date_key, "remote_jobs", jobs_chart_label)},
         ],
         value_decimals=0,
+    )
+    category_labels = {
+        "development": "Development",
+        "design": "Design",
+        "support": "Support",
+        "plugin-development": "Plugin dev",
+        "theme-customization": "Theme work",
+        "project": "Project-style",
+    }
+    category_colors = {
+        "development": COLORS["green"],
+        "design": COLORS["blue"],
+        "support": COLORS["amber"],
+        "plugin-development": COLORS["violet"],
+        "theme-customization": COLORS["teal"],
+        "project": COLORS["red"],
+    }
+    category_share_chart = multi_line_chart(
+        "WordPress Jobs board category mix",
+        "Quarterly share of visible jobs.wordpress.net listings by category. This makes the demand mix easier to read than raw category counts.",
+        [
+            {
+                "name": label,
+                "color": category_colors[slug],
+                "points": point_series(
+                    [row for row in quarterly_categories if row.get("category_slug") == slug],
+                    "quarter",
+                    "category_share_pct",
+                    quarter_label,
+                ),
+            }
+            for slug, label in category_labels.items()
+            if slug != "project"
+        ]
+        + [
+            {
+                "name": category_labels["project"],
+                "color": category_colors["project"],
+                "points": [
+                    (
+                        jobs_chart_label(row.get(jobs_chart_date_key, "")),
+                        num(row.get("project_jobs")) / max(1, num(row.get("total_jobs"))) * 100,
+                    )
+                    for row in jobs_for_chart
+                ],
+            }
+        ],
+        value_decimals=1,
+        value_suffix="%",
     )
     remoteok_max = max([num(row.get("matching_jobs")) for row in remoteok_terms] or [1])
     remoteok_rows = "".join(
@@ -527,6 +582,7 @@ def main():
 {hn_rate_chart}
 {hn_count_chart}
 {jobs_chart}
+{category_share_chart}
     <article class="chart-card">
       <h2>Current jobs board categories</h2>
       <p>Visible open listings by category on the latest jobs.wordpress.net snapshot.</p>

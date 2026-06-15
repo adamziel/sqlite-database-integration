@@ -93,6 +93,7 @@ SKIP_NETWORK_DB_FALLBACK_TABLES = [
     "plugin_search_snapshot",
     "theme_search_snapshot",
     "plugin_directory_activity_sample",
+    "plugin_directory_activity_quarterly",
     "plugin_maintenance_summary",
     "plugin_stale_popular_sample",
     "major_plugin_install_snapshot",
@@ -4464,6 +4465,50 @@ def fetch_directory_activity(skip_network=False):
     return [snapshot], plugin_rows, theme_rows
 
 
+def derive_plugin_directory_activity_quarterly(plugin_rows):
+    buckets = defaultdict(lambda: {"new_plugins": 0, "updated_plugins": 0, "sample_rows": 0})
+    snapshot_dates = []
+    source_urls = set()
+    for row in plugin_rows:
+        browse = row.get("browse")
+        if browse == "new":
+            date_key = "added"
+            count_key = "new_plugins"
+        elif browse == "updated":
+            date_key = "last_updated_date"
+            count_key = "updated_plugins"
+        else:
+            continue
+        quarter = quarter_start(row.get(date_key))
+        if not quarter:
+            continue
+        buckets[quarter][count_key] += 1
+        buckets[quarter]["sample_rows"] += 1
+        if row.get("snapshot_date"):
+            snapshot_dates.append(row.get("snapshot_date"))
+        if row.get("source_url"):
+            source_urls.add(row.get("source_url"))
+
+    snapshot_date = max(snapshot_dates) if snapshot_dates else live_snapshot_date()
+    source_url = sorted(source_urls)[0] if source_urls else PLUGIN_INFO_API
+    rows = []
+    for quarter in sorted(buckets):
+        values = buckets[quarter]
+        rows.append(
+            {
+                "quarter": quarter,
+                "label": quarter_label(quarter),
+                "new_plugins": values["new_plugins"],
+                "updated_plugins": values["updated_plugins"],
+                "sample_rows": values["sample_rows"],
+                "snapshot_date": snapshot_date,
+                "source_url": source_url,
+                "source_note": "Derived from current WordPress.org plugin directory browse samples; not full long-term directory history.",
+            }
+        )
+    return rows
+
+
 def derive_plugin_maintenance_tables(plugin_rows):
     popular_plugins = [row for row in plugin_rows if row.get("browse") == "popular"]
     if not popular_plugins:
@@ -6848,6 +6893,7 @@ def source_status_rows(fetched):
         ("WordPress.org plugin/theme directories", "covered" if fetched.get("directory_snapshots") else "missing", "Current plugin and theme counts"),
         ("WordPress.org ecosystem stats", "covered" if fetched.get("wporg_ecosystem_stats_snapshot") else "missing", "Current WordPress, PHP, and database version distribution from WordPress.org stats APIs"),
         ("Plugin/theme directory activity", "covered" if fetched.get("directory_activity_snapshots") else "missing", "Current new, updated, and popular samples from WordPress.org directory APIs"),
+        ("Plugin directory quarterly activity", "covered" if fetched.get("plugin_directory_activity_quarterly") else "missing", "Derived quarterly added and updated plugin counts from current WordPress.org plugin-directory browse samples"),
         ("Plugin ecosystem search breadth", "covered" if fetched.get("plugin_search_snapshot") else "missing", "Current WordPress.org plugin search-result counts and top matching plugins for selected ecosystem categories"),
         ("Theme ecosystem search breadth", "covered" if fetched.get("theme_search_snapshot") else "missing", "Current WordPress.org theme search-result counts and top matching themes for selected site categories"),
         (
@@ -7168,6 +7214,7 @@ def build_report(data, fetched):
     plugin_search_rows = fetched.get("plugin_search_snapshot", [])
     theme_search_rows = fetched.get("theme_search_snapshot", [])
     plugin_activity_rows = fetched.get("plugin_directory_activity_sample", [])
+    plugin_activity_quarterly = fetched.get("plugin_directory_activity_quarterly", [])
     plugin_maintenance_summary = fetched.get("plugin_maintenance_summary", [])
     plugin_stale_popular_sample = fetched.get("plugin_stale_popular_sample", [])
     major_plugin_rows = fetched.get("major_plugin_install_snapshot", [])
@@ -8184,6 +8231,28 @@ def build_report(data, fetched):
     plugins_added_90_label = f"{compact(plugins_added_90)}" if plugins_added_complete else f">= {compact(plugins_added_90)}"
     plugins_updated_90_label = f"{compact(plugins_updated_90)}" if plugins_updated_complete else f">= {compact(plugins_updated_90)}"
     plugin_activity_max = max(plugins_added_90, plugins_updated_90, 1)
+    plugin_activity_quarterly_series = [
+        {
+            "label": "New plugins",
+            "color": COLORS["green"],
+            "points": point_series(plugin_activity_quarterly, "quarter", "new_plugins"),
+        },
+        {
+            "label": "Updated plugins",
+            "color": COLORS["core"],
+            "points": point_series(plugin_activity_quarterly, "quarter", "updated_plugins"),
+        },
+    ]
+    plugin_activity_latest_quarter = max(
+        [row.get("quarter", "") for row in plugin_activity_quarterly if row.get("quarter")],
+        default="",
+    )
+    plugin_activity_latest = next(
+        (row for row in plugin_activity_quarterly if row.get("quarter") == plugin_activity_latest_quarter),
+        {},
+    )
+    plugin_activity_quarter_count = len({row.get("quarter") for row in plugin_activity_quarterly if row.get("quarter")})
+    plugin_activity_sample_rows = sum(num(row.get("sample_rows")) for row in plugin_activity_quarterly)
     plugin_search_sorted = sorted(plugin_search_rows, key=lambda row: num(row.get("result_count")), reverse=True)
     plugin_search_max = max([num(row.get("result_count")) for row in plugin_search_sorted] or [1])
     plugin_search_capped = sum(1 for row in plugin_search_sorted if num(row.get("results_capped")) > 0)
@@ -9512,6 +9581,7 @@ p {{ margin:0 0 12px; }}
         </div>
         {horizontal_count_metric("Plugins added in sampled 90 days", plugins_added_90, plugin_activity_max, COLORS["green"], "")}
         {horizontal_count_metric("Plugins updated in sampled 90 days", plugins_updated_90, plugin_activity_max, COLORS["core"], "")}
+        {horizontal_count_metric("Quarterly sample rows", plugin_activity_sample_rows, max(1, len(plugin_activity_rows)), COLORS["community"], " rows")}
       </div>
       <div class="card">
         <h3>Plugin ecosystem breadth</h3>
@@ -9538,6 +9608,7 @@ p {{ margin:0 0 12px; }}
         {''.join(horizontal_count_metric(str(row.get("name", "")), num(row.get("active_installs")), max_stale_plugin_installs, COLORS["prs"], " installs") for row in top_stale_popular_plugins[:5])}
       </div>
     </div>
+    {svg_line_chart("Plugin directory sample activity by quarter", f"Current WordPress.org browse sample grouped by plugin added and last-updated dates. Covers {compact(plugin_activity_quarter_count)} sampled quarters; latest sample quarter is {quarter_label(plugin_activity_latest_quarter) or 'not fetched'} with {compact(num(plugin_activity_latest.get('new_plugins')))} new and {compact(num(plugin_activity_latest.get('updated_plugins')))} updated plugins.", plugin_activity_quarterly_series)}
     <div class="grid-2">
       <div class="card">
         <h3>Major plugin install-base snapshot</h3>
@@ -9937,6 +10008,9 @@ def main():
         fetched["plugin_maintenance_summary"],
         fetched["plugin_stale_popular_sample"],
     ) = derive_plugin_maintenance_tables(fetched.get("plugin_directory_activity_sample", []))
+    fetched["plugin_directory_activity_quarterly"] = derive_plugin_directory_activity_quarterly(
+        fetched.get("plugin_directory_activity_sample", [])
+    )
     fetched["hn_hiring_demand_summary"] = derive_hn_hiring_demand_summary(
         fetched.get("hn_hiring_wordpress_quarterly", [])
     )

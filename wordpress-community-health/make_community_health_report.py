@@ -156,6 +156,7 @@ WPORG_STATS_URLS = {
 PLUGIN_INFO_API = "https://api.wordpress.org/plugins/info/1.2/"
 PLUGIN_DOWNLOADS_API = "https://api.wordpress.org/stats/plugin/1.0/downloads.php"
 PLUGIN_DOWNLOADS_DOCS_URL = "https://codex.wordpress.org/WordPress.org_API#Plugin_Download_Stats"
+PLUGIN_DOWNLOAD_WINDOW_DAYS = 730
 THEME_INFO_API = "https://api.wordpress.org/themes/info/1.2/"
 WORDCAMP_API = "https://central.wordcamp.org/wp-json/wp/v2/wordcamps"
 EVENTS_WORDPRESS_URL = "https://events.wordpress.org/"
@@ -4237,6 +4238,7 @@ def write_cached_major_plugin_download_history(rows):
             {
                 "collected_at": dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z"),
                 "source_url": PLUGIN_DOWNLOADS_API,
+                "window_days": PLUGIN_DOWNLOAD_WINDOW_DAYS,
                 "rows": rows,
             },
             indent=2,
@@ -4246,7 +4248,7 @@ def write_cached_major_plugin_download_history(rows):
     )
 
 
-def plugin_downloads_url(slug, limit=365):
+def plugin_downloads_url(slug, limit=PLUGIN_DOWNLOAD_WINDOW_DAYS):
     params = urllib.parse.urlencode({"slug": slug, "limit": limit})
     return f"{PLUGIN_DOWNLOADS_API}?{params}"
 
@@ -6855,7 +6857,7 @@ def source_status_rows(fetched):
         ),
         ("Stale popular plugin sample", "covered" if fetched.get("plugin_maintenance_summary") else "missing", "Derived WordPress.org popular-plugin sample showing 2+ year stale count, install reach, and detail rows"),
         ("Major plugin support snapshot", "covered" if fetched.get("major_plugin_install_snapshot") else "missing", "Current WordPress.org plugin API support-thread and resolved-thread counts for the fixed major-plugin list"),
-        ("Major plugin download trend", "covered" if fetched.get("major_plugin_download_quarterly") else "missing", "WordPress.org daily plugin download stats for the fixed major-plugin list, aggregated quarterly"),
+        ("Major plugin download trend", "covered" if fetched.get("major_plugin_download_quarterly") else "missing", "Two-year WordPress.org daily plugin download stats for the fixed major-plugin list, aggregated quarterly"),
         ("WordCamp Central", "covered" if fetched.get("wordcamps") else "missing", "Historical WordCamp event records and anticipated-attendance fields where available"),
         ("WordPress Events", "covered" if fetched.get("wp_events") else "missing", "Current upcoming Meetup and WordCamp events"),
         ("Translate WordPress", "covered" if fetched.get("translation_locale_snapshot") else "missing", "Current locale team profile counts and Core dev translation status"),
@@ -9549,7 +9551,7 @@ p {{ margin:0 0 12px; }}
       </div>
       <div class="card">
         <h3>Major plugin download trend</h3>
-        <p>WordPress.org daily download stats for the same fixed major-plugin list. Downloads show update and demand activity; they are not active installs.</p>
+        <p>Two years of WordPress.org daily download stats for the same fixed major-plugin list. Downloads show update and demand activity; they are not active installs.</p>
         <div class="stats">
           {stat_card("Daily rows", compact(len(major_plugin_download_daily)), "WordPress.org stats API", "good" if major_plugin_download_daily else "watch")}
           {stat_card("Latest sampled quarter", compact(latest_plugin_download_total), latest_plugin_download_quarter or "not fetched", "soft")}
@@ -9589,7 +9591,7 @@ p {{ margin:0 0 12px; }}
       {horizontal_count_metric("Historical install-history coverage", install_history_plugin_count, max(1, len(MAJOR_PLUGIN_SLUGS)), COLORS["core"], " plugins")}
       {horizontal_count_metric("Download trend coverage", major_plugin_download_plugin_count, max(1, len(MAJOR_PLUGIN_SLUGS)), COLORS["core"], " plugins")}
     </div>
-    {svg_line_chart("Major plugin downloads by quarter", "WordPress.org daily download stats, aggregated quarterly for the highest-download tracked plugins. Latest quarter may be partial.", major_plugin_download_series)}
+    {svg_line_chart("Major plugin downloads by quarter", "Two years of WordPress.org daily download stats, aggregated quarterly for the highest-download tracked plugins. Latest quarter may be partial.", major_plugin_download_series)}
     <div class="grid-2">
       <div class="card">
         <h3>Theme directory browse sample</h3>

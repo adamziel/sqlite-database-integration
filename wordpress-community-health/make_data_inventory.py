@@ -181,7 +181,7 @@ def render():
         ("wporg_ecosystem_stats_snapshot", "Current WordPress.org WordPress, PHP, and database-version active-install shares."),
         ("make_core_*", "Make/Core posts, comments, dev notes, authors, and release tags."),
         ("core_release_*", "Core release archive, credits, committers, and tag-to-tag compare summaries."),
-        ("major_plugin_*", "Major plugin installs, historical snapshots, support counts, and downloads."),
+        ("major_plugin_*", "Major plugin installs, historical snapshots, support counts, and two-year download activity."),
         ("plugin_search_snapshot", "Current WordPress.org plugin search-result counts and top matching plugins by category."),
         ("theme_search_snapshot", "Current WordPress.org theme search-result counts and top matching themes by site category."),
         ("packagist_package_snapshot", "Current Composer package downloads, favorites, dependents, and release timestamps."),

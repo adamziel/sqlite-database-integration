@@ -55,6 +55,31 @@ def signed_pts(value):
     return f"{num(value):+.1f} pts"
 
 
+def quarter_label(value):
+    text = str(value or "")
+    if len(text) < 7:
+        return ""
+    try:
+        month = int(text[5:7])
+    except ValueError:
+        return ""
+    return f"{text[:4]}-Q{((month - 1) // 3) + 1}"
+
+
+def quarterly_average_points(points):
+    buckets = {}
+    for date_value, value in points:
+        quarter = quarter_label(date_value)
+        if not quarter:
+            continue
+        buckets.setdefault(quarter, []).append(num(value))
+    return [
+        (quarter, sum(values) / len(values))
+        for quarter, values in sorted(buckets.items())
+        if values
+    ]
+
+
 def one(conn, sql, params=()):
     row = conn.execute(sql, params).fetchone()
     return row[0] if row else 0
@@ -634,6 +659,7 @@ def main():
         ("ai_builders", "AI/visual builders", ["Framer Sites", "Lovable", "Base44"], "#dc2626"),
     ]
     bucket_points = {key: [] for key, _label, _technologies, _color in bucket_defs}
+    bucket_counts_by_date = {}
     latest_buckets = {}
     for date_value in site_dates:
         all_mobile = num(site_all_by_date.get(date_value, {}).get("mobile_origins"))
@@ -651,6 +677,7 @@ def main():
             counts[key] = count
             selected += count
         counts["all_other"] = max(0, all_mobile - selected)
+        bucket_counts_by_date[date_value] = dict(counts)
         for key, label, technologies, color in bucket_defs:
             count = counts.get(key, 0)
             share = count / all_mobile * 100 if all_mobile else 0
@@ -663,15 +690,61 @@ def main():
                     "mobile_origins": count,
                     "share": share,
                 }
-    split_layers = [
+    all_site_bucket_series = [
         {
             "name": label,
             "color": color,
-            "points": bucket_points.get(key, []),
+            "points": quarterly_average_points(bucket_points.get(key, [])),
         }
         for key, label, _technologies, color in bucket_defs
     ]
     latest_bucket_max = max([row.get("share", 0) for row in latest_buckets.values()] or [1])
+    new_bucket_points = {key: [] for key, _label, _technologies, _color in bucket_defs}
+    new_bucket_counts_by_quarter = {}
+    latest_new_buckets = {}
+    previous_counts = None
+    for date_value in site_dates:
+        current_counts = bucket_counts_by_date.get(date_value)
+        if not current_counts:
+            continue
+        if previous_counts is None:
+            previous_counts = current_counts
+            continue
+        positive_counts = {
+            key: max(0, current_counts.get(key, 0) - previous_counts.get(key, 0))
+            for key, _label, _technologies, _color in bucket_defs
+        }
+        quarter = quarter_label(date_value)
+        if quarter:
+            quarter_counts = new_bucket_counts_by_quarter.setdefault(quarter, {})
+            for key, count in positive_counts.items():
+                quarter_counts[key] = quarter_counts.get(key, 0) + count
+        previous_counts = current_counts
+    latest_new_bucket_quarter = sorted(new_bucket_counts_by_quarter)[-1] if new_bucket_counts_by_quarter else ""
+    latest_new_buckets = {}
+    for quarter, counts in sorted(new_bucket_counts_by_quarter.items()):
+        positive_total = sum(counts.values())
+        for key, label, technologies, color in bucket_defs:
+            count = counts.get(key, 0)
+            share = count / positive_total * 100 if positive_total else 0
+            new_bucket_points[key].append((quarter, share))
+            if quarter == latest_new_bucket_quarter:
+                latest_new_buckets[key] = {
+                    "label": label,
+                    "technologies": technologies,
+                    "color": color,
+                    "mobile_origins": count,
+                    "share": share,
+                }
+    new_site_bucket_series = [
+        {
+            "name": label,
+            "color": color,
+            "points": new_bucket_points.get(key, []),
+        }
+        for key, label, _technologies, color in bucket_defs
+    ]
+    latest_new_bucket_max = max([row.get("share", 0) for row in latest_new_buckets.values()] or [1])
     wp_all_site = {
         row.get("date"): num(row.get("value"))
         for row in market_share
@@ -828,10 +901,19 @@ def main():
         y_suffix="",
         start_zero=False,
     )
-    all_sites_split_chart = stacked_area_chart(
+    all_sites_line_chart = multi_line_chart(
         "All sites by selected site-creation signal",
-        "Stacked share of all HTTP Archive mobile origins. Buckets use aggregate technology detections and all other sites/tools is the residual after selected buckets.",
-        split_layers,
+        "Quarterly average share of all HTTP Archive mobile origins. Buckets use aggregate technology detections and all other sites/tools is the residual after selected buckets.",
+        all_site_bucket_series,
+        value_decimals=1,
+        y_suffix="%",
+    )
+    new_sites_line_chart = multi_line_chart(
+        "Newly observed sites by selected signal",
+        "Quarterly share of positive net detected-origin additions, summed from month-over-month aggregate movements. This is the closest aggregate proxy for new sites in each time bucket, not a true first-published-site cohort.",
+        new_site_bucket_series,
+        value_decimals=1,
+        y_suffix="%",
     )
     latest_split_bars = "".join(
         bar_row(
@@ -842,6 +924,16 @@ def main():
             suffix="%",
         )
         for row in latest_buckets.values()
+    )
+    latest_new_split_bars = "".join(
+        bar_row(
+            row.get("label"),
+            row.get("share"),
+            latest_new_bucket_max,
+            row.get("color") or COLORS["ink"],
+            suffix="%",
+        )
+        for row in latest_new_buckets.values()
     )
     origin_chart = multi_line_chart(
         "Quarterly detected mobile origins",
@@ -1008,12 +1100,22 @@ def main():
     </section>
 
     <section class="grid" style="margin-top:14px">
-      {all_sites_split_chart}
+      {all_sites_line_chart}
+      {new_sites_line_chart}
+    </section>
+
+    <section class="grid" style="margin-top:14px">
       <article class="panel">
         <h2>Latest all-sites bucket split</h2>
-        <p>Latest selected-bucket split from the same area chart. All other sites/tools includes pure HTML, custom apps, unknown/no detected tool, deployment-only signals, and tools outside the selected buckets.</p>
+        <p>Latest selected-bucket split from the all-sites line chart. All other sites/tools includes pure HTML, custom apps, unknown/no detected tool, deployment-only signals, and tools outside the selected buckets.</p>
         <div class="bar-stack">{latest_split_bars}</div>
         <p class="footer-note">Latest all-origin denominator: {compact(site_latest_all)} mobile origins on {esc(site_latest_date)}. Buckets use aggregate detections, so this is directional rather than origin-level deduplicated.</p>
+      </article>
+      <article class="panel">
+        <h2>Latest newly observed bucket split</h2>
+        <p>Latest quarterly split of positive net detected-origin additions. Buckets with net losses in the quarter contribute 0% to this readout.</p>
+        <div class="bar-stack">{latest_new_split_bars}</div>
+        <p class="footer-note">Latest bucket: {esc(latest_new_bucket_quarter) or "n/a"}. Use this as a directional new-site proxy until an origin-level first-seen export is available.</p>
       </article>
     </section>
 

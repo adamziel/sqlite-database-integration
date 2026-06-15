@@ -8255,6 +8255,7 @@ def build_report(data, fetched):
         ("ai_builders", "AI/visual builders", ["Framer Sites", "Lovable", "Base44"], COLORS["red"]),
     ]
     site_creation_bucket_points = {key: [] for key, _label, _techs, _color in site_creation_bucket_defs}
+    site_creation_bucket_counts_by_date = {}
     site_creation_bucket_latest = {}
     for date_value in site_creation_dates:
         all_mobile = num(site_creation_all_by_date.get(date_value, {}).get("mobile_origins"))
@@ -8272,6 +8273,7 @@ def build_report(data, fetched):
             bucket_counts[key] = count
             selected_count += count
         bucket_counts["all_other"] = max(0, all_mobile - selected_count)
+        site_creation_bucket_counts_by_date[date_value] = dict(bucket_counts)
         for key, label, technologies, color in site_creation_bucket_defs:
             count = bucket_counts.get(key, 0)
             share = count / all_mobile * 100 if all_mobile else 0
@@ -8284,16 +8286,77 @@ def build_report(data, fetched):
                     "mobile_origins": count,
                     "share": share,
                 }
-    site_creation_split_layers = [
+    site_creation_bucket_quarter_points = {}
+    for key, _label, _technologies, _color in site_creation_bucket_defs:
+        quarter_values = {}
+        for date_value, share in site_creation_bucket_points.get(key, []):
+            quarter = quarter_label(date_value)
+            if not quarter:
+                continue
+            quarter_values.setdefault(quarter, []).append(share)
+        site_creation_bucket_quarter_points[key] = [
+            (quarter_label_to_start(quarter), sum(values) / len(values))
+            for quarter, values in sorted(quarter_values.items())
+            if values
+        ]
+    site_creation_all_sites_line_series = [
         {
             "label": label,
             "color": color,
-            "points": site_creation_bucket_points.get(key, []),
+            "points": site_creation_bucket_quarter_points.get(key, []),
         }
         for key, label, _technologies, color in site_creation_bucket_defs
     ]
     site_creation_latest_bucket_max = max(
         [row.get("share", 0) for row in site_creation_bucket_latest.values()] or [1]
+    )
+    site_creation_new_bucket_points = {key: [] for key, _label, _techs, _color in site_creation_bucket_defs}
+    site_creation_new_bucket_counts_by_quarter = {}
+    site_creation_new_bucket_latest = {}
+    previous_bucket_counts = None
+    for date_value in site_creation_dates:
+        current_bucket_counts = site_creation_bucket_counts_by_date.get(date_value)
+        if not current_bucket_counts:
+            continue
+        if previous_bucket_counts is None:
+            previous_bucket_counts = current_bucket_counts
+            continue
+        positive_counts = {
+            key: max(0, current_bucket_counts.get(key, 0) - previous_bucket_counts.get(key, 0))
+            for key, _label, _technologies, _color in site_creation_bucket_defs
+        }
+        quarter = quarter_label(date_value)
+        if quarter:
+            quarter_counts = site_creation_new_bucket_counts_by_quarter.setdefault(quarter, {})
+            for key, count in positive_counts.items():
+                quarter_counts[key] = quarter_counts.get(key, 0) + count
+        previous_bucket_counts = current_bucket_counts
+    site_creation_latest_new_bucket_quarter = sorted(site_creation_new_bucket_counts_by_quarter)[-1] if site_creation_new_bucket_counts_by_quarter else ""
+    site_creation_new_bucket_latest = {}
+    for quarter, counts in sorted(site_creation_new_bucket_counts_by_quarter.items()):
+        positive_total = sum(counts.values())
+        for key, label, technologies, color in site_creation_bucket_defs:
+            count = counts.get(key, 0)
+            share = count / positive_total * 100 if positive_total else 0
+            site_creation_new_bucket_points[key].append((quarter_label_to_start(quarter), share))
+            if quarter == site_creation_latest_new_bucket_quarter:
+                site_creation_new_bucket_latest[key] = {
+                    "label": label,
+                    "technologies": technologies,
+                    "color": color,
+                    "mobile_origins": count,
+                    "share": share,
+                }
+    site_creation_new_sites_line_series = [
+        {
+            "label": label,
+            "color": color,
+            "points": site_creation_new_bucket_points.get(key, []),
+        }
+        for key, label, _technologies, color in site_creation_bucket_defs
+    ]
+    site_creation_latest_new_bucket_max = max(
+        [row.get("share", 0) for row in site_creation_new_bucket_latest.values()] or [1]
     )
     ai_builder_techs = ["Framer Sites", "Lovable", "Base44"]
     site_creation_wp_share = fnum(
@@ -10106,12 +10169,23 @@ p {{ margin:0 0 12px; }}
         {stat_card("No-CMS/custom residual", pct(no_cms_latest), f"W3Techs inferred residual{f'; {no_cms_delta:+.1f} pts since 2025' if no_cms_delta is not None else ''}", "soft")}
       </div>
     </div>
-    {svg_stacked_area_chart("All sites by selected site-creation signal", "Stacked share of all HTTP Archive mobile origins. Buckets are built from aggregate technology detections, so this is a directional split rather than origin-level deduplication. All other sites/tools is the residual after selected buckets.", site_creation_split_layers)}
-    <div class="card">
-      <h3>Latest all-sites bucket split</h3>
-      <p>Latest selected-bucket split from the same area chart. All other sites/tools includes pure HTML, custom apps, unknown/no detected tool, deployment-only signals, and tools outside the selected buckets.</p>
-      {''.join(horizontal_metric(row.get("label", ""), row.get("share", 0), site_creation_latest_bucket_max, row.get("color", COLORS["neutral"])) for _key, row in site_creation_bucket_latest.items())}
-      <p class="small-note">Rows are stored in SQLite as <code>http_archive_site_creation_adoption_monthly</code>.</p>
+    <div class="grid-2">
+      {svg_line_chart("All sites by selected site-creation signal", "Quarterly average share of all HTTP Archive mobile origins. Buckets are built from aggregate technology detections, so this is a directional split rather than origin-level deduplication. All other sites/tools is the residual after selected buckets.", site_creation_all_sites_line_series, y_suffix="%")}
+      {svg_line_chart("Newly observed sites by selected signal", "Quarterly share of positive net detected-origin additions, summed from month-over-month aggregate movements. This is the closest aggregate proxy for new sites in each time bucket; it is not a true first-published-site cohort.", site_creation_new_sites_line_series, y_suffix="%")}
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Latest all-sites bucket split</h3>
+        <p>Latest selected-bucket split from the all-sites line chart. All other sites/tools includes pure HTML, custom apps, unknown/no detected tool, deployment-only signals, and tools outside the selected buckets.</p>
+        {''.join(horizontal_metric(row.get("label", ""), row.get("share", 0), site_creation_latest_bucket_max, row.get("color", COLORS["neutral"])) for _key, row in site_creation_bucket_latest.items())}
+        <p class="small-note">Rows are stored in SQLite as <code>http_archive_site_creation_adoption_monthly</code>.</p>
+      </div>
+      <div class="card">
+        <h3>Latest newly observed bucket split</h3>
+        <p>Latest quarterly split of positive net detected-origin additions. Buckets with net losses in the quarter contribute 0% to this readout.</p>
+        {''.join(horizontal_metric(row.get("label", ""), row.get("share", 0), site_creation_latest_new_bucket_max, row.get("color", COLORS["neutral"])) for _key, row in site_creation_new_bucket_latest.items())}
+        <p class="small-note">Latest bucket: {site_creation_latest_new_bucket_quarter or "n/a"}. Use this as a directional new-site proxy until an origin-level first-seen export is available.</p>
+      </div>
     </div>
     <div class="grid-2">
       <div class="card">

@@ -11,7 +11,11 @@
     main { max-width:1220px; margin:0 auto; padding:44px 24px 64px; }
     h1 { margin:0 0 10px; font-size:clamp(32px,4vw,56px); line-height:1.03; letter-spacing:0; }
     h2 { margin:34px 0 10px; font-size:25px; line-height:1.15; letter-spacing:0; }
+    h2[id], .category-tile[id] { scroll-margin-top:92px; }
     .deck { margin:0; max-width:900px; color:#475569; font-size:18px; }
+    .report-switch { display:inline-flex; flex-wrap:wrap; gap:6px; margin-top:24px; padding:5px; position:sticky; top:10px; z-index:20; max-width:100%; border:1px solid var(--line); border-radius:8px; background:#fff; box-shadow:0 10px 30px rgba(15,23,42,.12); }
+    .report-switch a { color:#475569; border-radius:6px; padding:9px 12px; }
+    .report-switch a:hover, .report-switch a:focus-visible { background:#e2e8f0; color:#0f172a; text-decoration:none; outline:none; }
     .metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin:30px 0; }
     .metric,.chart,.note,.discussion { background:var(--panel); border:1px solid var(--line); border-radius:8px; }
     .metric { padding:16px; min-height:126px; }
@@ -39,6 +43,7 @@
     code { background:#eef2f7; padding:2px 5px; border-radius:4px; overflow-wrap:anywhere; word-break:break-word; }
     @media (max-width:860px) {
       main { padding:30px 14px 48px; }
+      h2[id], .category-tile[id] { scroll-margin-top:130px; }
       .metrics { grid-template-columns:1fr; }
       .category-grid { grid-template-columns:1fr; }
       .discussion { grid-template-columns:1fr; }
@@ -52,6 +57,12 @@
 <main>
   <h1>WordPress ticket classification</h1>
   <p class="deck">Large-category classification for Gutenberg GitHub issues and WordPress Core Trac tickets, stored in a reusable SQLite database.</p>
+  <nav class="report-switch" aria-label="Ticket classification shortcuts">
+    <a href="#gutenberg-issues">Gutenberg</a>
+    <a href="#gutenberg-bug">Bugs</a>
+    <a href="#gutenberg-feature-request">Feature requests</a>
+    <a href="#core-trac-tickets">Core Trac</a>
+  </nav>
   <section class="metrics">
     <div class="metric"><div class="metric-label">Gutenberg classified</div><div class="metric-value">32,144</div><div class="metric-note">15,217 comments stored</div></div>
     <div class="metric"><div class="metric-label">Core classified</div><div class="metric-value">64,951</div><div class="metric-note">304,500 comments stored</div></div>
@@ -62,7 +73,7 @@
     <h2 id="gutenberg-issues">Gutenberg GitHub issues</h2>
     <div class="category-grid">
 
-            <div class="category-tile" style="--accent:#dc2626">
+            <div class="category-tile" id="gutenberg-bug" style="--accent:#dc2626">
               <div class="tile-top"><span class="swatch"></span><span>Bugs</span></div>
               <div class="tile-value">15,801</div>
               <div class="tile-meta">49% of all tickets · 1,957 open</div>
@@ -97,7 +108,7 @@
             </div>
             
 
-            <div class="category-tile" style="--accent:#2563eb">
+            <div class="category-tile" id="gutenberg-feature-request" style="--accent:#2563eb">
               <div class="tile-top"><span class="swatch"></span><span>Feature requests</span></div>
               <div class="tile-value">678</div>
               <div class="tile-meta">2% of all tickets · 60 open</div>

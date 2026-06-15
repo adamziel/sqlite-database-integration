@@ -1263,15 +1263,18 @@ def bar_chart(summary, title, note):
     return "\n".join(parts)
 
 
-def category_tiles(summary, open_summary):
+def category_tiles(summary, open_summary, anchor_prefix=""):
     total = sum(summary.values())
     rows = [(cat, summary.get(cat, 0), open_summary.get(cat, 0)) for cat in PRIMARY_CATEGORIES if summary.get(cat, 0)]
     rows.sort(key=lambda item: item[1], reverse=True)
     parts = ['<div class="category-grid">']
     for cat, count, open_count in rows:
+        anchor = ""
+        if anchor_prefix:
+            anchor = f' id="{esc(anchor_prefix)}-{esc(cat.replace("_", "-"))}"'
         parts.append(
             f"""
-            <div class="category-tile" style="--accent:{CATEGORY_COLORS[cat]}">
+            <div class="category-tile"{anchor} style="--accent:{CATEGORY_COLORS[cat]}">
               <div class="tile-top"><span class="swatch"></span><span>{esc(CATEGORY_LABELS[cat])}</span></div>
               <div class="tile-value">{fmt(count)}</div>
               <div class="tile-meta">{pct(count, total)} of all tickets · {fmt(open_count)} open</div>
@@ -1444,7 +1447,11 @@ def generate_report():
     main {{ max-width:1220px; margin:0 auto; padding:44px 24px 64px; }}
     h1 {{ margin:0 0 10px; font-size:clamp(32px,4vw,56px); line-height:1.03; letter-spacing:0; }}
     h2 {{ margin:34px 0 10px; font-size:25px; line-height:1.15; letter-spacing:0; }}
+    h2[id], .category-tile[id] {{ scroll-margin-top:92px; }}
     .deck {{ margin:0; max-width:900px; color:#475569; font-size:18px; }}
+    .report-switch {{ display:inline-flex; flex-wrap:wrap; gap:6px; margin-top:24px; padding:5px; position:sticky; top:10px; z-index:20; max-width:100%; border:1px solid var(--line); border-radius:8px; background:#fff; box-shadow:0 10px 30px rgba(15,23,42,.12); }}
+    .report-switch a {{ color:#475569; border-radius:6px; padding:9px 12px; }}
+    .report-switch a:hover, .report-switch a:focus-visible {{ background:#e2e8f0; color:#0f172a; text-decoration:none; outline:none; }}
     .metrics {{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin:30px 0; }}
     .metric,.chart,.note,.discussion {{ background:var(--panel); border:1px solid var(--line); border-radius:8px; }}
     .metric {{ padding:16px; min-height:126px; }}
@@ -1472,6 +1479,7 @@ def generate_report():
     code {{ background:#eef2f7; padding:2px 5px; border-radius:4px; overflow-wrap:anywhere; word-break:break-word; }}
     @media (max-width:860px) {{
       main {{ padding:30px 14px 48px; }}
+      h2[id], .category-tile[id] {{ scroll-margin-top:130px; }}
       .metrics {{ grid-template-columns:1fr; }}
       .category-grid {{ grid-template-columns:1fr; }}
       .discussion {{ grid-template-columns:1fr; }}
@@ -1485,6 +1493,12 @@ def generate_report():
 <main>
   <h1>WordPress ticket classification</h1>
   <p class="deck">Large-category classification for Gutenberg GitHub issues and WordPress Core Trac tickets, stored in a reusable SQLite database.</p>
+  <nav class="report-switch" aria-label="Ticket classification shortcuts">
+    <a href="#gutenberg-issues">Gutenberg</a>
+    <a href="#gutenberg-bug">Bugs</a>
+    <a href="#gutenberg-feature-request">Feature requests</a>
+    <a href="#core-trac-tickets">Core Trac</a>
+  </nav>
   <section class="metrics">
     <div class="metric"><div class="metric-label">Gutenberg classified</div><div class="metric-value">{fmt(classified['gutenberg'])}</div><div class="metric-note">{fmt(comments['gutenberg'])} comments stored</div></div>
     <div class="metric"><div class="metric-label">Core classified</div><div class="metric-value">{fmt(classified['core'])}</div><div class="metric-note">{fmt(comments['core'])} comments stored</div></div>
@@ -1492,16 +1506,16 @@ def generate_report():
     <div class="metric"><div class="metric-label">Core confidence</div><div class="metric-value">{fmt(conf['core'].get('high',0))} high</div><div class="metric-note">{fmt(conf['core'].get('low',0))} low-confidence rows</div></div>
   </section>
   <section class="source-band">
-    <h2>Gutenberg GitHub issues</h2>
-    {category_tiles(g_total, g_open)}
+    <h2 id="gutenberg-issues">Gutenberg GitHub issues</h2>
+    {category_tiles(g_total, g_open, "gutenberg")}
     <section class="chart">{stacked_year_chart(g_years, "Gutenberg category timeline", "Tickets created per year, split by primary category.")}</section>
     <section class="chart">{bar_chart(g_total, "Gutenberg issues by category", "Primary category across all cached WordPress/gutenberg issues.")}</section>
     <section class="chart">{stacked_open_chart(g_total, g_open, "Gutenberg open backlog by category", "Dark bars are currently open issues; pale bars are total issues in that category.")}</section>
     <section class="discussion">{discussion(g_total, g_open, "Gutenberg")}</section>
   </section>
   <section class="source-band">
-    <h2>WordPress Core Trac tickets</h2>
-    {category_tiles(c_total, c_open)}
+    <h2 id="core-trac-tickets">WordPress Core Trac tickets</h2>
+    {category_tiles(c_total, c_open, "core")}
     <section class="chart">{stacked_year_chart(c_years, "Core category timeline", "Tickets created per year since 2003, split by primary category.")}</section>
     <section class="chart">{bar_chart(c_total, "WordPress Core tickets by category", "Primary category across all Core Trac tickets in the database.")}</section>
     <section class="chart">{stacked_open_chart(c_total, c_open, "Core open backlog by category", "Dark bars are currently open tickets; pale bars are total tickets in that category.")}</section>

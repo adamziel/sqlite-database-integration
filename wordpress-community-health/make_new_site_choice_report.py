@@ -461,6 +461,32 @@ def main():
             else []
         )
         gap = rows(conn, "SELECT * FROM source_gaps WHERE signal='new_site_share_history'")
+        site_creation = (
+            rows(
+                conn,
+                """
+                SELECT *
+                FROM http_archive_site_creation_adoption_monthly
+                ORDER BY date, technology
+                """,
+            )
+            if table_exists(conn, "http_archive_site_creation_adoption_monthly")
+            else []
+        )
+        market_share = (
+            rows(
+                conn,
+                """
+                SELECT date, metric, technology, value
+                FROM market_share
+                WHERE technology='WordPress'
+                  AND metric IN ('all_sites_usage','cms_market_share')
+                ORDER BY date, metric
+                """,
+            )
+            if table_exists(conn, "market_share")
+            else []
+        )
     finally:
         conn.close()
 
@@ -484,6 +510,47 @@ def main():
         if wp_latest_change_label and wp_latest_change_months and wp_latest_change_months < 3
         else wp_latest_change_label
     )
+    site_all_by_date = {
+        row.get("date"): row for row in site_creation if row.get("technology") == "ALL" and row.get("date")
+    }
+    site_rows = []
+    for row in site_creation:
+        technology = row.get("technology") or ""
+        date_value = row.get("date") or ""
+        if not technology or technology == "ALL" or date_value not in site_all_by_date:
+            continue
+        all_mobile = num(site_all_by_date[date_value].get("mobile_origins"))
+        mobile = num(row.get("mobile_origins"))
+        row = dict(row)
+        row["mobile_all_origin_share_pct"] = mobile / all_mobile * 100 if all_mobile else 0
+        row["label"] = date_value[:7]
+        site_rows.append(row)
+    site_dates = sorted(site_all_by_date)
+    site_latest_date = site_dates[-1] if site_dates else ""
+    site_latest_all = num(site_all_by_date.get(site_latest_date, {}).get("mobile_origins"))
+    site_latest_rows = [row for row in site_rows if row.get("date") == site_latest_date]
+    site_latest_by_tech = {row.get("technology"): row for row in site_latest_rows}
+    site_latest_top = sorted(site_latest_rows, key=lambda row: num(row.get("mobile_origins")), reverse=True)[:12]
+    site_latest_max = max([num(row.get("mobile_origins")) for row in site_latest_top] or [1])
+    wp_all_site = {
+        row.get("date"): num(row.get("value"))
+        for row in market_share
+        if row.get("metric") == "all_sites_usage"
+    }
+    wp_cms_share = {
+        row.get("date"): num(row.get("value"))
+        for row in market_share
+        if row.get("metric") == "cms_market_share"
+    }
+    no_cms_points = []
+    for date_value in sorted(set(wp_all_site) & set(wp_cms_share)):
+        cms_share = wp_cms_share.get(date_value, 0)
+        all_site = wp_all_site.get(date_value, 0)
+        if cms_share <= 0:
+            continue
+        inferred_known_cms = all_site / (cms_share / 100)
+        no_cms_points.append((date_value, max(0, min(100, 100 - inferred_known_cms))))
+    no_cms_latest = no_cms_points[-1][1] if no_cms_points else 0
 
     metrics = "".join(
         [
@@ -620,6 +687,70 @@ def main():
         value_decimals=0,
         y_suffix="",
         start_zero=False,
+    )
+    broad_site_chart = multi_line_chart(
+        "Broad site-creation signals",
+        "Selected HTTP Archive technology detections as a share of all mobile origins. These detections overlap, so the lines should not be summed.",
+        [
+            {
+                "name": tech,
+                "color": site_latest_by_tech.get(tech, {}).get("color") or COLORS.get(tech, COLORS["ink"]),
+                "points": points_for(site_rows, tech, "mobile_all_origin_share_pct"),
+            }
+            for tech in ["WordPress", "Shopify", "Wix", "Next.js", "Vercel", "Nuxt.js", "Astro", "Lovable"]
+        ],
+        value_decimals=1,
+        y_suffix="%",
+    )
+    static_site_chart = multi_line_chart(
+        "Static and app framework detected origins",
+        "Next.js and Nuxt.js are static/hybrid app-framework signals; Astro, Gatsby, Hugo, Jekyll, and Eleventy are closer SSG signals.",
+        [
+            {
+                "name": tech,
+                "color": site_latest_by_tech.get(tech, {}).get("color") or COLORS.get(tech, COLORS["ink"]),
+                "points": points_for(site_rows, tech, "mobile_origins"),
+            }
+            for tech in ["Next.js", "Nuxt.js", "Astro", "Gatsby", "Hugo", "Jekyll", "Eleventy"]
+        ],
+        value_decimals=0,
+        y_suffix="",
+    )
+    ai_builder_chart = multi_line_chart(
+        "AI-era builder detected origins",
+        "Lovable and Base44 are direct AI-builder signals in HTTP Archive/Wappalyzer data. Framer Sites is a broader visual-builder signal with AI-assisted creation features.",
+        [
+            {
+                "name": tech,
+                "color": site_latest_by_tech.get(tech, {}).get("color") or COLORS.get(tech, COLORS["ink"]),
+                "points": points_for(site_rows, tech, "mobile_origins"),
+            }
+            for tech in ["Framer Sites", "Lovable", "Base44"]
+        ],
+        value_decimals=0,
+        y_suffix="",
+    )
+    no_cms_chart = multi_line_chart(
+        "W3Techs no-CMS/custom/static residual",
+        "Inferred from WordPress all-site share divided by WordPress CMS-share. This approximates sites without a detected CMS: custom builds, static HTML, SSG output, web apps, and unknowns.",
+        [
+            {
+                "name": "No CMS/custom/static/unknown",
+                "color": COLORS["amber"],
+                "points": no_cms_points,
+            }
+        ],
+        value_decimals=1,
+        y_suffix="%",
+    )
+    latest_site_bars = "".join(
+        bar_row(
+            f"{row.get('technology')} - {pct(row.get('mobile_all_origin_share_pct'))} all origins",
+            row.get("mobile_origins"),
+            site_latest_max,
+            row.get("color") or COLORS["ink"],
+        )
+        for row in site_latest_top
     )
     origin_chart = multi_line_chart(
         "Quarterly detected mobile origins",
@@ -775,13 +906,36 @@ def main():
       {share_chart}
       <article class="panel">
         <h2>Source limit</h2>
-        <p>No public source found in this pass exposes a historical first-published-site cohort by CMS. This view therefore combines BuiltWith's current newly found-site pipeline with HTTP Archive quarterly detected-origin proxies.</p>
+        <p>No public source found in this pass exposes a historical first-published-site cohort by CMS or site-creation mode. The five-name chart is only a CMS/builder peer view; broader site creation also includes static/app frameworks, deployment platforms, AI-era builders, and custom or plain HTML sites.</p>
         <div class="readout">
           <div><strong>Closest current signal</strong><span>BuiltWith Net New Pipeline gives current 30/90-day newly found counts where public pages expose them.</span></div>
           <div><strong>Closest historical signal</strong><span>HTTP Archive gives recurring monthly technology adoption counts by detected origin.</span></div>
-          <div><strong>True cohort need</strong><span>Requires origin-level first-seen joins in BigQuery or a historical BuiltWith export.</span></div>
+          <div><strong>Pure HTML need</strong><span>Requires origin-level BigQuery because aggregate technology counts overlap and cannot be subtracted from all sites.</span></div>
         </div>
         <p class="footer-note">Checked sources: <a href="https://trends.builtwith.com/cms/WordPress">BuiltWith Net New Pipeline</a>, <a href="https://github.com/HTTPArchive/tech-report-apis">HTTP Archive Technology Report API</a>, <a href="https://har.fyi/guides/getting-started/">HTTP Archive BigQuery guide</a>, and <a href="https://w3techs.com/technologies">W3Techs methodology</a>.</p>
+      </article>
+    </section>
+
+    <section class="grid" style="margin-top:14px">
+      {broad_site_chart}
+      <article class="panel">
+        <h2>Latest broad detected-origin counts</h2>
+        <p>Latest HTTP Archive mobile-crawl detections across CMS/builders, app frameworks, static generators, deployment surfaces, and AI-era builders. Labels show share of all HTTP Archive mobile origins.</p>
+        <div class="bar-stack">{latest_site_bars}</div>
+        <p class="footer-note">Latest all-origin denominator: {compact(site_latest_all)} mobile origins on {esc(site_latest_date)}. Overlapping detections mean these are technology-presence signals, not additive market shares.</p>
+      </article>
+    </section>
+
+    <section class="grid" style="margin-top:14px">
+      {static_site_chart}
+      {ai_builder_chart}
+    </section>
+
+    <section class="grid" style="margin-top:14px">
+      {no_cms_chart}
+      <article class="panel">
+        <h2>Plain HTML and custom sites</h2>
+        <p>Pure HTML is not a named technology in the aggregate HTTP Archive API. The best public proxy here is the W3Techs no-CMS/custom/static/unknown residual, currently {pct(no_cms_latest)}. It includes hand-coded HTML, custom apps, static generators, and sites whose CMS is not detected.</p>
       </article>
     </section>
 

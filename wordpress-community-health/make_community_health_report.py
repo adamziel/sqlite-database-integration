@@ -53,6 +53,7 @@ SOURCE_FILES = {
     "support_forum_forum_summary": ROOT / "support_forum_forum_summary.csv",
     "support_forum_archive_snapshots": ROOT / "support_forum_archive_snapshots.csv",
     "builtwith_new_site_snapshot": ROOT / "builtwith_new_site_snapshot.csv",
+    "http_archive_site_creation_adoption_monthly": ROOT / "http_archive_site_creation_adoption_monthly.csv",
 }
 
 SKIP_NETWORK_DB_FALLBACK_TABLES = [
@@ -5657,7 +5658,7 @@ def build_database(data, fetched):
                 "new_site_share_history",
                 "partial",
                 "BuiltWith historical trends or HTTP Archive cohort queries",
-                "Current report includes BuiltWith current Net New Pipeline, HTTP Archive monthly origin counts, quarterly derived tracked-share history, quarter-over-quarter detected-origin change proxies, builder momentum summaries, rank-tier detected-origin adoption, a compact new-site choice summary, and a dedicated new-site choice companion view; not a multi-year first-published-site cohort.",
+                "Current report includes BuiltWith current Net New Pipeline, HTTP Archive monthly origin counts, quarterly derived tracked-share history, quarter-over-quarter detected-origin change proxies, broader site-creation mode signals, builder momentum summaries, rank-tier detected-origin adoption, a compact new-site choice summary, and a dedicated new-site choice companion view; not a multi-year first-published-site cohort.",
             )
         )
     else:
@@ -7131,6 +7132,11 @@ def source_status_rows(fetched):
             "Current BuiltWith Net New Pipeline snapshot plus HTTP Archive monthly origin counts, quarterly derived tracked-share trend, quarter-over-quarter detected-origin change proxies, builder momentum summaries, rank-tier detected-origin adoption, and a dedicated new-site choice companion view; multi-year first-published-site history still needs paid BuiltWith or origin-level cohort queries",
         ),
         (
+            "Broader site creation modes",
+            "partial" if SOURCE_FILES["http_archive_site_creation_adoption_monthly"].exists() else "missing",
+            "HTTP Archive monthly adoption for CMS/builders, static/app frameworks, deployment surfaces, and detectable AI-era builders; pure/custom HTML still needs origin-level BigQuery because aggregate technology counts overlap",
+        ),
+        (
             "New-site choice summary",
             "covered" if fetched.get("new_site_choice_summary") else "missing",
             "Compact current proxy readout across BuiltWith 30/90-day pipeline, HTTP Archive tracked share, and traffic-tier presence",
@@ -7440,6 +7446,7 @@ def build_report(data, fetched):
     support_views = data["support_forum_view_snapshots"]
     support_forums = data["support_forum_forum_summary"]
     support_archive_snapshots = data.get("support_forum_archive_snapshots", [])
+    site_creation_adoption = data.get("http_archive_site_creation_adoption_monthly", [])
     support_monthly = fetched.get("support_forum_activity_monthly", [])
     support_age_buckets = fetched.get("support_forum_age_buckets", [])
     support_snapshot_summary = fetched.get("support_forum_snapshot_summary", [])
@@ -8082,6 +8089,142 @@ def build_report(data, fetched):
     http_quarter_wp_origin_delta = num(http_quarter_latest_wp.get("mobile_origin_delta"))
     http_quarter_wp_share_delta = fnum(http_quarter_latest_wp.get("mobile_tracked_share_delta_pts"))
     http_quarter_wp_positive_share = fnum(http_quarter_latest_wp.get("positive_delta_tracked_share_pct"))
+    site_creation_all_by_date = {
+        row.get("date"): row
+        for row in site_creation_adoption
+        if row.get("technology") == "ALL" and row.get("date")
+    }
+    site_creation_rows = []
+    for row in site_creation_adoption:
+        technology = row.get("technology") or ""
+        date_value = row.get("date") or ""
+        if not technology or technology == "ALL" or date_value not in site_creation_all_by_date:
+            continue
+        all_mobile = num(site_creation_all_by_date[date_value].get("mobile_origins"))
+        mobile_origins = num(row.get("mobile_origins"))
+        site_creation_rows.append(
+            {
+                **row,
+                "mobile_all_origin_share_pct": mobile_origins / all_mobile * 100 if all_mobile else 0,
+                "all_mobile_origins": all_mobile,
+            }
+        )
+    site_creation_dates = sorted(site_creation_all_by_date)
+    site_creation_latest_date = site_creation_dates[-1] if site_creation_dates else ""
+    site_creation_latest_all = num(site_creation_all_by_date.get(site_creation_latest_date, {}).get("mobile_origins"))
+    site_creation_latest_rows = [
+        row for row in site_creation_rows if row.get("date") == site_creation_latest_date
+    ]
+    site_creation_latest_by_tech = {row.get("technology"): row for row in site_creation_latest_rows}
+    site_creation_latest_top = sorted(
+        site_creation_latest_rows,
+        key=lambda row: num(row.get("mobile_origins")),
+        reverse=True,
+    )[:12]
+    site_creation_latest_max = max([num(row.get("mobile_origins")) for row in site_creation_latest_top] or [1])
+    site_creation_broad_series = [
+        {
+            "label": label,
+            "color": color,
+            "points": sorted(
+                (row.get("date"), fnum(row.get("mobile_all_origin_share_pct")))
+                for row in site_creation_rows
+                if row.get("technology") == technology
+            ),
+        }
+        for technology, label, color in [
+            ("WordPress", "WordPress", COLORS["wordpress"]),
+            ("Shopify", "Shopify", COLORS["shopify"]),
+            ("Wix", "Wix", COLORS["wix"]),
+            ("Next.js", "Next.js", "#111827"),
+            ("Vercel", "Vercel", "#000000"),
+            ("Nuxt.js", "Nuxt.js", "#00a86b"),
+            ("Astro", "Astro", "#fb7185"),
+            ("Lovable", "Lovable", "#dc2626"),
+        ]
+    ]
+    static_app_techs = ["Next.js", "Nuxt.js", "Astro", "Gatsby", "Hugo", "Jekyll", "Eleventy"]
+    deployment_techs = ["Vercel", "Netlify", "GitHub Pages"]
+    ai_builder_techs = ["Framer Sites", "Lovable", "Base44"]
+    static_app_series = [
+        {
+            "label": technology,
+            "color": site_creation_latest_by_tech.get(technology, {}).get("color") or COLORS["neutral"],
+            "points": sorted(
+                (row.get("date"), num(row.get("mobile_origins")))
+                for row in site_creation_rows
+                if row.get("technology") == technology
+            ),
+        }
+        for technology in static_app_techs
+    ]
+    deployment_series = [
+        {
+            "label": technology,
+            "color": site_creation_latest_by_tech.get(technology, {}).get("color") or COLORS["neutral"],
+            "points": sorted(
+                (row.get("date"), num(row.get("mobile_origins")))
+                for row in site_creation_rows
+                if row.get("technology") == technology
+            ),
+        }
+        for technology in deployment_techs
+    ]
+    ai_builder_series = [
+        {
+            "label": technology,
+            "color": site_creation_latest_by_tech.get(technology, {}).get("color") or COLORS["neutral"],
+            "points": sorted(
+                (row.get("date"), num(row.get("mobile_origins")))
+                for row in site_creation_rows
+                if row.get("technology") == technology
+            ),
+        }
+        for technology in ai_builder_techs
+    ]
+    site_creation_wp_share = fnum(
+        site_creation_latest_by_tech.get("WordPress", {}).get("mobile_all_origin_share_pct")
+    )
+    site_creation_next_share = fnum(
+        site_creation_latest_by_tech.get("Next.js", {}).get("mobile_all_origin_share_pct")
+    )
+    site_creation_lovable = site_creation_latest_by_tech.get("Lovable", {})
+    site_creation_ai_latest_total = sum(
+        num(site_creation_latest_by_tech.get(technology, {}).get("mobile_origins"))
+        for technology in ai_builder_techs
+    )
+    site_creation_ai_latest_share = (
+        site_creation_ai_latest_total / site_creation_latest_all * 100 if site_creation_latest_all else 0
+    )
+    wp_all_site_by_date = {
+        row.get("date"): fnum(row.get("value"))
+        for row in market_rows
+        if row.get("technology") == "WordPress" and row.get("metric") == "all_sites_usage"
+    }
+    wp_cms_share_by_date = {
+        row.get("date"): fnum(row.get("value"))
+        for row in market_rows
+        if row.get("technology") == "WordPress" and row.get("metric") == "cms_market_share"
+    }
+    no_cms_residual_points = []
+    for date_value in sorted(set(wp_all_site_by_date) & set(wp_cms_share_by_date)):
+        cms_share = wp_cms_share_by_date.get(date_value, 0)
+        all_site_share = wp_all_site_by_date.get(date_value, 0)
+        if cms_share <= 0:
+            continue
+        inferred_known_cms_share = all_site_share / (cms_share / 100)
+        residual = max(0, min(100, 100 - inferred_known_cms_share))
+        no_cms_residual_points.append((date_value, residual))
+    no_cms_latest = no_cms_residual_points[-1][1] if no_cms_residual_points else 0
+    no_cms_first_2025 = next((value for date_value, value in no_cms_residual_points if date_value >= "2025-01-01"), None)
+    no_cms_delta = no_cms_latest - no_cms_first_2025 if no_cms_first_2025 is not None else None
+    no_cms_residual_series = [
+        {
+            "label": "No CMS/custom/static/unknown residual",
+            "color": COLORS["orange"],
+            "points": no_cms_residual_points,
+        }
+    ]
     http_share_dates = sorted({row.get("date", "") for row in http_archive_tracked_share if row.get("date")})
     http_share_first_date = http_share_dates[0] if http_share_dates else ""
     http_share_latest_date = http_share_dates[-1] if http_share_dates else ""
@@ -9837,6 +9980,34 @@ p {{ margin:0 0 12px; }}
     <div class="grid-2">
       {svg_line_chart("WordPress share of positive net additions", "Share of positive quarter-over-quarter mobile-origin additions within the tracked set. Quarters where WordPress lost detected origins are shown as 0% rather than counted as new-site gains.", http_archive_positive_delta_share_series, y_suffix="%")}
       {svg_line_chart("Net detected mobile-origin change", "Quarter-over-quarter change in average mobile detected origins. This is crawl-sample movement and technology detection, not a literal count of newly published websites.", http_archive_net_origin_change_series, start_zero=False)}
+    </div>
+    <div class="card">
+      <h3>Beyond the five CMS/builder peers</h3>
+      <p>The five-way chart above is intentionally narrow: WordPress, Shopify, Wix, Squarespace, and Webflow. It is not the whole market for how sites get made. HTTP Archive also detects app frameworks, static-site generators, deployment surfaces, and a small set of AI-era builders. Pure HTML/custom sites cannot be isolated from aggregate technology counts because detections overlap; for that, the next source is origin-level BigQuery.</p>
+      <div class="stats">
+        {stat_card("HTTP Archive origins", compact(site_creation_latest_all), site_creation_latest_date or "not fetched", "good" if site_creation_latest_all else "watch")}
+        {stat_card("WordPress in all origins", pct(site_creation_wp_share), f"{compact(num(site_creation_latest_by_tech.get('WordPress', {}).get('mobile_origins')))} mobile origins", "good" if site_creation_wp_share else "watch")}
+        {stat_card("Next.js in all origins", pct(site_creation_next_share), f"{compact(num(site_creation_latest_by_tech.get('Next.js', {}).get('mobile_origins')))} mobile origins", "soft" if site_creation_next_share else "watch")}
+        {stat_card("Detectable AI-era builders", compact(site_creation_ai_latest_total), f"{pct(site_creation_ai_latest_share)} of mobile origins; non-deduped Framer/Lovable/Base44", "watch")}
+        {stat_card("No-CMS/custom residual", pct(no_cms_latest), f"W3Techs inferred residual{f'; {no_cms_delta:+.1f} pts since 2025' if no_cms_delta is not None else ''}", "soft")}
+      </div>
+    </div>
+    <div class="grid-2">
+      {svg_line_chart("Broad site-creation signals as share of all HTTP Archive origins", "Selected CMS/builders, app frameworks, deployment surfaces, and AI-era builders. Shares are individual technology detections, so they can overlap and should not be summed.", site_creation_broad_series, y_suffix="%")}
+      <div class="card">
+        <h3>Latest broad detected-origin counts</h3>
+        <p>Latest mobile-crawl counts across broader site-creation signals. Labels include each technology's share of all HTTP Archive mobile origins; overlapping detections mean this is not a market-share denominator.</p>
+        {''.join(horizontal_count_metric(f"{row.get('technology')} - {pct(row.get('mobile_all_origin_share_pct'))} all origins", num(row.get('mobile_origins')), site_creation_latest_max, row.get('color') or COLORS["neutral"], "") for row in site_creation_latest_top)}
+        <p class="small-note">Rows are stored in SQLite as <code>http_archive_site_creation_adoption_monthly</code>.</p>
+      </div>
+    </div>
+    <div class="grid-2">
+      {svg_line_chart("Static and app framework detected origins", "HTTP Archive mobile-origin detections for static-site generators and static/hybrid app frameworks. Next.js and Nuxt.js are not purely static, so this is an app-framework/static-web signal rather than a pure SSG count.", static_app_series)}
+      {svg_line_chart("Deployment-surface detected origins", "Vercel, Netlify, and GitHub Pages are deployment surfaces. They overlap with frameworks and static generators, so counts are directional technology adoption signals.", deployment_series)}
+    </div>
+    <div class="grid-2">
+      {svg_line_chart("AI-era builder detected origins", "Detectable builder surfaces currently available in HTTP Archive/Wappalyzer data. Lovable and Base44 are direct AI-builder signals; Framer Sites is a broader visual builder with AI-assisted creation features.", ai_builder_series)}
+      {svg_line_chart("W3Techs no-CMS/custom/static residual", "Inferred from WordPress all-site share divided by WordPress CMS-share. This approximates sites without a detected CMS: custom builds, static HTML, SSG output, web apps, and unknowns.", no_cms_residual_series, y_suffix="%")}
     </div>
     <div class="grid-2">
       <div class="card">

@@ -147,8 +147,8 @@
     </nav>
 
     <section class="grid metrics" aria-label="Database summary">
-      <div class="metric"><h3>Tables</h3><strong>108</strong><span>SQLite tables in the report database.</span></div>
-      <div class="metric"><h3>Local sources</h3><strong>20</strong><span>Imported files with SHA-256 hashes.</span></div>
+      <div class="metric"><h3>Tables</h3><strong>110</strong><span>SQLite tables in the report database.</span></div>
+      <div class="metric"><h3>Local sources</h3><strong>21</strong><span>Imported files with SHA-256 hashes.</span></div>
       <div class="metric"><h3>Tickets/issues</h3><strong>97.1k</strong><span>Core Trac tickets plus Gutenberg issues.</span></div>
       <div class="metric"><h3>Pull requests</h3><strong>12.1k</strong><span>wordpress-develop GitHub PR records.</span></div>
       <div class="metric"><h3>Integrity</h3><strong>ok</strong><span>SQLite integrity check result.</span></div>
@@ -339,7 +339,9 @@
 <div class="table-chip"><code>hn_hiring_wordpress_quarterly</code><span>58 rows</span></div>
 <div class="table-chip"><code>http_archive_adoption_monthly</code><span>385 rows</span></div>
 <div class="table-chip"><code>http_archive_cwv_monthly</code><span>2,695 rows</span></div>
+<div class="table-chip"><code>http_archive_quarterly_detected_origin_change</code><span>125 rows</span></div>
 <div class="table-chip"><code>http_archive_rank_adoption_snapshot</code><span>22 rows</span></div>
+<div class="table-chip"><code>http_archive_site_creation_adoption_monthly</code><span>1,382 rows</span></div>
 <div class="table-chip"><code>http_archive_tracked_share_monthly</code><span>385 rows</span></div>
 <div class="table-chip"><code>http_archive_tracked_share_quarterly</code><span>130 rows</span></div>
 <div class="table-chip"><code>maintainer_participation_quarterly</code><span>75 rows</span></div>
@@ -371,7 +373,7 @@
 <div class="table-chip"><code>remotive_matching_jobs_snapshot</code><span>23 rows</span></div>
 <div class="table-chip"><code>search_query_intent_summary</code><span>7 rows</span></div>
 <div class="table-chip"><code>search_query_suggestions</code><span>70 rows</span></div>
-<div class="table-chip"><code>source_files</code><span>20 rows</span></div>
+<div class="table-chip"><code>source_files</code><span>21 rows</span></div>
 <div class="table-chip"><code>source_gaps</code><span>5 rows</span></div>
 <div class="table-chip"><code>stack_overflow_tag_quarterly</code><span>303 rows</span></div>
 <div class="table-chip"><code>support_forum_activity_monthly</code><span>7 rows</span></div>
@@ -520,6 +522,13 @@
         </article>
 
         <article class="source-card">
+          <strong><code>http_archive_site_creation_adoption_monthly</code></strong>
+          <div class="meta"><span>Rows</span><b>1,382</b></div>
+          <div class="meta"><span>Hash prefix</span><code>68a5f065fa59</code></div>
+          <p><code>/Users/admin/wordpress_community_health/http_archive_site_creation_adoption_monthly.csv</code></p>
+        </article>
+
+        <article class="source-card">
           <strong><code>support_forum_archive_snapshots</code></strong>
           <div class="meta"><span>Rows</span><b>135</b></div>
           <div class="meta"><span>Hash prefix</span><code>eb555b2c594c</code></div>
@@ -577,7 +586,7 @@
           <b>Best next source</b>
           <p>BuiltWith historical trends or HTTP Archive cohort queries</p>
           <b>Current coverage</b>
-          <p>Current report includes BuiltWith current Net New Pipeline, HTTP Archive monthly origin counts, quarterly derived tracked-share history, builder momentum summaries, rank-tier detected-origin adoption, a compact new-site choice summary, and a dedicated new-site choice companion view; not a multi-year newly created site cohort.</p>
+          <p>Current report includes BuiltWith current Net New Pipeline, HTTP Archive monthly origin counts, quarterly derived tracked-share history, quarter-over-quarter detected-origin change proxies, broader site-creation mode signals, builder momentum summaries, rank-tier detected-origin adoption, a compact new-site choice summary, and a dedicated new-site choice companion view; not a multi-year first-published-site cohort.</p>
         </article>
 
         <article class="gap-card">

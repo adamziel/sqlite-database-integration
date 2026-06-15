@@ -248,9 +248,9 @@ def scale(value, old_min, old_max, new_min, new_max):
     return new_min + (value - old_min) * (new_max - new_min) / (old_max - old_min)
 
 
-def x_for_date(rows, event_date, left, plot_w):
-    start = parse_period_start(rows[0]["quarter"])
-    end = parse_period_start(rows[-1]["quarter"])
+def x_for_date(rows, event_date, left, plot_w, date_key):
+    start = parse_period_start(rows[0][date_key])
+    end = parse_period_start(rows[-1][date_key])
     if end <= start:
         return left + plot_w / 2
     clamped = min(max(event_date, start), end)
@@ -258,10 +258,14 @@ def x_for_date(rows, event_date, left, plot_w):
     return left + ratio * plot_w
 
 
-def timeline_event_markers(rows, left, top, plot_w, plot_h, label_ys):
+def timeline_event_markers(rows, left, top, plot_w, plot_h, label_ys, date_key="quarter", include_out_of_range=True):
     parts = []
+    start = parse_period_start(rows[0][date_key])
+    end = parse_period_start(rows[-1][date_key])
     for idx, event in enumerate(TIMELINE_EVENTS):
-        x = x_for_date(rows, event["date"], left, plot_w)
+        if not include_out_of_range and not (start <= event["date"] <= end):
+            continue
+        x = x_for_date(rows, event["date"], left, plot_w, date_key)
         label = event["label"]
         label_w = min(172, max(78, len(label) * 7 + 18))
         label_x = min(max(x, left + label_w / 2), left + plot_w - label_w / 2)
@@ -358,8 +362,8 @@ def open_timeline_svg(rows):
 
 
 def flow_svg(rows):
-    width, height = 1120, 360
-    left, right, top, bottom = 70, 34, 92, 56
+    width, height = 1120, 390
+    left, right, top, bottom = 70, 34, 122, 56
     plot_w = width - left - right
     plot_h = height - top - bottom
     max_v = max(max(i(r, "created"), i(r, "closed")) for r in rows) + 120
@@ -379,6 +383,8 @@ def flow_svg(rows):
         y = y_for(tick)
         parts.append(f'<line x1="{left}" y1="{y:.1f}" x2="{left + plot_w}" y2="{y:.1f}" class="grid"/>')
         parts.append(f'<text x="{left - 10}" y="{y + 4:.1f}" text-anchor="end" class="axis">{tick:,}</text>')
+
+    parts.extend(timeline_event_markers(rows, left, top, plot_w, plot_h, [64, 84, 104]))
 
     created_points = " ".join(
         f'{x_for(idx):.1f},{y_for(i(row, "created")):.1f}'
@@ -406,9 +412,9 @@ def flow_svg(rows):
 
 
 def net_monthly_svg(months):
-    recent = [r for r in months if r["month"] >= "2024-10-01"]
-    width, height = 1120, 260
-    left, right, top, bottom = 68, 32, 88, 52
+    recent = [r for r in months if r["month"] >= "2024-09-01"]
+    width, height = 1120, 310
+    left, right, top, bottom = 68, 32, 122, 52
     plot_w = width - left - right
     plot_h = height - top - bottom
     values = [i(r, "net") for r in recent]
@@ -426,6 +432,7 @@ def net_monthly_svg(months):
         f'<text x="{left}" y="42" class="chart-note">Bars below zero mean closures exceeded new issues. Late 2025 and June 2026 show cleanup pulses.</text>',
         f'<line x1="{left}" y1="{zero:.1f}" x2="{left + plot_w}" y2="{zero:.1f}" stroke="#334155" stroke-width="1.2"/>',
     ]
+    parts.extend(timeline_event_markers(recent, left, top, plot_w, plot_h, [64, 84, 104], date_key="month", include_out_of_range=False))
     for idx, row in enumerate(recent):
         value = i(row, "net")
         x = left + idx * group_w + (group_w - bar_w) / 2
@@ -548,8 +555,8 @@ def first_time_reporters_svg(rows):
 
 
 def reporter_trend_svg(rows):
-    width, height = 1120, 360
-    left, right, top, bottom = 74, 34, 94, 58
+    width, height = 1120, 390
+    left, right, top, bottom = 74, 34, 122, 58
     plot_w = width - left - right
     plot_h = height - top - bottom
     unique_values = [i(r, "unique_creators") for r in rows]
@@ -589,6 +596,8 @@ def reporter_trend_svg(rows):
         y = y_for(tick)
         parts.append(f'<line x1="{left}" y1="{y:.1f}" x2="{left + plot_w}" y2="{y:.1f}" class="grid"/>')
         parts.append(f'<text x="{left - 10}" y="{y + 4:.1f}" text-anchor="end" class="axis">{tick:,}</text>')
+
+    parts.extend(timeline_event_markers(rows, left, top, plot_w, plot_h, [64, 84, 104]))
 
     parts.append(f'<polyline points="{points(unique_values)}" fill="none" stroke="{LINE_COLORS["creator"]}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>')
     parts.append(f'<polyline points="{points(first_values)}" fill="none" stroke="{LINE_COLORS["first"]}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>')

@@ -202,9 +202,13 @@ def x_for_date(rows, event_date, left, plot_w, x_key):
     return left + ratio * plot_w
 
 
-def timeline_event_markers(rows, left, top, plot_w, plot_h, x_key, label_ys, events):
+def timeline_event_markers(rows, left, top, plot_w, plot_h, x_key, label_ys, events, include_out_of_range=True):
     parts = []
+    start = parse_chart_date(rows[0][x_key])
+    end = parse_chart_date(rows[-1][x_key])
     for idx, event in enumerate(events):
+        if not include_out_of_range and not (start <= event["date"] <= end):
+            continue
         x = x_for_date(rows, event["date"], left, plot_w, x_key)
         label = event["label"]
         label_w = min(172, max(78, len(label) * 7 + 18))
@@ -1268,8 +1272,8 @@ def grouped_bars_svg(rows, series, title, note, aria, height=365):
 
 def monthly_net_svg(rows, noun="Core Trac tickets"):
     recent = [row for row in rows if row["month"] >= "2024-01-01"]
-    width, height = 1120, 310
-    left, right, top, bottom = 70, 34, 82, 54
+    width, height = 1120, 425
+    left, right, top, bottom = 70, 34, 156, 54
     plot_w = width - left - right
     plot_h = height - top - bottom
     values = [numeric(row, "net") for row in recent]
@@ -1293,6 +1297,7 @@ def monthly_net_svg(rows, noun="Core Trac tickets"):
         parts.append(f'<line x1="{left}" y1="{y:.1f}" x2="{left + plot_w}" y2="{y:.1f}" class="{cls}"/>')
         if tick != 0:
             parts.append(f'<text x="{left - 10}" y="{y + 4:.1f}" text-anchor="end" class="axis">{tick:+,}</text>')
+    parts.extend(timeline_event_markers(recent, left, top, plot_w, plot_h, "month", [82, 101, 120, 139], TIMELINE_EVENTS, include_out_of_range=False))
     points = []
     for idx, row in enumerate(recent):
         x = left + idx * group_w + group_w / 2
@@ -1438,7 +1443,7 @@ def render_view_panel(slug, view, active=False):
     </section>
 
     <section class="chart-band">
-      {line_chart_svg(q_rows, [("created", "New tickets", LINE_COLORS["created"]), ("closed", "Closed tickets", LINE_COLORS["closed"])], f"New and closed {noun} by quarter", "Quarterly flow: blue is newly opened and red is closed.", f"New and closed {noun} by quarter")}
+      {line_chart_svg(q_rows, [("created", "New tickets", LINE_COLORS["created"]), ("closed", "Closed tickets", LINE_COLORS["closed"])], f"New and closed {noun} by quarter", "Quarterly flow: blue is newly opened and red is closed.", f"New and closed {noun} by quarter", event_markers=TIMELINE_EVENTS)}
     </section>
 
     <section class="chart-band">
@@ -1446,7 +1451,7 @@ def render_view_panel(slug, view, active=False):
     </section>
 
     <section class="chart-band">
-      {line_chart_svg(q_rows, [("unique_reporters", "Unique reporters", LINE_COLORS["reporters"]), ("first_time_reporters", "First-time reporters", LINE_COLORS["first"])], f"People opening {noun}", f"Purple is unique reporters per quarter; orange is first-time reporters per quarter.", f"People opening {noun}")}
+      {line_chart_svg(q_rows, [("unique_reporters", "Unique reporters", LINE_COLORS["reporters"]), ("first_time_reporters", "First-time reporters", LINE_COLORS["first"])], f"People opening {noun}", f"Purple is unique reporters per quarter; orange is first-time reporters per quarter.", f"People opening {noun}", event_markers=TIMELINE_EVENTS)}
     </section>
 
     <section class="chart-band">
@@ -1458,7 +1463,7 @@ def render_view_panel(slug, view, active=False):
     </section>
 
     <section class="chart-band">
-      {line_chart_svg(gh_rows, gh_series, "GitHub code-review activity by quarter", gh_note, gh_aria)}
+      {line_chart_svg(gh_rows, gh_series, "GitHub code-review activity by quarter", gh_note, gh_aria, event_markers=TIMELINE_EVENTS)}
     </section>
 
     <section class="discussion">

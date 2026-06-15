@@ -262,36 +262,58 @@ def timeline_event_markers(rows, left, top, plot_w, plot_h, label_ys, date_key="
     parts = []
     start = parse_period_start(rows[0][date_key])
     end = parse_period_start(rows[-1][date_key])
+    items = []
     for idx, event in enumerate(TIMELINE_EVENTS):
         if not include_out_of_range and not (start <= event["date"] <= end):
             continue
         x = x_for_date(rows, event["date"], left, plot_w, date_key)
         label = event["label"]
         label_w = min(172, max(78, len(label) * 7 + 18))
-        label_y = label_ys[idx % len(label_ys)]
-        label_h = 20
-        gap = 7
-        if x + gap + label_w <= left + plot_w:
-            label_left = x + gap
-            text_x = label_left + 9
-            text_anchor = "start"
-            connector_x2 = label_left
-        else:
-            label_left = max(left, x - gap - label_w)
-            text_x = label_left + label_w - 9
-            text_anchor = "end"
-            connector_x2 = label_left + label_w
-        connector_y = label_y - 4
+        items.append(
+            {
+                "date": event["date"],
+                "label": label,
+                "x": x,
+                "label_w": label_w,
+                "label_left": min(max(x - label_w / 2, left), left + plot_w - label_w),
+            }
+        )
+
+    gap = 6
+    cursor = left
+    for item in items:
+        item["label_left"] = max(item["label_left"], cursor)
+        cursor = item["label_left"] + item["label_w"] + gap
+    cursor = left + plot_w
+    for item in reversed(items):
+        if item["label_left"] + item["label_w"] > cursor:
+            item["label_left"] = cursor - item["label_w"]
+        cursor = item["label_left"] - gap
+    cursor = left
+    for item in items:
+        item["label_left"] = max(item["label_left"], cursor)
+        cursor = item["label_left"] + item["label_w"] + gap
+
+    label_y = label_ys[1] if len(label_ys) > 1 else label_ys[0]
+    label_h = 22
+    label_top = label_y - 15
+    label_bottom = label_top + label_h
+    for item in items:
+        x = item["x"]
+        label = item["label"]
+        label_w = item["label_w"]
+        label_left = item["label_left"]
+        label_center = label_left + label_w / 2
         parts.append('<g class="event-marker">')
-        parts.append(f'<title>{event["date"].date().isoformat()} {esc(label)}</title>')
+        parts.append(f'<title>{item["date"].date().isoformat()} {esc(label)}</title>')
         parts.append(f'<line x1="{x:.1f}" y1="{top}" x2="{x:.1f}" y2="{top + plot_h}" class="event-line"/>')
-        parts.append(f'<line x1="{x:.1f}" y1="{connector_y:.1f}" x2="{connector_x2:.1f}" y2="{connector_y:.1f}" class="event-connector"/>')
-        parts.append(f'<circle cx="{x:.1f}" cy="{connector_y:.1f}" r="3" class="event-dot"/>')
+        parts.append(f'<line x1="{label_center:.1f}" y1="{label_bottom:.1f}" x2="{x:.1f}" y2="{top:.1f}" class="event-connector"/>')
+        parts.append(f'<circle cx="{x:.1f}" cy="{top:.1f}" r="3.2" class="event-dot"/>')
         parts.append(
-            f'<rect x="{label_left:.1f}" y="{label_y - 15:.1f}" '
+            f'<rect x="{label_left:.1f}" y="{label_top:.1f}" '
             f'width="{label_w:.1f}" height="{label_h}" rx="4" class="event-label-bg"/>'
         )
-        parts.append(f'<text x="{text_x:.1f}" y="{label_y:.1f}" text-anchor="{text_anchor}" class="event-label">{esc(label)}</text>')
+        parts.append(f'<text x="{label_center:.1f}" y="{label_y:.1f}" text-anchor="middle" class="event-label">{esc(label)}</text>')
         parts.append("</g>")
     return parts
 
@@ -805,7 +827,7 @@ p {{ margin: 8px 0 0; color: var(--muted); }}
 .callout-text {{ font: 700 13px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #111827; }}
 .legend-text {{ font: 12px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #4b5563; }}
 .event-line {{ stroke: #475569; stroke-width: 1.3; stroke-dasharray: 4 4; opacity: .85; }}
-.event-connector {{ stroke: #334155; stroke-width: 1.4; }}
+.event-connector {{ stroke: #172033; stroke-width: 1.7; }}
 .event-dot {{ fill: #334155; stroke: #ffffff; stroke-width: 1.5; }}
 .event-label-bg {{ fill: #ffffff; stroke: #334155; stroke-width: 1.1; }}
 .event-label {{ font: 800 12px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #111827; }}

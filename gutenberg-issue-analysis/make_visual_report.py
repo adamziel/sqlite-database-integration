@@ -268,16 +268,30 @@ def timeline_event_markers(rows, left, top, plot_w, plot_h, label_ys, date_key="
         x = x_for_date(rows, event["date"], left, plot_w, date_key)
         label = event["label"]
         label_w = min(172, max(78, len(label) * 7 + 18))
-        label_x = min(max(x, left + label_w / 2), left + plot_w - label_w / 2)
         label_y = label_ys[idx % len(label_ys)]
+        label_h = 20
+        gap = 7
+        if x + gap + label_w <= left + plot_w:
+            label_left = x + gap
+            text_x = label_left + 9
+            text_anchor = "start"
+            connector_x2 = label_left
+        else:
+            label_left = max(left, x - gap - label_w)
+            text_x = label_left + label_w - 9
+            text_anchor = "end"
+            connector_x2 = label_left + label_w
+        connector_y = label_y - 4
         parts.append('<g class="event-marker">')
         parts.append(f'<title>{event["date"].date().isoformat()} {esc(label)}</title>')
         parts.append(f'<line x1="{x:.1f}" y1="{top}" x2="{x:.1f}" y2="{top + plot_h}" class="event-line"/>')
+        parts.append(f'<line x1="{x:.1f}" y1="{connector_y:.1f}" x2="{connector_x2:.1f}" y2="{connector_y:.1f}" class="event-connector"/>')
+        parts.append(f'<circle cx="{x:.1f}" cy="{connector_y:.1f}" r="3" class="event-dot"/>')
         parts.append(
-            f'<rect x="{label_x - label_w / 2:.1f}" y="{label_y - 13:.1f}" '
-            f'width="{label_w:.1f}" height="18" rx="4" class="event-label-bg"/>'
+            f'<rect x="{label_left:.1f}" y="{label_y - 15:.1f}" '
+            f'width="{label_w:.1f}" height="{label_h}" rx="4" class="event-label-bg"/>'
         )
-        parts.append(f'<text x="{label_x:.1f}" y="{label_y:.1f}" text-anchor="middle" class="event-label">{esc(label)}</text>')
+        parts.append(f'<text x="{text_x:.1f}" y="{label_y:.1f}" text-anchor="{text_anchor}" class="event-label">{esc(label)}</text>')
         parts.append("</g>")
     return parts
 
@@ -790,9 +804,11 @@ p {{ margin: 8px 0 0; color: var(--muted); }}
 .phase-label {{ font: 700 12px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #334155; }}
 .callout-text {{ font: 700 13px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #111827; }}
 .legend-text {{ font: 12px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #4b5563; }}
-.event-line {{ stroke: #64748b; stroke-width: 1.2; stroke-dasharray: 4 4; opacity: .8; }}
-.event-label-bg {{ fill: #ffffff; stroke: #cbd5e1; stroke-width: 1; }}
-.event-label {{ font: 700 11px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #334155; }}
+.event-line {{ stroke: #475569; stroke-width: 1.3; stroke-dasharray: 4 4; opacity: .85; }}
+.event-connector {{ stroke: #334155; stroke-width: 1.4; }}
+.event-dot {{ fill: #334155; stroke: #ffffff; stroke-width: 1.5; }}
+.event-label-bg {{ fill: #ffffff; stroke: #334155; stroke-width: 1.1; }}
+.event-label {{ font: 800 12px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #111827; }}
 .phase-card-title {{ font: 800 20px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #111827; }}
 .phase-card-note {{ font: 13px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #4b5563; }}
 .metric-label {{ font: 13px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #334155; font-weight: 700; }}

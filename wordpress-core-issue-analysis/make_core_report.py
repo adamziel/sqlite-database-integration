@@ -212,16 +212,30 @@ def timeline_event_markers(rows, left, top, plot_w, plot_h, x_key, label_ys, eve
         x = x_for_date(rows, event["date"], left, plot_w, x_key)
         label = event["label"]
         label_w = min(172, max(78, len(label) * 7 + 18))
-        label_x = min(max(x, left + label_w / 2), left + plot_w - label_w / 2)
         label_y = label_ys[idx % len(label_ys)]
+        label_h = 20
+        gap = 7
+        if x + gap + label_w <= left + plot_w:
+            label_left = x + gap
+            text_x = label_left + 9
+            text_anchor = "start"
+            connector_x2 = label_left
+        else:
+            label_left = max(left, x - gap - label_w)
+            text_x = label_left + label_w - 9
+            text_anchor = "end"
+            connector_x2 = label_left + label_w
+        connector_y = label_y - 4
         parts.append('<g class="event-marker">')
         parts.append(f'<title>{event["date"].date().isoformat()} {esc(label)}</title>')
         parts.append(f'<line x1="{x:.1f}" y1="{top}" x2="{x:.1f}" y2="{top + plot_h}" class="event-line"/>')
+        parts.append(f'<line x1="{x:.1f}" y1="{connector_y:.1f}" x2="{connector_x2:.1f}" y2="{connector_y:.1f}" class="event-connector"/>')
+        parts.append(f'<circle cx="{x:.1f}" cy="{connector_y:.1f}" r="3" class="event-dot"/>')
         parts.append(
-            f'<rect x="{label_x - label_w / 2:.1f}" y="{label_y - 13:.1f}" '
-            f'width="{label_w:.1f}" height="18" rx="4" class="event-label-bg"/>'
+            f'<rect x="{label_left:.1f}" y="{label_y - 15:.1f}" '
+            f'width="{label_w:.1f}" height="{label_h}" rx="4" class="event-label-bg"/>'
         )
-        parts.append(f'<text x="{label_x:.1f}" y="{label_y:.1f}" text-anchor="middle" class="event-label">{esc(label)}</text>')
+        parts.append(f'<text x="{text_x:.1f}" y="{label_y:.1f}" text-anchor="{text_anchor}" class="event-label">{esc(label)}</text>')
         parts.append("</g>")
     return parts
 
@@ -1418,6 +1432,7 @@ def render_view_panel(slug, view, active=False):
     chart_label = summary["chart_label"]
     hidden = "" if active else " hidden"
     active_class = " is-active" if active else ""
+    gh_chart_rows = [row for row in gh_rows if row["quarter"] >= "2018-01-01"]
     if summary["slug"] == "all":
         gh_series = [
             ("created", "PRs opened", LINE_COLORS["prs"]),
@@ -1463,7 +1478,7 @@ def render_view_panel(slug, view, active=False):
     </section>
 
     <section class="chart-band">
-      {line_chart_svg(gh_rows, gh_series, "GitHub code-review activity by quarter", gh_note, gh_aria, event_markers=TIMELINE_EVENTS)}
+      {line_chart_svg(gh_chart_rows, gh_series, "GitHub code-review activity by quarter", gh_note, gh_aria, event_markers=TIMELINE_EVENTS)}
     </section>
 
     <section class="discussion">
@@ -1641,20 +1656,29 @@ def render_report(data):
       stroke-width: 1;
     }}
     .event-line {{
-      stroke: #64748b;
-      stroke-width: 1.2;
+      stroke: #475569;
+      stroke-width: 1.3;
       stroke-dasharray: 4 4;
-      opacity: .8;
+      opacity: .85;
+    }}
+    .event-connector {{
+      stroke: #334155;
+      stroke-width: 1.4;
+    }}
+    .event-dot {{
+      fill: #334155;
+      stroke: #ffffff;
+      stroke-width: 1.5;
     }}
     .event-label-bg {{
       fill: #ffffff;
-      stroke: #cbd5e1;
-      stroke-width: 1;
+      stroke: #334155;
+      stroke-width: 1.1;
     }}
     .event-label {{
-      font-size: 11px;
-      font-weight: 700;
-      fill: #334155;
+      font-size: 12px;
+      font-weight: 800;
+      fill: #111827;
     }}
     .zero-line {{
       stroke: #334155;

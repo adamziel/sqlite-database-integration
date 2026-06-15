@@ -8671,7 +8671,7 @@ p {{ margin:0 0 12px; }}
   .evidence-row {{ grid-template-columns:1fr; }}
   .goal-row {{ grid-template-columns:1fr; }}
   .page {{ padding:24px 16px 48px; }}
-  .chart-scroll .chart {{ min-width:680px; }}
+  .chart-scroll .chart {{ min-width:0; }}
 }}
 </style>
 </head>

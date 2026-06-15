@@ -123,7 +123,7 @@ def point_series(rows_, key, value_key, label_key="label"):
     ]
 
 
-def multi_line_chart(title, note, series, value_decimals=0):
+def multi_line_chart(title, note, series, value_decimals=0, value_suffix=""):
     series = [
         {
             "name": item["name"],
@@ -153,7 +153,8 @@ def multi_line_chart(title, note, series, value_decimals=0):
         return top + (1 - value / y_top) * plot_h
 
     def fmt(value):
-        return compact(value) if value >= 1000 and value_decimals == 0 else f"{value:.{value_decimals}f}"
+        formatted = compact(value) if value >= 1000 and value_decimals == 0 else f"{value:.{value_decimals}f}"
+        return f"{formatted}{value_suffix}"
 
     pieces = [
         '<article class="chart-card">',
@@ -279,6 +280,36 @@ def main():
                 "points": point_series([row for row in archive if row.get("view") == "no_replies"], "quarter", "estimated_total_topics"),
             },
         ],
+    )
+    archive_first_page_rows = [
+        row
+        for row in archive
+        if row.get("view") == "all_topics" and num(row.get("topics_on_first_page")) > 0
+    ]
+    archive_first_page_enriched = []
+    for row in archive_first_page_rows:
+        topics_on_first_page = max(1, num(row.get("topics_on_first_page")))
+        enriched = dict(row)
+        enriched["no_reply_share_pct"] = num(row.get("first_page_no_reply_topics")) / topics_on_first_page * 100
+        enriched["resolved_badge_share_pct"] = num(row.get("first_page_resolved_badges")) / topics_on_first_page * 100
+        archive_first_page_enriched.append(enriched)
+    archive_first_page_chart = multi_line_chart(
+        "Archived support first-page mix",
+        "Quarterly Wayback all-topics first pages. These percentages show visible no-reply and resolved-badge mix on the archived first page, not the whole forum history.",
+        [
+            {
+                "name": "No replies",
+                "color": COLORS["red"],
+                "points": point_series(archive_first_page_enriched, "quarter", "no_reply_share_pct"),
+            },
+            {
+                "name": "Resolved badges",
+                "color": COLORS["green"],
+                "points": point_series(archive_first_page_enriched, "quarter", "resolved_badge_share_pct"),
+            },
+        ],
+        value_decimals=1,
+        value_suffix="%",
     )
 
     max_age_topics = max([num(row.get("topics")) for row in age_buckets] or [1])
@@ -454,6 +485,7 @@ def main():
 
   <section class="charts">
 {archive_chart}
+{archive_first_page_chart}
 {month_chart}
     <article class="chart-card">
       <h2>Open load by age</h2>

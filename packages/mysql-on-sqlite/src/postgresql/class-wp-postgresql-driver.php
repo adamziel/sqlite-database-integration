@@ -141,6 +141,17 @@ class WP_PostgreSQL_Driver {
 	 */
 	private const MYSQL_QUERY_TRANSLATION_CACHE_LIMIT = 256;
 
+	private const MYSQL_WORDPRESS_SELECT_QUERY_TEMPLATE_DESCRIPTORS = array(
+		array(
+			'name'               => 'usermeta_priming',
+			'table_base'         => 'usermeta',
+			'projection_columns' => array( 'user_id', 'meta_key', 'meta_value' ),
+			'where_column'       => 'user_id',
+			'order_column'       => 'umeta_id',
+			'order_direction'    => 'ASC',
+		),
+	);
+
 	private const MYSQL_TOKEN_SEQUENCE_TRANSLATION_RULES                 = array( 'translate_mysql_dual_table_reference_to_postgresql', 'translate_mysql_index_hint_to_postgresql', 'translate_mysql_limit_offset_count_to_postgresql', 'translate_mysql_field_function_to_postgresql', 'translate_mysql_typed_cast_or_convert_to_postgresql', 'translate_mysql_regexp_operator_to_postgresql', 'translate_mysql_group_concat_function_to_postgresql', 'translate_mysql_rand_function_to_postgresql', 'translate_mysql_session_user_function_to_postgresql', 'translate_mysql_infix_interval_expression_to_postgresql', 'translate_mysql_date_arithmetic_to_postgresql', 'translate_mysql_nonparenthesized_timestamp_function_to_postgresql', 'translate_mysql_common_function_to_postgresql', 'translate_mysql_week_function_to_postgresql', 'translate_mysql_weekday_index_function_to_postgresql', 'translate_mysql_date_format_to_postgresql', 'translate_mysql_date_time_extract_to_postgresql', 'translate_mysql_convert_using_to_postgresql', 'translate_mysql_variable_reference_to_postgresql:without_end', 'translate_mysql_select_row_locking_clause_to_empty_postgresql' );
 	private const MYSQL_COMPATIBLE_REWRITE_STATEMENT_TOKENS              = array( WP_MySQL_Lexer::DELETE_SYMBOL, WP_MySQL_Lexer::INSERT_SYMBOL, WP_MySQL_Lexer::REPLACE_SYMBOL, WP_MySQL_Lexer::SELECT_SYMBOL, WP_MySQL_Lexer::UPDATE_SYMBOL );
 	private const MYSQL_COMPATIBLE_REWRITE_UNSUPPORTED_FUNCTION_SCANNERS = array( 'contains_unsupported_mysql_date_arithmetic_function', 'contains_unsupported_mysql_timestampadd_function', 'contains_unsupported_mysql_date_format_function', 'contains_unsupported_mysql_rand_function', 'contains_unsupported_mysql_week_function', 'contains_unsupported_mysql_extract_function', 'contains_unsupported_mysql_convert_function', 'contains_unsupported_mysql_common_function' );
@@ -482,11 +493,11 @@ class WP_PostgreSQL_Driver {
 	private $mysql_select_translation_cache = array();
 
 	/**
-	 * Cached WordPress metadata priming SELECT templates keyed by query shape.
+	 * Cached WordPress SELECT query templates keyed by query shape.
 	 *
 	 * @var array<string, array{prefix_sql: string, suffix_sql: string}>
 	 */
-	private $mysql_meta_priming_select_template_cache = array();
+	private $mysql_wordpress_select_query_template_cache = array();
 
 	/**
 	 * Cached exact SQL_CALC_FOUND_ROWS count SQL keyed by source query hash.
@@ -680,7 +691,7 @@ class WP_PostgreSQL_Driver {
 		$this->mysql_token_cache_sql_mode                  = null;
 		$this->mysql_token_cache_tokens                    = array();
 		$this->mysql_select_translation_cache              = array();
-		$this->mysql_meta_priming_select_template_cache    = array();
+		$this->mysql_wordpress_select_query_template_cache = array();
 		$this->mysql_sql_calc_found_rows_count_query_cache = array();
 	}
 
@@ -1320,9 +1331,9 @@ class WP_PostgreSQL_Driver {
 		return false;
 	}
 	private function get_mysql_select_query_translation( string $query ): array {
-		$meta_priming_translation = $this->get_mysql_usermeta_priming_select_template_translation( $query );
-		if ( null !== $meta_priming_translation ) {
-			return $meta_priming_translation;
+		$template_translation = $this->get_mysql_wordpress_select_query_template_translation( $query );
+		if ( null !== $template_translation ) {
+			return $template_translation;
 		}
 
 		$cache_key = sha1( $this->db_name . "\0" . implode( ',', $this->active_sql_modes ) . "\0" . $query );
@@ -1345,25 +1356,28 @@ class WP_PostgreSQL_Driver {
 		$this->limit_mysql_query_translation_cache( $this->mysql_select_translation_cache );
 		return $translation;
 	}
-	private function get_mysql_usermeta_priming_select_template_translation( string $query ): ?array {
-		$shape = $this->get_mysql_usermeta_priming_select_template_shape( $query );
-		if ( null === $shape ) {
-			return null;
-		}
+	private function get_mysql_wordpress_select_query_template_translation( string $query ): ?array {
+		foreach ( self::MYSQL_WORDPRESS_SELECT_QUERY_TEMPLATE_DESCRIPTORS as $descriptor ) {
+			$shape = $this->get_mysql_wordpress_select_query_template_shape( $query, $descriptor );
+			if ( null === $shape ) {
+				continue;
+			}
 
-		$cache_key = $this->get_mysql_usermeta_priming_select_template_cache_key( $shape );
-		if ( ! isset( $this->mysql_meta_priming_select_template_cache[ $cache_key ] ) ) {
-			$this->mysql_meta_priming_select_template_cache[ $cache_key ] = $this->get_mysql_usermeta_priming_select_translation_template( $shape );
-			$this->limit_mysql_query_translation_cache( $this->mysql_meta_priming_select_template_cache );
-		}
+			$cache_key = $this->get_mysql_wordpress_select_query_template_cache_key( $shape );
+			if ( ! isset( $this->mysql_wordpress_select_query_template_cache[ $cache_key ] ) ) {
+				$this->mysql_wordpress_select_query_template_cache[ $cache_key ] = $this->get_mysql_wordpress_select_query_translation_template( $shape );
+				$this->limit_mysql_query_translation_cache( $this->mysql_wordpress_select_query_template_cache );
+			}
 
-		$template = $this->mysql_meta_priming_select_template_cache[ $cache_key ];
-		return array(
-			'sql'        => $template['prefix_sql'] . implode( ', ', $this->get_mysql_usermeta_priming_select_slot_sql( $shape ) ) . $template['suffix_sql'],
-			'translated' => true,
-		);
+			$template = $this->mysql_wordpress_select_query_template_cache[ $cache_key ];
+			return array(
+				'sql'        => $template['prefix_sql'] . implode( ', ', $this->get_mysql_wordpress_select_query_template_slot_sql( $shape ) ) . $template['suffix_sql'],
+				'translated' => true,
+			);
+		}
+		return null;
 	}
-	private function get_mysql_usermeta_priming_select_template_shape( string $query ): ?array {
+	private function get_mysql_wordpress_select_query_template_shape( string $query, array $descriptor ): ?array {
 		if ( 0 === strcasecmp( $this->db_name, 'information_schema' ) ) {
 			return null;
 		}
@@ -1403,7 +1417,15 @@ class WP_PostgreSQL_Driver {
 		}
 
 		$from_position = $this->find_top_level_mysql_token( $tokens, WP_MySQL_Lexer::FROM_SYMBOL, 1, $statement_end );
-		if ( null === $from_position || ! $this->is_mysql_usermeta_priming_select_projection( $tokens, 1, $from_position ) ) {
+		if (
+			null === $from_position
+			|| ! $this->is_mysql_wordpress_select_query_template_projection(
+				$tokens,
+				1,
+				$from_position,
+				$descriptor['projection_columns']
+			)
+		) {
 			return null;
 		}
 
@@ -1424,30 +1446,40 @@ class WP_PostgreSQL_Driver {
 			|| null !== $table_reference['alias']
 			|| $table_name_for_sql !== $table_reference['table']
 			|| $position !== $where_position
-			|| ! $this->is_mysql_wordpress_table_name( $table_reference['table'], 'usermeta' )
+			|| ! $this->is_mysql_wordpress_table_name( $table_reference['table'], $descriptor['table_base'] )
 		) {
 			return null;
 		}
 
-		$where = $this->get_mysql_usermeta_priming_select_where_shape( $tokens, $where_position + 1, $order_position );
+		$where = $this->get_mysql_wordpress_select_query_template_where_shape(
+			$tokens,
+			$where_position + 1,
+			$order_position,
+			$descriptor['where_column']
+		);
 		if ( null === $where ) {
 			return null;
 		}
 
-		$order_reference = $this->get_mysql_usermeta_priming_select_order_reference( $tokens, $order_position, $statement_end );
+		$order_reference = $this->get_mysql_wordpress_select_query_template_order_reference(
+			$tokens,
+			$order_position,
+			$statement_end,
+			$descriptor['order_column'],
+			$descriptor['order_direction']
+		);
 		if ( null === $order_reference ) {
 			return null;
 		}
 
 		return array(
+			'descriptor'            => $descriptor,
 			'tokens'                => $tokens,
 			'from_position'         => $from_position,
 			'order_reference'       => $order_reference,
-			'owner_column'          => 'user_id',
 			'slot_count'            => count( $where['slots'] ),
 			'slots'                 => $where['slots'],
-			'order_column'          => 'umeta_id',
-			'static_signature'      => $this->get_mysql_usermeta_priming_select_static_signature(
+			'static_signature'      => $this->get_mysql_wordpress_select_query_template_static_signature(
 				$tokens,
 				array(
 					array( 1, $from_position ),
@@ -1463,13 +1495,13 @@ class WP_PostgreSQL_Driver {
 			'where_reference'       => $where['reference'],
 		);
 	}
-	private function is_mysql_usermeta_priming_select_projection( array $tokens, int $start, int $end ): bool {
+	private function is_mysql_wordpress_select_query_template_projection( array $tokens, int $start, int $end, array $columns ): bool {
 		$ranges = $this->split_top_level_mysql_arguments( $tokens, $start, $end );
-		if ( null === $ranges || 3 !== count( $ranges ) ) {
+		if ( null === $ranges || count( $columns ) !== count( $ranges ) ) {
 			return false;
 		}
 
-		foreach ( array( 'user_id', 'meta_key', 'meta_value' ) as $index => $column ) {
+		foreach ( $columns as $index => $column ) {
 			$reference = $this->parse_mysql_column_reference( $tokens, $ranges[ $index ]['start'], $ranges[ $index ]['end'] );
 			if (
 				null === $reference
@@ -1482,12 +1514,12 @@ class WP_PostgreSQL_Driver {
 		}
 		return true;
 	}
-	private function get_mysql_usermeta_priming_select_where_shape( array $tokens, int $start, int $end ): ?array {
+	private function get_mysql_wordpress_select_query_template_where_shape( array $tokens, int $start, int $end, string $column ): ?array {
 		$reference = $this->parse_mysql_column_reference( $tokens, $start, $end );
 		if (
 			null === $reference
 			|| null !== $reference['qualifier']
-			|| 0 !== strcasecmp( $reference['column'], 'user_id' )
+			|| 0 !== strcasecmp( $reference['column'], $column )
 			|| ! isset( $tokens[ $reference['end'] ], $tokens[ $reference['end'] + 1 ] )
 			|| WP_MySQL_Lexer::IN_SYMBOL !== $tokens[ $reference['end'] ]->id
 			|| WP_MySQL_Lexer::OPEN_PAR_SYMBOL !== $tokens[ $reference['end'] + 1 ]->id
@@ -1507,7 +1539,7 @@ class WP_PostgreSQL_Driver {
 
 		$slots = array();
 		foreach ( $items as $item ) {
-			$form = $this->get_mysql_usermeta_priming_select_slot_form( $tokens, $item );
+			$form = $this->get_mysql_wordpress_select_query_template_slot_form( $tokens, $item );
 			if ( null === $form ) {
 				return null;
 			}
@@ -1523,12 +1555,12 @@ class WP_PostgreSQL_Driver {
 			'slots'     => $slots,
 		);
 	}
-	private function get_mysql_usermeta_priming_select_order_reference( array $tokens, int $order_position, int $statement_end ): ?array {
+	private function get_mysql_wordpress_select_query_template_order_reference( array $tokens, int $order_position, int $statement_end, string $column, string $direction ): ?array {
 		if (
 			$order_position + 4 !== $statement_end
 			|| ! isset( $tokens[ $order_position + 1 ], $tokens[ $order_position + 3 ] )
 			|| WP_MySQL_Lexer::BY_SYMBOL !== $tokens[ $order_position + 1 ]->id
-			|| WP_MySQL_Lexer::ASC_SYMBOL !== $tokens[ $order_position + 3 ]->id
+			|| ! $this->is_mysql_wordpress_select_query_template_order_direction( $tokens[ $order_position + 3 ], $direction )
 		) {
 			return null;
 		}
@@ -1537,11 +1569,17 @@ class WP_PostgreSQL_Driver {
 		return null !== $reference
 			&& null === $reference['qualifier']
 			&& $reference['end'] === $order_position + 3
-			&& 0 === strcasecmp( $reference['column'], 'umeta_id' )
+			&& 0 === strcasecmp( $reference['column'], $column )
 			? $reference
 			: null;
 	}
-	private function get_mysql_usermeta_priming_select_slot_form( array $tokens, array $item ): ?string {
+	private function is_mysql_wordpress_select_query_template_order_direction( WP_MySQL_Token $token, string $direction ): bool {
+		if ( 0 === strcasecmp( $direction, 'ASC' ) ) {
+			return WP_MySQL_Lexer::ASC_SYMBOL === $token->id;
+		}
+		return 0 === strcasecmp( $direction, 'DESC' ) && WP_MySQL_Lexer::DESC_SYMBOL === $token->id;
+	}
+	private function get_mysql_wordpress_select_query_template_slot_form( array $tokens, array $item ): ?string {
 		if ( $item['start'] + 1 !== $item['end'] || ! isset( $tokens[ $item['start'] ] ) ) {
 			return null;
 		}
@@ -1554,7 +1592,7 @@ class WP_PostgreSQL_Driver {
 			? 'literal:' . (string) $tokens[ $item['start'] ]->id
 			: null;
 	}
-	private function get_mysql_usermeta_priming_select_static_signature( array $tokens, array $ranges ): string {
+	private function get_mysql_wordpress_select_query_template_static_signature( array $tokens, array $ranges ): string {
 		$parts = array();
 		foreach ( $ranges as $range ) {
 			for ( $i = $range[0]; $i < $range[1]; $i++ ) {
@@ -1564,7 +1602,8 @@ class WP_PostgreSQL_Driver {
 		}
 		return implode( '|', $parts );
 	}
-	private function get_mysql_usermeta_priming_select_template_cache_key( array $shape ): string {
+	private function get_mysql_wordpress_select_query_template_cache_key( array $shape ): string {
+		$descriptor = $shape['descriptor'];
 		return sha1(
 			implode(
 				"\0",
@@ -1574,9 +1613,12 @@ class WP_PostgreSQL_Driver {
 					implode( ',', $this->active_sql_modes ),
 					$shape['table_schema'],
 					$shape['table_name'],
-					'usermeta',
-					$shape['owner_column'],
-					$shape['order_column'],
+					$descriptor['name'],
+					$descriptor['table_base'],
+					implode( ',', $descriptor['projection_columns'] ),
+					$descriptor['where_column'],
+					$descriptor['order_column'],
+					$descriptor['order_direction'],
 					(string) $shape['slot_count'],
 					implode( ',', array_column( $shape['slots'], 'form' ) ),
 					$shape['static_signature'],
@@ -1584,7 +1626,7 @@ class WP_PostgreSQL_Driver {
 			)
 		);
 	}
-	private function get_mysql_usermeta_priming_select_translation_template( array $shape ): array {
+	private function get_mysql_wordpress_select_query_translation_template( array $shape ): array {
 		$tokens = $shape['tokens'];
 		return array(
 			'prefix_sql' => sprintf(
@@ -1602,16 +1644,17 @@ class WP_PostgreSQL_Driver {
 				)
 			),
 			'suffix_sql' => sprintf(
-				') ORDER BY %s ASC',
+				') ORDER BY %s %s',
 				$this->translate_mysql_token_sequence_to_postgresql(
 					$tokens,
 					$shape['order_reference']['start'],
 					$shape['order_reference']['end']
-				)
+				),
+				$shape['descriptor']['order_direction']
 			),
 		);
 	}
-	private function get_mysql_usermeta_priming_select_slot_sql( array $shape ): array {
+	private function get_mysql_wordpress_select_query_template_slot_sql( array $shape ): array {
 		$slot_sql = array();
 		foreach ( $shape['slots'] as $slot ) {
 			$slot_sql[] = $this->translate_mysql_token_sequence_to_postgresql( $shape['tokens'], $slot['start'], $slot['end'] );
@@ -3248,7 +3291,7 @@ class WP_PostgreSQL_Driver {
 		$this->mysql_dml_identity_repair_eligibility_cache     = array();
 		$this->mysql_unique_index_metadata_introspection_cache = array();
 		$this->mysql_select_translation_cache                  = array();
-		$this->mysql_meta_priming_select_template_cache        = array();
+		$this->mysql_wordpress_select_query_template_cache     = array();
 		$this->mysql_sql_calc_found_rows_count_query_cache     = array();
 	}
 

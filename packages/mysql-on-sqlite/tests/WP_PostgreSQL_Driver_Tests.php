@@ -11499,9 +11499,9 @@ class WP_PostgreSQL_Driver_Tests extends TestCase {
 	}
 
 	/**
-	 * Tests usermeta priming SELECT templates reuse shape without stale literals.
+	 * Tests WordPress SELECT query templates reuse shape without stale literals.
 	 */
-	public function test_usermeta_priming_select_template_cache_reuses_shape_without_stale_literals(): void {
+	public function test_wordpress_select_query_template_cache_reuses_shape_without_stale_literals(): void {
 		$driver = $this->create_backendless_driver();
 
 		$first = $this->translate_driver_query_data_with_private_method(
@@ -11517,7 +11517,7 @@ class WP_PostgreSQL_Driver_Tests extends TestCase {
 			$first['sql']
 		);
 
-		$cache = $this->get_driver_private_property( $driver, 'mysql_meta_priming_select_template_cache' );
+		$cache = $this->get_driver_private_property( $driver, 'mysql_wordpress_select_query_template_cache' );
 		$this->assertCount( 1, $cache );
 
 		$template = reset( $cache );
@@ -11538,14 +11538,14 @@ class WP_PostgreSQL_Driver_Tests extends TestCase {
 		$this->assertStringNotContainsString( '(11)', $second['sql'] );
 		$this->assertSame(
 			$cache,
-			$this->get_driver_private_property( $driver, 'mysql_meta_priming_select_template_cache' )
+			$this->get_driver_private_property( $driver, 'mysql_wordpress_select_query_template_cache' )
 		);
 	}
 
 	/**
-	 * Tests placeholder and literal usermeta priming SELECT templates are distinct.
+	 * Tests placeholder and literal WordPress SELECT query templates are distinct.
 	 */
-	public function test_usermeta_priming_select_template_cache_separates_placeholder_and_literal_slots(): void {
+	public function test_wordpress_select_query_template_cache_separates_placeholder_and_literal_slots(): void {
 		$driver = $this->create_backendless_driver();
 
 		$literal     = $this->translate_driver_query_data_with_private_method(
@@ -11571,14 +11571,14 @@ class WP_PostgreSQL_Driver_Tests extends TestCase {
 		);
 		$this->assertCount(
 			2,
-			$this->get_driver_private_property( $driver, 'mysql_meta_priming_select_template_cache' )
+			$this->get_driver_private_property( $driver, 'mysql_wordpress_select_query_template_cache' )
 		);
 	}
 
 	/**
-	 * Tests multi-slot usermeta priming SELECT templates preserve slot order and count.
+	 * Tests multi-slot WordPress SELECT query templates preserve slot order and count.
 	 */
-	public function test_usermeta_priming_select_template_cache_preserves_multi_slot_lists(): void {
+	public function test_wordpress_select_query_template_cache_preserves_multi_slot_lists(): void {
 		$driver = $this->create_backendless_driver();
 
 		$placeholders = $this->translate_driver_query_data_with_private_method(
@@ -11604,14 +11604,49 @@ class WP_PostgreSQL_Driver_Tests extends TestCase {
 		);
 		$this->assertCount(
 			2,
-			$this->get_driver_private_property( $driver, 'mysql_meta_priming_select_template_cache' )
+			$this->get_driver_private_property( $driver, 'mysql_wordpress_select_query_template_cache' )
+		);
+	}
+
+	/**
+	 * Tests mixed placeholder/literal WordPress SELECT query templates preserve slot order.
+	 */
+	public function test_wordpress_select_query_template_cache_preserves_mixed_slot_order(): void {
+		$driver = $this->create_backendless_driver();
+
+		$first = $this->translate_driver_query_data_with_private_method(
+			$driver,
+			'get_mysql_select_query_translation',
+			'SELECT user_id, meta_key, meta_value FROM wp_usermeta WHERE user_id IN (7, ?, 11) ORDER BY umeta_id ASC'
+		);
+		$cache = $this->get_driver_private_property( $driver, 'mysql_wordpress_select_query_template_cache' );
+
+		$second = $this->translate_driver_query_data_with_private_method(
+			$driver,
+			'get_mysql_select_query_translation',
+			'SELECT user_id, meta_key, meta_value FROM wp_usermeta WHERE user_id IN (9, ?, 2) ORDER BY umeta_id ASC'
+		);
+
+		$this->assertIsArray( $first );
+		$this->assertIsArray( $second );
+		$this->assertSame(
+			'SELECT user_id, meta_key, meta_value FROM wp_usermeta WHERE user_id IN (7, ?, 11) ORDER BY umeta_id ASC',
+			$first['sql']
+		);
+		$this->assertSame(
+			'SELECT user_id, meta_key, meta_value FROM wp_usermeta WHERE user_id IN (9, ?, 2) ORDER BY umeta_id ASC',
+			$second['sql']
+		);
+		$this->assertSame(
+			$cache,
+			$this->get_driver_private_property( $driver, 'mysql_wordpress_select_query_template_cache' )
 		);
 	}
 
 	/**
 	 * Tests quoted identifiers and prefixed usermeta table names preserve translator output.
 	 */
-	public function test_usermeta_priming_select_template_cache_preserves_quoted_prefixed_table_translation(): void {
+	public function test_wordpress_select_query_template_cache_preserves_quoted_prefixed_table_translation(): void {
 		$driver = $this->create_backendless_driver();
 		$query  = 'SELECT `user_id`, `meta_key`, `meta_value` FROM `wptests_usermeta` WHERE `user_id` IN (4, 5) ORDER BY `umeta_id` ASC';
 
@@ -11629,9 +11664,9 @@ class WP_PostgreSQL_Driver_Tests extends TestCase {
 	}
 
 	/**
-	 * Tests usermeta priming SELECT near misses stay on the normal translation path.
+	 * Tests WordPress SELECT query template near misses stay on the normal translation path.
 	 */
-	public function test_usermeta_priming_select_template_cache_rejects_near_misses(): void {
+	public function test_wordpress_select_query_template_cache_rejects_near_misses(): void {
 		$driver = $this->create_backendless_driver();
 
 		$queries = array(
@@ -11645,14 +11680,14 @@ class WP_PostgreSQL_Driver_Tests extends TestCase {
 		foreach ( $queries as $label => $query ) {
 			$translation = $this->translate_driver_query_data_with_private_method(
 				$driver,
-				'get_mysql_usermeta_priming_select_template_translation',
+				'get_mysql_wordpress_select_query_template_translation',
 				$query
 			);
 
 			$this->assertNull( $translation, $label );
 			$this->assertSame(
 				array(),
-				$this->get_driver_private_property( $driver, 'mysql_meta_priming_select_template_cache' ),
+				$this->get_driver_private_property( $driver, 'mysql_wordpress_select_query_template_cache' ),
 				$label
 			);
 		}

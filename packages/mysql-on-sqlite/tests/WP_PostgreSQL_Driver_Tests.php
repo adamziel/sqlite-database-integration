@@ -692,6 +692,166 @@ class WP_PostgreSQL_Driver_Tests extends TestCase {
 	}
 
 	/**
+	 * Tests top-level dispatch rules are readable descriptors covering key branches.
+	 */
+	public function test_mysql_top_level_dispatch_rules_are_named_descriptors(): void {
+		$rules = $this->get_private_driver_rule_descriptors( 'get_mysql_top_level_query_dispatch_rules' );
+
+		$this->assert_rule_descriptors_use_string_keys( $rules );
+		$this->assertSame(
+			array(
+				'result:execute_mysql_runtime_setting_query',
+				'parse_result:get_mysql_use_database_name',
+				'parse_result:get_mysql_transaction_control_query',
+				'parse_result:get_mysql_savepoint_query',
+				'fetch_result:execute_mysql_static_select_query',
+				'fetch_result:execute_mysql_show_query',
+				'reject_unsupported_constructs',
+				'translate_first',
+				'reject_untranslated:should_reject_information_schema_backend_query',
+				'parse_result:get_mysql_lock_tables_query',
+				'parse_noop:get_mysql_flush_query',
+				'parse_result:get_mysql_truncate_table_query',
+				'parse_result:get_found_rows_query_column_name',
+				'parse_result:translate_mysql_create_table_select_query',
+				'parse_result:translate_mysql_create_table_like_query',
+				'reject_if:contains_unsupported_mysql_create_table_column_attribute_query',
+				'result:execute_mysql_create_table_query',
+				'parse_statements:translate_mysql_view_query',
+				'parse_result:translate_mysql_create_index_query',
+				'message:get_unsupported_mysql_create_statement_message',
+				'parse_result:translate_mysql_dbdelta_alter_table_query',
+				'reject_statement_prefix:Unsupported ALTER TABLE statement.',
+				'parse_statements:translate_mysql_view_query',
+				'parse_admin:translate_mysql_drop_table_query',
+				'parse_admin:translate_mysql_drop_view_query',
+				'parse_admin:translate_mysql_drop_index_query',
+				'message:get_unsupported_mysql_drop_statement_message',
+				'parse_admin:translate_mysql_rename_table_query',
+				'reject_statement_prefix:Unsupported RENAME TABLE statement.',
+				'fetch_result:execute_mysql_metadata_show_query',
+			),
+			$this->get_dispatch_rule_descriptor_order_signature( $rules )
+		);
+
+		$this->assert_rule_descriptor_exists(
+			$rules,
+			array(
+				'action'   => 'result',
+				'executor' => 'execute_mysql_runtime_setting_query',
+			),
+			'SET runtime rules should dispatch through the named result executor.'
+		);
+		$this->assert_rule_descriptor_exists(
+			$rules,
+			array(
+				'action'   => 'fetch_result',
+				'executor' => 'execute_mysql_show_query',
+			),
+			'SHOW rules should dispatch through the named fetch-result executor.'
+		);
+		$this->assert_rule_descriptor_exists(
+			$rules,
+			array(
+				'action'   => 'fetch_result',
+				'executor' => 'execute_mysql_metadata_show_query',
+			),
+			'DESCRIBE and metadata SHOW rules should stay on the metadata fetch-result path.'
+		);
+		$this->assert_rule_descriptor_exists(
+			$rules,
+			array(
+				'action'   => 'parse_result',
+				'parser'   => 'get_mysql_transaction_control_query',
+				'executor' => 'execute_mysql_transaction_control_query',
+			),
+			'Transaction-control rules should name both parser and executor.'
+		);
+		$this->assert_rule_descriptor_exists(
+			$rules,
+			array(
+				'action' => 'reject_unsupported_constructs',
+			),
+			'Unsupported-result guards should stay explicit in the dispatch table.'
+		);
+	}
+
+	/**
+	 * Tests DML rewrite rules are readable descriptors covering representative rewrites.
+	 */
+	public function test_mysql_dml_rewrite_rules_are_named_descriptors(): void {
+		$rules = $this->get_private_driver_rule_descriptors( 'get_mysql_dml_rewrite_rules' );
+
+		$this->assert_rule_descriptors_use_string_keys( $rules );
+		$this->assertSame(
+			array(
+				'translate_wordpress_options_regexp_delete_query:sql',
+				'translate_wordpress_expired_transients_delete_query:execute_statement',
+				'translate_mysql_left_join_orphan_delete_query:sql',
+				'translate_mysql_multi_target_delete_query:execute_multi_target_delete',
+				'translate_mysql_single_target_join_delete_query:sql',
+				'translate_simple_mysql_delete_query:sql',
+				'Unsupported DELETE statement.:unsupported',
+				'translate_mysql_on_duplicate_key_update_query:upsert',
+				'Unsupported ON DUPLICATE KEY UPDATE statement.:unsupported',
+				'translate_simple_mysql_replace_query:replace',
+				'Unsupported REPLACE statement.:unsupported',
+				'translate_simple_mysql_insert_query:dml',
+				'Unsupported INSERT statement.:unsupported',
+				'translate_simple_mysql_insert_select_query:dml',
+				'Unsupported INSERT statement.:unsupported',
+				'translate_mysql_cte_prefixed_update_query:sql',
+				'translate_mysql_multi_target_update_query:multi_target_update',
+				'translate_simple_mysql_update_query:update',
+				'Unsupported UPDATE statement.:unsupported',
+			),
+			$this->get_dml_rewrite_rule_descriptor_order_signature( $rules )
+		);
+
+		foreach (
+			array(
+				'INSERT'  => array(
+					'tokens'     => WP_MySQL_Lexer::INSERT_SYMBOL,
+					'translator' => 'translate_simple_mysql_insert_query',
+					'result'     => 'dml',
+				),
+				'REPLACE' => array(
+					'tokens'     => WP_MySQL_Lexer::REPLACE_SYMBOL,
+					'translator' => 'translate_simple_mysql_replace_query',
+					'result'     => 'replace',
+				),
+				'UPDATE'  => array(
+					'tokens'     => WP_MySQL_Lexer::UPDATE_SYMBOL,
+					'translator' => 'translate_simple_mysql_update_query',
+					'result'     => 'update',
+				),
+				'DELETE'  => array(
+					'tokens'     => WP_MySQL_Lexer::DELETE_SYMBOL,
+					'translator' => 'translate_simple_mysql_delete_query',
+					'result'     => 'sql',
+				),
+			) as $statement_type => $expected_rule
+		) {
+			$this->assert_rule_descriptor_exists(
+				$rules,
+				$expected_rule,
+				$statement_type . ' rewrite rules should name tokens, translator, and result handling.'
+			);
+		}
+
+		$this->assert_rule_descriptor_exists(
+			$rules,
+			array(
+				'tokens'             => array( WP_MySQL_Lexer::UPDATE_SYMBOL, WP_MySQL_Lexer::WITH_SYMBOL ),
+				'message'            => 'Unsupported UPDATE statement.',
+				'guard'              => 'is_unsupported_mysql_update_rewrite_query',
+				'skip_if_translated' => true,
+			),
+			'Unsupported UPDATE handling should name the guard and translated-query skip behavior.'
+		);
+	}
+
+	/**
 	 * Tests non-strict INSERT normalizes invalid date/time literals using MySQL metadata.
 	 */
 	public function test_non_strict_insert_normalizes_invalid_date_time_literals_from_mysql_metadata(): void {
@@ -33788,6 +33948,90 @@ $$'
 		sort( $functions );
 
 		return $functions;
+	}
+
+	/**
+	 * Get private driver rule descriptors without opening a backend connection.
+	 *
+	 * @param string $method_name Private descriptor method name.
+	 * @return array Rule descriptors.
+	 */
+	private function get_private_driver_rule_descriptors( string $method_name ): array {
+		$driver_reflection = new ReflectionClass( WP_PostgreSQL_Driver::class );
+		$driver            = $driver_reflection->newInstanceWithoutConstructor();
+		$get_rules         = Closure::bind(
+			function ( string $bound_method_name ): array {
+				return $this->$bound_method_name();
+			},
+			$driver,
+			WP_PostgreSQL_Driver::class
+		);
+
+		return $get_rules( $method_name );
+	}
+
+	/**
+	 * Assert rule descriptors do not expose dense positional tuple keys.
+	 *
+	 * @param array $rules Rule descriptors.
+	 */
+	private function assert_rule_descriptors_use_string_keys( array $rules ): void {
+		$this->assertNotEmpty( $rules );
+		foreach ( $rules as $rule ) {
+			$this->assertIsArray( $rule );
+			foreach ( array_keys( $rule ) as $key ) {
+				$this->assertIsString( $key, 'Rule descriptors should use named string keys.' );
+			}
+		}
+	}
+
+	/**
+	 * Get stable top-level dispatch rule order signatures.
+	 *
+	 * @param array $rules Top-level dispatch rule descriptors.
+	 * @return array Rule order signature.
+	 */
+	private function get_dispatch_rule_descriptor_order_signature( array $rules ): array {
+		$signature = array();
+		foreach ( $rules as $rule ) {
+			$target      = $rule['parser'] ?? $rule['executor'] ?? $rule['predicate'] ?? $rule['message_provider'] ?? $rule['message'] ?? null;
+			$signature[] = null === $target ? $rule['action'] : $rule['action'] . ':' . $target;
+		}
+		return $signature;
+	}
+
+	/**
+	 * Get stable DML rewrite rule order signatures.
+	 *
+	 * @param array $rules DML rewrite rule descriptors.
+	 * @return array Rule order signature.
+	 */
+	private function get_dml_rewrite_rule_descriptor_order_signature( array $rules ): array {
+		$signature = array();
+		foreach ( $rules as $rule ) {
+			$signature[] = ( $rule['translator'] ?? $rule['message'] ) . ':' . ( $rule['result'] ?? 'unsupported' );
+		}
+		return $signature;
+	}
+
+	/**
+	 * Assert at least one rule contains all expected descriptor fields.
+	 *
+	 * @param array  $rules         Rule descriptors.
+	 * @param array  $expected_rule Expected field/value pairs.
+	 * @param string $message       Failure message.
+	 */
+	private function assert_rule_descriptor_exists( array $rules, array $expected_rule, string $message ): void {
+		foreach ( $rules as $rule ) {
+			foreach ( $expected_rule as $field => $expected_value ) {
+				if ( ! array_key_exists( $field, $rule ) || $expected_value !== $rule[ $field ] ) {
+					continue 2;
+				}
+			}
+			$this->addToAssertionCount( 1 );
+			return;
+		}
+		$this->fail( $message );
 	}
 
 	/**
